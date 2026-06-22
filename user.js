@@ -3,7 +3,7 @@
  */
 'use strict';
 
-let CU = null, D = null, mPE = 'PE1', _arTimer = null, _lastUpdated = null, _menuOpen = false, _peInited = false;
+let CU = null, D = null, mPE = 'PE1', _arTimer = null, _lastUpdated = null, _menuOpen = false, _peInited = false, _rptUserLoaded = false;
 
 const CRITERIOS_DEFAULT = [
   { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
@@ -246,14 +246,132 @@ function switchTab(tab, btn) {
   document.getElementById(`tab-${tab}`)?.classList.add('active');
   document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
+  if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
 }
 function switchTabMobile(tab, btn) {
   switchTab(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
   closeMenu();
-  const tabs=['scores','rubrica','cal'], idx=tabs.indexOf(tab);
+  const tabs=['scores','rubrica','cal','reportes'], idx=tabs.indexOf(tab);
   document.querySelectorAll('#desktop-nav .tnav').forEach((b,i)=>b.classList.toggle('active',i===idx));
+}
+
+/* ── TAB: REPORTES (usuario) ── */
+function renderUserReport() {
+  _rptUserLoaded = true;
+  const el = document.getElementById('rpt-user-body'); if (!el) return;
+  if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
+
+  const criterios = getCriterios();
+  const pes       = ['PE1','PE2','PE3'];
+  const data      = pes.map(pe => {
+    const row = D.scores?.[pe]?.find(r => r.usuario === CU.user);
+    return row ? { pe, row, total: calcScore(row) } : null;
+  }).filter(Boolean);
+
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">No tienes evaluaciones disponibles aún.</div></div>`;
+    return;
+  }
+
+  const avg   = data.reduce((s,d)=>s+d.total,0) / data.length;
+  const best  = data.reduce((b,d)=>d.total>b.total?d:b);
+  const trend = data.length >= 2 ? data[data.length-1].total - data[0].total : 0;
+  const trendTxt = trend > 0 ? `+${trend} vs PE1` : trend < 0 ? `${trend} vs PE1` : 'Sin cambio';
+  const trendColor = trend > 0 ? 'var(--sex)' : trend < 0 ? 'var(--sba)' : 'var(--muted)';
+  const MAX   = MAX_TOTAL();
+
+  const critAvg = criterios.map(c => {
+    const vals = data.map(d => d.row[c.key] || 0);
+    return { ...c, avg: vals.reduce((s,v)=>s+v,0) / vals.length };
+  }).sort((a,b) => b.avg - a.avg);
+
+  el.innerHTML = `
+    <div class="urpt-header">
+      <div class="urpt-name">${CU.name || CU.user}</div>
+      <div class="urpt-meta">Períodos evaluados: ${data.map(d=>d.pe).join(' · ')}</div>
+    </div>
+
+    <div class="urpt-kpi-row">
+      <div class="urpt-kpi">
+        <div class="urpt-kpi-val" style="color:${scoreColor(best.total)}">${best.total}</div>
+        <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${best.pe}</span></div>
+      </div>
+      <div class="urpt-kpi">
+        <div class="urpt-kpi-val" style="color:var(--accent2)">${avg.toFixed(1)}</div>
+        <div class="urpt-kpi-lbl">Promedio<br><span style="font-size:.7rem;color:var(--muted)">/ ${MAX} pts</span></div>
+      </div>
+      <div class="urpt-kpi">
+        <div class="urpt-kpi-val" style="color:${trendColor}">${trendTxt}</div>
+        <div class="urpt-kpi-lbl">Tendencia</div>
+      </div>
+      <div class="urpt-kpi">
+        <div class="urpt-kpi-val"><span class="nivel-badge ${scoreClass(best.total)}">${scoreLabel(best.total)}</span></div>
+        <div class="urpt-kpi-lbl">Mejor nivel</div>
+      </div>
+    </div>
+
+    <div class="urpt-section-lbl">Historial por período</div>
+    <div class="urpt-history">
+      ${data.map(d => {
+        const pct = Math.round((d.total / MAX) * 100);
+        return `
+          <div class="urpt-hist-card">
+            <div class="urpt-hist-pe">${d.pe}</div>
+            <div class="urpt-hist-bar-track">
+              <div class="urpt-hist-bar-fill" style="width:${pct}%;background:${scoreColor(d.total)}"></div>
+            </div>
+            <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}<span style="font-size:.65rem;color:var(--muted);font-weight:400">/${MAX}</span></div>
+            <span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="urpt-bottom">
+      <div class="urpt-section urpt-section-crit">
+        <div class="urpt-section-lbl">Promedio por criterio</div>
+        ${critAvg.map((c, i) => {
+          const pct = (c.avg / 4) * 100;
+          const tag = i === 0 ? '↑ Mejor' : i === critAvg.length - 1 ? '↓ A mejorar' : '';
+          return `<div class="urpt-crit-row">
+            <div class="urpt-crit-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
+            <div class="urpt-crit-bar-track">
+              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:${c.color}"></div>
+            </div>
+            <div class="urpt-crit-val">${c.avg.toFixed(1)}</div>
+            ${tag ? `<div class="urpt-crit-tag" style="color:${i===0?'var(--sex)':'var(--sba)'}">${tag}</div>` : '<div></div>'}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="urpt-section urpt-section-table">
+        <div class="urpt-section-lbl">Detalle por período</div>
+        <div class="urpt-table-wrap">
+          <table class="urpt-table">
+            <thead>
+              <tr>
+                <th class="urpt-th">PE</th>
+                ${criterios.map(c=>`<th class="urpt-th" title="${c.label}" style="color:${c.color}">${c.abbr}</th>`).join('')}
+                <th class="urpt-th">Bono</th>
+                <th class="urpt-th">Total</th>
+                <th class="urpt-th">Nivel</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(d=>`
+                <tr>
+                  <td class="urpt-td urpt-td-pe">${d.pe}</td>
+                  ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${d.row[c.key]||0}</td>`).join('')}
+                  <td class="urpt-td urpt-td-s">${d.row.ext||0}</td>
+                  <td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>
+                  <td class="urpt-td"><span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
 }
 
 /* ── MENÚ ── */

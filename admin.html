@@ -36,6 +36,7 @@
     <button class="tnav"        onclick="switchTab('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
     <button class="tnav"        onclick="switchTab('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i> Cal.</button>
     <button class="tnav"        onclick="switchTab('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
+    <button class="tnav"        onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
   </nav>
   <div class="tb-user">
     <span class="last-updated-badge" id="ts-badge"></span>
@@ -60,6 +61,7 @@
     <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
@@ -124,6 +126,7 @@
     <div class="ptitle">USUARIOS</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
+      <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" oninput="renderUsuarios()">
     </div>
     <div class="admin-pe-bar users-pe-bar">
       <span class="pe-label">Período activo:</span>
@@ -137,6 +140,7 @@
     <div class="ptitle">ROLES</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
+      <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" oninput="renderRoles()">
       <button class="btn-cfg-add" onclick="showRolModal()">+ Nuevo rol</button>
     </div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -147,6 +151,7 @@
     <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
+      <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" oninput="renderPeriodos()">
       <button class="btn-cfg-add" onclick="showPeriodoModal()">+ Nuevo período</button>
     </div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -159,6 +164,7 @@
     <div class="section-label">Criterios de evaluación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
+      <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" oninput="renderCriterios()">
       <button class="btn-cfg-add" onclick="showCriterioModal()">+ Nuevo criterio</button>
     </div>
     <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -166,6 +172,7 @@
     <div class="section-label" style="margin-top:32px">Tabla de puntuación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
+      <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" oninput="renderRubrica()">
       <button class="btn-cfg-add" onclick="showRubricaModal()">+ Nueva entrada</button>
     </div>
     <div class="rubrica-wrap" style="max-width:900px">
@@ -177,6 +184,7 @@
   <div id="tab-calendario" class="atab-content">
     <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
     <div class="cal-editor-toolbar">
+      <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" oninput="renderCalendario()">
       <button class="btn-add-evento" onclick="showCalModal()">+ Agregar actividad</button>
     </div>
     <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -193,7 +201,10 @@
       </div>
     </div>
 
-    <div class="section-label">Ranking de distritos</div>
+    <div class="section-label" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      Ranking de distritos
+      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" oninput="renderDistritoRanking(_activePEDist?.id)" style="font-size:.75rem;padding:5px 12px;margin-left:auto">
+    </div>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
     </div>
@@ -208,6 +219,26 @@
     <div id="dist-eval-area">
       <div class="empty-box" style="margin-top:8px">
         <div class="empty-txt">Selecciona un distrito para ver y editar su evaluación.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: REPORTES ── -->
+  <div id="tab-reportes" class="atab-content">
+    <div class="ptitle no-print">REPORTES</div>
+    <div class="rpt-toolbar no-print">
+      <div class="rpt-pe-wrap">
+        <span class="eval-pe-lbl">Período:</span>
+        <div id="rpt-pe-btns"></div>
+      </div>
+      <button class="btn-save btn-print-rpt" onclick="printAdminReport()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Descargar PDF
+      </button>
+    </div>
+    <div id="rpt-body">
+      <div class="empty-box" style="margin-top:40px">
+        <div class="empty-txt">Selecciona un período para generar el reporte.</div>
       </div>
     </div>
   </div>

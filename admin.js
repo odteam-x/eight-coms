@@ -19,6 +19,8 @@ let _activeDistId   = null;
 let _overviewEvals      = [];
 let _overviewDistEvals  = [];
 let _ovInactivosPE      = new Set();
+let _rptPE              = null;
+let _rptEvals           = {};
 let _rankingTab         = 'users';
 let _inactivosPE        = new Set();
 let _menuOpen       = false;
@@ -60,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderOvPEBar();
   renderEvalPEBar();
   renderUsuariosPEBar();
+  renderRptPEBar();
   renderUsuarios();
   renderRoles();
   renderPeriodos();
@@ -167,11 +170,11 @@ function renderEvalForm(ev, evaluadoId) {
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
-            onclick="setScore('${c.key}',${v},this)" style="--sc:${c.color}" ${isPub?'disabled':''}>${v}</button>`).join('')}
+            onclick="setScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]||0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
-          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}" ${isPub?'disabled':''}>
+          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
       </div>
     </div>`).join('');
 
@@ -191,19 +194,26 @@ function renderEvalForm(ev, evaluadoId) {
         <label class="eval-extra-label">Bono de excelencia (0–2)</label>
         <div style="display:flex;align-items:center;gap:8px">
           ${[0,1,2].map(v => `<button class="score-btn${bono===v?' active':''}"
-            onclick="setBono(${v},this)" style="--sc:var(--sex)" ${isPub?'disabled':''}>${v}</button>`).join('')}
+            onclick="setBono(${v},this)" style="--sc:var(--sex)">${v}</button>`).join('')}
           <input type="hidden" id="sc-bono" value="${bono}">
         </div>
       </div>
 
       <div class="eval-extras">
-        <label class="eval-extra-label">Comentario general</label>
+        <label class="eval-extra-label">Notas / Comentario general</label>
         <textarea class="cfg-inp eval-com-inp" id="com-general" rows="3"
-          placeholder="Comentario general..." ${isPub?'disabled':''}>${coms.general||''}</textarea>
+          placeholder="Notas del evaluador...">${coms.general||''}</textarea>
       </div>
 
       ${isPub
-        ? `<div class="eval-pub-notice">Esta evaluación ya fue publicada. El miembro puede verla en su portal.</div>`
+        ? `<div class="eval-pub-info">
+             <span class="eval-pub-dot"></span>
+             Evaluación publicada — visible para el miembro
+           </div>
+           <div class="eval-actions">
+             <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Volver a borrador</button>
+             <button class="btn-save btn-confirm" onclick="saveEvaluacion('publicado','${evaluadoId}')">Confirmar cambios</button>
+           </div>`
         : `<div class="eval-actions">
              <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Guardar borrador</button>
              <button class="btn-save btn-publish" onclick="saveEvaluacion('publicado','${evaluadoId}')">Publicar evaluación</button>
@@ -277,8 +287,12 @@ async function selectUsersPE(periodoId, btn) {
 
 function renderUsuarios() {
   const el = document.getElementById('usuarios-list'); if (!el) return;
-  if (!_users.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">Sin usuarios.</div></div>`;
+  const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
+  const list = _users.filter(u => !q ||
+    (u.nombre||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin usuarios.'}</div></div>`;
     return;
   }
   const showPECol = !!_activePEUsers;
@@ -289,7 +303,7 @@ function renderUsuarios() {
         ${showPECol ? '<div>Estado PE</div>' : ''}
       </div>
       <div class="tbl-body">
-        ${_users.map(u => {
+        ${list.map(u => {
           const inactivo = _inactivosPE.has(u.id);
           return `
           <div class="tbl-row">
@@ -356,15 +370,17 @@ async function updateUserAdmin(userId, esAdmin) {
 /* ── TAB: ROLES ── */
 function renderRoles() {
   const el = document.getElementById('roles-list'); if (!el) return;
-  if (!_roles.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">Sin roles.</div></div>`;
+  const q = (document.getElementById('search-roles')?.value || '').toLowerCase().trim();
+  const list = _roles.filter(r => !q || (r.nombre||'').toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin roles.'}</div></div>`;
     return;
   }
   el.innerHTML = `
     <div class="tbl">
       <div class="tbl-head"><div>Nombre</div><div>Estado</div><div>Acciones</div></div>
       <div class="tbl-body">
-        ${_roles.map(r => `
+        ${list.map(r => `
           <div class="tbl-row">
             <div class="tbl-cell">${r.nombre}</div>
             <div class="tbl-cell">
@@ -417,15 +433,19 @@ async function deleteRol(id) {
 /* ── TAB: PERÍODOS ── */
 function renderPeriodos() {
   const el = document.getElementById('periodos-list'); if (!el) return;
-  if (!_periodos.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">Sin períodos.</div></div>`;
+  const q = (document.getElementById('search-periodos')?.value || '').toLowerCase().trim();
+  const list = _periodos.filter(p => !q ||
+    (p.nombre||'').toLowerCase().includes(q) ||
+    (p.descripcion||'').toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin períodos.'}</div></div>`;
     return;
   }
   el.innerHTML = `
     <div class="tbl">
       <div class="tbl-head"><div>Nombre</div><div>Descripción</div><div>Activo</div><div>Acciones</div></div>
       <div class="tbl-body">
-        ${_periodos.map(p => `
+        ${list.map(p => `
           <div class="tbl-row">
             <div class="tbl-cell"><strong>${p.nombre}</strong></div>
             <div class="tbl-cell tbl-muted">${p.descripcion || '—'}</div>
@@ -484,16 +504,21 @@ async function deletePeriodo(id) {
 /* ── TAB: RÚBRICA — criterios list ── */
 function renderCriterios() {
   const el = document.getElementById('criterios-list'); if (!el) return;
+  const q = (document.getElementById('search-criterios')?.value || '').toLowerCase().trim();
   const all = _criterios.length ? _criterios : [];
-  if (!all.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-txt">Sin criterios. Agrega el primero.</div></div>`;
+  const list = all.filter(c => !q ||
+    (c.label||'').toLowerCase().includes(q) ||
+    (c.key||'').toLowerCase().includes(q) ||
+    (c.abbr||'').toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin criterios. Agrega el primero.'}</div></div>`;
     return;
   }
   el.innerHTML = `
     <div class="tbl">
       <div class="tbl-head"><div>Color</div><div>Nombre</div><div>Abbr</div><div>Key</div><div>Orden</div><div>Estado</div><div>Acciones</div></div>
       <div class="tbl-body">
-        ${all.map(c => `
+        ${list.map(c => `
           <div class="tbl-row">
             <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};flex-shrink:0"></span></div>
             <div class="tbl-cell"><strong>${c.label}</strong></div>
@@ -561,8 +586,13 @@ async function deleteCriterioEntry(id) {
 /* ── TAB: RÚBRICA — rubrica table ── */
 function renderRubrica() {
   const el = document.getElementById('rubrica-admin-grid'); if (!el) return;
-  if (!_rubrica.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">Sin entradas de rúbrica. Agrega la primera.</div></div>`;
+  const q = (document.getElementById('search-rubrica')?.value || '').toLowerCase().trim();
+  const rubList = _rubrica.filter(r => !q ||
+    (r.criterio||'').toLowerCase().includes(q) ||
+    (r.criterios?.label||'').toLowerCase().includes(q) ||
+    (r.criterios?.abbr||'').toLowerCase().includes(q));
+  if (!rubList.length) {
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
     return;
   }
   const levels = [
@@ -572,7 +602,7 @@ function renderRubrica() {
     { n:1, lbl:'Bajo',      color:'var(--sba)' },
   ];
   const lk = { 4:'nivel4', 3:'nivel3', 2:'nivel2', 1:'nivel1' };
-  el.innerHTML = _rubrica.map((r, i) => {
+  el.innerHTML = rubList.map((r, i) => {
     const c     = r.criterios || {};
     const color = c.color || '#888';
     return `
@@ -648,14 +678,18 @@ async function deleteRubricaEntry(id) {
 /* ── TAB: CALENDARIO ── */
 function renderCalendario() {
   const el = document.getElementById('cal-editor-list'); if (!el) return;
-  if (!_calendario.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">No hay eventos. Agrega el primero.</div></div>`;
+  const q = (document.getElementById('search-calendario')?.value || '').toLowerCase().trim();
+  const list = _calendario.filter(p => !q ||
+    (p.titulo||'').toLowerCase().includes(q) ||
+    String(p.numero||'').includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
     return;
   }
   const cAcc = { rojo:'cal-acc--rojo', verde:'cal-acc--verde', azul:'cal-acc--azul', amarillo:'cal-acc--amarillo' };
   const cT   = { rojo:'cal-t--rojo',   verde:'cal-t--verde',  azul:'cal-t--azul',   amarillo:'cal-t--amarillo' };
   el.innerHTML = `<div class="cal-grid">` +
-    _calendario.map(p => {
+    list.map(p => {
       const c    = (p.color || 'rojo').toLowerCase();
       const rows = [['Inicio',p.inicio],['Fin trabajo',p.fin_trabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v]) => v);
       return `
@@ -780,13 +814,14 @@ async function renderDistritoRanking(periodoId) {
     distMap[user.distrito].scores.push(total);
   });
 
+  const q = (document.getElementById('search-distritos')?.value || '').toLowerCase().trim();
   const ranked = Object.values(distMap)
-    .filter(d => d.scores.length > 0)
+    .filter(d => d.scores.length > 0 && (!q || d.nombre.toLowerCase().includes(q)))
     .map(d => ({ ...d, avg: d.scores.reduce((a, b) => a + b, 0) / d.scores.length, count: d.scores.length }))
     .sort((a, b) => b.avg - a.avg);
 
   if (!ranked.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">Sin evaluaciones publicadas para este período.</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
     return;
   }
 
@@ -850,11 +885,11 @@ function renderDistEvalForm(ev, distId) {
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
-            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}" ${isPub?'disabled':''}>${v}</button>`).join('')}
+            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]||0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
-          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}" ${isPub?'disabled':''}>
+          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
       </div>
     </div>`).join('');
 
@@ -874,7 +909,7 @@ function renderDistEvalForm(ev, distId) {
           <div class="ig-stat-field">
             <label class="ig-stat-lbl">${f.label}</label>
             <input class="ig-stat-inp" type="text" id="ig-${f.key}"
-              placeholder="${f.placeholder}" value="${igStats[f.key] || ''}" ${isPub?'disabled':''}>
+              placeholder="${f.placeholder}" value="${igStats[f.key] || ''}">
           </div>`).join('')}
       </div>
 
@@ -882,13 +917,20 @@ function renderDistEvalForm(ev, distId) {
       <div class="eval-criterios-list">${rows}</div>
 
       <div class="eval-extras">
-        <label class="eval-extra-label">Comentario general</label>
+        <label class="eval-extra-label">Notas / Comentario general</label>
         <textarea class="cfg-inp eval-com-inp" id="dcom-general" rows="3"
-          placeholder="Comentario general..." ${isPub?'disabled':''}>${coms.general||''}</textarea>
+          placeholder="Notas del evaluador...">${coms.general||''}</textarea>
       </div>
 
       ${isPub
-        ? `<div class="eval-pub-notice">Evaluación de distrito ya publicada.</div>`
+        ? `<div class="eval-pub-info">
+             <span class="eval-pub-dot"></span>
+             Evaluación publicada — visible en el ranking de distritos
+           </div>
+           <div class="eval-actions">
+             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Volver a borrador</button>
+             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado','${distId}')">Confirmar cambios</button>
+           </div>`
         : `<div class="eval-actions">
              <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Guardar borrador</button>
              <button class="btn-save btn-publish" onclick="saveDistEval('publicado','${distId}')">Publicar</button>
@@ -1215,15 +1257,181 @@ function switchTab(tab, btn) {
   document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
   btn?.classList.add('active');
   if (tab === 'overview' && !_overviewEvals.length) loadOverview();
+  if (tab === 'reportes' && !_rptPE && _periodos.length) {
+    const def = _periodos.find(p => p.activo) || _periodos[0];
+    if (def) selectRptPE(def.id, document.querySelector('#rpt-pe-btns .rpt-pe-btn'));
+  }
 }
 function switchTabMobile(tab, btn) {
   switchTab(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b => b.classList.remove('active'));
   btn?.classList.add('active');
   closeMenu();
-  const tabs = ['overview','evaluar','usuarios','roles','periodos','rubrica','calendario','distritos'];
+  const tabs = ['overview','evaluar','usuarios','roles','periodos','rubrica','calendario','distritos','reportes'];
   const idx  = tabs.indexOf(tab);
   document.querySelectorAll('#desktop-nav .tnav').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+/* ── TAB: REPORTES ── */
+function renderRptPEBar() {
+  const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
+  if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
+  bar.innerHTML = _periodos.map(p =>
+    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE(${p.id},this)">${p.nombre}</button>`
+  ).join('');
+}
+
+async function selectRptPE(periodoId, _btn) {
+  _rptPE = _periodos.find(p => p.id === periodoId) || null;
+  document.querySelectorAll('#rpt-pe-btns .rpt-pe-btn').forEach(b => b.classList.remove('eval-pe-btn--active'));
+  _btn?.classList.add('eval-pe-btn--active');
+  if (!_rptEvals[periodoId]) {
+    document.getElementById('rpt-body').innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+    _rptEvals[periodoId] = await API.getEvaluacionesByPE(periodoId);
+  }
+  renderAdminReport();
+}
+
+function renderAdminReport() {
+  const el = document.getElementById('rpt-body'); if (!el) return;
+  if (!_rptPE) { el.innerHTML = '<div class="empty-box" style="margin-top:40px"><div class="empty-txt">Selecciona un período para generar el reporte.</div></div>'; return; }
+
+  const criterios = getCriterios();
+  const evals     = _rptEvals[_rptPE.id] || [];
+  const pub       = evals.filter(e => e.estado === 'publicado');
+  const MAX       = criterios.length * 4 + 2;
+
+  const scored = pub.map(e => ({
+    ...e,
+    score: calcScore(e.puntajes, e.bono_ext),
+    user:  _users.find(u => u.id === e.evaluado_id),
+  })).filter(e => e.user).sort((a, b) => b.score - a.score);
+
+  const nonAdmins  = _users.filter(u => !u.es_admin);
+  const evaluated  = scored.length;
+  const unevaluated = Math.max(0, nonAdmins.length - evaluated);
+  const avgScore   = evaluated ? (scored.reduce((s, e) => s + e.score, 0) / evaluated).toFixed(1) : '—';
+  const topScore   = evaluated ? Math.max(...scored.map(e => e.score)) : '—';
+
+  const dist = { sex:0, sbu:0, spr:0, sba:0 };
+  scored.forEach(e => { const k = scoreClass(e.score); dist[k] = (dist[k]||0)+1; });
+
+  const critAvg = criterios.map(c => {
+    const vals = pub.map(e => Number(e.puntajes?.[c.key]) || 0).filter(v => v > 0);
+    return { ...c, avg: vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : 0 };
+  });
+
+  const today = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+
+  el.innerHTML = `
+  <div class="rpt-page" id="rpt-print-area">
+    <div class="rpt-header">
+      <div>
+        <div class="rpt-org">EIGHT CREATORS LABs</div>
+        <div class="rpt-title-big">REPORTE DE EVALUACIONES</div>
+        <div class="rpt-period-lbl">${_rptPE.nombre}${_rptPE.descripcion ? ' · ' + _rptPE.descripcion : ''}</div>
+      </div>
+      <div class="rpt-date-wrap">
+        <div class="rpt-date-lbl">Generado el</div>
+        <div class="rpt-date-val">${today}</div>
+      </div>
+    </div>
+
+    <div class="rpt-kpi-row">
+      <div class="rpt-kpi"><div class="rpt-kpi-val">${nonAdmins.length}</div><div class="rpt-kpi-lbl">Miembros</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${evaluated}</div><div class="rpt-kpi-lbl">Evaluados</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--accent2)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${topScore}</div><div class="rpt-kpi-lbl">Puntaje más alto</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sba)">${unevaluated}</div><div class="rpt-kpi-lbl">Sin evaluar</div></div>
+    </div>
+
+    ${evaluated === 0 ? `<div class="empty-box" style="margin:32px 0"><div class="empty-txt">No hay evaluaciones publicadas en este período.</div></div>` : `
+    <div class="rpt-section-lbl">Ranking de miembros</div>
+    <div class="rpt-table-wrap">
+      <table class="rpt-table">
+        <thead>
+          <tr>
+            <th class="rpt-th rpt-th-num">#</th>
+            <th class="rpt-th">Nombre</th>
+            <th class="rpt-th">Rol</th>
+            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${c.label}">${c.abbr}</th>`).join('')}
+            <th class="rpt-th">Bono</th>
+            <th class="rpt-th">Total</th>
+            <th class="rpt-th">Nivel</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${scored.map((e, i) => `
+            <tr class="rpt-tr ${i % 2 === 0 ? 'rpt-tr-even' : ''}">
+              <td class="rpt-td rpt-td-num">${i + 1}</td>
+              <td class="rpt-td rpt-td-name">${e.user.nombre}</td>
+              <td class="rpt-td rpt-td-role">${e.user.roles?.nombre || '—'}</td>
+              ${criterios.map(c => `<td class="rpt-td rpt-td-score">${e.puntajes?.[c.key] || 0}</td>`).join('')}
+              <td class="rpt-td rpt-td-score">${e.bono_ext || 0}</td>
+              <td class="rpt-td rpt-td-total" style="color:${scoreColor(e.score)};font-weight:700">${e.score}</td>
+              <td class="rpt-td"><span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span></td>
+            </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr class="rpt-tfoot">
+            <td colspan="3" class="rpt-td" style="font-weight:600">Promedio por criterio</td>
+            ${criterios.map(c => {
+              const avg = critAvg.find(x=>x.key===c.key)?.avg||0;
+              return `<td class="rpt-td rpt-td-score" style="font-weight:600">${avg ? avg.toFixed(1) : '—'}</td>`;
+            }).join('')}
+            <td class="rpt-td">—</td>
+            <td class="rpt-td rpt-td-total" style="font-weight:700">${avgScore}</td>
+            <td class="rpt-td"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="rpt-bottom-row">
+      <div class="rpt-section rpt-section-dist">
+        <div class="rpt-section-lbl">Distribución por nivel</div>
+        <div class="rpt-dist-grid">
+          ${[
+            { key:'sex', label:'Excelente', color:'var(--sex)' },
+            { key:'sbu', label:'Bueno',     color:'var(--sbu)' },
+            { key:'spr', label:'En Proceso',color:'var(--spr)' },
+            { key:'sba', label:'Bajo',       color:'var(--sba)' },
+          ].map(n => {
+            const cnt = dist[n.key] || 0;
+            const pct = evaluated ? Math.round(cnt / evaluated * 100) : 0;
+            return `<div class="rpt-dist-item">
+              <div class="rpt-dist-bar-track"><div class="rpt-dist-bar-fill" style="height:${pct}%;background:${n.color}"></div></div>
+              <div class="rpt-dist-count" style="color:${n.color}">${cnt}</div>
+              <div class="rpt-dist-nlbl">${n.label}</div>
+              <div class="rpt-dist-pct">${pct}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="rpt-section rpt-section-crit">
+        <div class="rpt-section-lbl">Promedio por criterio</div>
+        ${critAvg.map(c => {
+          const pct = (c.avg / 4) * 100;
+          return `<div class="rpt-crit-row">
+            <div class="rpt-crit-lbl" title="${c.label}">${c.abbr}</div>
+            <div class="rpt-crit-bar-track">
+              <div class="rpt-crit-bar-fill" style="width:${pct}%;background:${c.color||'var(--accent2)'}"></div>
+            </div>
+            <div class="rpt-crit-val">${c.avg ? c.avg.toFixed(1) : '—'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    `}
+
+    <div class="rpt-footer">EIGHT CREATORS LABs · ${_rptPE.nombre} · Generado el ${today}</div>
+  </div>`;
+}
+
+function printAdminReport() {
+  if (!_rptPE) { showToast('Selecciona un período primero', 'error'); return; }
+  window.print();
 }
 
 /* ── MENÚ ── */

@@ -32,6 +32,7 @@
     <button class="tnav active" onclick="switchTab('scores',this)">Mi Score</button>
     <button class="tnav"        onclick="switchTab('rubrica',this)">Rúbrica</button>
     <button class="tnav"        onclick="switchTab('cal',this)">Calendario</button>
+    <button class="tnav"        onclick="switchTab('reportes',this)">Reportes</button>
   </nav>
   <div class="tb-user">
     <button class="btn-refresh" id="btn-refresh" onclick="handleRefresh()">
@@ -55,6 +56,7 @@
     <button class="mobile-nav-btn active" onclick="switchTabMobile('scores',this)"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('cal',this)"><i data-lucide="calendar" class="nav-icon"></i>Calendario</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
@@ -108,6 +110,14 @@
       <p class="rubrica-intro">Cada criterio se evalúa del <strong>1 al 4</strong>. Puntaje máximo: <strong>28 puntos</strong>.</p>
       <div class="rubrica-grid" id="rubrica-grid"></div>
     </div>
+  </div>
+</div>
+
+<!-- TAB: REPORTES -->
+<div id="tab-reportes" class="tab-content">
+  <div class="m-content tab-top-pad">
+    <h2 class="tab-title tab-title--mb">MI REPORTE DE DESEMPEÑO</h2>
+    <div id="rpt-user-body"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 </div>
 
