@@ -16,7 +16,7 @@ const Auth = (() => {
 
     const { data, error } = await SB
       .from('profiles')
-      .select('*, roles(id, nombre)')
+      .select('*')
       .eq('id', session.user.id)
       .single();
 
