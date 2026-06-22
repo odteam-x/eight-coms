@@ -23,13 +23,16 @@ const API = {
     });
     if (error) return { ok: false, error: error.message };
     if (data.user) {
-      const updates = {};
-      if (rol_id)       updates.rol_id       = Number(rol_id);
-      if (distrito)     updates.distrito      = distrito;
-      if (tipo_miembro) updates.tipo_miembro  = tipo_miembro;
-      if (Object.keys(updates).length) {
-        await SB.from('profiles').update(updates).eq('id', data.user.id);
-      }
+      // Upsert garantiza que el perfil existe aunque no haya trigger de DB
+      const { error: pe } = await SB.from('profiles').upsert({
+        id:           data.user.id,
+        email:        email,
+        nombre:       nombre || email.split('@')[0],
+        rol_id:       rol_id   ? Number(rol_id) : null,
+        distrito:     distrito  || null,
+        tipo_miembro: tipo_miembro || 'miembro',
+      }, { onConflict: 'id' });
+      if (pe) console.warn('[register] profiles upsert:', pe.message);
     }
     return { ok: true };
   },

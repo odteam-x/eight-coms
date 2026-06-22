@@ -415,7 +415,15 @@ async function doLogin() {
   }
 
   const profile = await Auth.getProfile(true);
-  window.location.replace(profile?.es_admin ? 'admin.html' : profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
+  if (!profile) {
+    err.textContent = 'Tu perfil no está configurado aún. Contacta al administrador o regístrate de nuevo.';
+    err.classList.add('visible');
+    load.classList.remove('visible');
+    btn.disabled = false;
+    return;
+  }
+  const tipo = profile.tipo_miembro || 'miembro';
+  window.location.replace(profile.es_admin ? 'admin.html' : tipo === 'secretario' ? 'secretario.html' : 'user.html');
 }
 </script>
 </body>

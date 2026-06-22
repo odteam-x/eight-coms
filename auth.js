@@ -53,6 +53,9 @@ const Auth = (() => {
     const profile = await getProfile();
     if (!profile) { window.location.replace('index.html'); return null; }
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
+    // tipo_miembro null/vacío se trata como 'miembro' para evitar loops
+    profile.tipo_miembro = profile.tipo_miembro || 'miembro';
+    profile.rol          = profile.tipo_miembro;
     if (profile.tipo_miembro !== role) {
       window.location.replace(_portalFor(profile));
       return null;
@@ -68,6 +71,9 @@ const Auth = (() => {
     const profile = await getProfile();
     if (!profile) { window.location.replace('index.html'); return null; }
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
+    // tipo_miembro null/vacío se trata como 'miembro' para evitar loops
+    profile.tipo_miembro = profile.tipo_miembro || 'miembro';
+    profile.rol          = profile.tipo_miembro;
     if (!roles.includes(profile.tipo_miembro)) {
       window.location.replace(_portalFor(profile));
       return null;
