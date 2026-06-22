@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#002247">
+  <title>EIGHT CREATORS LABs — Mi Portal</title>
+  <link rel="icon" type="image/x-icon" href="icono.ico">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="user.css">
+</head>
+<body>
+
+<div id="top"></div>
+<div class="bg-canvas" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+<div class="bg-grid" aria-hidden="true"></div>
+<a href="#top" class="back-top" id="back-top" aria-label="Volver arriba"></a>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="tb-brand">
+    <img src="logo.png" alt="" class="tb-logo" onerror="this.style.display='none'">
+    <span class="tb-title">EIGHT<em> CREATORS</em></span>
+  </div>
+  <nav class="tb-nav" id="desktop-nav">
+    <button class="tnav active" onclick="switchTab('scores',this)">Mi Score</button>
+    <button class="tnav"        onclick="switchTab('rubrica',this)">Rúbrica</button>
+    <button class="tnav"        onclick="switchTab('cal',this)">Calendario</button>
+  </nav>
+  <div class="tb-user">
+    <button class="btn-refresh" id="btn-refresh" onclick="handleRefresh()">
+      <svg class="refresh-icon" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A8 8 0 1 0 15 8h-1.5A6.5 6.5 0 1 1 8 1.5a6.44 6.44 0 0 1 4.59 1.91L10.5 5.5H15V1l-1.35 1.35z" fill="currentColor"/></svg>
+      Actualizar
+    </button>
+    <span class="last-updated-badge" id="ts-badge"></span>
+    <div class="avatar" id="av-desktop">?</div>
+    <span class="uname" id="uname-desktop">—</span>
+    <button class="btn-out" onclick="logout()">Salir</button>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-nav-links">
+    <button class="mobile-nav-btn active" onclick="switchTabMobile('scores',this)"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('cal',this)"><i data-lucide="calendar" class="nav-icon"></i>Calendario</button>
+    <div class="mobile-theme-row">
+      <span class="mobile-theme-lbl">Tema</span>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+    </div>
+    <button class="mobile-nav-btn mobile-nav-btn--refresh" onclick="handleRefresh();closeMenu()">
+      <svg class="refresh-icon" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A8 8 0 1 0 15 8h-1.5A6.5 6.5 0 1 1 8 1.5a6.44 6.44 0 0 1 4.59 1.91L10.5 5.5H15V1l-1.35 1.35z" fill="currentColor"/></svg>
+      &nbsp;Actualizar datos
+    </button>
+  </div>
+  <div class="mobile-user-section">
+    <div class="avatar" id="av-mobile">?</div>
+    <div class="mobile-uinfo">
+      <div class="mobile-uname" id="uname-mobile">—</div>
+      <div class="mobile-urole">Miembro del equipo</div>
+      <div class="last-updated-badge" id="ts-badge-mob"></div>
+    </div>
+    <button class="btn-out-mobile" onclick="logout()">Salir</button>
+  </div>
+</div>
+
+<!-- TAB: MI SCORE -->
+<div id="tab-scores" class="tab-content active">
+  <div class="m-hero">
+    <div class="m-hero-inner">
+      <div class="hero-left">
+        <div class="m-tag">CREATORS SCORE SYSTEM · CELIDER</div>
+        <div class="m-name-big" id="hero-name">—</div>
+        <div class="m-pe-label">Período activo: <span id="hero-pe">PE1</span></div>
+      </div>
+      <div class="hero-right">
+        <div class="score-big" id="hero-score">—</div>
+        <div class="score-lbl">/ <span id="hero-max">28</span> PTS · <span id="hero-nivel">—</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="m-content">
+    <div class="pe-row">
+      <button class="pb active" onclick="selectPE('PE1',this)">PE1</button>
+      <button class="pb"        onclick="selectPE('PE2',this)">PE2</button>
+      <button class="pb"        onclick="selectPE('PE3',this)">PE3</button>
+    </div>
+    <div id="score-body"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+</div>
+
+<!-- TAB: RÚBRICA -->
+<div id="tab-rubrica" class="tab-content">
+  <div class="m-content tab-top-pad">
+    <h2 class="tab-title tab-title--mb">TABLA DE PUNTUACIÓN</h2>
+    <div class="rubrica-wrap">
+      <p class="rubrica-intro">Cada criterio se evalúa del <strong>1 al 4</strong>. Puntaje máximo: <strong>28 puntos</strong>.</p>
+      <div class="rubrica-grid" id="rubrica-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: CALENDARIO -->
+<div id="tab-cal" class="tab-content">
+  <div class="m-content tab-top-pad">
+    <h2 class="tab-title tab-title--mb">CALENDARIO DE EVALUACIONES</h2>
+    <div class="cal-grid" id="cal-grid">
+      <div class="loading-box" style="grid-column:1/-1"><span class="spin"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script src="user.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+(function(){
+  var R=document.documentElement,K='ec-theme';
+  function apply(t){
+    R.dataset.theme=t;
+  }
+  window.toggleTheme=function(){var n=R.dataset.theme==='light'?'dark':'light';localStorage.setItem(K,n);apply(n);};
+  var s=localStorage.getItem(K);
+  if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
+  if(typeof lucide!=='undefined')lucide.createIcons();
+})();
+</script>
+</body>
+</html>

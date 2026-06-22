@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#002247">
+  <title>EIGHT CREATORS LABs — Admin</title>
+  <link rel="icon" type="image/x-icon" href="icono.ico">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="bg-canvas" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+<div class="bg-grid" aria-hidden="true"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="tb-brand">
+    <img src="logo.png" alt="" class="tb-logo" onerror="this.style.display='none'">
+    <span class="tb-title">EIGHT<em> CREATORS</em></span>
+    <span class="admin-badge">ADMIN</span>
+  </div>
+  <nav class="tb-nav" id="desktop-nav">
+    <button class="tnav active" onclick="switchTab('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
+    <button class="tnav"        onclick="switchTab('usuarios',this)"><i data-lucide="users" class="nav-icon"></i> Usuarios</button>
+    <button class="tnav"        onclick="switchTab('roles',this)"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
+    <button class="tnav"        onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos</button>
+    <button class="tnav"        onclick="switchTab('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
+    <button class="tnav"        onclick="switchTab('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
+  </nav>
+  <div class="tb-user">
+    <span class="last-updated-badge" id="ts-badge"></span>
+    <div class="avatar admin-av" id="av-desktop">A</div>
+    <span class="uname" id="uname-desktop">Admin</span>
+    <button class="btn-out" onclick="Auth.logout()">Salir</button>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-nav-links">
+    <button class="mobile-nav-btn active" onclick="switchTabMobile('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('usuarios',this)"><i data-lucide="users" class="nav-icon"></i>Usuarios</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('roles',this)"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
+    <div class="mobile-theme-row">
+      <span class="mobile-theme-lbl">Tema</span>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+    </div>
+  </div>
+  <div class="mobile-user-section">
+    <div class="avatar admin-av" id="av-mobile">A</div>
+    <div class="mobile-uinfo">
+      <div class="mobile-uname" id="uname-mobile">Administrador</div>
+      <div class="mobile-urole">Panel de control</div>
+      <div class="last-updated-badge" id="ts-badge-mob"></div>
+    </div>
+    <button class="btn-out-mobile" onclick="Auth.logout()">Salir</button>
+  </div>
+</div>
+
+<!-- CONTENIDO ADMIN -->
+<div class="amain">
+
+  <!-- ── TAB: EVALUAR ── -->
+  <div id="tab-evaluar" class="atab-content active">
+    <div class="ptitle">EVALUACIÓN</div>
+
+    <div class="eval-pe-bar">
+      <span class="eval-pe-lbl">Período:</span>
+      <div class="eval-pe-btns" id="eval-pe-btns">
+        <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+      </div>
+    </div>
+
+    <div style="margin:16px 0 8px">
+      <span class="eval-pe-lbl">Miembro a evaluar:</span>
+      <select class="cfg-inp cfg-select" id="eval-user-select" onchange="loadEvaluacion()" style="max-width:320px;margin-left:8px">
+        <option value="">Selecciona un miembro...</option>
+      </select>
+    </div>
+
+    <div id="eval-form-area">
+      <div class="empty-box" style="margin-top:32px">
+        <div class="no-data-icon" style="margin-bottom:6px"><i data-lucide="clipboard-list" style="width:36px;height:36px;opacity:.4"></i></div>
+        <div class="empty-txt">Selecciona un período y un miembro para evaluar.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: USUARIOS ── -->
+  <div id="tab-usuarios" class="atab-content">
+    <div class="ptitle">USUARIOS</div>
+    <div class="cfg-toolbar">
+      <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol o permisos de administrador.</p>
+    </div>
+    <div id="usuarios-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
+  <!-- ── TAB: ROLES ── -->
+  <div id="tab-roles" class="atab-content">
+    <div class="ptitle">ROLES</div>
+    <div class="cfg-toolbar">
+      <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
+      <button class="btn-cfg-add" onclick="showRolModal()">+ Nuevo rol</button>
+    </div>
+    <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
+  <!-- ── TAB: PERÍODOS ── -->
+  <div id="tab-periodos" class="atab-content">
+    <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
+    <div class="cfg-toolbar">
+      <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
+      <button class="btn-cfg-add" onclick="showPeriodoModal()">+ Nuevo período</button>
+    </div>
+    <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
+  <!-- ── TAB: RÚBRICA ── -->
+  <div id="tab-rubrica" class="atab-content">
+    <div class="ptitle">TABLA DE PUNTUACIÓN</div>
+    <div class="rubrica-wrap" style="max-width:800px">
+      <p class="rubrica-intro">Cada criterio se evalúa del <strong>1 al 4</strong>. Puntaje máximo: <strong>28 puntos</strong>.</p>
+      <div class="rubrica-grid" id="rubrica-admin-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB: CALENDARIO ── -->
+  <div id="tab-calendario" class="atab-content">
+    <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
+    <div class="cal-editor-toolbar">
+      <button class="btn-add-evento" onclick="showCalModal()">+ Agregar actividad</button>
+    </div>
+    <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
+</div>
+
+<!-- MODAL: ROL -->
+<div class="modal-overlay" id="modal-rol" style="display:none" onclick="if(event.target===this)closeModal('modal-rol')">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-rol-title">Nuevo rol</div>
+    <input type="hidden" id="mrol-id">
+    <div class="field"><label>Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
+    <div class="field" style="display:flex;align-items:center;gap:10px">
+      <label style="margin:0">Activo</label>
+      <input type="checkbox" id="mrol-activo" checked style="width:auto">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveRol()">Guardar</button>
+      <button class="btn-out" onclick="closeModal('modal-rol')">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mrol-err"></div>
+  </div>
+</div>
+
+<!-- MODAL: PERÍODO -->
+<div class="modal-overlay" id="modal-periodo" style="display:none" onclick="if(event.target===this)closeModal('modal-periodo')">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-periodo-title">Nuevo período</div>
+    <input type="hidden" id="mpe-id">
+    <div class="field"><label>Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
+    <div class="field"><label>Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field" style="display:flex;align-items:center;gap:10px">
+      <label style="margin:0">Activo (período actual)</label>
+      <input type="checkbox" id="mpe-activo" style="width:auto">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="savePeriodo()">Guardar</button>
+      <button class="btn-out" onclick="closeModal('modal-periodo')">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mpe-err"></div>
+  </div>
+</div>
+
+<!-- MODAL: CALENDARIO -->
+<div class="modal-overlay" id="modal-cal" style="display:none" onclick="if(event.target===this)closeModal('modal-cal')">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-cal-title">Nueva actividad</div>
+    <input type="hidden" id="mcal-id">
+    <div class="field"><label>Número</label><input class="cfg-inp" type="number" id="mcal-num" min="1" placeholder="1"></div>
+    <div class="field"><label>Título</label><input class="cfg-inp" type="text" id="mcal-titulo" placeholder="Período de Evaluación 1"></div>
+    <div class="field"><label>Color</label>
+      <select class="cfg-inp cfg-select" id="mcal-color">
+        <option value="rojo">Rojo</option>
+        <option value="azul">Azul</option>
+        <option value="verde">Verde</option>
+        <option value="amarillo">Amarillo</option>
+      </select>
+    </div>
+    <div class="field"><label>Inicio</label><input class="cfg-inp" type="text" id="mcal-inicio" placeholder="01 Mar 2026"></div>
+    <div class="field"><label>Fin de trabajo</label><input class="cfg-inp" type="text" id="mcal-fin" placeholder="14 Mar 2026"></div>
+    <div class="field"><label>Entrega scores</label><input class="cfg-inp" type="text" id="mcal-entrega" placeholder="16 Mar 2026"></div>
+    <div class="field"><label>Jornada</label><input class="cfg-inp" type="text" id="mcal-jornada" placeholder="20 Mar 2026"></div>
+    <div class="field"><label>Estado</label>
+      <select class="cfg-inp cfg-select" id="mcal-estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="en curso">En curso</option>
+        <option value="próximo">Próximo</option>
+        <option value="completado">Completado</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveCal()">Guardar</button>
+      <button class="btn-out" onclick="closeModal('modal-cal')">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mcal-err"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="api.js"></script>
+<script src="admin.js"></script>
+<script>
+(function(){
+  var R=document.documentElement,K='ec-theme';
+  function apply(t){ R.dataset.theme=t; }
+  window.toggleTheme=function(){ var n=R.dataset.theme==='light'?'dark':'light'; localStorage.setItem(K,n); apply(n); };
+  var s=localStorage.getItem(K);
+  if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
+})();
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>if(typeof lucide!=='undefined')lucide.createIcons();</script>
+</body>
+</html>
