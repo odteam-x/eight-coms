@@ -258,15 +258,13 @@ const API = {
   },
 
   async getEvalDistritoByNombreAndPE(distNombre, peNombre) {
-    const [{ data: dist }, { data: pe }] = await Promise.all([
-      SB.from('distritos').select('id').eq('nombre', distNombre).maybeSingle(),
-      SB.from('periodos_evaluacion').select('id').eq('nombre', peNombre).maybeSingle(),
-    ]);
-    if (!dist || !pe) return null;
+    const { data: pe } = await SB
+      .from('periodos_evaluacion').select('id').eq('nombre', peNombre).maybeSingle();
+    if (!pe) return null;
     const { data } = await SB
       .from('evaluaciones_distrito')
       .select('*')
-      .eq('distrito_id', dist.id)
+      .eq('distrito_id', distNombre)
       .eq('periodo_id', pe.id)
       .eq('estado', 'publicado')
       .maybeSingle();

@@ -963,12 +963,12 @@ function renderDistEvalForm(ev, distId, historial = []) {
              Evaluación publicada — visible en el ranking de distritos
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador',${distId})">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado',${distId})">Confirmar cambios</button>
+             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Volver a borrador</button>
+             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado','${distId}')">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador',${distId})">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveDistEval('publicado',${distId})">Publicar</button>
+             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Guardar borrador</button>
+             <button class="btn-save btn-publish" onclick="saveDistEval('publicado','${distId}')">Publicar</button>
            </div>`
       }
     </div>`;
