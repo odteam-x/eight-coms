@@ -161,8 +161,7 @@
       <div class="login-loading" id="r-loading"><span class="spin"></span>Creando cuenta...</div>
       <div class="login-err"  id="r-err"></div>
       <div class="login-ok"   id="r-ok">
-        Cuenta creada. Revisa tu email y confirma tu dirección para poder iniciar sesión.
-        <br>Si no recibes el correo en 5 minutos, revisa la carpeta de spam.
+        ¡Cuenta creada con éxito! Ya puedes iniciar sesión con tu email y contraseña.
       </div>
       <div class="login-link">¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></div>
     </div>
@@ -195,6 +194,24 @@
     (data ?? []).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
 })();
 
+function authErrEs(msg) {
+  if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
+  const m = msg.toLowerCase();
+  if (m.includes('rate limit') || m.includes('too many'))
+    return 'Demasiados intentos de registro. Espera unos minutos antes de volver a intentarlo.';
+  if (m.includes('already registered') || m.includes('already exists') || m.includes('user already'))
+    return 'Este correo ya tiene una cuenta registrada. Inicia sesión en su lugar.';
+  if (m.includes('invalid email') || m.includes('valid email'))
+    return 'El correo electrónico no es válido.';
+  if (m.includes('password') && m.includes('short'))
+    return 'La contraseña es muy corta.';
+  if (m.includes('weak password'))
+    return 'La contraseña es muy débil. Usa al menos 8 caracteres con letras y números.';
+  if (m.includes('network') || m.includes('fetch'))
+    return 'Sin conexión. Verifica tu internet e intenta de nuevo.';
+  return 'Error al registrarse: ' + msg;
+}
+
 async function doRegister() {
   const nombre   = document.getElementById('r-nombre').value.trim();
   const email    = document.getElementById('r-email').value.trim();
@@ -223,7 +240,7 @@ async function doRegister() {
 
   load.classList.remove('visible'); btn.disabled = false;
 
-  if (!res.ok) { err.textContent = res.error; err.classList.add('visible'); return; }
+  if (!res.ok) { err.textContent = authErrEs(res.error); err.classList.add('visible'); return; }
   ok.classList.add('visible');
   btn.style.display = 'none';
 }

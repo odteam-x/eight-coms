@@ -370,6 +370,20 @@ if(typeof lucide!=='undefined') lucide.createIcons();
   if (profile) window.location.replace(profile.es_admin ? 'admin.html' : 'dashboard.html');
 })();
 
+function authErrEs(msg) {
+  if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
+  const m = msg.toLowerCase();
+  if (m.includes('rate limit') || m.includes('too many'))
+    return 'Demasiados intentos. Espera unos minutos antes de volver a intentarlo.';
+  if (m.includes('invalid login') || m.includes('invalid credentials') || m.includes('wrong password'))
+    return 'Email o contraseña incorrectos.';
+  if (m.includes('email not confirmed'))
+    return 'Confirma tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.';
+  if (m.includes('network') || m.includes('fetch'))
+    return 'Sin conexión. Verifica tu internet e intenta de nuevo.';
+  return 'Error al ingresar: ' + msg;
+}
+
 async function doLogin() {
   const uEl  = document.getElementById('li-user');
   const pEl  = document.getElementById('li-pass');
@@ -392,7 +406,7 @@ async function doLogin() {
   const res = await API.login(email, pass);
 
   if (!res.ok) {
-    err.textContent = res.error || 'Email o contraseña incorrectos.';
+    err.textContent = authErrEs(res.error);
     err.classList.add('visible');
     load.classList.remove('visible');
     btn.disabled = false;
