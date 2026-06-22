@@ -306,9 +306,9 @@
     </div>
 
     <div class="login-brand-center">
-      <p class="login-hero-tag">Sistema de Evaluación · CELIDER</p>
+      <p class="login-hero-tag">Sistema de Evaluación · CELIDER 08</p>
       <h1 class="login-hero-h1">EIGHT<em>CREATORS</em><span class="login-hero-labs">LABs</span></h1>
-      <p class="login-hero-desc">Portal de desempeño para el equipo creativo de CELIDER Santiago.</p>
+      <p class="login-hero-desc">Portal de desempeño para el equipo creativo de CELIDER 08 Santiago.</p>
     </div>
 
     <div class="login-brand-foot">Eight Creators LABs · 2026</div>
@@ -367,7 +367,7 @@ if(typeof lucide!=='undefined') lucide.createIcons();
 /* Redirigir si ya hay sesión activa */
 (async function() {
   const profile = await Auth.getProfile();
-  if (profile) window.location.replace(profile.es_admin ? 'admin.html' : 'dashboard.html');
+  if (profile) window.location.replace(profile.es_admin ? 'admin.html' : profile.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
 })();
 
 function authErrEs(msg) {
@@ -415,7 +415,7 @@ async function doLogin() {
   }
 
   const profile = await Auth.getProfile(true);
-  window.location.replace(profile?.es_admin ? 'admin.html' : 'dashboard.html');
+  window.location.replace(profile?.es_admin ? 'admin.html' : profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
 }
 </script>
 </body>

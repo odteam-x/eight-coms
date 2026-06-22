@@ -295,6 +295,137 @@ const API = {
     return { ok: true, data };
   },
 
+  // ── TRABAJOS ENTREGADOS ──────────────────────────────────────────────
+  async getTrabajosEntregados(userId, periodoNombre) {
+    const { data } = await SB.from('trabajos_entregados')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('periodo_nombre', periodoNombre)
+      .order('created_at', { ascending: false });
+    return data ?? [];
+  },
+
+  async upsertTrabajo({ id, user_id, periodo_nombre, titulo, descripcion }) {
+    const payload = { user_id, periodo_nombre, titulo: titulo || '', descripcion,
+      updated_at: new Date().toISOString() };
+    if (id) payload.id = id;
+    const { data, error } = await SB.from('trabajos_entregados').upsert(payload).select().single();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data };
+  },
+
+  async deleteTrabajo(id) {
+    const { error } = await SB.from('trabajos_entregados').delete().eq('id', id);
+    return { ok: !error, error: error?.message };
+  },
+
+  /**
+   * Carga consolidada de datos para user.html y secretario.html.
+   * Devuelve { criterios, rubrica, calendario, periodos, scores, feedback, config }.
+   * Para secretarios también incluye los scores de todos los miembros de su distrito.
+   */
+  async getData() {
+    const { data: { session } } = await SB.auth.getSession();
+    if (!session) return { ok: false };
+
+    const profile = await Auth.getProfile();
+    if (!profile) return { ok: false };
+
+    const [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
+      this.getCriterios(),
+      this.getRubrica(),
+      this.getCalendario(),
+      this.getPeriodos(),
+    ]);
+
+    const config = await this.getConfig();
+
+    // Criterios normalizados
+    const criterios = criteriosRaw.map(c => ({
+      key: c.key, label: c.label, abbr: c.abbr, color: c.color, max: c.max || 4,
+    }));
+
+    // Períodos normalizados
+    const periodos = periodosRaw.map(p => ({
+      pe:         p.nombre,
+      id:         p.id,
+      nombre:     p.descripcion || p.nombre,
+      estado:     p.activo ? 'Activo' : 'Cerrado',
+      inicio:     p.fecha_inicio     || p.inicio     || null,
+      finTrabajo: p.fecha_fin_trabajo || p.fin_trabajo|| null,
+      entrega:    p.fecha_entrega     || p.entrega    || null,
+      jornada:    p.fecha_jornada     || p.jornada    || null,
+    }));
+
+    // Inicializar scores y feedback por período
+    const scores   = {};
+    const feedback = {};
+    periodos.forEach(p => { scores[p.pe] = []; feedback[p.pe] = []; });
+    if (!scores.PE1) { ['PE1','PE2','PE3'].forEach(k => { scores[k]=[]; feedback[k]=[]; }); }
+
+    // Construir lista de user IDs a consultar
+    let targetIds = [session.user.id];
+
+    if (profile.tipo_miembro === 'secretario' && profile.distrito) {
+      // Secretario: incluir también los miembros de su distrito
+      const { data: distMembers } = await SB.from('profiles')
+        .select('id')
+        .eq('distrito', profile.distrito)
+        .neq('id', session.user.id);
+      if (distMembers?.length) {
+        targetIds = [...targetIds, ...distMembers.map(m => m.id)];
+      }
+    }
+
+    // Fetch evaluaciones publicadas para los IDs relevantes
+    const { data: evsRaw } = await SB.from('evaluaciones')
+      .select('*, periodos_evaluacion(id, nombre), evaluado:evaluado_id(id, nombre, email, distrito)')
+      .in('evaluado_id', targetIds)
+      .eq('estado', 'publicado');
+
+    // Formatear evaluaciones → scores[pe] y feedback[pe]
+    for (const ev of evsRaw ?? []) {
+      const peName = ev.periodos_evaluacion?.nombre;
+      if (!peName || !scores[peName]) continue;
+      const puntajes = ev.puntajes || {};
+      const row = {
+        usuario:  ev.evaluado?.email   || '',
+        nombre:   ev.evaluado?.nombre  || '',
+        distrito: ev.evaluado?.distrito || '',
+        ext:      ev.bono_ext || 0,
+        ...puntajes,
+      };
+      scores[peName].push(row);
+      if (ev.comentarios) {
+        feedback[peName].push({ usuario: row.usuario, nombre: row.nombre, fb: ev.comentarios, perCriterio: {} });
+      }
+    }
+
+    // Rúbrica normalizada
+    const rubrica = rubricaRaw.map(r => ({
+      criterio: r.criterio || r.criterios?.label || '',
+      nivel4: r.nivel4 || '', nivel3: r.nivel3 || '',
+      nivel2: r.nivel2 || '', nivel1: r.nivel1 || '',
+    }));
+
+    // Calendario normalizado
+    const calendario = calRaw.map(c => ({
+      numero:     c.numero,
+      titulo:     c.titulo || c.descripcion || '',
+      color:      c.color  || 'rojo',
+      inicio:     c.fecha_inicio      || c.inicio      || '',
+      finTrabajo: c.fecha_fin_trabajo  || c.fin_trabajo || '',
+      entrega:    c.fecha_entrega      || c.entrega     || '',
+      jornada:    c.fecha_jornada      || c.jornada     || '',
+      estado:     c.estado || 'Pendiente',
+    }));
+
+    const periodoActivo = config.periodo_activo ||
+      periodosRaw.find(p => p.activo)?.nombre || 'PE1';
+
+    return { criterios, rubrica, calendario, periodos, scores, feedback, config: { periodoActivo } };
+  },
+
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────
   async uploadAvatar(userId, file) {
     const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();

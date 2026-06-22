@@ -10,6 +10,13 @@
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
+[data-theme="light"] .m-hero {
+  background: linear-gradient(160deg, rgba(0,80,180,.09) 0%, rgba(0,50,140,.04) 60%, transparent 100%);
+}
+[data-theme="light"] .cbar {
+  background: rgba(0,80,160,.04);
+  border-color: rgba(0,100,200,.12);
+}
 .m-hero::before {
   content: '';
   position: absolute; inset: 0;

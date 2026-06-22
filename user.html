@@ -24,15 +24,17 @@
 
 <!-- TOPBAR -->
 <header class="topbar" id="topbar">
-  <div class="tb-brand">
+  <button class="tb-brand tb-brand--link" onclick="switchTab('scores',document.querySelector('#desktop-nav .tnav'))" aria-label="Ir a Mi Score">
     <img src="logo.png" alt="" class="tb-logo" onerror="this.style.display='none'">
     <span class="tb-title">EIGHT<em> CREATORS</em></span>
-  </div>
+  </button>
   <nav class="tb-nav" id="desktop-nav">
     <button class="tnav active" onclick="switchTab('scores',this)">Mi Score</button>
+    <button class="tnav"        onclick="switchTab('periodos',this)">Períodos</button>
+    <button class="tnav"        onclick="switchTab('trabajos',this)">Trabajos</button>
     <button class="tnav"        onclick="switchTab('rubrica',this)">Rúbrica</button>
-    <button class="tnav"        onclick="switchTab('cal',this)">Calendario</button>
     <button class="tnav"        onclick="switchTab('reportes',this)">Reportes</button>
+    <button class="tnav"        onclick="switchTab('cal',this)">Calendario</button>
   </nav>
   <div class="tb-user">
     <button class="btn-refresh" id="btn-refresh" onclick="handleRefresh()">
@@ -54,9 +56,11 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-nav-links">
     <button class="mobile-nav-btn active" onclick="switchTabMobile('scores',this)"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('periodos',this)"><i data-lucide="layers" class="nav-icon"></i>Períodos</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('trabajos',this)"><i data-lucide="folder-open" class="nav-icon"></i>Trabajos</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('cal',this)"><i data-lucide="calendar" class="nav-icon"></i>Calendario</button>
     <button class="mobile-nav-btn"        onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
+    <button class="mobile-nav-btn"        onclick="switchTabMobile('cal',this)"><i data-lucide="calendar" class="nav-icon"></i>Calendario</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
@@ -82,7 +86,7 @@
   <div class="m-hero">
     <div class="m-hero-inner">
       <div class="hero-left">
-        <div class="m-tag">CREATORS SCORE SYSTEM · CELIDER</div>
+        <div class="m-tag">CREATORS SCORE SYSTEM · CELIDER 08</div>
         <div class="m-name-big" id="hero-name">—</div>
         <div class="m-pe-label">Período activo: <span id="hero-pe">PE1</span></div>
       </div>
@@ -99,6 +103,30 @@
       <button class="pb"        onclick="selectPE('PE3',this)">PE3</button>
     </div>
     <div id="score-body"><div class="loading-box"><span class="spin"></span></div></div>
+    <div class="ql-section-label">Accesos rápidos</div>
+    <div class="ql-grid" id="quick-links"></div>
+  </div>
+</div>
+
+<!-- TAB: PERÍODOS -->
+<div id="tab-periodos" class="tab-content">
+  <div class="m-content tab-top-pad">
+    <h2 class="tab-title tab-title--mb">PERÍODOS DE EVALUACIÓN</h2>
+    <p class="rubrica-intro">Consulta las fechas y estado de cada período de evaluación.</p>
+    <div id="periodos-body" class="pe-cards-grid" style="margin-top:20px"></div>
+  </div>
+</div>
+
+<!-- TAB: TRABAJOS ENTREGADOS -->
+<div id="tab-trabajos" class="tab-content">
+  <div class="m-content tab-top-pad">
+    <h2 class="tab-title tab-title--mb">MIS TRABAJOS ENTREGADOS</h2>
+    <div class="pe-row" id="trabajos-pe-row">
+      <button class="pb active" onclick="selectTrabajoPE('PE1',this)">PE1</button>
+      <button class="pb"        onclick="selectTrabajoPE('PE2',this)">PE2</button>
+      <button class="pb"        onclick="selectTrabajoPE('PE3',this)">PE3</button>
+    </div>
+    <div id="trabajos-body" style="margin-top:16px"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 </div>
 
@@ -132,7 +160,9 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="supabase-client.js"></script>
 <script src="api.js"></script>
 <script src="auth.js"></script>
 <script src="user.js"></script>

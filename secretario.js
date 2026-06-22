@@ -50,7 +50,7 @@ function getDistritoRows(pe) {
 
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
-  CU = Auth.requireAnyRole(['secretario','miembro']);
+  CU = await Auth.requireAnyRole(['secretario','miembro']);
   if (!CU) return;
 
   const cached = Auth.getCachedData();
@@ -105,12 +105,12 @@ function initUI() {
   setEl('av-desktop',ini); setEl('av-mobile',ini);
   setEl('uname-desktop',name); setEl('uname-mobile',name);
   setEl('hero-name',name);
-  setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER' : 'CREATOR · CELIDER');
+  setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER 08' : 'CREATOR · CELIDER 08');
 
   renderDistritoHeader();
   renderMyScore(mPE); renderPEDates(mPE,'tab-miscore');
   renderRankingDistritos(dPE); renderDistrito(rPE);
-  renderRubrica(); renderTablaEvaluacion(); renderCalendario(); updateTimestamp();
+  renderRubrica(); renderTablaEvaluacion(); renderCalendario(); renderQuickLinks(); updateTimestamp();
   initScrollEffects();
 }
 
@@ -523,19 +523,17 @@ function switchTab(tab, btn) {
   document.getElementById(`tab-${tab}`)?.classList.add('active');
   document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
+  if (tab === 'periodos') renderPeriodosTab();
+  if (tab === 'trabajos' && !_trabajosLoaded) { _trabajosLoaded = true; _trabajosPE = mPE; syncTrabajoPEBtns(); renderTrabajosTab(); }
+  if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
 }
 function switchTabMobile(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
+  switchTab(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active'); closeMenu();
-  // Sincronizar desktop nav
-  const allTabs=['miscore','ranking','distrito','evaluacion','rubrica','cal'];
-  const idx=allTabs.indexOf(tab);
-  const visibleBtns=[...document.querySelectorAll('#desktop-nav .tnav')].filter(b=>b.style.display!=='none');
-  const visibleTabs=allTabs.filter((t,i)=>{ const b=document.querySelectorAll('#desktop-nav .tnav')[i]; return !b||b.style.display!=='none'; });
+  btn?.classList.add('active');
+  closeMenu();
+  const deskBtn = [...document.querySelectorAll('#desktop-nav .tnav')].find(b=>b.getAttribute('onclick')?.includes(`'${tab}'`));
   document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  const deskBtn=[...document.querySelectorAll('#desktop-nav .tnav')].find(b=>b.getAttribute('onclick')?.includes(`'${tab}'`));
   if(deskBtn) deskBtn.classList.add('active');
 }
 function toggleMenu() {
@@ -568,4 +566,206 @@ function logout(){if(_arTimer)clearInterval(_arTimer);Auth.logout();window.locat
 function initScrollEffects(){
   const topbar=document.getElementById('topbar'),backTop=document.getElementById('back-top');let ticking=false;
   window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const y=window.scrollY;topbar?.classList.toggle('scrolled',y>10);backTop?.classList.toggle('visible',y>300);ticking=false;});ticking=true;}},{passive:true});
+}
+
+/* ── NAVEGACIÓN DIRECTA ── */
+function goTab(tab) {
+  const btn = [...document.querySelectorAll('#desktop-nav .tnav')]
+    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`) && b.style.display !== 'none');
+  switchTab(tab, btn);
+}
+
+/* ── ATAJOS RÁPIDOS ── */
+function renderQuickLinks() {
+  const el = document.getElementById('quick-links'); if (!el) return;
+  const sec = isSecretario();
+  const links = [
+    { tab:'trabajos',  icon:'folder-open',    title:'Mis Trabajos',     desc:'Registra tus actividades del período' },
+    { tab:'periodos',  icon:'layers',          title:'Períodos',         desc:'Fechas y estados de evaluación' },
+    ...(sec ? [
+      { tab:'distrito',  icon:'map',           title:'Mi Distrito',      desc:'Miembros y calificación de tu distrito' },
+      { tab:'ranking',   icon:'trophy',        title:'Ranking Distritos', desc:'Posición de todos los distritos' },
+    ] : []),
+    { tab:'rubrica',   icon:'clipboard-list', title:'Rúbrica',          desc:'Criterios y tabla de puntuación' },
+    { tab:'reportes',  icon:'bar-chart-2',    title:'Mis Estadísticas', desc:'Historial y evolución de tu desempeño' },
+  ];
+  el.innerHTML = links.map(l =>
+    `<button class="ql-card" onclick="goTab('${l.tab}')" aria-label="Ir a ${l.title}">
+       <i data-lucide="${l.icon}" class="ql-icon"></i>
+       <div class="ql-text"><div class="ql-title">${l.title}</div><div class="ql-desc">${l.desc}</div></div>
+       <i data-lucide="chevron-right" class="ql-arrow"></i>
+     </button>`
+  ).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+/* ── TAB: PERÍODOS ── */
+function renderPeriodosTab() {
+  const el = document.getElementById('periodos-body'); if (!el) return;
+  const periodos = D?.periodos || [];
+  if (!periodos.length) {
+    el.innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos disponibles.</div></div>';
+    return;
+  }
+  const stateMap = { 'Activo':'sex','Próximo':'sbu','En Progreso':'spr','Cerrado':'sba' };
+  el.innerHTML = periodos.map(p => {
+    const active = p.pe === mPE;
+    const cls    = stateMap[p.estado] || 'sbu';
+    const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
+    return `<div class="pe-card${active?' pe-card--active':''}">
+      <div class="pe-card-head">
+        <div class="pe-card-code">${p.pe}</div>
+        <div class="pe-card-nombre">${p.nombre||p.pe}</div>
+        ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
+        ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
+      </div>
+      ${fields.length?`<div class="pe-card-dates">${fields.map(([l,v])=>`<div class="pe-card-date"><span class="pe-card-lbl">${l}</span><span class="pe-card-val">${v}</span></div>`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ── TAB: TRABAJOS ── */
+let _trabajosPE = 'PE1', _trabajosLoaded = false;
+
+function syncTrabajoPEBtns() {
+  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => {
+    const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
+    b.classList.toggle('active', pe === _trabajosPE);
+  });
+}
+
+function selectTrabajoPE(pe, btn) {
+  _trabajosPE = pe;
+  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTrabajosTab();
+}
+
+async function renderTrabajosTab() {
+  const el = document.getElementById('trabajos-body'); if (!el) return;
+  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  const data = await API.getTrabajosEntregados(CU.id, _trabajosPE);
+  renderTrabajosBody(data);
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderTrabajosBody(trabajos) {
+  const el = document.getElementById('trabajos-body'); if (!el) return;
+  el.innerHTML = `
+    <div class="trabajo-form-card">
+      <div class="trabajo-form-title">
+        <i data-lucide="plus-circle" class="tj-icon"></i> Registrar trabajo en ${_trabajosPE}
+      </div>
+      <input class="cfg-inp" id="tj-titulo" type="text" placeholder="Título del trabajo" style="width:100%;margin-bottom:8px">
+      <textarea class="cfg-inp" id="tj-desc" placeholder="Describe la actividad realizada..." rows="3" style="width:100%;resize:vertical"></textarea>
+      <button class="btn-save" style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px" onclick="saveTrabajo()">
+        <i data-lucide="send" style="width:14px;height:14px"></i> Agregar trabajo
+      </button>
+    </div>
+    <div class="section-label" style="margin:20px 0 10px">
+      <i data-lucide="list" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px"></i>
+      ${trabajos.length} trabajo${trabajos.length!==1?'s':''} en ${_trabajosPE}
+    </div>
+    ${trabajos.length
+      ? `<div class="trabajos-list">${trabajos.map(t=>`
+          <div class="trabajo-item">
+            <div class="trabajo-item-head">
+              <div class="trabajo-titulo">${t.titulo?escHtml(t.titulo):'<span class="tj-notitle">Sin título</span>'}</div>
+              <button class="btn-icon-del" onclick="deleteTrabajo('${t.id}')" title="Eliminar" aria-label="Eliminar">
+                <i data-lucide="trash-2" style="width:13px;height:13px"></i>
+              </button>
+            </div>
+            <div class="trabajo-desc">${escHtml(t.descripcion)}</div>
+            <div class="trabajo-meta">
+              <i data-lucide="clock" style="width:11px;height:11px;vertical-align:-1px;opacity:.55;margin-right:3px"></i>
+              ${new Date(t.created_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}
+            </div>
+          </div>`).join('')}
+        </div>`
+      : `<div class="empty-box" style="border-style:dashed;margin-top:0">
+           <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
+           <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
+         </div>`}`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function saveTrabajo() {
+  const tEl = document.getElementById('tj-titulo'), dEl = document.getElementById('tj-desc');
+  const titulo = tEl?.value.trim()||'', desc = dEl?.value.trim()||'';
+  if (!desc) { showToast('Describe el trabajo antes de agregar.','error'); dEl?.focus(); return; }
+  const res = await API.upsertTrabajo({ user_id:CU.id, periodo_nombre:_trabajosPE, titulo, descripcion:desc });
+  if (!res.ok) { showToast('Error: '+res.error,'error'); return; }
+  if (tEl) tEl.value=''; if (dEl) dEl.value='';
+  showToast('✓ Trabajo registrado','ok');
+  await renderTrabajosTab();
+}
+
+async function deleteTrabajo(id) {
+  if (!confirm('¿Eliminar este trabajo?')) return;
+  const res = await API.deleteTrabajo(id);
+  if (!res.ok) { showToast('Error al eliminar','error'); return; }
+  showToast('Trabajo eliminado','ok');
+  await renderTrabajosTab();
+}
+
+/* ── TAB: REPORTES (secretario/miembro) ── */
+let _rptUserLoaded = false;
+function renderUserReport() {
+  _rptUserLoaded = true;
+  const el = document.getElementById('rpt-user-body'); if (!el) return;
+  if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
+  const criterios = getCriterios();
+  const pes = ['PE1','PE2','PE3'];
+  const data = pes.map(pe => {
+    const all = D.scores?.[pe] || [];
+    const row = all.find(r => r.usuario === CU.user);
+    return row ? { pe, row, total: calcScore(row) } : null;
+  }).filter(Boolean);
+  if (!data.length) {
+    el.innerHTML = '<div class="empty-box"><div class="empty-txt">Sin evaluaciones registradas aún.</div></div>';
+    return;
+  }
+  const scores = data.map(d => d.total);
+  const best = Math.max(...scores), avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+  const maxT = MAX_TOTAL();
+  el.innerHTML = `
+    <div class="urpt-header">
+      <div class="urpt-name">${CU.name||CU.user}</div>
+      <div class="urpt-meta">Historial de desempeño · ${data.length} período${data.length!==1?'s':''} evaluado${data.length!==1?'s':''}</div>
+    </div>
+    <div class="urpt-kpi-row">
+      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:${scoreColor(best)}">${best}</div><div class="urpt-kpi-lbl">Mejor puntaje</div></div>
+      <div class="urpt-kpi"><div class="urpt-kpi-val">${avg}</div><div class="urpt-kpi-lbl">Promedio</div></div>
+      <div class="urpt-kpi"><div class="urpt-kpi-val">${maxT}</div><div class="urpt-kpi-lbl">Puntaje máximo</div></div>
+      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:var(--sex);font-size:1rem">${scoreLabel(best)}</div><div class="urpt-kpi-lbl">Mejor nivel</div></div>
+    </div>
+    <div class="urpt-section-lbl">Evolución por período</div>
+    <div class="urpt-history">${data.map(d=>`
+      <div class="urpt-hist-card">
+        <div class="urpt-hist-pe">${d.pe}</div>
+        <div class="urpt-hist-bar-track"><div class="urpt-hist-bar-fill" style="width:${Math.round(d.total/maxT*100)}%;background:${scoreColor(d.total)}"></div></div>
+        <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}</div>
+        <div style="font-size:.6rem;color:var(--muted)">${scoreLabel(d.total)}</div>
+      </div>`).join('')}
+    </div>
+    <div class="urpt-section-lbl" style="margin-top:16px">Detalle por criterio</div>
+    <div class="urpt-section">
+      <div class="urpt-table-wrap"><table class="urpt-table">
+        <thead><tr>
+          <th class="urpt-th">Criterio</th>
+          ${data.map(d=>`<th class="urpt-th">${d.pe}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${criterios.map(c=>`<tr>
+            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${c.abbr||c.label}</td>
+            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:${c.color}">${d.row[c.key]||0}</td>`).join('')}
+          </tr>`).join('')}
+          <tr>
+            <td class="urpt-td urpt-td-pe">TOTAL</td>
+            ${data.map(d=>`<td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>`).join('')}
+          </tr>
+        </tbody>
+      </table></div>
+    </div>`;
 }
