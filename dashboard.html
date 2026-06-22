@@ -87,6 +87,12 @@
       <div class="hero-right">
         <div class="score-big" id="hero-score">—</div>
         <div class="score-lbl">/ <span id="hero-max">28</span> PTS · <span id="hero-nivel">—</span></div>
+        <div class="score-track-wrap" id="score-track-wrap" style="display:none">
+          <div class="score-track">
+            <div class="score-track-fill" id="score-track-fill"></div>
+          </div>
+          <div class="score-track-labels"><span>0</span><span id="score-track-max">30</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -120,6 +126,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>

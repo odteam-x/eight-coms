@@ -4,6 +4,9 @@
 'use strict';
 
 let CU = null;
+
+const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
 let _criterios  = [];
 let _evaluaciones = [];
 let _rubrica    = [];
@@ -31,10 +34,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAuth(false); // false → redirige admins a admin.html
   if (!CU) return;
 
-  // Mostrar nombre inmediatamente
+  // Mostrar nombre e icono de usuario inmediatamente
   const name = CU.nombre || CU.email;
-  const ini  = initials(name);
-  setEl('av-desktop', ini); setEl('av-mobile', ini);
+  const avContent = CU.avatar_url
+    ? `<img src="${CU.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    : _USER_ICON;
+  ['av-desktop','av-mobile'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = avContent;
+      el.style.cursor = 'pointer';
+      el.title = 'Cambiar foto de perfil';
+      el.onclick = () => document.getElementById('avatar-file-input')?.click();
+    }
+  });
   setEl('uname-desktop', name); setEl('uname-mobile', name);
   setEl('hero-name', name);
   if (CU.roles?.nombre) setEl('urole-mobile', CU.roles.nombre);
@@ -125,6 +138,17 @@ function renderScores(periodoId) {
   setEl('hero-nivel', scoreLabel(total));
   setEl('hero-max', MAX);
 
+  // Score track
+  const trackFill = document.getElementById('score-track-fill');
+  const trackWrap = document.getElementById('score-track-wrap');
+  if (trackFill && trackWrap) {
+    const col = scoreColor(total);
+    trackFill.style.color = col;
+    setEl('score-track-max', MAX);
+    trackWrap.style.display = '';
+    requestAnimationFrame(() => { trackFill.style.width = Math.round((total / MAX) * 100) + '%'; });
+  }
+
   const bars = criterios.map((c, i) => {
     const val    = puntajes[c.key] ?? 0;
     const critFb = comentarios[c.key] || '';
@@ -196,7 +220,7 @@ function renderRubrica() {
         <div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')">
           <div class="rubrica-dot" style="background:${color}"></div>
           <div class="rubrica-title" style="color:${color}">${r.criterio || c.label || r.criterios?.label || '—'}</div>
-          <span class="rubrica-chev">▾</span>
+          <span class="rubrica-chev"></span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
@@ -303,6 +327,22 @@ function updateTimestamp() {
     const el = document.getElementById(id); if (!el) return;
     el.textContent = txt; el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1000);
   });
+}
+
+/* ── AVATAR UPLOAD ── */
+async function handleAvatarUpload(e) {
+  const file = e.target.files?.[0]; if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Imagen demasiado grande (máx. 2 MB)', 'error'); return; }
+  showToast('Subiendo foto...', 'info');
+  const res = await API.uploadAvatar(CU.id, file);
+  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
+  CU.avatar_url = res.url;
+  const img = `<img src="${res.url}?t=${Date.now()}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  ['av-desktop','av-mobile'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = img;
+  });
+  showToast('Foto actualizada', 'ok');
+  e.target.value = '';
 }
 
 /* ── TOAST ── */
