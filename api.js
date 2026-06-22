@@ -247,6 +247,32 @@ const API = {
     return data ?? [];
   },
 
+  async getEvalDistritoHistorial(distrito_id) {
+    const { data } = await SB
+      .from('evaluaciones_distrito')
+      .select('*, periodos_evaluacion(nombre)')
+      .eq('distrito_id', distrito_id)
+      .eq('estado', 'publicado')
+      .order('updated_at');
+    return data ?? [];
+  },
+
+  async getEvalDistritoByNombreAndPE(distNombre, peNombre) {
+    const [{ data: dist }, { data: pe }] = await Promise.all([
+      SB.from('distritos').select('id').eq('nombre', distNombre).maybeSingle(),
+      SB.from('periodos_evaluacion').select('id').eq('nombre', peNombre).maybeSingle(),
+    ]);
+    if (!dist || !pe) return null;
+    const { data } = await SB
+      .from('evaluaciones_distrito')
+      .select('*')
+      .eq('distrito_id', dist.id)
+      .eq('periodo_id', pe.id)
+      .eq('estado', 'publicado')
+      .maybeSingle();
+    return data;
+  },
+
   async getEvalDistrito(periodo_id, distrito_id) {
     const { data } = await SB
       .from('evaluaciones_distrito')

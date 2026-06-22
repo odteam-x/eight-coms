@@ -1128,6 +1128,42 @@ option {
 }
 textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 
+/* Historial períodos en formulario de evaluación de distrito */
+.section-label {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.6rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--muted); margin:16px 0 10px;
+}
+.dist-hist-row {
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;
+}
+.dist-hist-card {
+  flex:1; min-width:100px;
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:var(--r-md); padding:12px 14px;
+  display:flex; flex-direction:column; gap:5px; align-items:center; text-align:center;
+}
+.dist-hist-pe {
+  font-family:'Bebas Neue',sans-serif; font-size:.9rem;
+  letter-spacing:.1em; color:var(--muted); margin-bottom:2px;
+}
+.dist-hist-crit {
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%; gap:6px;
+}
+.dist-hist-abbr {
+  font-family:'Barlow Condensed',sans-serif; font-size:.6rem;
+  font-weight:700; letter-spacing:1.5px; text-transform:uppercase; min-width:28px; text-align:left;
+}
+.dist-hist-val {
+  font-family:'Bebas Neue',sans-serif; font-size:.95rem; line-height:1;
+  color:var(--txt);
+}
+.dist-hist-total {
+  font-family:'Bebas Neue',sans-serif; font-size:1.5rem; line-height:1;
+  margin-top:4px;
+}
+
 .eval-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
 .btn-draft {
   padding:10px 22px; border:1px solid var(--faint); border-radius:var(--r-pill);

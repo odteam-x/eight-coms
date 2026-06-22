@@ -38,6 +38,18 @@ const CRITERIOS_DEFAULT = [
 ];
 const getCriterios = () => _criterios.length ? _criterios : CRITERIOS_DEFAULT;
 
+const DIST_CRITERIOS = [
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7 },
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7 },
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7 },
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
+];
+const MAX_DIST       = 28;
+const calcDistScore  = p => DIST_CRITERIOS.reduce((s,c) => s+(Number(p?.[c.key])||0), 0);
+const distScoreColor = s => s>=24?'var(--sex)':s>=17?'var(--sbu)':s>=10?'var(--spr)':'var(--sba)';
+const distScoreLabel = s => s>=24?'Excelente':s>=17?'Bueno':s>=10?'En Proceso':'Bajo';
+const distScoreClass = s => s>=24?'sex':s>=17?'sbu':s>=10?'spr':'sba';
+
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAuth(true); // true → solo admins
@@ -852,8 +864,11 @@ async function loadDistEval(distId) {
   const area = document.getElementById('dist-eval-area'); if (!area) return;
   if (!_activePEDist || !distId) { area.innerHTML = ''; return; }
   area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  const ev = await API.getEvalDistrito(_activePEDist.id, distId);
-  renderDistEvalForm(ev, distId);
+  const [ev, historial] = await Promise.all([
+    API.getEvalDistrito(_activePEDist.id, distId),
+    API.getEvalDistritoHistorial(distId),
+  ]);
+  renderDistEvalForm(ev, distId, historial);
 }
 
 const _IG_FIELDS = [
@@ -866,17 +881,35 @@ const _IG_FIELDS = [
   { key:'pct_reels',           label:'Reels %',            placeholder:'22.6'   },
 ];
 
-function renderDistEvalForm(ev, distId) {
+function renderDistEvalForm(ev, distId, historial = []) {
   const area     = document.getElementById('dist-eval-area'); if (!area) return;
   const distrito = _distritos.find(d => d.id === distId);
-  const criterios = getCriterios();
-  const puntajes  = ev?.puntajes    || {};
-  const coms      = ev?.comentarios || {};
-  const igStats   = ev?.ig_stats    || {};
-  const estado    = ev?.estado      || 'borrador';
-  const isPub     = estado === 'publicado';
+  const puntajes = ev?.puntajes    || {};
+  const coms     = ev?.comentarios || {};
+  const igStats  = ev?.ig_stats    || {};
+  const estado   = ev?.estado      || 'borrador';
+  const isPub    = estado === 'publicado';
 
-  const rows = criterios.map((c, i) => `
+  const prevHistory = historial.filter(h => h.periodo_id !== _activePEDist?.id);
+  const histHTML = prevHistory.length ? `
+    <div class="section-label">Períodos anteriores</div>
+    <div class="dist-hist-row">
+      ${prevHistory.map(h => {
+        const s = calcDistScore(h.puntajes);
+        return `<div class="dist-hist-card">
+          <div class="dist-hist-pe">${h.periodos_evaluacion?.nombre || '—'}</div>
+          ${DIST_CRITERIOS.map(c => `
+            <div class="dist-hist-crit">
+              <span class="dist-hist-abbr" style="color:${c.color}">${c.abbr}</span>
+              <span class="dist-hist-val">${h.puntajes?.[c.key] ?? '—'}</span>
+            </div>`).join('')}
+          <div class="dist-hist-total" style="color:${distScoreColor(s)}">${s}<span style="font-size:.6rem;color:var(--muted);font-weight:400">/${MAX_DIST}</span></div>
+          <span class="nivel-badge ${distScoreClass(s)}" style="font-size:.52rem">${distScoreLabel(s)}</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const rows = DIST_CRITERIOS.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
         <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
@@ -884,7 +917,7 @@ function renderDistEvalForm(ev, distId) {
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
-          ${[1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
+          ${[1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
             onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]||0}">
         </div>
@@ -898,10 +931,12 @@ function renderDistEvalForm(ev, distId) {
       <div class="eval-form-header">
         <div>
           <div class="eval-miembro-name">${distrito?.nombre || distId}</div>
-          <div class="eval-miembro-rol">Evaluación de distrito</div>
+          <div class="eval-miembro-rol">Evaluación de distrito · ${_activePEDist?.nombre || ''}</div>
         </div>
         <span class="eval-estado-badge estado--${estado}">${estado}</span>
       </div>
+
+      ${histHTML}
 
       <div class="section-label" style="margin-top:4px">Estadísticas de Instagram</div>
       <div class="ig-stats-grid">
@@ -913,7 +948,7 @@ function renderDistEvalForm(ev, distId) {
           </div>`).join('')}
       </div>
 
-      <div class="section-label">Criterios</div>
+      <div class="section-label">Criterios de Distrito <span style="font-size:.7rem;color:var(--muted);font-weight:400">(puntaje 1–7 por criterio · máx. ${MAX_DIST} pts)</span></div>
       <div class="eval-criterios-list">${rows}</div>
 
       <div class="eval-extras">
@@ -928,12 +963,12 @@ function renderDistEvalForm(ev, distId) {
              Evaluación publicada — visible en el ranking de distritos
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado','${distId}')">Confirmar cambios</button>
+             <button class="btn-draft" onclick="saveDistEval('borrador',${distId})">Volver a borrador</button>
+             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado',${distId})">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveDistEval('publicado','${distId}')">Publicar</button>
+             <button class="btn-draft" onclick="saveDistEval('borrador',${distId})">Guardar borrador</button>
+             <button class="btn-save btn-publish" onclick="saveDistEval('publicado',${distId})">Publicar</button>
            </div>`
       }
     </div>`;
@@ -947,9 +982,8 @@ function setDistScore(key, val, btn) {
 
 async function saveDistEval(estado, distId) {
   if (!_activePEDist || !distId) return;
-  const criterios = getCriterios();
   const puntajes = {}, comentarios = {};
-  criterios.forEach(c => {
+  DIST_CRITERIOS.forEach(c => {
     puntajes[c.key] = parseInt(document.getElementById(`dsc-${c.key}`)?.value || 0);
     const v = document.getElementById(`dcom-${c.key}`)?.value.trim();
     if (v) comentarios[c.key] = v;
@@ -1158,13 +1192,13 @@ function renderOverview() {
           const pubDist = _overviewDistEvals.filter(d => d.estado === 'publicado');
           const scoredDist = pubDist.map(d => ({
             ...d,
-            score: calcScore(d.puntajes, d.bono_ext),
+            score: calcDistScore(d.puntajes),
             distInfo: _distritos.find(x => x.id === d.distrito_id),
           })).sort((a,b) => b.score - a.score);
           if (!scoredDist.length) return `<div class="empty-box" style="margin:0"><div class="empty-txt">Sin evaluaciones de distrito publicadas.</div></div>`;
           return `<div class="ov-ranking">
             ${scoredDist.map((d,i) => {
-              const pct = Math.round(d.score/MAX*100);
+              const pct = Math.round(d.score/MAX_DIST*100);
               const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${i+1}</span>`;
               return `<div class="rank-row">
                 <div class="rank-pos">${medal}</div>
@@ -1172,9 +1206,9 @@ function renderOverview() {
                   <div class="rank-name">${d.distInfo?.nombre || d.distInfo?.codigo || `Distrito ${d.distrito_id}`}</div>
                   <div class="rank-role">${d.distInfo?.codigo || '—'}</div>
                 </div>
-                <div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(d.score)}"></div></div></div>
-                <div class="rank-score" style="color:${scoreColor(d.score)}">${d.score}</div>
-                <span class="nivel-badge ${scoreClass(d.score)}" style="padding:2px 7px;font-size:.52rem">${scoreLabel(d.score)}</span>
+                <div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${distScoreColor(d.score)}"></div></div></div>
+                <div class="rank-score" style="color:${distScoreColor(d.score)}">${d.score}</div>
+                <span class="nivel-badge ${distScoreClass(d.score)}" style="padding:2px 7px;font-size:.52rem">${distScoreLabel(d.score)}</span>
               </div>`;
             }).join('')}
           </div>`;

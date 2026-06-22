@@ -24,6 +24,18 @@ const getMaxScore  = () => getCriterios().length * 4;
 const MAX_TOTAL    = () => getMaxScore() + 2;
 const isSecretario = () => CU?.rol === 'secretario';
 
+const DIST_CRITERIOS = [
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7 },
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7 },
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7 },
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
+];
+const MAX_DIST_SEC   = 28;
+const calcDistScore  = p => DIST_CRITERIOS.reduce((s,c) => s+(Number(p?.[c.key])||0), 0);
+const distScoreColor = s => s>=24?'var(--sex)':s>=17?'var(--sbu)':s>=10?'var(--spr)':'var(--sba)';
+const distScoreLabel = s => s>=24?'Excelente':s>=17?'Bueno':s>=10?'En Proceso':'Bajo';
+const distScoreClass = s => s>=24?'sex':s>=17?'sbu':s>=10?'spr':'sba';
+
 function getMyDistrito() {
   if (!CU) return '';
   return (CU.distrito || '').trim();
@@ -325,35 +337,37 @@ function renderDistrito(pe) {
 function renderCalificacionDistrito(pe) {
   const el = document.getElementById('dist-cal-body'); if (!el) return;
   if (!isSecretario()) return;
-  const distScores = D?.districtScores?.[pe] || [];
-  const myD = distScores.find(d => d.distrito.toLowerCase() === getMyDistrito().toLowerCase());
-  const COMP = D?.distCompetencias || [
-    { key:'cgo', label:'Gestión y Organización', abbr:'CGO', color:'#38BDF8', max:7 },
-    { key:'cct', label:'Creativa y Técnica',     abbr:'CCT', color:'#2ECC71', max:7 },
-    { key:'com', label:'Comunicativa',           abbr:'COM', color:'#C084FC', max:7 },
-    { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'#F0C040', max:7 },
-  ];
-  if (!myD) {
-    el.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:8px 0">Sin calificación para este período en CREATORS DISTRITOS.</div>';
+  const myDist = getMyDistrito();
+  if (!myDist) {
+    el.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px 0">Sin distrito asignado.</div>';
     return;
   }
-  const critBars = COMP.map(c => {
-    const val  = myD[c.key] ?? 0;
-    return `<div class="dist-cal-row">
-      <span class="dist-cal-abbr" style="color:${c.color}">${c.abbr}</span>
-      <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/c.max)*100}%;background:${c.color}"></div></div>
-      <span class="dist-cal-val" style="color:${c.color}">${val}</span>
-    </div>`;
-  }).join('');
-  el.innerHTML=`<div class="dist-cal-card">
-    <div class="dist-cal-head">
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Calificación oficial · Distrito ${myD.distrito} · ${pe}</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:var(--blue);margin-top:4px">${myD.total} <span style="font-size:.75rem;color:var(--muted)">pts</span></div>
+  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  API.getEvalDistritoByNombreAndPE(myDist, pe).then(ev => {
+    if (!ev) {
+      el.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px 0">Sin calificación oficial para este período.</div>';
+      return;
+    }
+    const s = calcDistScore(ev.puntajes);
+    const critBars = DIST_CRITERIOS.map(c => {
+      const val = ev.puntajes?.[c.key] ?? 0;
+      return `<div class="dist-cal-row">
+        <span class="dist-cal-abbr" style="color:${c.color}">${c.abbr}</span>
+        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${c.color}"></div></div>
+        <span class="dist-cal-val" style="color:${c.color}">${val}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div class="dist-cal-card">
+      <div class="dist-cal-head">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Calificación oficial · Distrito ${myDist} · ${pe}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:${distScoreColor(s)};margin-top:4px">${s} <span style="font-size:.75rem;color:var(--muted)">/ ${MAX_DIST_SEC} pts</span></div>
+        </div>
+        <span class="nivel-badge ${distScoreClass(s)}">${distScoreLabel(s)}</span>
       </div>
-    </div>
-    <div class="dist-cal-bars">${critBars}</div>
-  </div>`;
+      <div class="dist-cal-bars">${critBars}</div>
+    </div>`;
+  });
 }
 
 function renderDistStats(pe) {
