@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderRubrica();
   renderCalendario();
   renderDistPEBar();
+  populateDistritoFilters();
   initScrollEffects();
   loadOverview();
 });
@@ -111,6 +112,16 @@ async function loadAllData() {
   const defPE = _periodos.find(p => p.activo) || _periodos[0];
   if (defPE && !_activePE) _activePE = defPE;
   if (defPE && !_activePEDist) _activePEDist = defPE;
+}
+
+function populateDistritoFilters() {
+  const distritos = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
+  const opts = '<option value="">Todos los distritos</option>' +
+    distritos.map(d => `<option value="${d}">${d}</option>`).join('');
+  ['filter-distrito-usuarios', 'eval-distrito-filter'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = opts;
+  });
 }
 
 /* ── TAB: EVALUAR ── */
@@ -139,10 +150,11 @@ function selectEvalPE(periodoId, btn) {
 
 function renderEvalUserSelect() {
   const sel = document.getElementById('eval-user-select'); if (!sel) return;
-  const nonAdmins = _users.filter(u => !u.es_admin);
+  const distFilter = (document.getElementById('eval-distrito-filter')?.value || '').trim();
+  const nonAdmins = _users.filter(u => !u.es_admin && (!distFilter || u.distrito === distFilter));
   sel.innerHTML = '<option value="">Selecciona un miembro...</option>' +
     nonAdmins.map(u =>
-      `<option value="${u.id}">${u.nombre}${u.roles?.nombre ? ' · ' + u.roles.nombre : ''}</option>`
+      `<option value="${u.id}">${u.nombre}${u.distrito ? ' · ' + u.distrito : ''}${u.roles?.nombre ? ' · ' + u.roles.nombre : ''}</option>`
     ).join('');
 }
 
@@ -304,18 +316,20 @@ async function selectUsersPE(periodoId, btn) {
 function renderUsuarios() {
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
-  const list = _users.filter(u => !q ||
-    (u.nombre||'').toLowerCase().includes(q) ||
-    (u.email||'').toLowerCase().includes(q));
+  const distFilter = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
+  const list = _users.filter(u =>
+    (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.distrito||'').toLowerCase().includes(q)) &&
+    (!distFilter || u.distrito === distFilter)
+  );
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin usuarios.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter ? 'Sin resultados.' : 'Sin usuarios.'}</div></div>`;
     return;
   }
   const showPECol = !!_activePEUsers;
   el.innerHTML = `
     <div class="tbl">
       <div class="tbl-head">
-        <div>Nombre</div><div>Email</div><div>Rol</div><div>Admin</div>
+        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Rol</div><div>Admin</div>
         ${showPECol ? '<div>Estado PE</div>' : ''}
       </div>
       <div class="tbl-body">
@@ -328,6 +342,7 @@ function renderUsuarios() {
               <span>${u.nombre || '—'}</span>
             </div>
             <div class="tbl-cell tbl-muted">${u.email}</div>
+            <div class="tbl-cell"><span style="font-size:.78rem;color:var(--muted)">${u.distrito || '—'}</span></div>
             <div class="tbl-cell">
               <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.8rem"
                 onchange="updateUserRol('${u.id}',this.value)">
@@ -814,27 +829,18 @@ async function renderDistritoRanking(periodoId) {
   if (!periodoId) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
 
-  const evals = await API.getEvaluacionesByPE(periodoId);
-  const criterios = getCriterios();
-  const MAX = criterios.length * 4 + 2;
-
-  const distMap = {};
-  _distritos.forEach(d => { distMap[d.id] = { id: d.id, nombre: d.nombre, scores: [] }; });
-
-  evals.forEach(ev => {
-    if (ev.estado !== 'publicado') return;
-    const user = _users.find(u => u.id === ev.evaluado_id);
-    if (!user?.distrito || !distMap[user.distrito]) return;
-    const puntajes = ev.puntajes || {};
-    const total    = criterios.reduce((s, c) => s + (puntajes[c.key] || 0), 0) + (ev.bono_ext || 0);
-    distMap[user.distrito].scores.push(total);
-  });
+  const distEvals = await API.getEvalDistritosByPE(periodoId);
 
   const q = (document.getElementById('search-distritos')?.value || '').toLowerCase().trim();
-  const ranked = Object.values(distMap)
-    .filter(d => d.scores.length > 0 && (!q || d.nombre.toLowerCase().includes(q)))
-    .map(d => ({ ...d, avg: d.scores.reduce((a, b) => a + b, 0) / d.scores.length, count: d.scores.length }))
-    .sort((a, b) => b.avg - a.avg);
+  const ranked = distEvals
+    .filter(d => d.estado === 'publicado')
+    .map(d => {
+      const score    = calcDistScore(d.puntajes);
+      const distInfo = _distritos.find(x => x.id === d.distrito_id);
+      return { ...d, score, nombre: distInfo?.nombre || d.distrito_id };
+    })
+    .filter(d => !q || d.nombre.toLowerCase().includes(q))
+    .sort((a, b) => b.score - a.score);
 
   if (!ranked.length) {
     el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
@@ -843,22 +849,21 @@ async function renderDistritoRanking(periodoId) {
 
   const posClass = ['gold','silver','bronze'];
   el.innerHTML = `
-    <div class="tbl" style="max-width:700px">
-      <div class="tbl-head" style="grid-template-columns:48px 1fr 90px 80px 100px">
-        <div>#</div><div>Distrito</div><div style="text-align:center">Promedio</div><div style="text-align:center">Miembros</div><div style="text-align:center">Nivel</div>
+    <div class="tbl" style="max-width:700px;margin:0 auto">
+      <div class="tbl-head" style="grid-template-columns:48px 1fr 80px 100px">
+        <div>#</div><div>Distrito</div><div style="text-align:center">Puntos</div><div style="text-align:center">Nivel</div>
       </div>
       <div class="tbl-body">
         ${ranked.map((d, i) => `
-          <div class="tbl-row" style="grid-template-columns:48px 1fr 90px 80px 100px;cursor:pointer"
-               onclick="document.getElementById('dist-eval-select').value='${d.id}';onDistSelectChange()">
+          <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
+               onclick="document.getElementById('dist-eval-select').value='${d.distrito_id}';onDistSelectChange()">
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
             <div class="tbl-cell"><strong>${d.nombre}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
-              <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:${scoreColor(d.avg)}">${d.avg.toFixed(1)}</span>
-              <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX}</span>
+              <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:${distScoreColor(d.score)}">${d.score}</span>
+              <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX_DIST}</span>
             </div>
-            <div class="tbl-cell" style="justify-content:center;color:var(--muted);font-size:.82rem">${d.count}</div>
-            <div class="tbl-cell" style="justify-content:center"><span class="nivel-badge ${scoreClass(d.avg)}" style="padding:2px 8px;font-size:.55rem">${scoreLabel(d.avg)}</span></div>
+            <div class="tbl-cell" style="justify-content:center"><span class="nivel-badge ${distScoreClass(d.score)}" style="padding:2px 8px;font-size:.55rem">${distScoreLabel(d.score)}</span></div>
           </div>`).join('')}
       </div>
     </div>`;
@@ -931,7 +936,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
     </div>`).join('');
 
   area.innerHTML = `
-    <div class="eval-form-card" style="max-width:800px">
+    <div class="eval-form-card" style="max-width:800px;margin:0 auto">
       <div class="eval-form-header">
         <div>
           <div class="eval-miembro-name">${distrito?.nombre || distId}</div>

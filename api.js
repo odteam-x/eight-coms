@@ -352,9 +352,9 @@ const API = {
 
     const config = await this.getConfig();
 
-    // Criterios normalizados
+    // Criterios normalizados (columna DB es max_valor)
     const criterios = criteriosRaw.map(c => ({
-      key: c.key, label: c.label, abbr: c.abbr, color: c.color, max: c.max || 4,
+      key: c.key, label: c.label, abbr: c.abbr, color: c.color, max: c.max_valor ?? c.max ?? 4,
     }));
 
     // Períodos normalizados
@@ -377,15 +377,16 @@ const API = {
 
     // Construir lista de user IDs a consultar
     let targetIds = [session.user.id];
+    let districtMembers = [];
 
     if (profile.tipo_miembro === 'secretario' && profile.distrito) {
-      // Secretario: incluir también los miembros de su distrito
+      // Secretario: incluir todos los miembros de su distrito (con datos completos)
       const { data: distMembers } = await SB.from('profiles')
-        .select('id')
-        .eq('distrito', profile.distrito)
-        .neq('id', session.user.id);
+        .select('id, nombre, email, distrito, tipo_miembro, roles:rol_id(nombre)')
+        .eq('distrito', profile.distrito);
       if (distMembers?.length) {
-        targetIds = [...targetIds, ...distMembers.map(m => m.id)];
+        districtMembers = distMembers;
+        targetIds = distMembers.map(m => m.id);
       }
     }
 
@@ -432,10 +433,32 @@ const API = {
       estado:     c.estado || 'Pendiente',
     }));
 
+    // Evaluaciones de distrito publicadas → districtScores[pe]
+    const { data: distEvalsRaw } = await SB.from('evaluaciones_distrito')
+      .select('*, periodos_evaluacion(nombre)')
+      .eq('estado', 'publicado');
+
+    const districtScores = {};
+    periodos.forEach(p => { districtScores[p.pe] = []; });
+    for (const de of distEvalsRaw ?? []) {
+      const peName = de.periodos_evaluacion?.nombre;
+      if (!peName || districtScores[peName] === undefined) continue;
+      const p = de.puntajes || {};
+      districtScores[peName].push({
+        distrito: de.distrito_id,
+        total: (Number(p.cgo)||0) + (Number(p.cct)||0) + (Number(p.com)||0) + (Number(p.cee)||0),
+        cgo: Number(p.cgo)||0, cct: Number(p.cct)||0,
+        com: Number(p.com)||0, cee: Number(p.cee)||0,
+      });
+    }
+    Object.keys(districtScores).forEach(pe => {
+      districtScores[pe].sort((a, b) => b.total - a.total);
+    });
+
     const periodoActivo = config.periodo_activo ||
       periodosRaw.find(p => p.activo)?.nombre || 'PE1';
 
-    return { criterios, rubrica, calendario, periodos, scores, feedback, config: { periodoActivo } };
+    return { criterios, rubrica, calendario, periodos, scores, feedback, config: { periodoActivo }, districtScores, districtMembers };
   },
 
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────

@@ -42,8 +42,10 @@ function getMyDistrito() {
 }
 
 function getDistritoRows(pe) {
+  const all = D?.scores?.[pe] || [];
+  // Para secretario getData() ya cargó solo los miembros del distrito, sin re-filtrar
+  if (isSecretario()) return all;
   const myD = getMyDistrito();
-  const all  = D?.scores?.[pe] || [];
   if (!myD) return all;
   return all.filter(r => String(r.distrito||'').trim().toLowerCase() === myD.toLowerCase());
 }
@@ -54,7 +56,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!CU) return;
 
   const cached = Auth.getCachedData();
-  if (cached) { D = cached; initUI(); }
+  if (cached) {
+    D = cached;
+    if (!_peInited && cached.config?.periodoActivo) {
+      mPE = rPE = dPE = cached.config.periodoActivo;
+      _trabajosPE = mPE;
+      _peInited = true;
+    }
+    syncAllPEButtons();
+    initUI();
+  }
   await loadData();
   initUI();
 });
@@ -66,12 +77,24 @@ async function loadData() {
       D = data;
       if (!_peInited && data.config?.periodoActivo) {
         mPE = rPE = dPE = data.config.periodoActivo;
+        _trabajosPE = mPE;
         _peInited = true;
+        syncAllPEButtons();
       }
       Auth.setCachedData(data);
       _lastUpdated = new Date();
     }
   } catch(e) { console.error('[Portal]', e); }
+}
+
+function syncAllPEButtons() {
+  document.querySelectorAll('.pe-row').forEach(row => {
+    row.querySelectorAll('.pb').forEach(b => {
+      const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
+      b.classList.toggle('active', pe === mPE);
+    });
+  });
+  setEl('hero-pe', mPE);
 }
 
 function initUI() {
@@ -196,7 +219,8 @@ function renderMyScore(pe) {
 
 function renderTendenciaInline() {
   if (!D) return '';
-  const cards=PORTAL_CONFIG.PERIODOS.map(pe=>{
+  const peNames = D.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
+  const cards=peNames.map(pe=>{
     const row=D.scores?.[pe]?.find(r=>r.usuario===CU.user);
     return {pe, s:row?calcScore(row):null, isCur:pe===mPE};
   });
@@ -359,58 +383,76 @@ function renderCalificacionDistrito(pe) {
   });
 }
 
+function getDistrictMembersList() {
+  return D?.districtMembers || [];
+}
+
 function renderDistStats(pe) {
   const el=document.getElementById('dist-stats'); if(!el) return;
-  const rows=getDistritoRows(pe), myD=getMyDistrito();
-  if (!rows.length) {
-    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${myD||'tu distrito'}</strong> para ${pe}.</div>`;
+  const members=getDistrictMembersList(), myD=getMyDistrito();
+  const rows=getDistritoRows(pe);
+  const totalMembers=members.length;
+  if (!totalMembers) {
+    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${myD||'tu distrito'}</strong>.</div>`;
     return;
   }
-  const scores=rows.map(calcScore), total=rows.length;
-  const avg=(scores.reduce((a,b)=>a+b,0)/total).toFixed(1);
+  const evaluated=rows.length;
+  const scores=rows.map(calcScore);
+  const avg=evaluated?(scores.reduce((a,b)=>a+b,0)/evaluated).toFixed(1):'—';
   const myRow=rows.find(r=>r.usuario===CU.user), myS=myRow?calcScore(myRow):null;
   const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.usuario===CU.user)+1:null;
-  const maxS=Math.max(...scores), topR=rows.find(r=>calcScore(r)===maxS);
+  const maxS=scores.length?Math.max(...scores):0, topR=scores.length?rows.find(r=>calcScore(r)===maxS):null;
   el.innerHTML=[
-    {lbl:'Miembros en el distrito', val:total,               sub:myD||pe,            col:''},
-    {lbl:'Promedio del distrito',   val:avg,                 sub:`/ ${MAX_TOTAL()} pts`, col:scoreColor(parseFloat(avg))},
-    {lbl:'Mi posición',             val:myPos?`#${myPos}`:'—', sub:`de ${total} miembros`, col:'var(--blue)'},
-    {lbl:'Puntaje más alto',        val:maxS,                sub:topR?.nombre||'—',  col:'var(--sex)'},
+    {lbl:'Miembros en el distrito', val:totalMembers,          sub:`${evaluated} evaluados · ${myD||pe}`, col:''},
+    {lbl:'Promedio del distrito',   val:avg,                   sub:evaluated?`/ ${MAX_TOTAL()} pts`:'Sin evaluaciones', col:evaluated?scoreColor(parseFloat(avg)):''},
+    {lbl:'Mi posición',             val:myPos?`#${myPos}`:'—', sub:evaluated?`de ${evaluated} evaluados`:'Sin evaluar', col:'var(--blue)'},
+    {lbl:'Puntaje más alto',        val:scores.length?maxS:'—', sub:topR?.nombre||'—', col:scores.length?'var(--sex)':''},
   ].map(s=>`<div class="dist-scard"><div class="dist-scard-lbl">${s.lbl}</div><div class="dist-scard-val"${s.col?` style="color:${s.col}"`:''}>${s.val}</div><div class="dist-scard-sub">${s.sub}</div></div>`).join('');
 }
 
 function renderMiembrosDistrito(pe) {
   const el=document.getElementById('distrito-members'); if(!el) return;
-  const rows=getDistritoRows(pe), fbs=D?.feedback?.[pe]||[], criterios=getCriterios();
-  if (!rows.length) {
-    el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.users}</div><div class="empty-txt">No hay miembros en tu distrito para ${pe}.</div></div>`;
+  const members=getDistrictMembersList(), scoreRows=getDistritoRows(pe), fbs=D?.feedback?.[pe]||[], criterios=getCriterios();
+  if (!members.length) {
+    el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.users}</div><div class="empty-txt">No hay miembros registrados en tu distrito.</div></div>`;
     return;
   }
-  const sorted=[...rows].sort((a,b)=>calcScore(b)-calcScore(a));
+  const merged=members.map(m=>{
+    const scoreRow=scoreRows.find(r=>r.usuario===m.email);
+    return { ...m, usuario:m.email, score:scoreRow?calcScore(scoreRow):null, scoreRow, ext:scoreRow?.ext||0 };
+  });
+  const withScores=merged.filter(m=>m.score!==null).sort((a,b)=>b.score-a.score);
+  const withoutScores=merged.filter(m=>m.score===null).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  const sorted=[...withScores,...withoutScores];
   el.innerHTML=`<div class="distrito-members-grid">${sorted.map((r,i)=>{
-    const s=calcScore(r), isMe=r.usuario===CU.user, myFb=fbs.find(f=>f.usuario===r.usuario);
-    const ext=r.ext||0, pos=i+1, rc=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
-    const critBars=criterios.map(c=>{
-      const val=r[c.key]||0;
+    const hasEval=r.score!==null;
+    const s=r.score||0, isMe=r.email===CU.user, myFb=fbs.find(f=>f.usuario===r.email);
+    const pos=hasEval?withScores.indexOf(r)+1:null;
+    const rc=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+    const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
+    const critBars=hasEval?criterios.map(c=>{
+      const val=r.scoreRow[c.key]||0;
       return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:${c.color}">${c.abbr}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div><span class="dm-crit-val" style="color:${c.color}">${val}</span></div>`;
-    }).join('');
+    }).join(''):'';
     const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
     return `<div class="dm-card${isMe?' dm-card--me':''}">
       <div class="dm-card-head">
-        <div class="dm-rank ${rc}">#${pos}</div>
-        <div class="dm-avatar">${initials(r.nombre||r.usuario)}</div>
+        <div class="dm-rank ${rc}">${pos?'#'+pos:'—'}</div>
+        <div class="dm-avatar">${initials(r.nombre||r.email)}</div>
         <div class="dm-info">
-          <div class="dm-name">${r.nombre||r.usuario}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
-          <div class="dm-role">${r.rol||'Creator'}${r.area?' · '+r.area:''}</div>
+          <div class="dm-name">${r.nombre||r.email}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
+          <div class="dm-role">${rolName}</div>
         </div>
         <div class="dm-score-block">
-          <div class="dm-score-total" style="color:${scoreColor(s)}">${s}</div>
-          <div class="dm-score-max">/ ${MAX_TOTAL()}</div>
-          <span class="nivel-badge ${scoreClass(s)}" style="font-size:.55rem;padding:3px 8px">${scoreLabel(s)}</span>
-          ${ext>0?`<span class="bono-badge" style="font-size:.55rem;padding:3px 8px;margin-top:4px"><span class="bono-icon">${ICONS.star}</span>+${ext}</span>`:''}
+          ${hasEval?`
+            <div class="dm-score-total" style="color:${scoreColor(s)}">${s}</div>
+            <div class="dm-score-max">/ ${MAX_TOTAL()}</div>
+            <span class="nivel-badge ${scoreClass(s)}" style="font-size:.55rem;padding:3px 8px">${scoreLabel(s)}</span>
+            ${r.ext>0?`<span class="bono-badge" style="font-size:.55rem;padding:3px 8px;margin-top:4px"><span class="bono-icon">${ICONS.star}</span>+${r.ext}</span>`:''}
+          `:`<div class="dm-score-total" style="color:var(--muted);font-size:.85rem">Sin evaluar</div>`}
         </div>
       </div>
-      <div class="dm-crit-bars">${critBars}</div>
+      ${critBars?`<div class="dm-crit-bars">${critBars}</div>`:''}
       ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:${c.color};font-weight:700;font-size:.65rem;letter-spacing:1px">${c.abbr}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
     </div>`;
   }).join('')}</div>`;

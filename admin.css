@@ -72,7 +72,7 @@
 /* ── MEMBER CHIPS ── */
 .member-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
 .member-chip {
-  padding:7px 16px; min-height:36px;
+  padding:7px 16px; min-height:44px;
   font-family:'Barlow Condensed',sans-serif; font-size:.7rem; font-weight:700;
   letter-spacing:1px; text-transform:uppercase; color:var(--muted);
   border:1px solid var(--faint); border-radius:var(--r-pill);
@@ -984,6 +984,12 @@ option {
 .tbl-muted { color:var(--muted); font-size:.78rem; }
 .tbl-actions { gap:4px; overflow:visible; }
 
+/* Usuarios: 5 columnas (Nombre, Email, Distrito, Rol, Admin) + opcional Estado PE */
+#usuarios-list .tbl-head,
+#usuarios-list .tbl-row { grid-template-columns:1.2fr 1.2fr .7fr 1fr 80px; }
+#usuarios-list .tbl-head:has(> div:nth-child(6)),
+#usuarios-list .tbl-row:has(> .tbl-cell:nth-child(6)) { grid-template-columns:1.2fr 1.2fr .7fr 1fr 80px 90px; }
+
 /* Roles + Periodos usan 3 columnas con acciones */
 #roles-list .tbl-head,
 #periodos-list .tbl-head { grid-template-columns:1.4fr 1fr 90px; }
@@ -997,7 +1003,7 @@ option {
    ══════════════════════════════════════════════════ */
 .btn-icon {
   display:inline-flex; align-items:center; justify-content:center;
-  width:32px; height:32px; border-radius:var(--r-sm);
+  width:44px; height:44px; border-radius:var(--r-sm);
   border:1px solid var(--faint); color:var(--muted);
   transition:all .15s; flex-shrink:0;
 }
@@ -1068,7 +1074,7 @@ option {
 .eval-form-card {
   background:var(--glass); border:1px solid var(--glass-border);
   border-radius:var(--r-xl); padding:24px 28px;
-  max-width:700px; margin-top:12px;
+  max-width:700px; margin:12px auto 0;
   animation:tabIn .3s var(--ease);
 }
 .eval-form-header {
@@ -1103,7 +1109,7 @@ option {
 
 .score-btns { display:flex; gap:5px; flex-shrink:0; }
 .score-btn {
-  width:36px; height:36px; border-radius:var(--r-md);
+  width:44px; height:44px; border-radius:var(--r-md);
   background:var(--s3); border:1px solid var(--faint);
   font-family:'Bebas Neue',sans-serif; font-size:1rem;
   color:var(--muted); transition:all .15s; flex-shrink:0;
@@ -1271,7 +1277,6 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 .field input::placeholder { color:var(--muted); opacity:.7; }
 .modal-actions { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
 .modal-err { margin-top:8px; font-size:.78rem; color:var(--accent); line-height:1.4; }
-@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
 @keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
 @media (max-width:500px) {

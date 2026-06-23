@@ -86,19 +86,6 @@ body {
   animation: orbFloat3 34s ease-in-out infinite, orbFadeIn .8s .5s forwards;
 }
 
-/* Grid overlay sutil */
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
-}
-
 /* Grain noise */
 body::after {
   content:'';

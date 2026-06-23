@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#002247">
   <title>EIGHT CREATORS LABs — Registro</title>
+  <meta name="description" content="Crea tu cuenta en el portal de desempeño EIGHT CREATORS — CELIDER 08 Santiago.">
+  <meta property="og:title" content="EIGHT CREATORS LABs — Registro">
+  <meta property="og:description" content="Crea tu cuenta en el sistema de evaluación de desempeño de CELIDER 08 Santiago.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/x-icon" href="icono.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
   <style>
@@ -81,7 +89,6 @@
 </head>
 <body>
 <div class="bg-canvas" aria-hidden="true"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div></div>
-<div class="bg-grid" aria-hidden="true"></div>
 <button class="theme-toggle theme-toggle-fixed" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
   <i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span>
 </button>
@@ -100,7 +107,7 @@
   </div>
 
   <div class="login-panel-form">
-    <div class="login-form-inner">
+    <form id="register-form" class="login-form-inner" novalidate autocomplete="on">
       <div class="login-form-header">
         <h2 class="login-form-title">Crear cuenta</h2>
         <p class="login-form-sub">Completa tus datos para registrarte</p>
@@ -108,22 +115,22 @@
 
       <div class="field">
         <label for="r-nombre">Nombre completo</label>
-        <input type="text" id="r-nombre" placeholder="Tu nombre" autocomplete="name">
+        <input type="text" id="r-nombre" placeholder="Tu nombre" autocomplete="name" required aria-required="true">
       </div>
       <div class="field">
         <label for="r-email">Email</label>
-        <input type="email" id="r-email" placeholder="tu@email.com" autocomplete="email">
+        <input type="email" id="r-email" placeholder="tu@email.com" autocomplete="email" required aria-required="true">
       </div>
       <div class="field">
         <label for="r-rol">Rol en el equipo</label>
-        <select id="r-rol">
+        <select id="r-rol" required aria-required="true">
           <option value="">Cargando roles...</option>
         </select>
       </div>
       <div class="field-row">
         <div class="field">
           <label for="r-distrito">Distrito</label>
-          <select id="r-distrito">
+          <select id="r-distrito" required aria-required="true">
             <option value="">Tu distrito...</option>
             <option value="08-01">08-01</option>
             <option value="08-02">08-02</option>
@@ -140,7 +147,7 @@
         </div>
         <div class="field">
           <label for="r-tipo">Tipo de miembro</label>
-          <select id="r-tipo">
+          <select id="r-tipo" required aria-required="true">
             <option value="miembro">Miembro normal</option>
             <option value="secretario">Secretario</option>
           </select>
@@ -149,26 +156,36 @@
       <div class="field-row">
         <div class="field">
           <label for="r-pass">Contraseña</label>
-          <input type="password" id="r-pass" placeholder="Mín. 8 caracteres" autocomplete="new-password">
+          <div class="pass-wrap">
+            <input type="password" id="r-pass" placeholder="Mín. 8 caracteres" autocomplete="new-password" required aria-required="true" minlength="8">
+            <button type="button" class="btn-pass-toggle" id="pass-toggle-1" aria-label="Mostrar contraseña">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
         </div>
         <div class="field">
           <label for="r-pass2">Confirmar contraseña</label>
-          <input type="password" id="r-pass2" placeholder="Repite la contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+          <div class="pass-wrap">
+            <input type="password" id="r-pass2" placeholder="Repite la contraseña" autocomplete="new-password" required aria-required="true" minlength="8">
+            <button type="button" class="btn-pass-toggle" id="pass-toggle-2" aria-label="Mostrar contraseña">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <button class="btn-login" id="btn-reg" onclick="doRegister()">Crear cuenta</button>
-      <div class="login-loading" id="r-loading"><span class="spin"></span>Creando cuenta...</div>
-      <div class="login-err"  id="r-err"></div>
-      <div class="login-ok"   id="r-ok">
+      <button type="submit" class="btn-login" id="btn-reg">Crear cuenta</button>
+      <div class="login-loading" id="r-loading" aria-live="polite"><span class="spin"></span>Creando cuenta...</div>
+      <div class="login-err" id="r-err" role="alert" aria-live="polite"></div>
+      <div class="login-ok" id="r-ok" role="status" aria-live="polite">
         ¡Cuenta creada con éxito! Ya puedes iniciar sesión con tu email y contraseña.
       </div>
       <div class="login-link">¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></div>
-    </div>
+    </form>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>
@@ -182,9 +199,26 @@
   if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
 })();
 </script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
 <script>
 'use strict';
+
+document.getElementById('register-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  doRegister();
+});
+
+document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var inp = this.closest('.pass-wrap').querySelector('input');
+    var isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    this.setAttribute('aria-label', isPass ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    this.querySelector('i').setAttribute('data-lucide', isPass ? 'eye-off' : 'eye');
+    lucide.createIcons({ nodes: [this] });
+  });
+});
+
 // Cargar roles para el dropdown
 (async function loadRoles() {
   const sel = document.getElementById('r-rol');

@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#002247">
   <title>EIGHT CREATORS LABs — Admin</title>
+  <meta name="description" content="Panel de administración — EIGHT CREATORS LABs, CELIDER 08 Santiago.">
+  <meta property="og:title" content="EIGHT CREATORS LABs — Admin">
+  <meta property="og:description" content="Panel de administración del sistema de evaluación de desempeño de CELIDER 08 Santiago.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/x-icon" href="icono.ico">
   <link rel="apple-touch-icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
   <link rel="stylesheet" href="admin.css">
@@ -18,7 +26,7 @@
   <div class="bg-orb bg-orb-2"></div>
   <div class="bg-orb bg-orb-3"></div>
 </div>
-<div class="bg-grid" aria-hidden="true"></div>
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
 <!-- TOPBAR -->
 <header class="topbar" id="topbar">
@@ -106,9 +114,15 @@
       </div>
     </div>
 
-    <div style="margin:16px 0 8px">
+    <div style="margin:16px 0 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eval-pe-lbl">Miembro a evaluar:</span>
-      <select class="cfg-inp cfg-select" id="eval-user-select" onchange="loadEvaluacion()" style="max-width:320px;margin-left:8px">
+      <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
+        <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" onchange="renderEvalUserSelect()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
+          <option value="">Todos los distritos</option>
+        </select>
+      </div>
+      <select class="cfg-inp cfg-select" id="eval-user-select" onchange="loadEvaluacion()" style="max-width:320px">
         <option value="">Selecciona un miembro...</option>
       </select>
     </div>
@@ -126,7 +140,15 @@
     <div class="ptitle">USUARIOS</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
-      <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" oninput="renderUsuarios()">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" oninput="renderUsuarios()">
+        <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
+          <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
+          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" onchange="renderUsuarios()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
+            <option value="">Todos los distritos</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="admin-pe-bar users-pe-bar">
       <span class="pe-label">Período activo:</span>
@@ -194,22 +216,22 @@
   <div id="tab-distritos" class="atab-content">
     <div class="ptitle">DISTRITOS</div>
 
-    <div class="eval-pe-bar">
+    <div class="eval-pe-bar" style="justify-content:center">
       <span class="eval-pe-lbl">Período:</span>
       <div class="eval-pe-btns" id="dist-pe-btns">
         <div class="loading-box" style="height:32px"><span class="spin"></span></div>
       </div>
     </div>
 
-    <div class="section-label" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      Ranking de distritos
-      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" oninput="renderDistritoRanking(_activePEDist?.id)" style="font-size:.75rem;padding:5px 12px;margin-left:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <span class="section-label" style="margin-bottom:0">Ranking de distritos</span>
+      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" oninput="renderDistritoRanking(_activePEDist?.id)" style="font-size:.75rem;padding:5px 12px;width:180px">
     </div>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
     </div>
 
-    <div style="margin:24px 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="margin:24px auto 10px;max-width:700px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eval-pe-lbl">Evaluar distrito:</span>
       <select class="cfg-inp cfg-select" id="dist-eval-select" onchange="onDistSelectChange()" style="max-width:240px">
         <option value="">Seleccionar distrito...</option>
@@ -363,7 +385,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
 <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -380,7 +402,14 @@
   if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
 })();
 </script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script>if(typeof lucide!=='undefined')lucide.createIcons();</script>
+<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
+<script>
+if(typeof lucide!=='undefined')lucide.createIcons();
+
+window.addEventListener('scroll', function() {
+  var p = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('scroll-progress').style.width = p + '%';
+}, { passive: true });
+</script>
 </body>
 </html>

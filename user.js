@@ -25,7 +25,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!CU) return;
 
   const cached = Auth.getCachedData();
-  if (cached) { D = cached; initUI(); }
+  if (cached) {
+    D = cached;
+    if (!_peInited && cached.config?.periodoActivo) {
+      mPE = cached.config.periodoActivo;
+      _trabajosPE = mPE;
+      _peInited = true;
+    }
+    syncAllPEButtons();
+    initUI();
+  }
 
   await loadData();
   initUI();
@@ -40,14 +49,22 @@ async function loadData() {
       _lastUpdated = new Date();
       if (!_peInited && data.config?.periodoActivo) {
         mPE = data.config.periodoActivo;
+        _trabajosPE = mPE;
         _peInited = true;
-        document.querySelectorAll('.pe-row .pb').forEach((b,i) => {
-          b.classList.toggle('active', ['PE1','PE2','PE3'][i] === mPE);
-        });
-        setEl('hero-pe', mPE);
+        syncAllPEButtons();
       }
     }
   } catch (e) { console.error('[User]', e); }
+}
+
+function syncAllPEButtons() {
+  document.querySelectorAll('.pe-row').forEach(row => {
+    row.querySelectorAll('.pb').forEach(b => {
+      const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
+      b.classList.toggle('active', pe === mPE);
+    });
+  });
+  setEl('hero-pe', mPE);
 }
 
 function initUI() {

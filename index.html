@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#002247">
   <title>EIGHT CREATORS LABs — Portal</title>
+  <meta name="description" content="Portal de desempeño del equipo creativo EIGHT CREATORS — CELIDER 08 Santiago.">
+  <meta property="og:title" content="EIGHT CREATORS LABs — Portal">
+  <meta property="og:description" content="Sistema de evaluación de desempeño para el equipo creativo de CELIDER 08 Santiago.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/x-icon" href="icono.ico">
   <link rel="apple-touch-icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
   <style>
@@ -292,7 +300,6 @@
   <div class="bg-orb bg-orb-2"></div>
   <div class="bg-orb bg-orb-3"></div>
 </div>
-<div class="bg-grid" aria-hidden="true"></div>
 
 <button class="theme-toggle theme-toggle-fixed" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
 
@@ -316,7 +323,7 @@
 
   <!-- Panel derecho: formulario -->
   <div class="login-panel-form">
-    <div class="login-form-inner">
+    <form id="login-form" class="login-form-inner" novalidate autocomplete="on">
       <div class="login-form-header">
         <h2 class="login-form-title">Iniciar sesión</h2>
         <p class="login-form-sub">Accede con tus credenciales asignadas</p>
@@ -325,26 +332,36 @@
       <div class="field">
         <label for="li-user">Email</label>
         <input type="email" id="li-user" placeholder="tu@email.com"
-               autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
+               autocomplete="email" required aria-required="true">
       </div>
       <div class="field">
         <label for="li-pass">Contraseña</label>
-        <input type="password" id="li-pass" placeholder="••••••••"
-               autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="pass-wrap">
+          <input type="password" id="li-pass" placeholder="••••••••"
+                 autocomplete="current-password" required aria-required="true" minlength="8">
+          <button type="button" class="btn-pass-toggle" id="pass-toggle"
+                  aria-label="Mostrar contraseña">
+            <i data-lucide="eye" class="pass-eye"></i>
+          </button>
+        </div>
       </div>
 
-      <button class="btn-login" id="btn-login" onclick="doLogin()">Ingresar al portal</button>
-      <div class="login-loading" id="li-loading"><span class="spin"></span>Verificando acceso...</div>
-      <div class="login-err"     id="li-err">Email o contraseña incorrectos.</div>
+      <button type="submit" class="btn-login" id="btn-login">Ingresar al portal</button>
+      <div class="login-loading" id="li-loading" aria-live="polite"><span class="spin"></span>Verificando acceso...</div>
+      <div class="login-err" id="li-err" role="alert" aria-live="polite">Email o contraseña incorrectos.</div>
       <div style="margin-top:16px;text-align:center;font-size:.82rem;color:var(--muted);">
-        <a href="#" onclick="doResetPassword()" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
+        <a href="#" onclick="doResetPassword();return false" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
+        <p style="font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.4;">Escribe tu email arriba y luego haz clic en el enlace.</p>
       </div>
-    </div>
+      <div style="margin-top:20px;text-align:center;font-size:.85rem;color:var(--muted);padding-top:16px;border-top:1px solid var(--faint);">
+        ¿No tienes cuenta? <a href="registro.html" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
+      </div>
+    </form>
   </div>
 
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>
@@ -359,10 +376,24 @@
   if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
 })();
 </script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
 <script>
 'use strict';
 if(typeof lucide!=='undefined') lucide.createIcons();
+
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  doLogin();
+});
+
+document.getElementById('pass-toggle').addEventListener('click', function() {
+  var inp = document.getElementById('li-pass');
+  var isPass = inp.type === 'password';
+  inp.type = isPass ? 'text' : 'password';
+  this.setAttribute('aria-label', isPass ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  this.querySelector('i').setAttribute('data-lucide', isPass ? 'eye-off' : 'eye');
+  lucide.createIcons({ nodes: [this] });
+});
 
 /* Redirigir si ya hay sesión activa */
 (async function() {
