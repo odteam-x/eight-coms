@@ -61,23 +61,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadData() {
   try {
-    const data = await API.getSecretarioData(CU.user);
+    const data = await API.getData();
     if (data.ok !== false) {
       D = data;
-      if (data.myDistrito) {
-        CU.distrito = data.myDistrito;
-        Auth.setSession(CU);
-      }
       if (!_peInited && data.config?.periodoActivo) {
         mPE = rPE = dPE = data.config.periodoActivo;
         _peInited = true;
-      }
-      // Cargar rúbrica de distritos solo para secretario
-      if (isSecretario() && !D.rubricaDistritos) {
-        try {
-          const rd = await API.getRubricaDistritos();
-          if (rd.ok !== false) D.rubricaDistritos = rd.rubrica || rd;
-        } catch(e) { console.warn('[Portal] No se pudo cargar rúbrica distritos'); }
       }
       Auth.setCachedData(data);
       _lastUpdated = new Date();
