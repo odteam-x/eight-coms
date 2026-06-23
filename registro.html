@@ -31,7 +31,7 @@
     .login-hero-labs { color:var(--cyan); display:block; }
     .login-hero-desc { font-size:.88rem; color:var(--muted); line-height:1.75; max-width:29ch; }
     .login-brand-foot { position:relative; z-index:1; font-family:'Barlow Condensed',sans-serif; font-size:.62rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); opacity:.5; }
-    .login-panel-form { display:flex; flex-direction:column; justify-content:center; padding:28px 56px; background:var(--glass); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); border-left:1px solid var(--glass-border); position:relative; animation:slideInRight .5s var(--ease) .07s both; overflow-y:auto; }
+    .login-panel-form { display:flex; flex-direction:column; justify-content:center; align-items:center; padding:28px 56px; background:var(--glass); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); border-left:1px solid var(--glass-border); position:relative; animation:slideInRight .5s var(--ease) .07s both; overflow-y:auto; }
     .login-panel-form::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,var(--glass-hi),transparent 60%,var(--glass-hi)); }
     .login-form-inner { max-width:460px; width:100%; }
     .login-form-header { margin-bottom:16px; }
@@ -73,13 +73,13 @@
     @keyframes slideInRight { from{opacity:0;transform:translateX(20px)}  to{opacity:1;transform:translateX(0)} }
     @media (max-width:820px) {
       body { overflow:auto; }
-      .login-layout { grid-template-columns:1fr; min-height:auto; }
+      .login-layout { grid-template-columns:1fr; min-height:100dvh; grid-template-rows:auto 1fr; }
       .login-panel-brand { padding:36px 28px 28px; animation:slideInUp .4s var(--ease) both; }
       .logo-img { width:64px; height:64px; }
       .login-hero-h1 { font-size:2.6rem; margin-bottom:0; }
       .login-hero-desc { display:none; }
       .login-brand-foot { display:none; }
-      .login-panel-form { padding:32px 24px 48px; border-left:none; border-top:1px solid var(--glass-border); backdrop-filter:none; -webkit-backdrop-filter:none; background:var(--s1); animation:slideInUp .4s var(--ease) .06s both; }
+      .login-panel-form { padding:32px 24px 48px; border-left:none; border-top:1px solid var(--glass-border); backdrop-filter:none; -webkit-backdrop-filter:none; background:var(--s1); animation:slideInUp .4s var(--ease) .06s both; justify-content:flex-start; align-items:stretch; }
       .login-form-inner { max-width:100%; }
       .field-row { flex-direction:column; gap:0; margin-bottom:0; }
       .field-row .field { margin-bottom:10px; }
@@ -222,10 +222,23 @@ document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
 // Cargar roles para el dropdown
 (async function loadRoles() {
   const sel = document.getElementById('r-rol');
-  // Los roles activos son accesibles por anon (policy roles_anon_read_activos)
-  const { data } = await SB.from('roles').select('id, nombre').eq('activo', true).order('orden');
+  const FALLBACK_ROLES = [
+    { id:'Filmmaker',       nombre:'Filmmaker' },
+    { id:'Maquetación',     nombre:'Maquetación' },
+    { id:'Ideas Creativas', nombre:'Ideas Creativas' },
+    { id:'P-CLIT',          nombre:'P-CLIT' },
+    { id:'Motion Editor',   nombre:'Motion Editor' },
+    { id:'X DEFINIR',       nombre:'X DEFINIR' },
+  ];
+  let roles = [];
+  try {
+    const { data } = await SB.from('roles').select('id, nombre').eq('activo', true).order('orden');
+    roles = data && data.length ? data : FALLBACK_ROLES;
+  } catch(e) {
+    roles = FALLBACK_ROLES;
+  }
   sel.innerHTML = '<option value="">Selecciona tu rol</option>' +
-    (data ?? []).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    roles.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
 })();
 
 function authErrEs(msg) {
