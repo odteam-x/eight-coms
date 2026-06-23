@@ -337,7 +337,7 @@
       <div class="login-loading" id="li-loading"><span class="spin"></span>Verificando acceso...</div>
       <div class="login-err"     id="li-err">Email o contraseña incorrectos.</div>
       <div style="margin-top:16px;text-align:center;font-size:.82rem;color:var(--muted);">
-        ¿No tienes cuenta? <a href="registro.html" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate</a>
+        <a href="#" onclick="doResetPassword()" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
       </div>
     </div>
   </div>
@@ -415,15 +415,32 @@ async function doLogin() {
   }
 
   const profile = await Auth.getProfile(true);
-  if (!profile) {
-    err.textContent = 'Tu perfil no está configurado aún. Contacta al administrador o regístrate de nuevo.';
+  const tipo = profile?.tipo_miembro || 'miembro';
+  window.location.replace(profile?.es_admin ? 'admin.html' : tipo === 'secretario' ? 'secretario.html' : 'user.html');
+}
+
+async function doResetPassword() {
+  const uEl = document.getElementById('li-user');
+  const err = document.getElementById('li-err');
+  const email = uEl.value.trim();
+  if (!email) {
+    err.textContent = 'Escribe tu email arriba y luego haz clic en "Olvidé mi contraseña".';
     err.classList.add('visible');
-    load.classList.remove('visible');
-    btn.disabled = false;
+    uEl.focus();
     return;
   }
-  const tipo = profile.tipo_miembro || 'miembro';
-  window.location.replace(profile.es_admin ? 'admin.html' : tipo === 'secretario' ? 'secretario.html' : 'user.html');
+  err.classList.remove('visible');
+  const { error } = await SB.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/index.html'
+  });
+  if (error) {
+    err.textContent = 'Error: ' + error.message;
+    err.classList.add('visible');
+  } else {
+    err.textContent = 'Revisa tu correo — te enviamos un enlace para restablecer tu contraseña.';
+    err.style.color = 'var(--cyan)';
+    err.classList.add('visible');
+  }
 }
 </script>
 </body>

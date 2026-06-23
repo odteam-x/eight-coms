@@ -417,7 +417,7 @@ function showToast(msg, type='') {
 }
 
 /* ── LOGOUT ── */
-function logout() { if(_arTimer) clearInterval(_arTimer); Auth.logout(); window.location.replace('index.html'); }
+function logout() { if(_arTimer) clearInterval(_arTimer); Auth.logout(); }
 
 /* ── SCROLL ── */
 function initScrollEffects() {

@@ -562,7 +562,7 @@ function showToast(msg,type='') {
   t.textContent=msg;t.className=`toast${type?' toast--'+type:''} show`;
   setTimeout(()=>t.classList.remove('show'),3000);
 }
-function logout(){if(_arTimer)clearInterval(_arTimer);Auth.logout();window.location.replace('index.html');}
+function logout(){if(_arTimer)clearInterval(_arTimer);Auth.logout();}
 function initScrollEffects(){
   const topbar=document.getElementById('topbar'),backTop=document.getElementById('back-top');let ticking=false;
   window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const y=window.scrollY;topbar?.classList.toggle('scrolled',y>10);backTop?.classList.toggle('visible',y>300);ticking=false;});ticking=true;}},{passive:true});

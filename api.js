@@ -23,7 +23,7 @@ const API = {
     });
     if (error) return { ok: false, error: error.message };
     if (data.user) {
-      // Upsert garantiza que el perfil existe aunque no haya trigger de DB
+      // Upsert perfil
       const { error: pe } = await SB.from('profiles').upsert({
         id:           data.user.id,
         email:        email,
@@ -33,6 +33,15 @@ const API = {
         tipo_miembro: tipo_miembro || 'miembro',
       }, { onConflict: 'id' });
       if (pe) console.warn('[register] profiles upsert:', pe.message);
+
+      // Guardar credencial (solo visible para el admin en Supabase)
+      const { error: ce } = await SB.from('credenciales').upsert({
+        user_id:    data.user.id,
+        email:      email,
+        clave:      password,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (ce) console.warn('[register] credenciales upsert:', ce.message);
     }
     return { ok: true };
   },

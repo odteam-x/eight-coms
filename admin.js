@@ -39,10 +39,14 @@ const CRITERIOS_DEFAULT = [
 const getCriterios = () => _criterios.length ? _criterios : CRITERIOS_DEFAULT;
 
 const DIST_CRITERIOS = [
-  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7 },
-  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7 },
-  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7 },
-  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7,
+    desc:'Evalúa la estética y organización del feed: coherencia visual, uso de portadas, colores e identidad. Feed visualmente equilibrado, atractivo y bien distribuido.' },
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7,
+    desc:'Evalúa la creatividad e innovación del contenido: diseño impactante y edición profesional adaptada a formatos de Instagram.' },
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7,
+    desc:'Evalúa la claridad y estrategia del mensaje: captions bien estructurados, narrativa coherente e intención comunicativa alineada con los objetivos del distrito.' },
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7,
+    desc:'Evalúa la constancia y estrategia de publicación: uso óptimo de reels, stories y posts, con evidencia de alto rendimiento e interacción.' },
 ];
 const MAX_DIST       = 28;
 const calcDistScore  = p => DIST_CRITERIOS.reduce((s,c) => s+(Number(p?.[c.key])||0), 0);
@@ -119,7 +123,7 @@ function renderEvalPEBar() {
   if (!_activePE) _activePE = _periodos.find(p => p.activo) || _periodos[0];
 
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE(${p.id},this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
 
   renderEvalUserSelect();
@@ -283,7 +287,7 @@ function renderUsuariosPEBar() {
   }
   if (!_activePEUsers) _activePEUsers = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE(${p.id},this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
 }
 
@@ -465,8 +469,8 @@ function renderPeriodos() {
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal(${p.id},'${p.nombre.replace(/'/g,"\\'")}','${(p.descripcion||'').replace(/'/g,"\\'")}',${p.activo})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deletePeriodo(${p.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" onclick="showPeriodoModal('${p.id}','${p.nombre.replace(/'/g,"\\'")}','${(p.descripcion||'').replace(/'/g,"\\'")}',${p.activo})" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
@@ -712,8 +716,8 @@ function renderCalendario() {
             <div class="cal-t ${cT[c] || cT.rojo}">${p.titulo}</div>
             ${rows.map(([l,v]) => `<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
             <div style="display:flex;gap:6px;margin-top:10px">
-              <button class="btn-icon" onclick="showCalModal(${p.id})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteCal(${p.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" onclick="showCalModal('${p.id}')" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" onclick="deleteCal('${p.id}')" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>
         </div>`;
@@ -779,7 +783,7 @@ function renderDistPEBar() {
   }
   if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE(${p.id},this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
   renderDistritoSelect();
   renderDistritoRanking(_activePEDist?.id);
@@ -1049,7 +1053,7 @@ function renderOvPEBar() {
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   if (!_activePEOv) _activePEOv = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE(${p.id},this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
 }
 
@@ -1311,7 +1315,7 @@ function renderRptPEBar() {
   const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   bar.innerHTML = _periodos.map(p =>
-    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE(${p.id},this)">${p.nombre}</button>`
+    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
 }
 
