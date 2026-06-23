@@ -495,7 +495,7 @@ async function savePeriodo() {
   const err    = document.getElementById('mpe-err');
   if (!nombre) { err.textContent = 'Escribe un nombre.'; return; }
 
-  const res = await API.savePeriodo({ id: id ? Number(id) : null, nombre, descripcion: desc, activo });
+  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, activo });
   if (!res.ok) { err.textContent = res.error; return; }
 
   showToast(id ? 'Período actualizado' : 'Período creado', 'ok');
