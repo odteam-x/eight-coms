@@ -484,7 +484,7 @@ function renderPeriodos() {
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal('${p.id}','${p.nombre.replace(/'/g,"\\'")}','${(p.descripcion||'').replace(/'/g,"\\'")}',${p.activo})" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon" onclick="showPeriodoModal('${p.id}','${(p.nombre||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(p.descripcion||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${p.activo})" title="Editar">${ICONS.edit}</button>
               <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
@@ -510,13 +510,29 @@ async function savePeriodo() {
   const err    = document.getElementById('mpe-err');
   if (!nombre) { err.textContent = 'Escribe un nombre.'; return; }
 
+  // Si se marca como activo, desactivar los demás primero
+  if (activo) {
+    const others = _periodos.filter(p => p.activo && String(p.id) !== String(id));
+    for (const o of others) {
+      await API.savePeriodo({ id: o.id, nombre: o.nombre, descripcion: o.descripcion || '', activo: false });
+    }
+  }
+
   const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, activo });
   if (!res.ok) { err.textContent = res.error; return; }
+
+  // Sincronizar config.periodo_activo para que miembros y secretarios lo detecten
+  if (activo) {
+    await API.saveConfig('periodo_activo', nombre);
+  } else if (_periodos.find(p => String(p.id) === String(id))?.activo) {
+    // Se desactivó el período que estaba activo — limpiar config
+    await API.saveConfig('periodo_activo', '');
+  }
 
   showToast(id ? 'Período actualizado' : 'Período creado', 'ok');
   closeModal('modal-periodo');
   _periodos = await API.getPeriodos();
-  if (!_activePE) _activePE = _periodos.find(p => p.activo) || _periodos[0];
+  _activePE = _periodos.find(p => p.activo) || _periodos[0];
   renderPeriodos();
   renderEvalPEBar();
 }
@@ -567,7 +583,7 @@ function renderCriterios() {
 }
 
 function showCriterioModal(id) {
-  const c = id ? _criterios.find(x => x.id === id) : null;
+  const c = id ? _criterios.find(x => x.id == id) : null;
   document.getElementById('mcrit-id').value       = c?.id || '';
   document.getElementById('mcrit-label').value    = c?.label || '';
   document.getElementById('mcrit-key').value      = c?.key || '';
@@ -657,7 +673,7 @@ function renderRubrica() {
 }
 
 function showRubricaModal(id) {
-  const r = id ? _rubrica.find(x => x.id === id) : null;
+  const r = id ? _rubrica.find(x => x.id == id) : null;
   const critSel = document.getElementById('mrub-criterio');
   const allCrits = _criterios.length ? _criterios : getCriterios();
   critSel.innerHTML = '<option value="">Seleccionar criterio...</option>' +
@@ -685,7 +701,7 @@ async function saveRubricaEntry() {
   const err        = document.getElementById('mrub-err');
   if (!criterio_id) { err.textContent = 'Selecciona un criterio.'; return; }
 
-  const crit    = (_criterios.length ? _criterios : getCriterios()).find(c => c.id === Number(criterio_id));
+  const crit    = (_criterios.length ? _criterios : getCriterios()).find(c => c.id == criterio_id);
   const criterio = crit?.label || '';
 
   const res = await API.saveRubricaRow({ id: id ? Number(id) : null, criterio_id, criterio, nivel4, nivel3, nivel2, nivel1, orden });
@@ -740,7 +756,7 @@ function renderCalendario() {
 }
 
 function showCalModal(id) {
-  const p = id ? _calendario.find(c => c.id === id) : null;
+  const p = id ? _calendario.find(c => c.id == id) : null;
   document.getElementById('mcal-id').value      = p?.id || '';
   document.getElementById('mcal-num').value     = p?.numero || '';
   document.getElementById('mcal-titulo').value  = p?.titulo || '';
@@ -1325,7 +1341,7 @@ function renderRptPEBar() {
 }
 
 async function selectRptPE(periodoId, _btn) {
-  _rptPE = _periodos.find(p => p.id === periodoId) || null;
+  _rptPE = _periodos.find(p => p.id == periodoId) || null;
   document.querySelectorAll('#rpt-pe-btns .rpt-pe-btn').forEach(b => b.classList.remove('eval-pe-btn--active'));
   _btn?.classList.add('eval-pe-btn--active');
   if (!_rptEvals[periodoId]) {

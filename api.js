@@ -59,8 +59,10 @@ const API = {
     return data ?? [];
   },
 
-  async getCriterios() {
-    const { data } = await SB.from('criterios').select('*').eq('activo', true).order('orden');
+  async getCriterios(onlyActive = false) {
+    let q = SB.from('criterios').select('*');
+    if (onlyActive) q = q.eq('activo', true);
+    const { data } = await q.order('orden');
     return data ?? [];
   },
 
@@ -108,6 +110,12 @@ const API = {
     const cfg = {};
     (data ?? []).forEach(r => { cfg[r.clave] = r.valor; });
     return cfg;
+  },
+
+  async saveConfig(clave, valor) {
+    const { error } = await SB.from('config')
+      .upsert({ clave, valor }, { onConflict: 'clave' });
+    return { ok: !error, error: error?.message };
   },
 
   // ── EVALUACIONES — usuario normal ────────────────────────────────
@@ -344,7 +352,7 @@ const API = {
     if (!profile) return { ok: false };
 
     const [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
-      this.getCriterios(),
+      this.getCriterios(true),
       this.getRubrica(),
       this.getCalendario(),
       this.getPeriodos(),
@@ -391,26 +399,60 @@ const API = {
     }
 
     // Fetch evaluaciones publicadas para los IDs relevantes
-    const { data: evsRaw } = await SB.from('evaluaciones')
-      .select('*, periodos_evaluacion(id, nombre), evaluado:evaluado_id(id, nombre, email, distrito)')
-      .in('evaluado_id', targetIds)
-      .eq('estado', 'publicado');
+    let evsRaw = null;
+    try {
+      const res = await SB.from('evaluaciones')
+        .select('*, periodos_evaluacion(id, nombre), evaluado:evaluado_id(id, nombre, email, distrito)')
+        .in('evaluado_id', targetIds)
+        .eq('estado', 'publicado');
+      evsRaw = res.data;
+      if (res.error) console.warn('[API.getData] evaluaciones query error:', res.error.code, res.error.message);
+    } catch (e) {
+      console.warn('[API.getData] evaluaciones query threw:', e);
+    }
+
+    // Fallback: si la query con joins falló o devolvió vacío, intentar sin joins
+    if ((!evsRaw || !evsRaw.length) && targetIds.length) {
+      try {
+        const res2 = await SB.from('evaluaciones')
+          .select('*')
+          .in('evaluado_id', targetIds)
+          .eq('estado', 'publicado');
+        if (res2.data?.length) {
+          evsRaw = res2.data;
+          console.info('[API.getData] fallback query returned', evsRaw.length, 'evaluaciones');
+        }
+      } catch (e2) {
+        console.warn('[API.getData] fallback query threw:', e2);
+      }
+    }
+
+    // Lookups para resolver datos cuando los joins retornan null
+    const _profileLookup = {};
+    _profileLookup[session.user.id] = { email: profile.email, nombre: profile.nombre, distrito: profile.distrito };
+    for (const m of districtMembers) {
+      _profileLookup[m.id] = { email: m.email, nombre: m.nombre, distrito: m.distrito };
+    }
+    const _periodoLookup = {};
+    for (const p of periodosRaw) { _periodoLookup[p.id] = p.nombre; }
 
     // Formatear evaluaciones → scores[pe] y feedback[pe]
     for (const ev of evsRaw ?? []) {
-      const peName = ev.periodos_evaluacion?.nombre;
+      const peName = ev.periodos_evaluacion?.nombre || _periodoLookup[ev.periodo_id] || null;
       if (!peName || !scores[peName]) continue;
       const puntajes = ev.puntajes || {};
+      const fb = _profileLookup[ev.evaluado_id] || {};
       const row = {
-        usuario:  ev.evaluado?.email   || '',
-        nombre:   ev.evaluado?.nombre  || '',
-        distrito: ev.evaluado?.distrito || '',
+        evaluado_id: ev.evaluado_id,
+        usuario:  ev.evaluado?.email   || fb.email   || '',
+        nombre:   ev.evaluado?.nombre  || fb.nombre  || '',
+        distrito: ev.evaluado?.distrito || fb.distrito || '',
         ext:      ev.bono_ext || 0,
         ...puntajes,
       };
       scores[peName].push(row);
       if (ev.comentarios) {
-        feedback[peName].push({ usuario: row.usuario, nombre: row.nombre, fb: ev.comentarios, perCriterio: {} });
+        feedback[peName].push({ evaluado_id: ev.evaluado_id, usuario: row.usuario, nombre: row.nombre, fb: ev.comentarios, perCriterio: ev.comentarios });
       }
     }
 

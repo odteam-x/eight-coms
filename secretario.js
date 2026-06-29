@@ -58,10 +58,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cached = Auth.getCachedData();
   if (cached) {
     D = cached;
-    if (!_peInited && cached.config?.periodoActivo) {
-      mPE = rPE = dPE = cached.config.periodoActivo;
-      _trabajosPE = mPE;
-      _peInited = true;
+    if (!_peInited) {
+      const activoName = cached.config?.periodoActivo
+        || cached.periodos?.find(p => p.estado === 'Activo')?.pe;
+      if (activoName) {
+        mPE = rPE = dPE = activoName;
+        _trabajosPE = mPE;
+        _peInited = true;
+      }
     }
     syncAllPEButtons();
     initUI();
@@ -75,11 +79,15 @@ async function loadData() {
     const data = await API.getData();
     if (data.ok !== false) {
       D = data;
-      if (!_peInited && data.config?.periodoActivo) {
-        mPE = rPE = dPE = data.config.periodoActivo;
-        _trabajosPE = mPE;
-        _peInited = true;
-        syncAllPEButtons();
+      if (!_peInited) {
+        const activoName = data.config?.periodoActivo
+          || data.periodos?.find(p => p.estado === 'Activo')?.pe;
+        if (activoName) {
+          mPE = rPE = dPE = activoName;
+          _trabajosPE = mPE;
+          _peInited = true;
+          syncAllPEButtons();
+        }
       }
       Auth.setCachedData(data);
       _lastUpdated = new Date();
@@ -90,8 +98,13 @@ async function loadData() {
 function syncAllPEButtons() {
   document.querySelectorAll('.pe-row').forEach(row => {
     row.querySelectorAll('.pb').forEach(b => {
-      const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
-      b.classList.toggle('active', pe === mPE);
+      const oc = b.getAttribute('onclick') || '';
+      const pe = oc.match(/'(PE\d)'/)?.[1];
+      const target = oc.includes('selectPERankDist') ? dPE
+                   : oc.includes('selectPERank')     ? rPE
+                   : oc.includes('selectTrabajoPE')  ? _trabajosPE
+                   : mPE;
+      b.classList.toggle('active', pe === target);
     });
   });
   setEl('hero-pe', mPE);
@@ -99,6 +112,7 @@ function syncAllPEButtons() {
 
 function initUI() {
   if (!CU || !D) return;
+  syncAllPEButtons();
 
   // Mostrar/ocultar elementos exclusivos del secretario
   const sec = isSecretario();
@@ -169,7 +183,8 @@ function renderMyScore(pe) {
   const container = document.getElementById('score-body'); if (!container) return;
   if (!D) { container.innerHTML='<div class="loading-box"><span class="spin"></span></div>'; return; }
   const criterios=getCriterios(), scores=D.scores?.[pe]||[], fbs=D.feedback?.[pe]||[];
-  const myScore=scores.find(r=>r.usuario===CU.user), myFb=fbs.find(r=>r.usuario===CU.user);
+  const _matchMe=r=>r.usuario===CU.user||r.evaluado_id===CU.id;
+  const myScore=scores.find(_matchMe), myFb=fbs.find(_matchMe);
 
   if (myScore) {
     const total=calcScore(myScore), el=document.getElementById('hero-score');
@@ -221,7 +236,7 @@ function renderTendenciaInline() {
   if (!D) return '';
   const peNames = D.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
   const cards=peNames.map(pe=>{
-    const row=D.scores?.[pe]?.find(r=>r.usuario===CU.user);
+    const row=D.scores?.[pe]?.find(r=>r.usuario===CU.user||r.evaluado_id===CU.id);
     return {pe, s:row?calcScore(row):null, isCur:pe===mPE};
   });
   const wd=cards.filter(c=>c.s!==null);
@@ -399,8 +414,8 @@ function renderDistStats(pe) {
   const evaluated=rows.length;
   const scores=rows.map(calcScore);
   const avg=evaluated?(scores.reduce((a,b)=>a+b,0)/evaluated).toFixed(1):'—';
-  const myRow=rows.find(r=>r.usuario===CU.user), myS=myRow?calcScore(myRow):null;
-  const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.usuario===CU.user)+1:null;
+  const myRow=rows.find(r=>r.usuario===CU.user||r.evaluado_id===CU.id), myS=myRow?calcScore(myRow):null;
+  const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.usuario===CU.user||r.evaluado_id===CU.id)+1:null;
   const maxS=scores.length?Math.max(...scores):0, topR=scores.length?rows.find(r=>calcScore(r)===maxS):null;
   el.innerHTML=[
     {lbl:'Miembros en el distrito', val:totalMembers,          sub:`${evaluated} evaluados · ${myD||pe}`, col:''},
@@ -418,7 +433,7 @@ function renderMiembrosDistrito(pe) {
     return;
   }
   const merged=members.map(m=>{
-    const scoreRow=scoreRows.find(r=>r.usuario===m.email);
+    const scoreRow=scoreRows.find(r=>r.usuario===m.email||r.evaluado_id===m.id);
     return { ...m, usuario:m.email, score:scoreRow?calcScore(scoreRow):null, scoreRow, ext:scoreRow?.ext||0 };
   });
   const withScores=merged.filter(m=>m.score!==null).sort((a,b)=>b.score-a.score);
@@ -426,7 +441,7 @@ function renderMiembrosDistrito(pe) {
   const sorted=[...withScores,...withoutScores];
   el.innerHTML=`<div class="distrito-members-grid">${sorted.map((r,i)=>{
     const hasEval=r.score!==null;
-    const s=r.score||0, isMe=r.email===CU.user, myFb=fbs.find(f=>f.usuario===r.email);
+    const s=r.score||0, isMe=r.email===CU.user||r.id===CU.id, myFb=fbs.find(f=>f.usuario===r.email||f.evaluado_id===r.id);
     const pos=hasEval?withScores.indexOf(r)+1:null;
     const rc=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
     const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
@@ -750,7 +765,7 @@ function renderUserReport() {
   const pes = ['PE1','PE2','PE3'];
   const data = pes.map(pe => {
     const all = D.scores?.[pe] || [];
-    const row = all.find(r => r.usuario === CU.user);
+    const row = all.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
     return row ? { pe, row, total: calcScore(row) } : null;
   }).filter(Boolean);
   if (!data.length) {

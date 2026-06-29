@@ -27,10 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cached = Auth.getCachedData();
   if (cached) {
     D = cached;
-    if (!_peInited && cached.config?.periodoActivo) {
-      mPE = cached.config.periodoActivo;
-      _trabajosPE = mPE;
-      _peInited = true;
+    if (!_peInited) {
+      const activoName = cached.config?.periodoActivo
+        || cached.periodos?.find(p => p.estado === 'Activo')?.pe;
+      if (activoName) {
+        mPE = activoName;
+        _trabajosPE = mPE;
+        _peInited = true;
+      }
     }
     syncAllPEButtons();
     initUI();
@@ -47,11 +51,15 @@ async function loadData() {
       D = data;
       Auth.setCachedData(data);
       _lastUpdated = new Date();
-      if (!_peInited && data.config?.periodoActivo) {
-        mPE = data.config.periodoActivo;
-        _trabajosPE = mPE;
-        _peInited = true;
-        syncAllPEButtons();
+      if (!_peInited) {
+        const activoName = data.config?.periodoActivo
+          || data.periodos?.find(p => p.estado === 'Activo')?.pe;
+        if (activoName) {
+          mPE = activoName;
+          _trabajosPE = mPE;
+          _peInited = true;
+          syncAllPEButtons();
+        }
       }
     }
   } catch (e) { console.error('[User]', e); }
@@ -69,6 +77,7 @@ function syncAllPEButtons() {
 
 function initUI() {
   if (!CU || !D) return;
+  syncAllPEButtons();
   const name = CU.name || CU.user;
   const ini  = initials(name);
   setEl('av-desktop', ini); setEl('av-mobile', ini);
@@ -121,8 +130,8 @@ function renderScores(pe) {
   const MAX       = getMaxScore();
   const scores    = D.scores?.[pe] || [];
   const fbs       = D.feedback?.[pe] || [];
-  const myScore   = scores.find(r => r.usuario === CU.user);
-  const myFb      = fbs.find(r => r.usuario === CU.user);
+  const myScore   = scores.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
+  const myFb      = fbs.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
 
   /* Hero */
   if (myScore) {
@@ -285,9 +294,9 @@ function renderUserReport() {
   if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
 
   const criterios = getCriterios();
-  const pes       = ['PE1','PE2','PE3'];
+  const pes       = D?.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
   const data      = pes.map(pe => {
-    const row = D.scores?.[pe]?.find(r => r.usuario === CU.user);
+    const row = D.scores?.[pe]?.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
     return row ? { pe, row, total: calcScore(row) } : null;
   }).filter(Boolean);
 
