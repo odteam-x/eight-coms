@@ -453,7 +453,7 @@ const API = {
     for (const ev of evsRaw ?? []) {
       const peName = ev.periodos_evaluacion?.nombre || _periodoLookup[ev.periodo_id] || null;
       if (!peName || !scores[peName]) continue;
-      const puntajes = ev.puntajes || {};
+      const puntajes = (typeof ev.puntajes === 'string') ? (() => { try { return JSON.parse(ev.puntajes); } catch { return {}; } })() : (ev.puntajes || {});
       const fb = _profileLookup[ev.evaluado_id] || {};
       const row = {
         evaluado_id: ev.evaluado_id,
@@ -465,7 +465,8 @@ const API = {
       };
       scores[peName].push(row);
       if (ev.comentarios) {
-        feedback[peName].push({ evaluado_id: ev.evaluado_id, usuario: row.usuario, nombre: row.nombre, fb: ev.comentarios, perCriterio: ev.comentarios });
+        const coms = (typeof ev.comentarios === 'string') ? (() => { try { return JSON.parse(ev.comentarios); } catch { return {}; } })() : ev.comentarios;
+        feedback[peName].push({ evaluado_id: ev.evaluado_id, usuario: row.usuario, nombre: row.nombre, fb: coms, perCriterio: coms });
       }
     }
 

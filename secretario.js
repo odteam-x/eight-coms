@@ -6,6 +6,7 @@
 'use strict';
 
 let CU = null, D = null;
+function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
 let mPE='PE1', rPE='PE1', dPE='PE1';
 let _arTimer=null, _lastUpdated=null, _menuOpen=false, _peInited=false;
 
@@ -31,7 +32,7 @@ const DIST_CRITERIOS = [
   { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
 ];
 const MAX_DIST_SEC   = 28;
-const calcDistScore  = p => DIST_CRITERIOS.reduce((s,c) => s+(Number(p?.[c.key])||0), 0);
+const calcDistScore  = p => { const o = parseJSON(p); return DIST_CRITERIOS.reduce((s,c) => s+(Number(o[c.key])||0), 0); };
 const distScoreColor = s => s>=24?'var(--sex)':s>=17?'var(--sbu)':s>=10?'var(--spr)':'var(--sba)';
 const distScoreLabel = s => s>=24?'Excelente':s>=17?'Bueno':s>=10?'En Proceso':'Bajo';
 const distScoreClass = s => s>=24?'sex':s>=17?'sbu':s>=10?'spr':'sba';
@@ -378,7 +379,7 @@ function renderCalificacionDistrito(pe) {
     }
     const s = calcDistScore(ev.puntajes);
     const critBars = DIST_CRITERIOS.map(c => {
-      const val = ev.puntajes?.[c.key] ?? 0;
+      const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
         <span class="dist-cal-abbr" style="color:${c.color}">${c.abbr}</span>
         <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${c.color}"></div></div>

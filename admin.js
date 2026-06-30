@@ -53,7 +53,7 @@ const DIST_CRITERIOS = [
     desc:'Evalúa la constancia y estrategia de publicación: uso óptimo de reels, stories y posts, con evidencia de alto rendimiento e interacción.' },
 ];
 const MAX_DIST       = 28;
-const calcDistScore  = p => DIST_CRITERIOS.reduce((s,c) => s+(Number(p?.[c.key])||0), 0);
+const calcDistScore  = p => { const o = parseJSON(p); return DIST_CRITERIOS.reduce((s,c) => s+(Number(o[c.key])||0), 0); };
 const distScoreColor = s => s>=24?'var(--sex)':s>=17?'var(--sbu)':s>=10?'var(--spr)':'var(--sba)';
 const distScoreLabel = s => s>=24?'Excelente':s>=17?'Bueno':s>=10?'En Proceso':'Bajo';
 const distScoreClass = s => s>=24?'sex':s>=17?'sbu':s>=10?'spr':'sba';
