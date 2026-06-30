@@ -658,7 +658,7 @@ async function verifyAndResetPassword() {
   var verifyRes = await SB.auth.verifyOtp({
     email: _resetEmail,
     token: code,
-    type: 'email'
+    type: 'magiclink'
   });
 
   if (verifyRes.error) {
