@@ -415,11 +415,11 @@
       <div id="reset-step2" style="display:none">
         <div class="field">
           <label for="reset-otp">Código de verificación</label>
-          <input type="text" id="reset-otp" placeholder="000000" maxlength="6"
+          <input type="text" id="reset-otp" placeholder="00000000" maxlength="8"
                  autocomplete="one-time-code" required inputmode="numeric"
-                 style="text-align:center;letter-spacing:8px;font-size:1.4rem;font-weight:700">
+                 style="text-align:center;letter-spacing:6px;font-size:1.4rem;font-weight:700">
         </div>
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 6 dígitos.</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 8 dígitos.</p>
         <button type="button" class="btn-login" id="btn-verify-code" onclick="verifyAndResetPassword()">Verificar y cambiar contraseña</button>
         <div style="margin-top:12px;text-align:center;">
           <a href="#" onclick="resetStep1();return false" style="color:var(--muted);text-decoration:none;font-size:.78rem;">← Cambiar datos</a>
@@ -645,8 +645,8 @@ async function verifyAndResetPassword() {
   err.classList.remove('visible'); err.style.display = '';
   ok.style.display = 'none';
 
-  if (!code || code.length < 6) {
-    err.textContent = 'Ingresa el código de 6 dígitos.';
+  if (!code || code.length < 8) {
+    err.textContent = 'Ingresa el código de 8 dígitos.';
     err.classList.add('visible');
     document.getElementById('reset-otp').focus();
     return;
