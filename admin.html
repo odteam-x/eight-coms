@@ -37,14 +37,23 @@
   </div>
   <nav class="tb-nav" id="desktop-nav">
     <button class="tnav active" onclick="switchTab('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i> Overview</button>
-    <button class="tnav"        onclick="switchTab('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
-    <button class="tnav"        onclick="switchTab('usuarios',this)"><i data-lucide="users" class="nav-icon"></i> Usuarios</button>
-    <button class="tnav"        onclick="switchTab('roles',this)"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
-    <button class="tnav"        onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos</button>
-    <button class="tnav"        onclick="switchTab('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
-    <button class="tnav"        onclick="switchTab('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i> Cal.</button>
-    <button class="tnav"        onclick="switchTab('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
-    <button class="tnav"        onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
+    <div class="tnav-group">
+      <button class="tnav" onclick="switchTab('evaluar',this)"><i data-lucide="users" class="nav-icon"></i> Usuarios <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
+      <div class="tnav-drop">
+        <button class="tnav-drop-item" onclick="switchTab('evaluar')"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
+        <button class="tnav-drop-item" onclick="switchTab('usuarios')"><i data-lucide="user-cog" class="nav-icon"></i> Gestión</button>
+        <button class="tnav-drop-item" onclick="switchTab('roles')"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
+      </div>
+    </div>
+    <button class="tnav" onclick="switchTab('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
+    <div class="tnav-group">
+      <button class="tnav" onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
+      <div class="tnav-drop">
+        <button class="tnav-drop-item" onclick="switchTab('calendario')"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
+        <button class="tnav-drop-item" onclick="switchTab('rubrica')"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
+      </div>
+    </div>
+    <button class="tnav" onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
   </nav>
   <div class="tb-user">
     <span class="last-updated-badge" id="ts-badge"></span>
@@ -62,14 +71,24 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-nav-links">
     <button class="mobile-nav-btn active" onclick="switchTabMobile('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i>Overview</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('usuarios',this)"><i data-lucide="users" class="nav-icon"></i>Usuarios</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('roles',this)"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
-    <button class="mobile-nav-btn"        onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
+    <div class="mob-nav-group">
+      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="users" class="nav-icon"></i>Usuarios <i data-lucide="chevron-down" class="mob-chev"></i></button>
+      <div class="mob-nav-sub">
+        <button class="mobile-nav-btn" onclick="switchTabMobile('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
+        <button class="mobile-nav-btn" onclick="switchTabMobile('usuarios',this)"><i data-lucide="user-cog" class="nav-icon"></i>Gestión</button>
+        <button class="mobile-nav-btn" onclick="switchTabMobile('roles',this)"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
+      </div>
+    </div>
+    <button class="mobile-nav-btn" onclick="switchTabMobile('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
+    <div class="mob-nav-group">
+      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
+      <div class="mob-nav-sub">
+        <button class="mobile-nav-btn" onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
+        <button class="mobile-nav-btn" onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
+        <button class="mobile-nav-btn" onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
+      </div>
+    </div>
+    <button class="mobile-nav-btn" onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
@@ -107,32 +126,28 @@
   <div id="tab-evaluar" class="atab-content">
     <div class="ptitle">EVALUACIÓN</div>
 
-    <div class="eval-pe-bar">
+    <div class="eval-pe-bar" style="justify-content:center">
       <span class="eval-pe-lbl">Período:</span>
       <div class="eval-pe-btns" id="eval-pe-btns">
         <div class="loading-box" style="height:32px"><span class="spin"></span></div>
       </div>
     </div>
 
-    <div style="margin:16px 0 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span class="eval-pe-lbl">Miembro a evaluar:</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
+      <input class="search-inp" id="search-eval-users" type="text" placeholder="Buscar miembro…" oninput="renderEvalUserList()">
       <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
         <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-        <select class="cfg-inp cfg-select" id="eval-distrito-filter" onchange="renderEvalUserSelect()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" onchange="renderEvalUserList()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
           <option value="">Todos los distritos</option>
         </select>
       </div>
-      <select class="cfg-inp cfg-select" id="eval-user-select" onchange="loadEvaluacion()" style="max-width:320px">
-        <option value="">Selecciona un miembro...</option>
-      </select>
     </div>
 
-    <div id="eval-form-area">
-      <div class="empty-box" style="margin-top:32px">
-        <div class="no-data-icon" style="margin-bottom:6px"><i data-lucide="clipboard-list" style="width:36px;height:36px;opacity:.4"></i></div>
-        <div class="empty-txt">Selecciona un período y un miembro para evaluar.</div>
-      </div>
+    <div id="eval-user-list">
+      <div class="loading-box"><span class="spin"></span></div>
     </div>
+
+    <div id="eval-form-area"></div>
   </div>
 
   <!-- ── TAB: USUARIOS ── -->
@@ -254,7 +269,7 @@
         <div id="rpt-pe-btns"></div>
       </div>
       <button class="btn-save btn-print-rpt" onclick="printAdminReport()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        <i data-lucide="printer" style="width:15px;height:15px"></i>
         Descargar PDF
       </button>
     </div>

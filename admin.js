@@ -24,6 +24,8 @@ let _rptEvals           = {};
 let _rankingTab         = 'users';
 let _inactivosPE        = new Set();
 let _menuOpen       = false;
+let _evalPECache    = [];
+let _selectedEvalUser = null;
 
 const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
@@ -137,49 +139,92 @@ function renderEvalPEBar() {
     `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${p.nombre}</button>`
   ).join('');
 
-  renderEvalUserSelect();
+  loadEvalPEData();
 }
 
-function selectEvalPE(periodoId, btn) {
+async function selectEvalPE(periodoId, btn) {
   _activePE = _periodos.find(p => p.id == periodoId);
-  document.querySelectorAll('.eval-pe-btns .pb').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#eval-pe-btns .pb').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  clearEvalForm();
-  loadEvaluacion();
+  _selectedEvalUser = null;
+  document.getElementById('eval-form-area').innerHTML = '';
+  await loadEvalPEData();
 }
 
-function renderEvalUserSelect() {
-  const sel = document.getElementById('eval-user-select'); if (!sel) return;
+async function loadEvalPEData() {
+  if (!_activePE) return;
+  const el = document.getElementById('eval-user-list');
+  if (el && !_evalPECache.length) el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
+  renderEvalUserList();
+}
+
+function renderEvalUserList() {
+  const el = document.getElementById('eval-user-list'); if (!el) return;
+  const q = (document.getElementById('search-eval-users')?.value || '').toLowerCase().trim();
   const distFilter = (document.getElementById('eval-distrito-filter')?.value || '').trim();
-  const nonAdmins = _users.filter(u => !u.es_admin && (!distFilter || u.distrito === distFilter));
-  sel.innerHTML = '<option value="">Selecciona un miembro...</option>' +
-    nonAdmins.map(u =>
-      `<option value="${u.id}">${u.nombre}${u.distrito ? ' · ' + u.distrito : ''}${u.roles?.nombre ? ' · ' + u.roles.nombre : ''}</option>`
-    ).join('');
+  const nonAdmins = _users.filter(u => !u.es_admin
+    && (!distFilter || u.distrito === distFilter)
+    && (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
+
+  if (!nonAdmins.length) {
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q||distFilter ? 'Sin resultados.' : 'Sin miembros registrados.'}</div></div>`;
+    return;
+  }
+
+  const evalMap = {};
+  _evalPECache.forEach(e => { evalMap[e.evaluado_id] = e; });
+  const criterios = getCriterios();
+  const MAX = criterios.length * 4 + 2;
+
+  const sorted = nonAdmins.map(u => {
+    const ev = evalMap[u.id];
+    const score = ev ? calcScore(ev.puntajes, ev.bono_ext) : -1;
+    const estado = ev?.estado || 'pendiente';
+    return { ...u, ev, score, estado };
+  }).sort((a, b) => {
+    const order = { publicado: 0, borrador: 1, pendiente: 2 };
+    const d = (order[a.estado]??2) - (order[b.estado]??2);
+    return d !== 0 ? d : b.score - a.score;
+  });
+
+  let rank = 0;
+  el.innerHTML = `<div class="eval-users-grid">
+    ${sorted.map(u => {
+      const isActive = _selectedEvalUser === u.id;
+      const estadoCls = u.estado === 'publicado' ? 'estado--publicado' : u.estado === 'borrador' ? 'estado--borrador' : 'estado--none';
+      const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : 'Pendiente';
+      if (u.estado === 'publicado') rank++;
+      const medal = u.estado === 'publicado' ? (rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${rank}</span>`) : '';
+      const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
+      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" onclick="selectEvalUser('${u.id}')">
+        <div class="eval-ucard-rank">${medal}</div>
+        <div class="eval-ucard-info">
+          <div class="eval-ucard-name">${u.nombre}</div>
+          <div class="eval-ucard-meta">${u.roles?.nombre||'—'} · ${u.distrito||'—'}</div>
+        </div>
+        ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(u.score)}"></div></div></div>
+        <div class="eval-ucard-score" style="color:${scoreColor(u.score)}">${u.score}</div>` : ''}
+        <span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
-async function loadEvaluacion() {
-  const sel = document.getElementById('eval-user-select');
-  const evaluadoId = sel?.value;
-  if (!evaluadoId || !_activePE) { clearEvalForm(); return; }
-
+async function selectEvalUser(userId) {
+  _selectedEvalUser = userId;
+  renderEvalUserList();
   const area = document.getElementById('eval-form-area'); if (!area) return;
   area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-
-  const ev = await API.getEvaluacion(_activePE.id, evaluadoId);
-  renderEvalForm(ev, evaluadoId);
+  const [ev, trabajos] = await Promise.all([
+    API.getEvaluacion(_activePE.id, userId),
+    API.getTrabajosEntregados(userId, _activePE?.nombre || ''),
+  ]);
+  renderEvalForm(ev, userId, trabajos);
+  area.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
-function clearEvalForm() {
-  const area = document.getElementById('eval-form-area'); if (!area) return;
-  area.innerHTML = `
-    <div class="empty-box" style="margin-top:32px">
-      <div class="no-data-icon" style="margin-bottom:6px">${ICONS.clipboard}</div>
-      <div class="empty-txt">Selecciona un período y un miembro para evaluar.</div>
-    </div>`;
-}
-
-function renderEvalForm(ev, evaluadoId) {
+function renderEvalForm(ev, evaluadoId, trabajos) {
   const area = document.getElementById('eval-form-area'); if (!area) return;
   const criterios  = getCriterios();
   const puntajes   = ev?.puntajes    || {};
@@ -197,24 +242,44 @@ function renderEvalForm(ev, evaluadoId) {
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
-          ${[1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
+          ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
             onclick="setScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
-          <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]||0}">
+          <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
           placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
       </div>
     </div>`).join('');
 
+  const trabajosHTML = trabajos && trabajos.length ? `
+    <details class="eval-trabajos-section" open>
+      <summary class="eval-extra-label" style="cursor:pointer;user-select:none">
+        Trabajos entregados — ${_activePE?.nombre || ''} <span style="font-weight:400;color:var(--muted)">(${trabajos.length})</span>
+      </summary>
+      <div class="eval-trabajos-list">
+        ${trabajos.map(t => `<div class="eval-trabajo-item">
+          <div class="eval-trabajo-title">${t.titulo || 'Sin título'}</div>
+          <div class="eval-trabajo-desc">${t.descripcion || ''}</div>
+          <div class="eval-trabajo-date">${t.created_at ? new Date(t.created_at).toLocaleDateString('es-CL') : ''}</div>
+        </div>`).join('')}
+      </div>
+    </details>` : `
+    <div class="eval-extras" style="opacity:.5">
+      <div class="eval-extra-label">Trabajos entregados — ${_activePE?.nombre || ''}</div>
+      <div style="font-size:.78rem;color:var(--muted)">Este miembro no ha entregado trabajos en este período.</div>
+    </div>`;
+
   area.innerHTML = `
     <div class="eval-form-card">
       <div class="eval-form-header">
         <div>
           <div class="eval-miembro-name">${evaluado?.nombre || '—'}</div>
-          ${evaluado?.roles?.nombre ? `<div class="eval-miembro-rol">${evaluado.roles.nombre}</div>` : ''}
+          ${evaluado?.roles?.nombre ? `<div class="eval-miembro-rol">${evaluado.roles.nombre}${evaluado?.distrito ? ' · '+evaluado.distrito : ''}</div>` : ''}
         </div>
         <span class="eval-estado-badge estado--${estado}">${estado}</span>
       </div>
+
+      ${trabajosHTML}
 
       <div class="eval-criterios-list">${rows}</div>
 
@@ -287,7 +352,13 @@ async function saveEvaluacion(estado, evaluadoId) {
 
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
-  await loadEvaluacion();
+  _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
+  renderEvalUserList();
+  const [evNew, trabajos] = await Promise.all([
+    API.getEvaluacion(_activePE.id, evaluadoId),
+    API.getTrabajosEntregados(evaluadoId, _activePE?.nombre || ''),
+  ]);
+  renderEvalForm(evNew, evaluadoId, trabajos);
 }
 
 /* ── TAB: USUARIOS ── */
@@ -942,9 +1013,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
-          ${[1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]||0)===v?' active':''}"
+          ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
             onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
-          <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]||0}">
+          <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
           placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
@@ -1097,6 +1168,7 @@ async function loadOverview() {
     API.getEvalDistritosByPE(_activePEOv.id),
     API.getParticipantes(_activePEOv.id),
   ]);
+  console.log('[Overview] PE:', _activePEOv.nombre, '| evals:', evals.length, '| publicadas:', evals.filter(e=>e.estado==='publicado').length, '| distEvals:', distEvals.length, '| participantes:', participantes.length, '| inactivos:', participantes.filter(r=>!r.activo).length);
   _overviewEvals     = evals;
   _overviewDistEvals = distEvals;
   _ovInactivosPE     = new Set(participantes.filter(r => !r.activo).map(r => r.user_id));
@@ -1138,8 +1210,6 @@ function renderOverview() {
     return dy>0 ? `hace ${dy}d` : h>0 ? `hace ${h}h` : m>1 ? `hace ${m}m` : 'ahora';
   };
 
-  const navBtn = n => `document.querySelectorAll('#desktop-nav .tnav')[${n}]`;
-
   el.innerHTML = `
     <div class="ov-kpi-grid">
       <div class="kpi-card">
@@ -1175,12 +1245,12 @@ function renderOverview() {
     </div>
 
     <div class="ov-actions">
-      <button class="ov-action-btn" onclick="switchTab('evaluar',${navBtn(1)})">${ICONS.zap} Evaluar</button>
-      <button class="ov-action-btn" onclick="switchTab('usuarios',${navBtn(2)})">${ICONS.users} Usuarios</button>
-      <button class="ov-action-btn" onclick="switchTab('distritos',${navBtn(7)})">${ICONS.map} Distritos</button>
-      <button class="ov-action-btn" onclick="switchTab('periodos',${navBtn(4)})">${ICONS.calendar} Períodos</button>
-      <button class="ov-action-btn" onclick="switchTab('calendario',${navBtn(6)})">${ICONS.calendar} Calendario</button>
-      <button class="ov-action-btn" onclick="switchTab('rubrica',${navBtn(5)})">${ICONS.ruler} Rúbrica</button>
+      <button class="ov-action-btn" onclick="switchTab('evaluar')">${ICONS.zap} Evaluar</button>
+      <button class="ov-action-btn" onclick="switchTab('usuarios')">${ICONS.users} Usuarios</button>
+      <button class="ov-action-btn" onclick="switchTab('distritos')">${ICONS.map} Distritos</button>
+      <button class="ov-action-btn" onclick="switchTab('periodos')">${ICONS.calendar} Períodos</button>
+      <button class="ov-action-btn" onclick="switchTab('calendario')">${ICONS.calendar} Calendario</button>
+      <button class="ov-action-btn" onclick="switchTab('rubrica')">${ICONS.ruler} Rúbrica</button>
     </div>
 
     <div class="ov-cols">
@@ -1310,25 +1380,42 @@ function switchRankTab(tab) {
 }
 
 /* ── TABS ── */
+const _tabParentMap = {
+  overview:'overview', evaluar:'evaluar', usuarios:'evaluar', roles:'evaluar',
+  distritos:'distritos', periodos:'periodos', calendario:'periodos', rubrica:'periodos',
+  reportes:'reportes',
+};
+
 function switchTab(tab, btn) {
   document.querySelectorAll('.atab-content').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`)?.classList.add('active');
+
   document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
-  btn?.classList.add('active');
+  if (btn) { btn.classList.add('active'); }
+  else {
+    const parent = _tabParentMap[tab] || tab;
+    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
+      const oc = b.getAttribute('onclick') || '';
+      if (oc.includes(`'${parent}'`)) b.classList.add('active');
+    });
+  }
+
   if (tab === 'overview' && !_overviewEvals.length) loadOverview();
   if (tab === 'reportes' && !_rptPE && _periodos.length) {
     const def = _periodos.find(p => p.activo) || _periodos[0];
     if (def) selectRptPE(def.id, document.querySelector('#rpt-pe-btns .rpt-pe-btn'));
   }
 }
+
 function switchTabMobile(tab, btn) {
   switchTab(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b => b.classList.remove('active'));
   btn?.classList.add('active');
   closeMenu();
-  const tabs = ['overview','evaluar','usuarios','roles','periodos','rubrica','calendario','distritos','reportes'];
-  const idx  = tabs.indexOf(tab);
-  document.querySelectorAll('#desktop-nav .tnav').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+function toggleMobGroup(header) {
+  header.classList.toggle('open');
 }
 
 /* ── TAB: REPORTES ── */
@@ -1382,6 +1469,56 @@ function renderAdminReport() {
 
   const today = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
 
+  const individualCards = scored.map((e, i) => {
+    const maxCrit = criterios.length ? Math.max(...criterios.map(c => Number(e.puntajes?.[c.key]) || 0)) : 0;
+    const minCrit = criterios.length ? Math.min(...criterios.map(c => Number(e.puntajes?.[c.key]) || 0)) : 0;
+    const strongCrit = criterios.find(c => Number(e.puntajes?.[c.key]) === maxCrit);
+    const weakCrit = criterios.find(c => Number(e.puntajes?.[c.key]) === minCrit);
+    const comentarios = e.comentarios || {};
+    const comKeys = Object.keys(comentarios).filter(k => k !== 'general' && comentarios[k]);
+    return `<div class="rpt-individual-card">
+      <div class="rpt-ind-header">
+        <div class="rpt-ind-rank" style="color:${scoreColor(e.score)}">#${i+1}</div>
+        <div class="rpt-ind-info">
+          <div class="rpt-ind-name">${e.user.nombre}</div>
+          <div class="rpt-ind-meta">${e.user.roles?.nombre||'—'}${e.user.distrito ? ' · '+e.user.distrito : ''}</div>
+        </div>
+        <div class="rpt-ind-score-wrap">
+          <div class="rpt-ind-score" style="color:${scoreColor(e.score)}">${e.score}<span class="rpt-ind-max">/${MAX}</span></div>
+          <span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span>
+        </div>
+      </div>
+      <div class="rpt-ind-bars">
+        ${criterios.map(c => {
+          const val = Number(e.puntajes?.[c.key]) || 0;
+          return `<div class="rpt-ind-bar-row">
+            <div class="rpt-ind-bar-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
+            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${c.color}"></div></div>
+            <div class="rpt-ind-bar-val">${val}/4</div>
+          </div>`;
+        }).join('')}
+        <div class="rpt-ind-bar-row">
+          <div class="rpt-ind-bar-lbl" style="color:var(--sex)">BONO</div>
+          <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${(e.bono_ext||0)/2*100}%;background:var(--sex)"></div></div>
+          <div class="rpt-ind-bar-val">${e.bono_ext||0}/2</div>
+        </div>
+      </div>
+      ${strongCrit || weakCrit ? `<div class="rpt-ind-highlights">
+        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${strongCrit.label} (${maxCrit}/4)</div>` : ''}
+        ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${weakCrit.label} (${minCrit}/4)</div>` : ''}
+      </div>` : ''}
+      ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
+        ${comKeys.map(k => {
+          const c = criterios.find(cr => cr.key === k);
+          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${c?.color||'var(--txt)'}">${c?.abbr||k}:</span> ${comentarios[k]}</div>`;
+        }).join('')}
+        ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${comentarios.general}</div>` : ''}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  const unevalList = nonAdmins.filter(u => !scored.find(s => s.user.id === u.id));
+
   el.innerHTML = `
   <div class="rpt-page" id="rpt-print-area">
     <div class="rpt-header">
@@ -1405,7 +1542,7 @@ function renderAdminReport() {
     </div>
 
     ${evaluated === 0 ? `<div class="empty-box" style="margin:32px 0"><div class="empty-txt">No hay evaluaciones publicadas en este período.</div></div>` : `
-    <div class="rpt-section-lbl">Ranking de miembros</div>
+    <div class="rpt-section-lbl">Desempeño general — Ranking</div>
     <div class="rpt-table-wrap">
       <table class="rpt-table">
         <thead>
@@ -1425,7 +1562,7 @@ function renderAdminReport() {
               <td class="rpt-td rpt-td-num">${i + 1}</td>
               <td class="rpt-td rpt-td-name">${e.user.nombre}</td>
               <td class="rpt-td rpt-td-role">${e.user.roles?.nombre || '—'}</td>
-              ${criterios.map(c => `<td class="rpt-td rpt-td-score">${e.puntajes?.[c.key] || 0}</td>`).join('')}
+              ${criterios.map(c => `<td class="rpt-td rpt-td-score">${e.puntajes?.[c.key] ?? 0}</td>`).join('')}
               <td class="rpt-td rpt-td-score">${e.bono_ext || 0}</td>
               <td class="rpt-td rpt-td-total" style="color:${scoreColor(e.score)};font-weight:700">${e.score}</td>
               <td class="rpt-td"><span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span></td>
@@ -1482,6 +1619,18 @@ function renderAdminReport() {
         }).join('')}
       </div>
     </div>
+
+    <div class="rpt-section-lbl" style="margin-top:36px">Desempeño individual</div>
+    <div class="rpt-individuals-grid">${individualCards}</div>
+
+    ${unevalList.length ? `
+    <div class="rpt-section-lbl" style="margin-top:28px;color:var(--muted)">Miembros sin evaluar (${unevalList.length})</div>
+    <div class="rpt-uneval-list">
+      ${unevalList.map(u => `<div class="rpt-uneval-item">
+        <span class="rpt-uneval-name">${u.nombre}</span>
+        <span class="rpt-uneval-meta">${u.roles?.nombre||'—'}${u.distrito?' · '+u.distrito:''}</span>
+      </div>`).join('')}
+    </div>` : ''}
     `}
 
     <div class="rpt-footer">EIGHT CREATORS LABs · ${_rptPE.nombre} · Generado el ${today}</div>

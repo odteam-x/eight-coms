@@ -1069,6 +1069,55 @@ option {
 .users-pe-bar { margin-bottom:14px; }
 
 /* ══════════════════════════════════════════════════
+   LISTA DE USUARIOS — TAB EVALUAR
+   ══════════════════════════════════════════════════ */
+.eval-users-grid { display:flex; flex-direction:column; gap:2px; margin-bottom:16px; }
+.eval-ucard {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; cursor:pointer;
+  background:var(--s1); border:1px solid var(--glass-border);
+  border-radius:var(--r-md);
+  transition:background .15s, border-color .15s;
+}
+.eval-ucard:hover { background:var(--s2); border-color:var(--border); }
+.eval-ucard--active {
+  background:color-mix(in srgb, var(--accent) 8%, var(--s1));
+  border-color:var(--accent);
+  box-shadow:0 0 12px rgba(255,96,100,.10);
+}
+.eval-ucard-rank { width:26px; text-align:center; font-size:1.1rem; flex-shrink:0; }
+.eval-ucard-info { flex:1; min-width:0; }
+.eval-ucard-name {
+  font-size:.84rem; font-weight:600; color:var(--txt);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.eval-ucard-meta { font-size:.7rem; color:var(--muted); }
+.eval-ucard-bar { width:60px; flex-shrink:0; }
+.eval-ucard-score {
+  font-family:'Bebas Neue',sans-serif; font-size:1.1rem;
+  width:28px; text-align:right; flex-shrink:0;
+}
+.estado--none {
+  color:var(--muted); background:rgba(112,144,176,.08);
+}
+
+/* Trabajos entregados en evaluación */
+.eval-trabajos-section { margin-bottom:18px; }
+.eval-trabajos-section summary { list-style:none; }
+.eval-trabajos-section summary::-webkit-details-marker { display:none; }
+.eval-trabajos-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.eval-trabajo-item {
+  background:var(--s2); border:1px solid var(--faint);
+  border-radius:var(--r-md); padding:10px 14px;
+}
+.eval-trabajo-title {
+  font-family:'Barlow Condensed',sans-serif; font-size:.82rem;
+  font-weight:700; color:var(--txt); margin-bottom:2px;
+}
+.eval-trabajo-desc { font-size:.75rem; color:var(--muted); line-height:1.5; }
+.eval-trabajo-date { font-size:.65rem; color:var(--muted); margin-top:4px; opacity:.7; }
+
+/* ══════════════════════════════════════════════════
    FORM EVALUACIÓN
    ══════════════════════════════════════════════════ */
 .eval-form-card {
@@ -1536,6 +1585,44 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 
 .rpt-footer { margin-top:24px; padding-top:12px; border-top:1px solid var(--faint); font-size:.65rem; color:var(--muted); text-align:center; letter-spacing:.04em; }
 
+/* Individual report cards */
+.rpt-individuals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+.rpt-individual-card {
+  background:var(--s2); border:1px solid var(--faint);
+  border-radius:var(--r-lg); padding:18px 20px;
+}
+.rpt-ind-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.rpt-ind-rank {
+  font-family:'Bebas Neue',sans-serif; font-size:1.5rem; width:36px; text-align:center; flex-shrink:0;
+}
+.rpt-ind-info { flex:1; min-width:0; }
+.rpt-ind-name { font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:700; color:var(--txt); }
+.rpt-ind-meta { font-size:.7rem; color:var(--muted); }
+.rpt-ind-score-wrap { text-align:right; flex-shrink:0; }
+.rpt-ind-score { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; line-height:1; }
+.rpt-ind-max { font-size:.7em; color:var(--muted); }
+.rpt-ind-bars { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+.rpt-ind-bar-row { display:flex; align-items:center; gap:8px; }
+.rpt-ind-bar-lbl { font-family:'Barlow Condensed',sans-serif; font-size:.7rem; font-weight:700; width:36px; text-align:right; text-transform:uppercase; }
+.rpt-ind-bar-track { flex:1; height:6px; background:var(--faint); border-radius:3px; overflow:hidden; }
+.rpt-ind-bar-fill { height:100%; border-radius:3px; transition:width .3s; }
+.rpt-ind-bar-val { font-size:.68rem; color:var(--muted); width:28px; }
+.rpt-ind-highlights { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.rpt-ind-hl { font-size:.72rem; color:var(--txt); }
+.rpt-ind-hl-tag { display:inline-block; padding:1px 7px; border-radius:8px; font-size:.65rem; font-weight:600; margin-right:4px; }
+.rpt-ind-comments { border-top:1px solid var(--faint); padding-top:8px; }
+.rpt-ind-com { font-size:.72rem; color:var(--muted); margin-bottom:3px; line-height:1.4; }
+
+/* Unevaluated list */
+.rpt-uneval-list { display:flex; flex-wrap:wrap; gap:6px; }
+.rpt-uneval-item {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px; background:var(--s2); border:1px solid var(--faint);
+  border-radius:var(--r-md); font-size:.75rem;
+}
+.rpt-uneval-name { font-weight:600; color:var(--txt); }
+.rpt-uneval-meta { color:var(--muted); font-size:.68rem; }
+
 /* ── PRINT (PDF) ── */
 @media print {
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
@@ -1564,4 +1651,9 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   .rpt-dist-bar-track, .rpt-crit-bar-track { background:#e0e0e0; }
   .rpt-footer { color:#888; border-top-color:#ddd; }
   .nivel-badge { border:1px solid currentColor !important; }
+  .rpt-individual-card { background:#f8f8f8; border-color:#ddd; break-inside:avoid; }
+  .rpt-ind-name, .rpt-ind-score { color:#1a1a2e; }
+  .rpt-ind-bar-track { background:#e0e0e0; }
+  .rpt-uneval-item { background:#f5f5f5; border-color:#ddd; }
+  .rpt-uneval-name { color:#1a1a2e; }
 }

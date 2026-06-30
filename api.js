@@ -181,16 +181,18 @@ const API = {
 
   // ── ADMIN: evaluaciones ──────────────────────────────────────────
   async getEvaluacionesByPE(periodo_id) {
-    const { data } = await SB
+    const { data, error, status } = await SB
       .from('evaluaciones')
-      .select(`
-        *,
-        evaluado:evaluado_id(id, nombre, roles(nombre)),
-        evaluador:evaluador_id(id, nombre)
-      `)
+      .select('*')
       .eq('periodo_id', periodo_id)
       .order('created_at');
-    return data ?? [];
+    if (error) console.error('[API] getEvaluacionesByPE ERROR:', error, 'status:', status);
+    console.log('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
+    return (data ?? []).map(e => ({
+      ...e,
+      evaluado_id:  e.evaluado_id  ?? e.evaluado?.id,
+      evaluador_id: e.evaluador_id ?? e.evaluador?.id,
+    }));
   },
 
   /** Carga una evaluación específica por (periodo, evaluado). */
@@ -243,7 +245,8 @@ const API = {
 
   // ── ADMIN: participantes por PE ──────────────────────────────────
   async getParticipantes(periodo_id) {
-    const { data } = await SB.from('periodo_participantes').select('user_id, activo').eq('periodo_id', periodo_id);
+    const { data, error } = await SB.from('periodo_participantes').select('user_id, activo').eq('periodo_id', periodo_id);
+    if (error) console.error('getParticipantes error:', error);
     return data ?? [];
   },
 

@@ -564,24 +564,36 @@ const setEl      = (id,txt) => { const el=document.getElementById(id); if(el) el
 const pad        = n => String(n).padStart(2,'0');
 
 /* ── TABS ── */
+const _secTabParent = {
+  miscore:'miscore', ranking:'ranking', distrito:'ranking',
+  periodos:'periodos', cal:'periodos', trabajos:'trabajos',
+  evaluacion:'evaluacion', rubrica:'rubrica', reportes:'reportes',
+};
+
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById(`tab-${tab}`)?.classList.add('active');
   document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active');
+  if (btn) { btn.classList.add('active'); }
+  else {
+    const parent = _secTabParent[tab] || tab;
+    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
+      if ((b.getAttribute('onclick')||'').includes(`'${parent}'`)) b.classList.add('active');
+    });
+  }
   if (tab === 'periodos') renderPeriodosTab();
   if (tab === 'trabajos' && !_trabajosLoaded) { _trabajosLoaded = true; _trabajosPE = mPE; syncTrabajoPEBtns(); renderTrabajosTab(); }
   if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
 }
+
 function switchTabMobile(tab, btn) {
   switchTab(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
   closeMenu();
-  const deskBtn = [...document.querySelectorAll('#desktop-nav .tnav')].find(b=>b.getAttribute('onclick')?.includes(`'${tab}'`));
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  if(deskBtn) deskBtn.classList.add('active');
 }
+
+function toggleMobGroup(header) { header.classList.toggle('open'); }
 function toggleMenu() {
   _menuOpen=!_menuOpen;
   document.getElementById('hamburger')?.classList.toggle('open',_menuOpen);
