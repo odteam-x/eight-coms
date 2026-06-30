@@ -364,47 +364,73 @@
       <div class="login-loading" id="li-loading" aria-live="polite"><span class="spin"></span>Verificando acceso...</div>
       <div class="login-err" id="li-err" role="alert" aria-live="polite">Email o contraseña incorrectos.</div>
       <div style="margin-top:16px;text-align:center;font-size:.82rem;color:var(--muted);">
-        <a href="#" onclick="doResetPassword();return false" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
-        <p style="font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.4;">Escribe tu email arriba y luego haz clic en el enlace.</p>
+        <a href="#" onclick="showResetForm();return false" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
       </div>
       <div style="margin-top:20px;text-align:center;font-size:.85rem;color:var(--muted);padding-top:16px;border-top:1px solid var(--faint);">
         ¿No tienes cuenta? <a href="registro.html" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
       </div>
     </form>
 
-    <!-- Formulario de nueva contraseña (visible tras clic en enlace de recuperación) -->
+    <!-- Formulario de restablecer contraseña con código OTP -->
     <div id="reset-form" class="login-form-inner" style="display:none">
       <div class="login-form-header">
-        <h2 class="login-form-title">Nueva contraseña</h2>
-        <p class="login-form-sub">Ingresa y confirma tu nueva contraseña</p>
+        <h2 class="login-form-title">Restablecer contraseña</h2>
+        <p class="login-form-sub" id="reset-sub">Ingresa tus datos y te enviaremos un código de verificación</p>
       </div>
-      <div class="field">
-        <label for="reset-pass">Nueva contraseña</label>
-        <div class="pass-wrap">
-          <input type="password" id="reset-pass" placeholder="Mínimo 8 caracteres"
-                 autocomplete="new-password" required minlength="8">
-          <button type="button" class="btn-pass-toggle"
-                  aria-label="Mostrar contraseña"
-                  onclick="togglePassField(this,'reset-pass')">
-            <i data-lucide="eye" class="pass-eye"></i>
-          </button>
+
+      <!-- Paso 1: Email + contraseñas -->
+      <div id="reset-step1">
+        <div class="field">
+          <label for="reset-email">Correo electrónico</label>
+          <input type="email" id="reset-email" placeholder="tu@email.com" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="reset-pass">Nueva contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="reset-pass" placeholder="Mínimo 8 caracteres"
+                   autocomplete="new-password" required minlength="8">
+            <button type="button" class="btn-pass-toggle"
+                    aria-label="Mostrar contraseña"
+                    onclick="togglePassField(this,'reset-pass')">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="reset-pass2">Confirmar contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="reset-pass2" placeholder="Repite la contraseña"
+                   autocomplete="new-password" required minlength="8">
+            <button type="button" class="btn-pass-toggle"
+                    aria-label="Mostrar contraseña"
+                    onclick="togglePassField(this,'reset-pass2')">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn-login" id="btn-send-code" onclick="sendResetCode()">Enviar código de verificación</button>
+      </div>
+
+      <!-- Paso 2: Código OTP -->
+      <div id="reset-step2" style="display:none">
+        <div class="field">
+          <label for="reset-otp">Código de verificación</label>
+          <input type="text" id="reset-otp" placeholder="000000" maxlength="6"
+                 autocomplete="one-time-code" required inputmode="numeric"
+                 style="text-align:center;letter-spacing:8px;font-size:1.4rem;font-weight:700">
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 6 dígitos.</p>
+        <button type="button" class="btn-login" id="btn-verify-code" onclick="verifyAndResetPassword()">Verificar y cambiar contraseña</button>
+        <div style="margin-top:12px;text-align:center;">
+          <a href="#" onclick="resetStep1();return false" style="color:var(--muted);text-decoration:none;font-size:.78rem;">← Cambiar datos</a>
         </div>
       </div>
-      <div class="field">
-        <label for="reset-pass2">Confirmar contraseña</label>
-        <div class="pass-wrap">
-          <input type="password" id="reset-pass2" placeholder="Repite la contraseña"
-                 autocomplete="new-password" required minlength="8">
-          <button type="button" class="btn-pass-toggle"
-                  aria-label="Mostrar contraseña"
-                  onclick="togglePassField(this,'reset-pass2')">
-            <i data-lucide="eye" class="pass-eye"></i>
-          </button>
-        </div>
-      </div>
-      <button type="button" class="btn-login" id="btn-reset" onclick="doUpdatePassword()">Guardar contraseña</button>
+
       <div class="login-err" id="reset-err" role="alert" aria-live="polite"></div>
       <div class="login-ok" id="reset-ok" role="status" aria-live="polite" style="display:none"></div>
+      <div style="margin-top:16px;text-align:center;">
+        <a href="#" onclick="backToLogin();return false" style="color:var(--muted);text-decoration:none;font-size:.82rem;">← Volver al inicio de sesión</a>
+      </div>
     </div>
   </div>
 
@@ -521,58 +547,51 @@ async function doLogin() {
   window.location.replace(profile?.es_admin ? 'admin.html' : tipo === 'secretario' ? 'secretario.html' : 'user.html');
 }
 
-async function doResetPassword() {
-  const uEl = document.getElementById('li-user');
-  const err = document.getElementById('li-err');
-  const email = uEl.value.trim();
-  if (!email) {
-    err.textContent = 'Escribe tu email arriba y luego haz clic en "Olvidé mi contraseña".';
-    err.classList.add('visible');
-    uEl.focus();
-    return;
-  }
-  err.classList.remove('visible');
-  const { error } = await SB.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/index.html'
-  });
-  if (error) {
-    err.textContent = 'Error: ' + error.message;
-    err.classList.add('visible');
-  } else {
-    err.classList.remove('visible');
-    var okDiv = document.createElement('div');
-    okDiv.className = 'login-ok';
-    okDiv.textContent = 'Revisa tu correo — te enviamos un enlace para restablecer tu contraseña.';
-    var errParent = err.parentNode;
-    if (!document.getElementById('li-ok-msg')) {
-      okDiv.id = 'li-ok-msg';
-      errParent.insertBefore(okDiv, err.nextSibling);
-    } else {
-      document.getElementById('li-ok-msg').textContent = okDiv.textContent;
-    }
-  }
+/* ── Restablecer contraseña con código OTP ── */
+var _resetEmail = '';
+var _resetPass  = '';
+
+function showResetForm() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('reset-form').style.display = 'block';
+  document.getElementById('reset-step1').style.display = 'block';
+  document.getElementById('reset-step2').style.display = 'none';
+  document.getElementById('reset-err').classList.remove('visible');
+  document.getElementById('reset-err').style.display = '';
+  document.getElementById('reset-ok').style.display = 'none';
+  document.getElementById('reset-sub').textContent = 'Ingresa tus datos y te enviaremos un código de verificación';
+  document.getElementById('reset-email').focus();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-/* ── Detectar token de recuperación de contraseña ── */
-SB.auth.onAuthStateChange(function(event) {
-  if (event === 'PASSWORD_RECOVERY') {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('reset-form').style.display = 'block';
-    document.getElementById('reset-pass').focus();
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
-});
+function backToLogin() {
+  document.getElementById('reset-form').style.display = 'none';
+  document.getElementById('login-form').style.display = 'block';
+}
 
-async function doUpdatePassword() {
-  var p1  = document.getElementById('reset-pass').value;
-  var p2  = document.getElementById('reset-pass2').value;
-  var err = document.getElementById('reset-err');
-  var ok  = document.getElementById('reset-ok');
-  var btn = document.getElementById('btn-reset');
+function resetStep1() {
+  document.getElementById('reset-step2').style.display = 'none';
+  document.getElementById('reset-step1').style.display = 'block';
+  document.getElementById('reset-err').classList.remove('visible');
+  document.getElementById('reset-err').style.display = '';
+  document.getElementById('reset-sub').textContent = 'Ingresa tus datos y te enviaremos un código de verificación';
+}
+
+async function sendResetCode() {
+  var email = document.getElementById('reset-email').value.trim();
+  var p1    = document.getElementById('reset-pass').value;
+  var p2    = document.getElementById('reset-pass2').value;
+  var err   = document.getElementById('reset-err');
+  var btn   = document.getElementById('btn-send-code');
 
   err.classList.remove('visible'); err.style.display = '';
-  ok.style.display = 'none';
 
+  if (!email) {
+    err.textContent = 'Ingresa tu correo electrónico.';
+    err.classList.add('visible');
+    document.getElementById('reset-email').focus();
+    return;
+  }
   if (!p1 || p1.length < 8) {
     err.textContent = 'La contraseña debe tener al menos 8 caracteres.';
     err.classList.add('visible');
@@ -587,24 +606,88 @@ async function doUpdatePassword() {
   }
 
   btn.disabled = true;
-  btn.textContent = 'Guardando…';
+  btn.textContent = 'Enviando código…';
 
-  var res = await SB.auth.updateUser({ password: p1 });
+  var res = await SB.auth.signInWithOtp({
+    email: email,
+    options: { shouldCreateUser: false }
+  });
 
   if (res.error) {
-    err.textContent = 'Error: ' + res.error.message;
+    err.textContent = res.error.message.includes('Signups not allowed')
+      ? 'No existe una cuenta con ese correo.'
+      : 'Error: ' + res.error.message;
     err.classList.add('visible');
     btn.disabled = false;
-    btn.textContent = 'Guardar contraseña';
+    btn.textContent = 'Enviar código de verificación';
     return;
   }
 
+  _resetEmail = email;
+  _resetPass  = p1;
+
+  document.getElementById('reset-step1').style.display = 'none';
+  document.getElementById('reset-step2').style.display = 'block';
+  document.getElementById('reset-sub').textContent = 'Ingresa el código que enviamos a ' + email;
+  document.getElementById('reset-otp').value = '';
+  document.getElementById('reset-otp').focus();
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar código de verificación';
+}
+
+async function verifyAndResetPassword() {
+  var code = document.getElementById('reset-otp').value.trim();
+  var err  = document.getElementById('reset-err');
+  var ok   = document.getElementById('reset-ok');
+  var btn  = document.getElementById('btn-verify-code');
+
+  err.classList.remove('visible'); err.style.display = '';
+  ok.style.display = 'none';
+
+  if (!code || code.length < 6) {
+    err.textContent = 'Ingresa el código de 6 dígitos.';
+    err.classList.add('visible');
+    document.getElementById('reset-otp').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando…';
+
+  var verifyRes = await SB.auth.verifyOtp({
+    email: _resetEmail,
+    token: code,
+    type: 'email'
+  });
+
+  if (verifyRes.error) {
+    err.textContent = 'Código inválido o expirado. Intenta de nuevo.';
+    err.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Verificar y cambiar contraseña';
+    return;
+  }
+
+  var updateRes = await SB.auth.updateUser({ password: _resetPass });
+
+  if (updateRes.error) {
+    err.textContent = 'Error al actualizar contraseña: ' + updateRes.error.message;
+    err.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Verificar y cambiar contraseña';
+    return;
+  }
+
+  _resetPass = '';
   btn.style.display = 'none';
+  document.getElementById('reset-step2').style.display = 'none';
   ok.textContent = 'Contraseña actualizada correctamente. Redirigiendo al portal…';
   ok.style.display = 'block';
 
-  await SB.auth.signOut();
-  setTimeout(function() { window.location.replace('index.html'); }, 2000);
+  var profile = await Auth.getProfile(true);
+  var dest = profile?.es_admin ? 'admin.html' : (profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
+  setTimeout(function() { window.location.replace(dest); }, 2000);
 }
 </script>
 </body>
