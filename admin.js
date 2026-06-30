@@ -29,6 +29,8 @@ let _selectedEvalUser = null;
 
 const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
+function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
+
 const CRITERIOS_DEFAULT = [
   { key:'pla', label:'Planificación',      abbr:'PLA', color:'#E05A6A' },
   { key:'rev', label:'Revisión',           abbr:'REV', color:'#38BDF8' },
@@ -200,8 +202,8 @@ function renderEvalUserList() {
       return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" onclick="selectEvalUser('${u.id}')">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
-          <div class="eval-ucard-name">${u.nombre}</div>
-          <div class="eval-ucard-meta">${u.roles?.nombre||'—'} · ${u.distrito||'—'}</div>
+          <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
+          <div class="eval-ucard-meta">${escHtml(u.roles?.nombre||'—')} · ${escHtml(u.distrito||'—')}</div>
         </div>
         ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(u.score)}"></div></div></div>
         <div class="eval-ucard-score" style="color:${scoreColor(u.score)}">${u.score}</div>` : ''}
@@ -227,8 +229,8 @@ async function selectEvalUser(userId) {
 function renderEvalForm(ev, evaluadoId, trabajos) {
   const area = document.getElementById('eval-form-area'); if (!area) return;
   const criterios  = getCriterios();
-  const puntajes   = ev?.puntajes    || {};
-  const coms       = ev?.comentarios || {};
+  const puntajes   = parseJSON(ev?.puntajes);
+  const coms       = parseJSON(ev?.comentarios);
   const bono       = ev?.bono_ext    || 0;
   const estado     = ev?.estado      || 'borrador';
   const evaluado   = _users.find(u => u.id === evaluadoId);
@@ -247,7 +249,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
-          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
+          placeholder="Comentario (opcional)" value="${escHtml(coms[c.key]||'')}">
       </div>
     </div>`).join('');
 
@@ -258,8 +260,8 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       </summary>
       <div class="eval-trabajos-list">
         ${trabajos.map(t => `<div class="eval-trabajo-item">
-          <div class="eval-trabajo-title">${t.titulo || 'Sin título'}</div>
-          <div class="eval-trabajo-desc">${t.descripcion || ''}</div>
+          <div class="eval-trabajo-title">${escHtml(t.titulo || 'Sin título')}</div>
+          <div class="eval-trabajo-desc">${escHtml(t.descripcion || '')}</div>
           <div class="eval-trabajo-date">${t.created_at ? new Date(t.created_at).toLocaleDateString('es-CL') : ''}</div>
         </div>`).join('')}
       </div>
@@ -273,8 +275,8 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
     <div class="eval-form-card">
       <div class="eval-form-header">
         <div>
-          <div class="eval-miembro-name">${evaluado?.nombre || '—'}</div>
-          ${evaluado?.roles?.nombre ? `<div class="eval-miembro-rol">${evaluado.roles.nombre}${evaluado?.distrito ? ' · '+evaluado.distrito : ''}</div>` : ''}
+          <div class="eval-miembro-name">${escHtml(evaluado?.nombre || '—')}</div>
+          ${evaluado?.roles?.nombre ? `<div class="eval-miembro-rol">${escHtml(evaluado.roles.nombre)}${evaluado?.distrito ? ' · '+escHtml(evaluado.distrito) : ''}</div>` : ''}
         </div>
         <span class="eval-estado-badge estado--${estado}">${estado}</span>
       </div>
@@ -295,7 +297,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       <div class="eval-extras">
         <label class="eval-extra-label">Notas / Comentario general</label>
         <textarea class="cfg-inp eval-com-inp" id="com-general" rows="3"
-          placeholder="Notas del evaluador...">${coms.general||''}</textarea>
+          placeholder="Notas del evaluador...">${escHtml(coms.general||'')}</textarea>
       </div>
 
       ${isPub
@@ -397,11 +399,13 @@ function renderUsuarios() {
     return;
   }
   const showPECol = !!_activePEUsers;
+  const distOpts = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
   el.innerHTML = `
     <div class="tbl">
       <div class="tbl-head">
-        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Rol</div><div>Admin</div>
+        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Tipo</div><div>Rol</div><div>Admin</div>
         ${showPECol ? '<div>Estado PE</div>' : ''}
+        <div></div>
       </div>
       <div class="tbl-body">
         ${list.map(u => {
@@ -410,14 +414,27 @@ function renderUsuarios() {
           <div class="tbl-row">
             <div class="tbl-cell">
               <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${initials(u.nombre||u.email)}</div>
-              <span>${u.nombre || '—'}</span>
+              <span>${escHtml(u.nombre || '—')}</span>
             </div>
-            <div class="tbl-cell tbl-muted">${u.email}</div>
-            <div class="tbl-cell"><span style="font-size:.78rem;color:var(--muted)">${u.distrito || '—'}</span></div>
+            <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>
+            <div class="tbl-cell">
+              <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.78rem"
+                onchange="updateUserField('${u.id}','distrito',this.value)">
+                <option value="">—</option>
+                ${distOpts.map(d => `<option value="${escHtml(d)}"${d===u.distrito?' selected':''}>${escHtml(d)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="tbl-cell">
+              <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.78rem"
+                onchange="updateUserField('${u.id}','tipo_miembro',this.value)">
+                <option value="miembro"${'miembro'===u.tipo_miembro?' selected':''}>Miembro</option>
+                <option value="secretario"${'secretario'===u.tipo_miembro?' selected':''}>Secretario</option>
+              </select>
+            </div>
             <div class="tbl-cell">
               <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.8rem"
                 onchange="updateUserRol('${u.id}',this.value)">
-                ${_roles.map(r => `<option value="${r.id}"${r.id===u.rol_id?' selected':''}>${r.nombre}</option>`).join('')}
+                ${_roles.map(r => `<option value="${r.id}"${r.id===u.rol_id?' selected':''}>${escHtml(r.nombre)}</option>`).join('')}
               </select>
             </div>
             <div class="tbl-cell">
@@ -434,6 +451,9 @@ function renderUsuarios() {
                 ${inactivo ? 'Inactivo' : 'Activo'}
               </button>
             </div>` : ''}
+            <div class="tbl-cell">
+              <button class="btn-icon btn-icon--danger" onclick="confirmDeleteUser('${u.id}')" title="Eliminar usuario">${ICONS.trash}</button>
+            </div>
           </div>`;
         }).join('')}
       </div>
@@ -453,6 +473,44 @@ async function toggleParticipante(userId, eraInactivo) {
     showToast('Usuario desactivado en este PE', 'ok');
   }
   renderUsuarios();
+}
+
+let _deleteUserId = null;
+
+function confirmDeleteUser(userId) {
+  const u = _users.find(x => x.id === userId);
+  if (!u) return;
+  _deleteUserId = userId;
+  document.getElementById('modal-del-user-name').textContent = u.nombre || u.email;
+  document.getElementById('modal-del-user-email').textContent = u.email;
+  openModal('modal-del-user');
+}
+
+async function executeDeleteUser() {
+  if (!_deleteUserId) return;
+  const btn = document.querySelector('#modal-del-user .btn-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Eliminando…'; }
+  const res = await API.deleteUserProfile(_deleteUserId);
+  if (!res.ok) {
+    showToast('Error: ' + res.error, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Eliminar'; }
+    return;
+  }
+  _users = _users.filter(u => u.id !== _deleteUserId);
+  _deleteUserId = null;
+  closeModal('modal-del-user');
+  if (btn) { btn.disabled = false; btn.textContent = 'Eliminar'; }
+  populateDistritoFilters();
+  renderUsuarios();
+  showToast('Usuario eliminado', 'ok');
+}
+
+async function updateUserField(userId, field, value) {
+  const res = await API.updateUserProfile(userId, { [field]: value });
+  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
+  showToast(field === 'distrito' ? 'Distrito actualizado' : 'Tipo actualizado', 'ok');
+  _users = _users.map(u => u.id === userId ? { ...u, [field]: value || null } : u);
+  if (field === 'distrito') populateDistritoFilters();
 }
 
 async function updateUserRol(userId, rolId) {
@@ -484,12 +542,12 @@ function renderRoles() {
       <div class="tbl-body">
         ${list.map(r => `
           <div class="tbl-row">
-            <div class="tbl-cell">${r.nombre}</div>
+            <div class="tbl-cell">${escHtml(r.nombre)}</div>
             <div class="tbl-cell">
               <span class="estado-pill ${r.activo?'pill--ok':'pill--off'}">${r.activo?'Activo':'Inactivo'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showRolModal(${r.id},'${r.nombre.replace(/'/g,"\\'")}',${r.activo})" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon" onclick="showRolModal(${r.id},${escHtml(JSON.stringify(r.nombre))},${r.activo})" title="Editar">${ICONS.edit}</button>
               <button class="btn-icon btn-icon--danger" onclick="deleteRol(${r.id})" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
@@ -549,13 +607,13 @@ function renderPeriodos() {
       <div class="tbl-body">
         ${list.map(p => `
           <div class="tbl-row">
-            <div class="tbl-cell"><strong>${p.nombre}</strong></div>
-            <div class="tbl-cell tbl-muted">${p.descripcion || '—'}</div>
+            <div class="tbl-cell"><strong>${escHtml(p.nombre)}</strong></div>
+            <div class="tbl-cell tbl-muted">${escHtml(p.descripcion || '—')}</div>
             <div class="tbl-cell">
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal('${p.id}','${(p.nombre||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(p.descripcion||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${p.activo})" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon" onclick="showPeriodoModal('${p.id}',${escHtml(JSON.stringify(p.nombre||''))},${escHtml(JSON.stringify(p.descripcion||''))},${p.activo})" title="Editar">${ICONS.edit}</button>
               <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
@@ -945,7 +1003,7 @@ async function renderDistritoRanking(periodoId) {
           <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
                onclick="document.getElementById('dist-eval-select').value='${d.distrito_id}';onDistSelectChange()">
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
-            <div class="tbl-cell"><strong>${d.nombre}</strong></div>
+            <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
               <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:${distScoreColor(d.score)}">${d.score}</span>
               <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX_DIST}</span>
@@ -980,9 +1038,9 @@ const _IG_FIELDS = [
 function renderDistEvalForm(ev, distId, historial = []) {
   const area     = document.getElementById('dist-eval-area'); if (!area) return;
   const distrito = _distritos.find(d => d.id === distId);
-  const puntajes = ev?.puntajes    || {};
-  const coms     = ev?.comentarios || {};
-  const igStats  = ev?.ig_stats    || {};
+  const puntajes = parseJSON(ev?.puntajes);
+  const coms     = parseJSON(ev?.comentarios);
+  const igStats  = parseJSON(ev?.ig_stats);
   const estado   = ev?.estado      || 'borrador';
   const isPub    = estado === 'publicado';
 
@@ -1018,7 +1076,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
-          placeholder="Comentario (opcional)" value="${(coms[c.key]||'').replace(/"/g,'&quot;')}">
+          placeholder="Comentario (opcional)" value="${escHtml(coms[c.key]||'')}">
       </div>
     </div>`).join('');
 
@@ -1026,8 +1084,8 @@ function renderDistEvalForm(ev, distId, historial = []) {
     <div class="eval-form-card" style="max-width:800px;margin:0 auto">
       <div class="eval-form-header">
         <div>
-          <div class="eval-miembro-name">${distrito?.nombre || distId}</div>
-          <div class="eval-miembro-rol">Evaluación de distrito · ${_activePEDist?.nombre || ''}</div>
+          <div class="eval-miembro-name">${escHtml(distrito?.nombre || distId)}</div>
+          <div class="eval-miembro-rol">Evaluación de distrito · ${escHtml(_activePEDist?.nombre || '')}</div>
         </div>
         <span class="eval-estado-badge estado--${estado}">${estado}</span>
       </div>
@@ -1050,7 +1108,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
       <div class="eval-extras">
         <label class="eval-extra-label">Notas / Comentario general</label>
         <textarea class="cfg-inp eval-com-inp" id="dcom-general" rows="3"
-          placeholder="Notas del evaluador...">${coms.general||''}</textarea>
+          placeholder="Notas del evaluador...">${escHtml(coms.general||'')}</textarea>
       </div>
 
       ${isPub
@@ -1122,7 +1180,7 @@ async function handleAvatarUpload(e) {
 }
 
 /* ── SCORE HELPERS ── */
-const calcScore  = (p, b) => Object.values(p||{}).reduce((s,v)=>s+(Number(v)||0),0)+(Number(b)||0);
+const calcScore  = (p, b) => Object.values(parseJSON(p)).reduce((s,v)=>s+(Number(v)||0),0)+(Number(b)||0);
 const scoreColor = s => s >= 26 ? 'var(--sex)' : s >= 20 ? 'var(--sbu)' : s >= 11 ? 'var(--spr)' : 'var(--sba)';
 const scoreLabel = s => s >= 26 ? 'Excelente' : s >= 20 ? 'Bueno' : s >= 11 ? 'En Proceso' : 'Bajo';
 const scoreClass = s => s >= 24 ? 'sex' : s >= 18 ? 'sbu' : s >= 10 ? 'spr' : 'sba';
@@ -1196,7 +1254,7 @@ function renderOverview() {
   scored.forEach(e => { const k = scoreClass(e.score); dist[k] = (dist[k]||0)+1; });
 
   const critAvg = criterios.map(c => {
-    const vals = pub.map(e => Number(e.puntajes?.[c.key])||0).filter(v => v > 0);
+    const vals = pub.map(e => Number(parseJSON(e.puntajes)[c.key])||0).filter(v => v > 0);
     return { ...c, avg: vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0 };
   });
 
@@ -1234,7 +1292,7 @@ function renderOverview() {
         <div class="kpi-icon" style="color:var(--sex)">${ICONS.award}</div>
         <div class="kpi-val" style="color:${topScore!=null?scoreColor(topScore):'var(--muted)'}">${topScore ?? '—'}</div>
         <div class="kpi-lbl">Mejor score</div>
-        <div class="kpi-sub">${scored[0]?.user?.nombre?.split(' ')[0] || '—'}</div>
+        <div class="kpi-sub">${escHtml(scored[0]?.user?.nombre?.split(' ')[0] || '—')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="color:var(--spr)">${ICONS.calendar}</div>
@@ -1271,8 +1329,8 @@ function renderOverview() {
             return `<div class="rank-row">
               <div class="rank-pos">${medal}</div>
               <div class="rank-info">
-                <div class="rank-name">${e.user.nombre}</div>
-                <div class="rank-role">${e.user.roles?.nombre||e.user.distrito||'—'}</div>
+                <div class="rank-name">${escHtml(e.user.nombre)}</div>
+                <div class="rank-role">${escHtml(e.user.roles?.nombre||e.user.distrito||'—')}</div>
               </div>
               <div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(e.score)}"></div></div></div>
               <div class="rank-score" style="color:${scoreColor(e.score)}">${e.score}</div>
@@ -1298,8 +1356,8 @@ function renderOverview() {
               return `<div class="rank-row">
                 <div class="rank-pos">${medal}</div>
                 <div class="rank-info">
-                  <div class="rank-name">${d.distInfo?.nombre || d.distInfo?.codigo || `Distrito ${d.distrito_id}`}</div>
-                  <div class="rank-role">${d.distInfo?.codigo || '—'}</div>
+                  <div class="rank-name">${escHtml(d.distInfo?.nombre || d.distInfo?.codigo || 'Distrito '+d.distrito_id)}</div>
+                  <div class="rank-role">${escHtml(d.distInfo?.codigo || '—')}</div>
                 </div>
                 <div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${distScoreColor(d.score)}"></div></div></div>
                 <div class="rank-score" style="color:${distScoreColor(d.score)}">${d.score}</div>
@@ -1340,8 +1398,8 @@ function renderOverview() {
             return `<div class="activity-item">
               <div class="activity-dot" style="background:${scoreColor(sc)}"></div>
               <div class="activity-body">
-                <div class="activity-text">${user?.nombre||'—'}</div>
-                <div class="activity-sub">Por ${evtr?.nombre||'Admin'} · ${d?timeAgo(d):'—'}</div>
+                <div class="activity-text">${escHtml(user?.nombre||'—')}</div>
+                <div class="activity-sub">Por ${escHtml(evtr?.nombre||'Admin')} · ${d?timeAgo(d):'—'}</div>
               </div>
               <div class="rank-score" style="color:${scoreColor(sc)}">${sc}</div>
             </div>`;
@@ -1463,25 +1521,26 @@ function renderAdminReport() {
   scored.forEach(e => { const k = scoreClass(e.score); dist[k] = (dist[k]||0)+1; });
 
   const critAvg = criterios.map(c => {
-    const vals = pub.map(e => Number(e.puntajes?.[c.key]) || 0).filter(v => v > 0);
+    const vals = pub.map(e => Number(parseJSON(e.puntajes)[c.key]) || 0).filter(v => v > 0);
     return { ...c, avg: vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : 0 };
   });
 
   const today = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
 
   const individualCards = scored.map((e, i) => {
-    const maxCrit = criterios.length ? Math.max(...criterios.map(c => Number(e.puntajes?.[c.key]) || 0)) : 0;
-    const minCrit = criterios.length ? Math.min(...criterios.map(c => Number(e.puntajes?.[c.key]) || 0)) : 0;
-    const strongCrit = criterios.find(c => Number(e.puntajes?.[c.key]) === maxCrit);
-    const weakCrit = criterios.find(c => Number(e.puntajes?.[c.key]) === minCrit);
-    const comentarios = e.comentarios || {};
+    const punt = parseJSON(e.puntajes);
+    const maxCrit = criterios.length ? Math.max(...criterios.map(c => Number(punt[c.key]) || 0)) : 0;
+    const minCrit = criterios.length ? Math.min(...criterios.map(c => Number(punt[c.key]) || 0)) : 0;
+    const strongCrit = criterios.find(c => Number(punt[c.key]) === maxCrit);
+    const weakCrit = criterios.find(c => Number(punt[c.key]) === minCrit);
+    const comentarios = parseJSON(e.comentarios);
     const comKeys = Object.keys(comentarios).filter(k => k !== 'general' && comentarios[k]);
     return `<div class="rpt-individual-card">
       <div class="rpt-ind-header">
         <div class="rpt-ind-rank" style="color:${scoreColor(e.score)}">#${i+1}</div>
         <div class="rpt-ind-info">
-          <div class="rpt-ind-name">${e.user.nombre}</div>
-          <div class="rpt-ind-meta">${e.user.roles?.nombre||'—'}${e.user.distrito ? ' · '+e.user.distrito : ''}</div>
+          <div class="rpt-ind-name">${escHtml(e.user.nombre)}</div>
+          <div class="rpt-ind-meta">${escHtml(e.user.roles?.nombre||'—')}${e.user.distrito ? ' · '+escHtml(e.user.distrito) : ''}</div>
         </div>
         <div class="rpt-ind-score-wrap">
           <div class="rpt-ind-score" style="color:${scoreColor(e.score)}">${e.score}<span class="rpt-ind-max">/${MAX}</span></div>
@@ -1490,7 +1549,7 @@ function renderAdminReport() {
       </div>
       <div class="rpt-ind-bars">
         ${criterios.map(c => {
-          const val = Number(e.puntajes?.[c.key]) || 0;
+          const val = Number(punt[c.key]) || 0;
           return `<div class="rpt-ind-bar-row">
             <div class="rpt-ind-bar-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
             <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${c.color}"></div></div>
@@ -1510,9 +1569,9 @@ function renderAdminReport() {
       ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
         ${comKeys.map(k => {
           const c = criterios.find(cr => cr.key === k);
-          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${c?.color||'var(--txt)'}">${c?.abbr||k}:</span> ${comentarios[k]}</div>`;
+          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${c?.color||'var(--txt)'}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
         }).join('')}
-        ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${comentarios.general}</div>` : ''}
+        ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${escHtml(comentarios.general)}</div>` : ''}
       </div>` : ''}
     </div>`;
   }).join('');
@@ -1560,9 +1619,9 @@ function renderAdminReport() {
           ${scored.map((e, i) => `
             <tr class="rpt-tr ${i % 2 === 0 ? 'rpt-tr-even' : ''}">
               <td class="rpt-td rpt-td-num">${i + 1}</td>
-              <td class="rpt-td rpt-td-name">${e.user.nombre}</td>
-              <td class="rpt-td rpt-td-role">${e.user.roles?.nombre || '—'}</td>
-              ${criterios.map(c => `<td class="rpt-td rpt-td-score">${e.puntajes?.[c.key] ?? 0}</td>`).join('')}
+              <td class="rpt-td rpt-td-name">${escHtml(e.user.nombre)}</td>
+              <td class="rpt-td rpt-td-role">${escHtml(e.user.roles?.nombre || '—')}</td>
+              ${criterios.map(c => `<td class="rpt-td rpt-td-score">${parseJSON(e.puntajes)[c.key] ?? 0}</td>`).join('')}
               <td class="rpt-td rpt-td-score">${e.bono_ext || 0}</td>
               <td class="rpt-td rpt-td-total" style="color:${scoreColor(e.score)};font-weight:700">${e.score}</td>
               <td class="rpt-td"><span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span></td>
@@ -1627,8 +1686,8 @@ function renderAdminReport() {
     <div class="rpt-section-lbl" style="margin-top:28px;color:var(--muted)">Miembros sin evaluar (${unevalList.length})</div>
     <div class="rpt-uneval-list">
       ${unevalList.map(u => `<div class="rpt-uneval-item">
-        <span class="rpt-uneval-name">${u.nombre}</span>
-        <span class="rpt-uneval-meta">${u.roles?.nombre||'—'}${u.distrito?' · '+u.distrito:''}</span>
+        <span class="rpt-uneval-name">${escHtml(u.nombre)}</span>
+        <span class="rpt-uneval-meta">${escHtml(u.roles?.nombre||'—')}${u.distrito?' · '+escHtml(u.distrito):''}</span>
       </div>`).join('')}
     </div>` : ''}
     `}

@@ -400,6 +400,22 @@
   </div>
 </div>
 
+<!-- MODAL: ELIMINAR USUARIO -->
+<div class="modal-overlay" id="modal-del-user" style="display:none" onclick="if(event.target===this)closeModal('modal-del-user')">
+  <div class="modal-box" style="max-width:400px;text-align:center">
+    <div style="margin-bottom:16px"><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--accent)"></i></div>
+    <div class="modal-title" style="margin-bottom:8px">Eliminar usuario</div>
+    <p style="font-size:.9rem;color:var(--muted);margin-bottom:4px">¿Estás seguro de que deseas eliminar a:</p>
+    <p style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:2px" id="modal-del-user-name"></p>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px" id="modal-del-user-email"></p>
+    <p style="font-size:.78rem;color:var(--accent);margin-bottom:20px">Esta acción eliminará su perfil y no se puede deshacer.</p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn-save btn-confirm" onclick="executeDeleteUser()">Eliminar</button>
+      <button class="btn-out" onclick="closeModal('modal-del-user')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

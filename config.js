@@ -15,6 +15,16 @@
 const SUPABASE_URL      = 'https://owfmorjlymoxqrzhadnf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_l6zMSRSW85gASQRgPd_rmw_p3oKJhsP';
 
+/* ── HTML-escape helper — use on ALL user-supplied data before innerHTML ── */
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /* ── Lucide icon helper — returns a <i data-lucide> tag that lucide.createIcons() renders ── */
 function renderLucideIcon(name, cls) {
   return '<i data-lucide="' + name + '"' + (cls ? ' class="' + cls + '"' : '') + '></i>';

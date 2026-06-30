@@ -404,11 +404,15 @@ document.getElementById('pass-toggle').addEventListener('click', function() {
   if (profile) window.location.replace(profile.es_admin ? 'admin.html' : profile.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
 })();
 
+const _loginThrottle = { attempts: 0, lockedUntil: 0 };
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_COOLDOWN_MS  = 60000;
+
 function authErrEs(msg) {
   if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
   const m = msg.toLowerCase();
-  if (m.includes('rate limit') || m.includes('too many'))
-    return 'Demasiados intentos. Espera unos minutos antes de volver a intentarlo.';
+  if (m.includes('rate limit') || m.includes('too many') || m.includes('request rate'))
+    return 'Demasiados intentos de autenticación. Supabase limita a 30 solicitudes por hora. Espera unos minutos e intenta de nuevo.';
   if (m.includes('invalid login') || m.includes('invalid credentials') || m.includes('wrong password'))
     return 'Email o contraseña incorrectos.';
   if (m.includes('email not confirmed'))
@@ -433,6 +437,14 @@ async function doLogin() {
     return;
   }
 
+  const now = Date.now();
+  if (now < _loginThrottle.lockedUntil) {
+    const secsLeft = Math.ceil((_loginThrottle.lockedUntil - now) / 1000);
+    err.textContent = `Demasiados intentos fallidos. Espera ${secsLeft}s antes de reintentar.`;
+    err.classList.add('visible');
+    return;
+  }
+
   err.classList.remove('visible');
   load.classList.add('visible');
   btn.disabled = true;
@@ -440,6 +452,11 @@ async function doLogin() {
   const res = await API.login(email, pass);
 
   if (!res.ok) {
+    _loginThrottle.attempts++;
+    if (_loginThrottle.attempts >= LOGIN_MAX_ATTEMPTS) {
+      _loginThrottle.lockedUntil = Date.now() + LOGIN_COOLDOWN_MS;
+      _loginThrottle.attempts = 0;
+    }
     err.textContent = authErrEs(res.error);
     err.classList.add('visible');
     load.classList.remove('visible');
@@ -448,6 +465,7 @@ async function doLogin() {
     return;
   }
 
+  _loginThrottle.attempts = 0;
   const profile = await Auth.getProfile(true);
   const tipo = profile?.tipo_miembro || 'miembro';
   window.location.replace(profile?.es_admin ? 'admin.html' : tipo === 'secretario' ? 'secretario.html' : 'user.html');

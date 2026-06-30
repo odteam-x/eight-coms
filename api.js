@@ -34,14 +34,9 @@ const API = {
       }, { onConflict: 'id' });
       if (pe) console.warn('[register] profiles upsert:', pe.message);
 
-      // Guardar credencial (solo visible para el admin en Supabase)
-      const { error: ce } = await SB.from('credenciales').upsert({
-        user_id:    data.user.id,
-        email:      email,
-        clave:      password,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-      if (ce) console.warn('[register] credenciales upsert:', ce.message);
+      // SECURITY: La tabla credenciales almacenaba contraseñas en texto plano.
+      // Supabase Auth ya hashea las contraseñas con bcrypt — no es necesario
+      // (ni seguro) guardar una copia en texto plano en otra tabla.
     }
     return { ok: true };
   },
@@ -148,6 +143,21 @@ const API = {
 
   async updateUserAdmin(user_id, es_admin) {
     const { error } = await SB.from('profiles').update({ es_admin }).eq('id', user_id);
+    return { ok: !error, error: error?.message };
+  },
+
+  async deleteUserProfile(user_id) {
+    const { error } = await SB.from('profiles').delete().eq('id', user_id);
+    return { ok: !error, error: error?.message };
+  },
+
+  async updateUserProfile(user_id, fields) {
+    const allowed = {};
+    if ('distrito'     in fields) allowed.distrito     = fields.distrito || null;
+    if ('tipo_miembro' in fields) allowed.tipo_miembro = fields.tipo_miembro || 'miembro';
+    if ('nombre'       in fields) allowed.nombre       = (fields.nombre || '').trim() || null;
+    if (!Object.keys(allowed).length) return { ok: false, error: 'Nada que actualizar' };
+    const { error } = await SB.from('profiles').update(allowed).eq('id', user_id);
     return { ok: !error, error: error?.message };
   },
 

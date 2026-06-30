@@ -238,14 +238,14 @@ document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
     roles = FALLBACK_ROLES;
   }
   sel.innerHTML = '<option value="">Selecciona tu rol</option>' +
-    roles.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    roles.map(r => `<option value="${r.id}">${escHtml(r.nombre)}</option>`).join('');
 })();
 
 function authErrEs(msg) {
   if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
   const m = msg.toLowerCase();
-  if (m.includes('rate limit') || m.includes('too many'))
-    return 'Demasiados intentos de registro. Espera unos minutos antes de volver a intentarlo.';
+  if (m.includes('rate limit') || m.includes('too many') || m.includes('request rate'))
+    return 'Demasiados intentos. Supabase limita solicitudes por hora. Espera unos minutos e intenta de nuevo.';
   if (m.includes('already registered') || m.includes('already exists') || m.includes('user already'))
     return 'Este correo ya tiene una cuenta registrada. Inicia sesión en su lugar.';
   if (m.includes('invalid email') || m.includes('valid email'))

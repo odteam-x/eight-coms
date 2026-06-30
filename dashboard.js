@@ -164,7 +164,7 @@ function renderScores(periodoId) {
         <div class="cbar-track">
           <div class="cbar-fill" style="width:${(val / 4) * 100}%;background:${c.color}"></div>
         </div>
-        ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${critFb}</span></div>` : ''}
+        ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
       </div>`;
   }).join('');
 
@@ -176,8 +176,8 @@ function renderScores(periodoId) {
     <div class="score-summary-card">
       <div class="sse-left">
         <div class="sse-label">Puntaje total — ${periodoNombre}</div>
-        <div class="sse-name">${CU.nombre || CU.email}</div>
-        ${CU.roles?.nombre ? `<div class="sse-role">${CU.roles.nombre}</div>` : ''}
+        <div class="sse-name">${escHtml(CU.nombre || CU.email)}</div>
+        ${CU.roles?.nombre ? `<div class="sse-role">${escHtml(CU.roles.nombre)}</div>` : ''}
         ${bono > 0 ? `<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${bono}</span></div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -192,9 +192,9 @@ function renderScores(periodoId) {
     ${comentGen ? `
     <div class="cbar" style="margin-top:4px">
       <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--cyan)">GRAL</div><div class="cbar-name">Comentario general</div></div></div>
-      <div class="cbar-feedback" style="margin-top:6px"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${comentGen}</span></div>
+      <div class="cbar-feedback" style="margin-top:6px"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(comentGen)}</span></div>
     </div>` : ''}
-    ${evaluadorNombre ? `<p style="margin-top:12px;font-size:.72rem;color:var(--muted);text-align:right">Evaluado por: ${evaluadorNombre}</p>` : ''}`;
+    ${evaluadorNombre ? `<p style="margin-top:12px;font-size:.72rem;color:var(--muted);text-align:right">Evaluado por: ${escHtml(evaluadorNombre)}</p>` : ''}`;
 }
 
 /* ── RÚBRICA ── */

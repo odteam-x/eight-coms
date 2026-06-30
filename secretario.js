@@ -208,7 +208,7 @@ function renderMyScore(pe) {
       <div class="cbar-top"><div><div class="cbar-tag" style="color:${c.color}">${c.abbr}</div><div class="cbar-name">${c.label}</div></div>
       <div class="cbar-val" style="color:${c.color}">${val}<span>/4</span></div></div>
       <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div>
-      ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${critFb}</span></div>`:''}
+      ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
     </div>`;
   }).join('');
 
@@ -318,7 +318,7 @@ function renderRankingDistritos(pe) {
         <div class="dist-rk-head">
           <div class="dist-rk-pos ${posRc}">#${pos}</div>
           <div class="dist-rk-info">
-            <div class="dist-rk-name">${d.distrito} <span class="dm-you-tag">MI DISTRITO</span></div>
+            <div class="dist-rk-name">${escHtml(d.distrito)} <span class="dm-you-tag">MI DISTRITO</span></div>
             <div class="dist-rk-sub">Puntaje total del período</div>
           </div>
           <div class="dist-rk-score-block">
@@ -455,8 +455,8 @@ function renderMiembrosDistrito(pe) {
         <div class="dm-rank ${rc}">${pos?'#'+pos:'—'}</div>
         <div class="dm-avatar">${initials(r.nombre||r.email)}</div>
         <div class="dm-info">
-          <div class="dm-name">${r.nombre||r.email}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
-          <div class="dm-role">${rolName}</div>
+          <div class="dm-name">${escHtml(r.nombre||r.email)}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
+          <div class="dm-role">${escHtml(rolName)}</div>
         </div>
         <div class="dm-score-block">
           ${hasEval?`
@@ -706,7 +706,7 @@ async function renderTrabajosTab() {
   renderTrabajosBody(data);
 }
 
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// escHtml() defined globally in config.js
 
 function renderTrabajosBody(trabajos) {
   const el = document.getElementById('trabajos-body'); if (!el) return;

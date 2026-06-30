@@ -435,10 +435,10 @@ function renderMScores(pe) {
           <div class="cbar-track">
             <div class="cbar-fill" style="width:${((d[c.key]??0)/4)*100}%;background:${c.color}"></div>
           </div>
-          ${critFb ? `<div class="cbar-feedback" style="--c:${c.color}"><span class="cbar-fb-icon">💬</span><span class="cbar-fb-txt">${critFb}</span></div>` : ''}
+          ${critFb ? `<div class="cbar-feedback" style="--c:${c.color}"><span class="cbar-fb-icon">💬</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
         </div>`}).join('')}
     </div>
-    ${fbGeneral ? `<div class="fb-card"><div class="fb-lbl">Retroalimentación General — ${pe}</div><div class="fb-txt">${fbGeneral}</div></div>` : ''}`;
+    ${fbGeneral ? `<div class="fb-card"><div class="fb-lbl">Retroalimentación General — ${pe}</div><div class="fb-txt">${escHtml(fbGeneral)}</div></div>` : ''}`;
 }
 
 /* ── CALENDARIO desde Sheets ── */
@@ -589,7 +589,7 @@ function renderOverview(pe, rows) {
   if (statsEl) statsEl.innerHTML = `
     <div class="scard"><div class="sc-lbl">Miembros evaluados</div><div class="sc-val">${total}</div><div class="sc-sub">${pe}</div></div>
     <div class="scard"><div class="sc-lbl">Promedio del equipo</div><div class="sc-val" style="color:${avg!=='—'?scoreColor(parseFloat(avg)):'inherit'}">${avg}</div><div class="sc-sub">/ ${MAX} pts</div></div>
-    <div class="scard"><div class="sc-lbl">Puntaje máximo</div><div class="sc-val" style="color:#2ECC71">${maxS}</div><div class="sc-sub">${topR?topR.nombre:'—'}</div></div>
+    <div class="scard"><div class="sc-lbl">Puntaje máximo</div><div class="sc-val" style="color:#2ECC71">${maxS}</div><div class="sc-sub">${topR?escHtml(topR.nombre):'—'}</div></div>
     <div class="scard"><div class="sc-lbl">Nivel Excelente</div><div class="sc-val" style="color:#2ECC71">${exc}</div><div class="sc-sub">de ${total} miembros</div></div>`;
 
   const distData = [
@@ -632,7 +632,7 @@ function renderRanking(pe, rows) {
       return `<div class="tbl-r" style="grid-template-columns:${cols};animation-delay:${i*25}ms">
         <div class="tbl-td tbl-name-cell">
           <span class="rank-num ${rc}">#${i+1}</span>
-          <span>${r.nombre}</span>
+          <span>${escHtml(r.nombre)}</span>
         </div>
         <div class="tbl-td tbl-score-cell"><span class="sbadge ${scoreClass(s)}">${s}</span></div>
         ${criterios.map(c=>`<div class="tbl-td tbl-crit" style="justify-content:center;padding:8px 4px"><span class="cdot ${dCls(r[c.key])}">${r[c.key]||0}</span></div>`).join('')}
@@ -649,7 +649,7 @@ function renderCriterios(pe, rows) {
     const sorted = [...rows].sort((a,b)=>(b[c.key]||0)-(a[c.key]||0));
     const minis = sorted.slice(0,8).map(r=>`
       <div class="crit-mini-row">
-        <div class="crit-mini-name">${r.nombre}</div>
+        <div class="crit-mini-name">${escHtml(r.nombre)}</div>
         <div class="crit-mini-track"><div class="crit-mini-fill" style="width:${((r[c.key]||0)/4)*100}%;background:${c.color}"></div></div>
         <div class="crit-mini-val">${r[c.key]||0}</div>
       </div>`).join('');
@@ -667,7 +667,7 @@ function renderCriterios(pe, rows) {
 function renderAdminMemberChips() {
   const names = [...new Set([...D.scores.PE1,...D.scores.PE2,...D.scores.PE3].map(r=>r.nombre))].sort();
   const chips = document.getElementById('member-chips'); if(!chips) return;
-  chips.innerHTML = names.map(n=>`<button class="member-chip ${n===aMember?'active':''}" onclick="selectMember('${n.replace(/'/g,"\\'")}')"> ${n}</button>`).join('');
+  chips.innerHTML = names.map(n=>`<button class="member-chip ${n===aMember?'active':''}" onclick="selectMember(${escHtml(JSON.stringify(n))})"> ${escHtml(n)}</button>`).join('');
   if (!aMember && names.length) selectMember(names[0]);
 }
 
@@ -693,14 +693,14 @@ function renderMemberDetail(name) {
   const critHtml = d ? `<div class="section-label" style="margin-top:0">Criterios — ${aPE}</div><div class="crit-bars">${criterios.map(c=>{
     const critFb = fbPerC[c.key] || '';
     return `
-    <div class="cbar"><div class="cbar-top"><div><div class="cbar-tag" style="color:${c.color}">${c.abbr}</div><div class="cbar-name">${c.label}</div></div><div class="cbar-val" style="color:${c.color}">${d[c.key]??0}<span style="font-size:.85rem;color:var(--muted)">/4</span></div></div><div class="cbar-track"><div class="cbar-fill" style="width:${((d[c.key]??0)/4)*100}%;background:${c.color}"></div></div>${critFb ? `<div class="cbar-feedback" style="--c:${c.color}"><span class="cbar-fb-icon">💬</span><span class="cbar-fb-txt">${critFb}</span></div>` : ''}</div>`}).join('')}</div>` :
+    <div class="cbar"><div class="cbar-top"><div><div class="cbar-tag" style="color:${c.color}">${c.abbr}</div><div class="cbar-name">${c.label}</div></div><div class="cbar-val" style="color:${c.color}">${d[c.key]??0}<span style="font-size:.85rem;color:var(--muted)">/4</span></div></div><div class="cbar-track"><div class="cbar-fill" style="width:${((d[c.key]??0)/4)*100}%;background:${c.color}"></div></div>${critFb ? `<div class="cbar-feedback" style="--c:${c.color}"><span class="cbar-fb-icon">💬</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}</div>`}).join('')}</div>` :
     `<div class="empty-box"><div class="empty-icon">📊</div><div class="empty-txt">Sin scores para ${aPE}</div></div>`;
   el.innerHTML = `
     <div class="member-detail-card">
       <div class="member-detail-head">
         <div style="display:flex;align-items:center;gap:14px">
           <div class="avatar" style="width:44px;height:44px;font-size:1rem">${ini}</div>
-          <div><div class="member-detail-name">${name}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Miembro del equipo</div></div>
+          <div><div class="member-detail-name">${escHtml(name)}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Miembro del equipo</div></div>
         </div>
         ${total!==null?`<div><div class="score-big" style="color:${scoreColor(total)}">${total}</div><div class="score-lbl">/ ${MAX} · ${scoreLabel(total)}</div></div>`:''}
       </div>
@@ -741,7 +741,7 @@ function renderDebugPanel() {
     <div class="section-label">Muestra CREATORS SCORE - PE1 (primeros 5)</div>
     <div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;font-family:'Barlow Condensed',sans-serif;font-size:.72rem">
       <thead><tr><th style="padding:6px 12px;background:#1E2230;color:#5B7FFF;text-align:left">Nombre</th>${criterios.map(c=>`<th style="padding:6px 10px;background:#1E2230;color:${c.color};text-align:center">${c.abbr}</th>`).join('')}<th style="padding:6px 10px;background:#1E2230;color:#2ECC71;text-align:center">TOTAL</th></tr></thead>
-      <tbody>${D.scores.PE1.slice(0,5).map(r=>`<tr><td style="padding:5px 12px;border-bottom:1px solid #1E2230;color:rgba(255,255,255,.8)">${r.nombre}</td>${criterios.map(c=>`<td style="padding:5px 10px;border-bottom:1px solid #1E2230;text-align:center;color:${c.color}">${r[c.key]??0}</td>`).join('')}<td style="padding:5px 10px;border-bottom:1px solid #1E2230;text-align:center;font-weight:700;color:#2ECC71">${calcScore(r)}</td></tr>`).join('')}</tbody>
+      <tbody>${D.scores.PE1.slice(0,5).map(r=>`<tr><td style="padding:5px 12px;border-bottom:1px solid #1E2230;color:rgba(255,255,255,.8)">${escHtml(r.nombre)}</td>${criterios.map(c=>`<td style="padding:5px 10px;border-bottom:1px solid #1E2230;text-align:center;color:${c.color}">${r[c.key]??0}</td>`).join('')}<td style="padding:5px 10px;border-bottom:1px solid #1E2230;text-align:center;font-weight:700;color:#2ECC71">${calcScore(r)}</td></tr>`).join('')}</tbody>
     </table></div>` : ''}
     <div style="margin-top:1.5rem;padding:12px;background:#0A0D12;border-radius:6px;font-size:.7rem;color:#5A6080;font-family:monospace;line-height:1.8">
       Sheet ID: ${SID}<br>

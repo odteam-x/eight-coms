@@ -173,7 +173,7 @@ function renderScores(pe) {
         <div class="cbar-track">
           <div class="cbar-fill" style="width:${(val/4)*100}%;background:${c.color}"></div>
         </div>
-        ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${critFb}</span></div>` : ''}
+        ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
       </div>`;
   }).join('');
 
@@ -535,7 +535,7 @@ async function renderTrabajosTab() {
   renderTrabajosBody(data);
 }
 
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// escHtml() defined globally in config.js
 
 function renderTrabajosBody(trabajos) {
   const el = document.getElementById('trabajos-body'); if (!el) return;
