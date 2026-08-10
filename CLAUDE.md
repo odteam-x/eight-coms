@@ -88,7 +88,23 @@ Do **not** reintroduce `config.periodo_activo`. It was a third source of truth, 
 
 When syncing after a click, always scope to `btn.closest('.pe-row')` — a global `.pe-row .pb` selector clears every bar on the page.
 
-`API.getData()` returns `{ ok: false, error }` when criteria or periods fail to load; it no longer falls back to `['PE1','PE2','PE3']` or `'PE1'`. Callers must render a visible error, not an empty state.
+### Data flow (two phases)
+
+`API.getData()` is gone. The portals load in two stages:
+
+1. **`API.getContexto()`** — profile, criteria, periods, rubric, calendar. Four queries in parallel, one round-trip. Enough to paint the hero and the PE bar.
+2. **`API.getContenido(periodoId, { signal })`** — evaluations, feedback, district ranking and district members **for the selected period only**. Lazy, and cancellable via `AbortController`: switching periods quickly used to fire N uncancelled requests that could land out of order and paint the wrong period.
+
+`API.getMiHistorial()` covers the views that legitimately cross periods (trend, report). It is a small query — one row per period, only for the signed-in user.
+
+Every query is filtered by `periodo_id`. Never fetch all periods or all districts to render one table.
+
+Rules that follow from this:
+
+- **Scores are nested**: `row.puntajes[key]`, never spread onto the row. Use `puntajeDe(row, key)`. Criteria are created by the admin in a free-form field, so a criterion named `nombre`, `distrito` or `ext` would otherwise silently overwrite the user's own data.
+- **Identity is always `evaluado_id` (UUID)**, never email. The old `usuario === CU.user || evaluado_id === CU.id` double-check existed only to paper over joins that sometimes returned no email.
+- **RLS is the only security boundary.** The client must not re-filter by district "just in case" — that habit is what hides leaks when someone edits a policy months later.
+- Both phases return `{ ok, ... }`. On `ok: false` render a visible error with a retry, never an empty state. A legitimate empty state should say *when* the data will arrive — `renderVacio()` takes `{ periodo, calendario }` for that.
 
 ### Migrations
 

@@ -58,13 +58,61 @@ const hayCriterios = () => getCriterios().length > 0;
 
 /* ══ CÁLCULO DE PUNTAJE ════════════════════════════════════════════════ */
 
-/** Fila del portal: las claves de criterio vienen al mismo nivel + `ext`. */
+/**
+ * Fila del portal. Los puntajes van ANIDADOS en `row.puntajes`.
+ *
+ * Antes se esparcían al nivel de la fila junto a `nombre`, `distrito` y
+ * `ext`. Como los criterios los crea el admin desde un formulario libre,
+ * un criterio llamado `nombre` habría sobrescrito el nombre del usuario en
+ * silencio.
+ */
+const puntajeDe = (row, key) => Number(row?.puntajes?.[key]) || 0;
+
 const calcScore = row =>
-  getCriterios().reduce((s, c) => s + (Number(row?.[c.key]) || 0), 0) + (Number(row?.ext) || 0);
+  getCriterios().reduce((s, c) => s + puntajeDe(row, c.key), 0) + (Number(row?.ext) || 0);
 
 /** Forma del admin: objeto `puntajes` (o su JSON) + bono aparte. */
 const calcScorePuntajes = (puntajes, bono) =>
   Object.values(parseJSON(puntajes)).reduce((s, v) => s + (Number(v) || 0), 0) + (Number(bono) || 0);
+
+
+/* ══ ESTADO DE UN PERÍODO ══════════════════════════════════════════════
+ * Tres estados, no dos. Antes todo período no activo se marcaba "Cerrado",
+ * incluidos los que aún no han empezado.
+ *
+ * Se deriva de las fechas; el flag `activo` manda cuando las hay o no.
+ * OJO: hoy las 4 fechas están en NULL en la base, así que sin fechas solo
+ * se puede distinguir por `activo`. En cuanto el admin las rellene (modal
+ * de períodos), los futuros pasan a "Pendiente" correctamente.
+ */
+function estadoPeriodo(p) {
+  if (!p) return { key: 'cerrado', label: 'Cerrado' };
+  if (p.activo) return { key: 'encurso', label: 'En curso' };
+
+  const hoy    = new Date().toISOString().slice(0, 10);
+  const inicio = p.inicio || null;
+  const fin    = p.jornada || p.entrega || p.finTrabajo || null;
+
+  if (inicio && hoy < inicio) return { key: 'pendiente', label: 'Pendiente' };
+  if (inicio && !fin && hoy >= inicio) return { key: 'encurso', label: 'En curso' };
+  if (fin && hoy <= fin && (!inicio || hoy >= inicio)) return { key: 'encurso', label: 'En curso' };
+  return { key: 'cerrado', label: 'Cerrado' };
+}
+
+/** Fecha en la que el dato de un período debería estar disponible. */
+function fechaDisponibilidad(p, calendario) {
+  if (p?.entrega) return p.entrega;
+  const evt = (calendario || []).find(c => c.titulo && p?.pe && c.titulo.includes(p.pe));
+  return evt?.entrega || p?.jornada || null;
+}
+
+/** "16 de marzo" a partir de un YYYY-MM-DD, sin desfase de zona horaria. */
+function fechaLarga(iso) {
+  if (!iso) return null;
+  const [a, m, d] = String(iso).split('-').map(Number);
+  if (!a || !m || !d) return null;
+  return new Date(a, m - 1, d).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+}
 
 
 /* ══ UTILIDADES ════════════════════════════════════════════════════════ */
@@ -222,14 +270,28 @@ function renderError(cont, msg, onRetry) {
   cont.appendChild(box);
 }
 
-function renderVacio(cont, msg) {
+/**
+ * Vacío legítimo. Si se conoce la fecha de publicación se dice, porque
+ * "Aún no hay evaluación" sin más no distingue "todavía no toca" de
+ * "algo falló".
+ */
+function renderVacio(cont, msg, { periodo = null, calendario = null } = {}) {
   if (!cont) return;
   cont.replaceChildren();
   const box = document.createElement('div');
   box.className = 'no-data-msg';
+
   const t = document.createElement('div');
   t.className = 'no-data-txt';
   t.textContent = msg || 'Aún no hay datos.';
   box.append(t);
+
+  const fecha = fechaLarga(fechaDisponibilidad(periodo, calendario));
+  if (fecha) {
+    const sub = document.createElement('div');
+    sub.className = 'no-data-sub';
+    sub.textContent = `Tu evaluación de ${periodo.pe} se publica el ${fecha}.`;
+    box.append(sub);
+  }
   cont.appendChild(box);
 }

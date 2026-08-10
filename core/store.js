@@ -22,7 +22,7 @@ const Store = (() => {
     periodos:    [],     // [{ id, pe, nombre, activo, inicio, ... }]
     criterios:   [],
     periodoId:   null,   // UUID del período seleccionado
-    data:        null,   // payload de API.getData (la Fase 3B lo desmonta)
+    data:        null,   // libre para uso de cada portal
     lastUpdated: null,
   };
 

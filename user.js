@@ -3,7 +3,7 @@
  */
 'use strict';
 
-let CU = null, D = null, mPE = 'PE1', _lastUpdated = null, _menuOpen = false, _peInited = false, _rptUserLoaded = false;
+let CU = null, D = null, mPE = null, _lastUpdated = null, _menuOpen = false, _peInited = false;
 
 /* CRITERIOS_DEFAULT eliminado: si la consulta de criterios falla, la vista
    debe mostrar un error, no siete criterios inventados que parecen reales.
@@ -14,8 +14,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireRole('miembro');
   if (!CU) return;
 
-  await loadData();
-  initUI();
+  // Fase 1: con esto ya se pinta el hero y la barra de períodos.
+  if (await loadContexto()) {
+    initUI();
+    // Fase 2: el contenido del período llega después, sin bloquear el pintado.
+    if (await loadContenido()) renderPeriodoActual();
+  }
   initRevalidacion();
 });
 
@@ -32,46 +36,44 @@ function initRevalidacion() {
     if (document.hidden) return;
     if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
 
-    const peAnterior = D?.periodoActivo ?? null;
-    if (!(await loadData())) return;
+    const idAnterior = Store.periodoActivo()?.id ?? null;
+    if (!(await loadContexto())) return;
 
     // Si el admin cambió el período activo, seguirlo.
-    const peNuevo = D?.periodoActivo ?? null;
-    if (peNuevo && peNuevo !== peAnterior) {
-      mPE = peNuevo;
-      _trabajosPE = peNuevo;
+    const nuevo = Store.periodoActivo();
+    if (nuevo && String(nuevo.id) !== String(idAnterior)) {
+      Store.setPeriodo(nuevo.id);
+      mPE = nuevo.pe;
+      _trabajosPE = nuevo.pe;
     }
+    await loadContenido();
     initUI();
-    if (_trabajosLoaded) renderTrabajosTab();
+    if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
   });
 }
 
-async function loadData() {
+/* ── FASE 1: CONTEXTO (crítica, paralela) ── */
+async function loadContexto() {
   try {
-    const data = await API.getData();
-    if (data.ok === false) { mostrarErrorCarga(data.error); return false; }
+    const ctx = await API.getContexto();
+    if (!ctx.ok) { mostrarErrorCarga(ctx.error); return false; }
 
-    D = data;
-    Auth.setCachedData(data);
     _lastUpdated = new Date();
-
-    // El Store es la fuente única: períodos, criterios y período elegido.
     Store.set({
       profile:     CU,
-      periodos:    data.periodos  || [],
-      criterios:   data.criterios || [],
-      data,
+      periodos:    ctx.periodos  || [],
+      criterios:   ctx.criterios || [],
       lastUpdated: _lastUpdated,
     });
+    D = { ...(D || {}), criterios: ctx.criterios, periodos: ctx.periodos,
+          rubrica: ctx.rubrica, calendario: ctx.calendario };
 
-    // El período activo sale de periodos_evaluacion.activo, vía API.
-    // Puede ser null: la gestión puede no tener período en curso.
     if (!_peInited) {
-      const activoName = data.periodoActivo || data.periodos?.[0]?.pe || null;
-      if (activoName) {
-        Store.setPeriodo(activoName);
-        mPE = activoName;
-        _trabajosPE = activoName;
+      const inicial = ctx.periodoActivo || ctx.periodos?.[0] || null;
+      if (inicial) {
+        Store.setPeriodo(inicial.id);
+        mPE = inicial.pe;
+        _trabajosPE = inicial.pe;
       }
       _peInited = true;
     }
@@ -82,6 +84,35 @@ async function loadData() {
     return false;
   }
 }
+
+/* ── FASE 2: CONTENIDO del período elegido (lazy, cancelable) ──
+ * Cambiar de PE rápido disparaba N peticiones sin cancelación que podían
+ * llegar desordenadas y pintar el período equivocado.
+ */
+let _abortContenido = null;
+
+async function loadContenido() {
+  const pid = Store.periodoId();
+  if (!pid) { _contenido = null; return true; }
+
+  _abortContenido?.abort();
+  _abortContenido = new AbortController();
+
+  const res = await API.getContenido(pid, { signal: _abortContenido.signal });
+  if (res.aborted) return false;          // llegó una petición más nueva
+  if (!res.ok) { mostrarErrorCarga(res.error); return false; }
+
+  _contenido   = res;
+  _lastUpdated = new Date();
+  Store.set({ lastUpdated: _lastUpdated });
+  return true;
+}
+
+let _contenido = null;
+
+/** Mi fila del período actual. Identidad SIEMPRE por UUID (3.6). */
+const miFila     = () => (_contenido?.scores   || []).find(r => r.evaluado_id === CU?.id) || null;
+const miFeedback = () => (_contenido?.feedback || []).find(r => r.evaluado_id === CU?.id) || null;
 
 /** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
 function mostrarErrorCarga(msg) {
@@ -118,21 +149,37 @@ function syncAllPEButtons() {
   setEl('hero-pe', mPE);
 }
 
+/* Render quirúrgico (3.9): initUI() monta lo que no cambia; el contenido
+   que depende del período se repinta aparte con renderPeriodoActual().
+   Antes initUI() reconstruía por innerHTML scores, rúbrica, calendario,
+   quick links y timestamp completos en cada pasada. */
+let _uiMontada = false;
+
 function initUI() {
-  if (!CU || !D) return;
+  if (!CU) return;
   buildPEBars();
-  const name = CU.name || CU.user;
-  const ini  = initials(name);
-  setEl('av-desktop', ini); setEl('av-mobile', ini);
-  setEl('uname-desktop', name); setEl('uname-mobile', name);
-  setEl('hero-name', name);
-  renderScores(mPE);
-  renderPEDates(mPE);
+
+  if (!_uiMontada) {
+    const name = CU.name || CU.user;
+    const ini  = initials(name);
+    setEl('av-desktop', ini); setEl('av-mobile', ini);
+    setEl('uname-desktop', name); setEl('uname-mobile', name);
+    setEl('hero-name', name);
+    renderQuickLinks();     // 4 tarjetas estáticas: se montan UNA vez
+    initScrollEffects();
+    _uiMontada = true;
+  }
+
   renderRubrica();
   renderCalendario();
-  renderQuickLinks();
+  renderPeriodoActual();
   updateTimestamp();
-  initScrollEffects();
+}
+
+/** Repinta solo lo que depende del período seleccionado. */
+function renderPeriodoActual() {
+  renderScores(mPE);
+  renderPEDates(mPE);
 }
 
 /* ── PE DATES ── */
@@ -149,14 +196,15 @@ function renderPEDates(pe) {
   }
   if (!p) { el.innerHTML = ''; return; }
   const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
-  const estadoCls = (p.estado||'').toLowerCase().replace(/\s+/g,'-');
+  // La etiqueta de estado la decide la UI, no la capa de datos (3.5).
+  const est = estadoPeriodo(p);
   el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
-    items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${v}</span>`).join('') +
-    (p.estado?`<span class="pe-dates-estado pe-estado--${estadoCls}">${p.estado}</span>`:'');
+    items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${escHtml(v)}</span>`).join('') +
+    `<span class="pe-dates-estado pe-estado--${est.key}">${est.label}</span>`;
 }
 
 /* ── SCORES ── */
-function selectPE(pe, btn) {
+async function selectPE(pe, btn) {
   mPE = pe;
   Store.setPeriodo(pe);
   // Solo la barra que contiene el botón pulsado. Antes usaba
@@ -164,12 +212,13 @@ function selectPE(pe, btn) {
   syncPEBar(btn.closest('.pe-row'), pe);
   setEl('hero-pe', pe);
   renderPEDates(pe);
-  renderScores(pe);
+  renderCargando(document.getElementById('score-body'));
+  // Cambiar de período dispara solo la fase 2, cancelando la anterior.
+  if (await loadContenido()) renderScores(pe);
 }
 
 function renderScores(pe) {
   const container = document.getElementById('score-body'); if (!container) return;
-  if (!D) { renderCargando(container); return; }
 
   // Sin criterios no se puede puntuar nada. Antes se caía a
   // CRITERIOS_DEFAULT y el usuario veía barras plausibles pero falsas.
@@ -177,13 +226,14 @@ function renderScores(pe) {
     renderError(container, 'No se pudieron cargar los criterios de evaluación.', () => location.reload());
     return;
   }
+  if (!_contenido) { renderCargando(container); return; }
 
   const criterios = getCriterios();
-  const MAX       = getMaxScore();
-  const scores    = D.scores?.[pe] || [];
-  const fbs       = D.feedback?.[pe] || [];
-  const myScore   = scores.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
-  const myFb      = fbs.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
+  // Identidad SIEMPRE por UUID (3.6). Antes buscaba por email O por UUID
+  // porque el join a veces no devolvía el email; eso era una curita sobre
+  // el problema real, no una solución.
+  const myScore = miFila();
+  const myFb    = miFeedback()?.fb || null;
 
   /* Hero */
   if (myScore) {
@@ -199,19 +249,16 @@ function renderScores(pe) {
   setEl('hero-max', MAX_TOTAL());
 
   if (!myScore) {
-    container.innerHTML = `
-      <div class="no-data-msg">
-        <div class="no-data-icon">${ICONS.score}</div>
-        <div class="no-data-txt">Aún no hay evaluación para <strong>${pe}</strong>.<br>Consulta más adelante.</div>
-      </div>`;
+    // Vacío legítimo: dice CUÁNDO estará disponible si se sabe.
+    renderVacio(container, `Aún no hay evaluación para ${pe}.`,
+                { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
 
   const total = calcScore(myScore);
-  const base  = total - (myScore.ext||0);
   const ext   = myScore.ext || 0;
   const bars  = criterios.map((c, i) => {
-    const val    = myScore[c.key] ?? 0;
+    const val    = puntajeDe(myScore, c.key);
     const critFb = myFb?.[c.key] || '';
     return `
       <div class="cbar" style="animation-delay:${i*40}ms">
@@ -234,7 +281,7 @@ function renderScores(pe) {
       <div class="sse-left">
         <div class="sse-label">Puntaje total — ${pe}</div>
         <div class="sse-name">${escHtml(CU.name || CU.user)}</div>
-        ${myScore.area ? `<div class="sse-role">Área: ${escHtml(myScore.area)}</div>` : ''}
+        
         ${ext > 0 ? `<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${ext}</span></div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -337,21 +384,34 @@ function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
 
-/* ── TAB: REPORTES (usuario) ── */
-function renderUserReport() {
-  _rptUserLoaded = true;
+/* ── TAB: REPORTES (usuario) ──
+ * El historial cruza TODOS los períodos, así que no puede salir de la fase
+ * 2 (que está filtrada a uno). Usa su propia consulta, pequeña: una fila
+ * por período y solo del usuario en sesión.
+ */
+async function renderUserReport() {
   const el = document.getElementById('rpt-user-body'); if (!el) return;
-  if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
+  renderCargando(el);
+
+  const res = await API.getMiHistorial();
+  if (!res.ok) {
+    renderError(el, 'No se pudo cargar tu historial. ' + (res.error || ''), () => {
+      Store.invalidar('reportes'); renderUserReport();
+    });
+    return;
+  }
 
   const criterios = getCriterios();
-  const pes       = (Store.periodos() || []).map(p => p.pe);
-  const data      = pes.map(pe => {
-    const row = D.scores?.[pe]?.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
-    return row ? { pe, row, total: calcScore(row) } : null;
+  const data = (Store.periodos() || []).map(p => {
+    const h = res.porPeriodo[p.id];
+    if (!h) return null;
+    const row = { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes };
+    return { pe: p.pe, row, total: calcScore(row) };
   }).filter(Boolean);
 
   if (!data.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-txt">No tienes evaluaciones disponibles aún.</div></div>`;
+    renderVacio(el, 'No tienes evaluaciones disponibles aún.',
+                { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
 
@@ -363,7 +423,7 @@ function renderUserReport() {
   const MAX   = MAX_TOTAL();
 
   const critAvg = criterios.map(c => {
-    const vals = data.map(d => d.row[c.key] || 0);
+    const vals = data.map(d => puntajeDe(d.row, c.key));
     return { ...c, avg: vals.reduce((s,v)=>s+v,0) / vals.length };
   }).sort((a,b) => b.avg - a.avg);
 
@@ -442,7 +502,7 @@ function renderUserReport() {
               ${data.map(d=>`
                 <tr>
                   <td class="urpt-td urpt-td-pe">${escHtml(d.pe)}</td>
-                  ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${d.row[c.key]||0}</td>`).join('')}
+                  ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${puntajeDe(d.row,c.key)}</td>`).join('')}
                   <td class="urpt-td urpt-td-s">${d.row.ext||0}</td>
                   <td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>
                   <td class="urpt-td"><span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span></td>
