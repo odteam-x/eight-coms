@@ -200,15 +200,76 @@ function showToast(msg, type = '') {
   showToast._t = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+/* ══ MODALES ═══════════════════════════════════════════════════════════
+ * Antes solo cerraban con la X: no había ni una sola referencia a
+ * `Escape` en todo el JS, ni role="dialog", ni trampa de foco. Con el
+ * teclado se podía tabular fuera del modal y quedar operando el fondo
+ * mientras el overlay seguía encima.
+ */
+let _modalAbierto  = null;
+let _focoPrevio    = null;
+
+const _FOCUSABLES = [
+  'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+  'select:not([disabled])', 'textarea:not([disabled])', '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
 function openModal(id) {
   const m = document.getElementById(id);
-  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  if (!m) return;
+
+  _focoPrevio = document.activeElement;
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  m.setAttribute('role', 'dialog');
+  m.setAttribute('aria-modal', 'true');
+  const titulo = m.querySelector('.modal-title');
+  if (titulo) {
+    if (!titulo.id) titulo.id = id + '-titulo';
+    m.setAttribute('aria-labelledby', titulo.id);
+  }
+
+  _modalAbierto = m;
+  // Foco al primer control, para no dejarlo en el fondo.
+  const primero = m.querySelector(_FOCUSABLES);
+  (primero || m).focus?.();
 }
 
 function closeModal(id) {
   const m = document.getElementById(id);
-  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+  if (!m) return;
+  m.style.display = 'none';
+  document.body.style.overflow = '';
+  if (_modalAbierto === m) _modalAbierto = null;
+
+  // Devolver el foco a donde estaba antes de abrir.
+  if (_focoPrevio?.isConnected) _focoPrevio.focus?.();
+  _focoPrevio = null;
 }
+
+/* Escape cierra; Tab queda atrapado dentro del modal. */
+document.addEventListener('keydown', e => {
+  if (!_modalAbierto) return;
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeModal(_modalAbierto.id);
+    return;
+  }
+
+  if (e.key !== 'Tab') return;
+  const f = [..._modalAbierto.querySelectorAll(_FOCUSABLES)]
+    .filter(el => el.offsetParent !== null);
+  if (!f.length) return;
+
+  const primero = f[0], ultimo = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === primero) {
+    e.preventDefault(); ultimo.focus();
+  } else if (!e.shiftKey && document.activeElement === ultimo) {
+    e.preventDefault(); primero.focus();
+  }
+});
 
 
 /* ══ PESTAÑAS ══════════════════════════════════════════════════════════
@@ -216,8 +277,16 @@ function closeModal(id) {
  * de pestaña→padre y sus hooks de carga.
  */
 function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap = {} } = {}) {
-  document.querySelectorAll(contentSelector).forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
+  document.querySelectorAll(contentSelector).forEach(t => {
+    t.classList.remove('active');
+    // El panel oculto sale del árbol de accesibilidad; si no, un lector de
+    // pantalla recorre el contenido de las seis pestañas como si estuviera
+    // todo visible a la vez.
+    t.setAttribute('role', 'tabpanel');
+    t.setAttribute('aria-hidden', 'true');
+  });
+  const panel = document.getElementById(`tab-${tab}`);
+  if (panel) { panel.classList.add('active'); panel.setAttribute('aria-hidden', 'false'); }
 
   document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
   if (btn) {
@@ -226,6 +295,17 @@ function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap =
     const parent = parentMap[tab] || tab;
     document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
       if ((b.getAttribute('onclick') || '').includes(`'${parent}'`)) b.classList.add('active');
+    });
+  }
+
+  // La navegación se comporta como tabs pero no lo declaraba: cero
+  // role="tab" y cero aria-selected en todo el HTML.
+  const nav = document.getElementById('desktop-nav');
+  if (nav) {
+    nav.setAttribute('role', 'tablist');
+    nav.querySelectorAll('.tnav').forEach(b => {
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String(b.classList.contains('active')));
     });
   }
 }

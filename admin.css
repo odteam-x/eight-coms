@@ -1,3 +1,12 @@
+/* Los tokens de medalla se definen en secretario.css, que admin.html no
+   carga. Se repiten aqui para que el ranking del panel tampoco quede
+   invisible en tema claro (el oro daba 1.55:1 sobre #EBF5FF). */
+:root { --medalla-oro:#F0C040; --medalla-plata:#B0B8D0; --medalla-bronce:#C87C40; }
+[data-theme="light"] { --medalla-oro:#8A6300; --medalla-plata:#5A6275; --medalla-bronce:#8A4E18; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) { --medalla-oro:#8A6300; --medalla-plata:#5A6275; --medalla-bronce:#8A4E18; }
+}
+
 /* ═══════════════════════════════════════════════════════
    EIGHT CREATORS LABs — Estilos Panel de Administración
    ═══════════════════════════════════════════════════════ */
@@ -215,9 +224,9 @@
   width: 42px; text-align: right; flex-shrink: 0;
   color: var(--muted);
 }
-.dist-rk-pos-admin.gold   { color: #F0C040; text-shadow: 0 0 12px rgba(240,192,64,.5); }
-.dist-rk-pos-admin.silver { color: #B0B8D0; }
-.dist-rk-pos-admin.bronze { color: #C87C40; }
+.dist-rk-pos-admin.gold   { color: var(--medalla-oro); text-shadow: 0 0 12px rgba(240,192,64,.5); }
+.dist-rk-pos-admin.silver { color: var(--medalla-plata); }
+.dist-rk-pos-admin.bronze { color: var(--medalla-bronce); }
 
 .admin-dist-chev {
   font-size: .9rem; color: var(--muted);
@@ -519,9 +528,9 @@
   font-size: 1.1rem; text-align: center; line-height: 1;
   color: var(--muted);
 }
-.ov-top5-rank.gold   { color: #F0C040; }
-.ov-top5-rank.silver { color: #B0B8D0; }
-.ov-top5-rank.bronze { color: #C87C40; }
+.ov-top5-rank.gold   { color: var(--medalla-oro); }
+.ov-top5-rank.silver { color: var(--medalla-plata); }
+.ov-top5-rank.bronze { color: var(--medalla-bronce); }
 
 .ov-top5-name {
   font-family: 'Source Sans 3', sans-serif;
@@ -1698,4 +1707,15 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   .rpt-uneval-name { color:#1a1a2e; }
   .rpt-bottom-row { break-inside:avoid; page-break-inside:avoid; }
   .rpt-kpi-row { break-inside:avoid; page-break-inside:avoid; }
+}
+
+/* ── REDUCED MOTION ───────────────────────────────────────────────────
+   admin.css tiene 8 animaciones y no respetaba esta preferencia. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

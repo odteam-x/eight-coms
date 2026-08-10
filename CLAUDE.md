@@ -77,6 +77,17 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
   "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src https://*.supabase.co; frame-ancestors 'none'; base-uri 'none'" }
 ```
 
+### Accessibility and performance (Phase 6)
+
+- **Modals** get `role="dialog"`, `aria-modal`, `aria-labelledby`, focus moved to the first control, a Tab trap, Escape-to-close and focus restored to the trigger — all centralised in `openModal`/`closeModal` in `core/render.js`. Do not hand-roll a modal that bypasses them.
+- **Tabs**: `switchTabCore` sets `role="tablist"`/`role="tab"`/`aria-selected` on the nav and `role="tabpanel"`/`aria-hidden` on the panels. Hidden panels leave the accessibility tree, so a screen reader no longer walks all six tabs at once.
+- **Touch**: `.tnav-drop` menus opened on `:hover` only, which does not exist on touch. Under `@media (pointer: coarse)` the submenu renders inline instead.
+- `prefers-reduced-motion` is now honoured in all four stylesheets (`admin.css` and `secretario.css` ignored it).
+- **The logo is `logo.webp` (16 KB) via `<picture>`**, with `logo.png` (39 KB) as fallback. It was a 749×1093 PNG of 279 KB rendered at 44px. Regenerate both if the source changes; keep `width`/`height` on the `<img>` to avoid layout shift.
+- The member score is rendered **once**, in the hero. Quick links are mobile-only — on desktop they duplicated the topbar.
+
+**CSP is still not enabled**: 161 inline `onclick` handlers remain (112 in HTML, 49 in JS templates). The header is documented above and can go in as soon as they are gone.
+
 ### Supabase Tables
 
 `profiles`, `roles`, `periodos_evaluacion`, `criterios`, `rubrica`, `evaluaciones` (per-user scores), `evaluaciones_distrito`, `calendario`, `config`, `periodo_participantes`, `distritos`, `trabajos_entregados`. Storage bucket: `avatars`.

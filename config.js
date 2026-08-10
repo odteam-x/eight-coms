@@ -43,6 +43,15 @@ function debug(...args) {
  * Usa listeners reales (no onclick inline) para poder activar la CSP.
  * En la Fase 3 esto se muda a core/render.js.
  */
+/** Mes en castellano de un YYYY-MM-DD, o null. Sin desfase de zona horaria. */
+function mesDe(iso) {
+  if (!iso) return null;
+  const [a, m, d] = String(iso).split('-').map(Number);
+  if (!a || !m || !d) return null;
+  const s = new Date(a, m - 1, d).toLocaleDateString('es-CL', { month: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function renderPEBar(container, periodos, current, onSelect) {
   if (!container) return;
 
@@ -61,7 +70,10 @@ function renderPEBar(container, periodos, current, onSelect) {
     const b = document.createElement('button');
     b.type      = 'button';
     b.className = 'pb' + (activo ? ' active' : '');
-    b.textContent = p.pe;
+    // "PE1" no significa nada para alguien nuevo. Si el período tiene
+    // fecha de inicio se añade el mes: "PE1 · Marzo". Mientras las fechas
+    // sigan en NULL se muestra solo el código, sin inventar nada.
+    b.textContent = p.pe + (mesDe(p.inicio) ? ' · ' + mesDe(p.inicio) : '');
     b.dataset.pe  = p.pe;
     b.setAttribute('aria-pressed', String(activo));
     if (p.nombre && p.nombre !== p.pe) b.title = p.nombre;

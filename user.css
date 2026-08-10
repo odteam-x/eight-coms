@@ -153,10 +153,17 @@
   border: 1px solid currentColor;
   display: inline-flex; align-items: center; min-height: 28px;
 }
-.nivel-badge.sex { color: var(--sex); background: rgba(46,204,113,.08); }
-.nivel-badge.sbu { color: var(--sbu); background: rgba(0,135,242,.08); }
-.nivel-badge.spr { color: var(--spr); background: rgba(240,192,64,.08); }
-.nivel-badge.sba { color: var(--sba); background: rgba(255,96,99,.08); }
+/* El tinte se deriva del propio color del nivel. Antes estaba fijo en
+   verde/azul/oro/rojo, los hues que la Fase 5 retiró: el texto usaba el
+   token nuevo y el fondo seguía en el viejo. */
+.nivel-badge.sex,
+.nivel-badge.sbu,
+.nivel-badge.spr,
+.nivel-badge.sba { background: color-mix(in srgb, currentColor 10%, transparent); }
+.nivel-badge.sex { color: var(--sex); }
+.nivel-badge.sbu { color: var(--sbu); }
+.nivel-badge.spr { color: var(--spr); }
+.nivel-badge.sba { color: var(--sba); }
 
 /* ── FEEDBACK / NO DATA ── */
 .fb-card {
@@ -240,3 +247,21 @@
 .urpt-td-pe { font-weight:700; font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.06em; color:var(--muted); }
 .urpt-td-s { font-variant-numeric:tabular-nums; }
 .urpt-td-total { font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* ── Jerarquía de Mi Score ────────────────────────────────────────────
+   El puntaje se mostraba dos veces: en el hero y en una tarjeta resumen,
+   separados por el selector de período. Ahora vive solo en el hero. */
+.bono-row       { margin: 4px 0 16px; }
+.desglose-label {
+  font-family:'Source Sans 3',sans-serif;
+  font-size: var(--fs-min); font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin: 4px 0 12px;
+}
+
+/* Los accesos rápidos duplican exactamente el topbar. En escritorio están
+   a dos centímetros de las mismas opciones, así que solo tienen sentido
+   en móvil, donde la navegación vive tras el hamburguesa. */
+@media (min-width: 721px) {
+  .ql-section-label, .ql-grid { display: none; }
+}

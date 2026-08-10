@@ -298,22 +298,12 @@ function renderScores(pe) {
   }).join('');
 
   container.innerHTML = `
-    <div class="score-summary-card">
-      <div class="sse-left">
-        <div class="sse-label">Puntaje total — ${pe}</div>
-        <div class="sse-name">${escHtml(CU.name || CU.user)}</div>
-        
-        ${ext > 0 ? `<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${ext}</span></div>` : ''}
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="nivel-badge ${scoreClass(total)}">${scoreLabel(total)}</span>
-        <div style="text-align:right">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:${scoreColor(total)};line-height:1">${total}</div>
-          <div style="font-size:.65rem;color:var(--muted)">/ ${MAX_TOTAL()} pts</div>
-        </div>
-      </div>
-    </div>
+    ${ext > 0 ? `<div class="bono-row"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${ext}</span></div>` : ''}
+    <div class="desglose-label">Desglose por criterio</div>
     <div style="display:flex;flex-direction:column;gap:8px">${bars}</div>`;
+  // La tarjeta resumen se eliminó: repetía el mismo puntaje que el hero,
+  // con otro tratamiento visual y separada por el selector de período.
+  // El score se muestra UNA vez, arriba.
 }
 
 /* ── RÚBRICA ── */

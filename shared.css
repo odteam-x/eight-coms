@@ -855,3 +855,24 @@ body.gestion-archivada .toggle-switch { display:none !important; }
     background: linear-gradient(160deg, rgba(0,80,180,.08) 0%, rgba(0,50,140,.04) 60%, transparent 100%);
   }
 }
+
+/* ── DESPLEGABLES EN TÁCTIL ───────────────────────────────────────────
+   Los menús .tnav-drop se abrían solo con :hover. En un dispositivo
+   táctil no existe hover: el primer toque disparaba el switchTab del
+   padre o abría el menú según el navegador, de forma impredecible.
+   Con puntero grueso el submenú se muestra desplegado bajo su grupo en
+   vez de depender de un estado que no puede ocurrir. */
+@media (pointer: coarse) {
+  .tnav-group .tnav-drop {
+    display: block;
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .tnav-group:hover .tnav-drop { transform: none; }
+}
