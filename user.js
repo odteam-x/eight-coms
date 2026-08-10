@@ -371,18 +371,28 @@ async function handleRefresh() {
 /* Los helpers (calcScore, scoreColor/Label/Class, initials, setEl, pad,
    showToast, timeAgo...) viven ahora en core/render.js. */
 
-/* ── TABS ── */
-const _userTabParent = { scores:'scores', periodos:'periodos', cal:'periodos', trabajos:'trabajos', rubrica:'rubrica', reportes:'reportes' };
+/* ── TABS ──────────────────────────────────────────────────────────────
+ * Tres destinos en vez de seis. "Períodos" y "Calendario" eran el mismo
+ * dato —las fechas de cada PE— partido en dos, y "Reportes" es su vista
+ * temporal: los tres viven ahora en Historial. La rúbrica dejó de ser
+ * pestaña y es un desplegable bajo las barras de Mi Score, que es donde
+ * surge la pregunta de cómo se califica.
+ *
+ * Se aceptan los nombres viejos por si queda algún enlace guardado.
+ */
+const _ALIAS_TAB = { periodos:'historial', cal:'historial', reportes:'historial', rubrica:'scores' };
+const _userTabParent = { scores:'scores', trabajos:'trabajos', historial:'historial' };
 
 function switchTab(tab, btn) {
+  tab = _ALIAS_TAB[tab] || tab;
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _userTabParent });
 
   // Política única de carga (3.11): se carga la primera vez y solo se
   // repite si alguien invalida la pestaña explícitamente.
-  if (tab === 'reportes' && Store.necesitaCarga('reportes')) {
-    Store.marcarCargado('reportes'); renderUserReport();
+  if (tab === 'historial') {
+    renderPeriodosTab();
+    if (Store.necesitaCarga('reportes')) { Store.marcarCargado('reportes'); renderUserReport(); }
   }
-  if (tab === 'periodos') renderPeriodosTab();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();
@@ -555,11 +565,11 @@ function goTab(tab) { goTabCore(tab, switchTab); }
 /* ── ATAJOS RÁPIDOS ── */
 function renderQuickLinks() {
   const el = document.getElementById('quick-links'); if (!el) return;
+  // Solo visibles en móvil (ver user.css): en escritorio duplicaban el
+  // topbar. Con tres pestañas, dos accesos bastan.
   const links = [
-    { tab:'trabajos', icon:'folder-open',    title:'Mis Trabajos',  desc:'Registra tus actividades del período actual' },
-    { tab:'periodos', icon:'layers',          title:'Períodos',      desc:'Fechas de inicio, entrega y cierre' },
-    { tab:'rubrica',  icon:'clipboard-list', title:'Rúbrica',       desc:'Criterios y tabla de puntuación' },
-    { tab:'reportes', icon:'bar-chart-2',    title:'Mis Estadísticas', desc:'Historial y evolución de tu desempeño' },
+    { tab:'trabajos',  icon:'folder-open', title:'Entregas',  desc:'Registra tus trabajos del período actual' },
+    { tab:'historial', icon:'history',     title:'Historial', desc:'Fechas, calendario y evolución de tu desempeño' },
   ];
   el.innerHTML = links.map(l =>
     `<button class="ql-card" data-act="irTab" data-arg="${l.tab}" aria-label="Ir a ${l.title}">

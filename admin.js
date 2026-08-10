@@ -1466,11 +1466,12 @@ function switchRankTab(tab) {
 }
 
 /* ── TABS ── */
+/* Operación suelta; todo lo de configuración cuelga del engranaje, cuyo
+   botón padre es `periodos`. */
 const _tabParentMap = {
-  overview:'overview', evaluar:'evaluar', usuarios:'evaluar', roles:'evaluar',
-  distritos:'distritos', periodos:'periodos', calendario:'periodos', rubrica:'periodos',
-  gestiones:'periodos',
-  reportes:'reportes',
+  overview:'overview', evaluar:'evaluar', usuarios:'usuarios', reportes:'reportes',
+  periodos:'periodos', calendario:'periodos', rubrica:'periodos',
+  roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
 
 /* ── TAB: GESTIONES ──────────────────────────────────────────────────

@@ -265,3 +265,41 @@
 @media (min-width: 721px) {
   .ql-section-label, .ql-grid { display: none; }
 }
+
+/* ── HISTORIAL ────────────────────────────────────────────────────────
+   Absorbe Períodos, Calendario y Reportes, que eran tres pestañas para
+   el mismo dato: las fechas de cada PE y su evolución. */
+.hist-sec { margin-bottom: 34px; }
+.hist-sec:last-child { margin-bottom: 0; }
+.hist-sub {
+  font-family:'Source Sans 3',sans-serif;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 14px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+
+/* ── RÚBRICA CONTEXTUAL ───────────────────────────────────────────────
+   Deja de ser pestaña: se consulta bajo las barras, donde surge la duda. */
+.rubrica-details {
+  margin-top: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--glass);
+}
+.rubrica-summary {
+  cursor: pointer; list-style: none;
+  padding: 13px 18px;
+  font-family:'Source Sans 3',sans-serif;
+  font-size: .84rem; font-weight: 600;
+  color: var(--cyan);
+  display: flex; align-items: center; gap: 8px;
+}
+.rubrica-summary::-webkit-details-marker { display: none; }
+.rubrica-summary::before {
+  content: '›'; font-size: 1.1rem; line-height: 1;
+  transition: transform .2s var(--ease);
+}
+.rubrica-details[open] .rubrica-summary::before { transform: rotate(90deg); }
+.rubrica-summary:hover { color: var(--txt); }
+.rubrica-details .rubrica-wrap { padding: 0 18px 18px; }

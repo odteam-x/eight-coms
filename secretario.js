@@ -691,23 +691,26 @@ async function handleRefresh() {
 /* Los helpers viven ahora en core/render.js. */
 
 /* ── TABS ── */
+/* Se aceptan los nombres viejos por si queda algun enlace guardado. */
+const _ALIAS_TAB = { periodos:'historial', cal:'historial', reportes:'historial' };
 const _secTabParent = {
   miscore:'miscore', ranking:'ranking', distrito:'ranking',
-  periodos:'periodos', cal:'periodos', trabajos:'trabajos',
-  evaluacion:'evaluacion', rubrica:'rubrica', reportes:'reportes',
+  trabajos:'trabajos', historial:'historial',
+  evaluacion:'evaluacion', rubrica:'rubrica',
 };
 
 function switchTab(tab, btn) {
+  tab = _ALIAS_TAB[tab] || tab;
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
 
-  if (tab === 'periodos') renderPeriodosTab();
+  if (tab === 'historial') renderPeriodosTab();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();
     syncTrabajoPEBtns();
     renderTrabajosTab();
   }
-  if (tab === 'reportes' && Store.necesitaCarga('reportes')) {
+  if (tab === 'historial' && Store.necesitaCarga('reportes')) {
     Store.marcarCargado('reportes'); renderUserReport();
   }
 }

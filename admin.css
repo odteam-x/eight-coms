@@ -1719,3 +1719,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
     scroll-behavior: auto !important;
   }
 }
+
+/* El grupo de configuración se separa visualmente de la operación diaria. */
+.tnav-group--cfg { margin-left: auto; }
+@media (max-width: 1100px) { .tnav-group--cfg .cfg-lbl { display: none; } }

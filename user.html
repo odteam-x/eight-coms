@@ -38,15 +38,8 @@
   </button>
   <nav class="tb-nav" id="desktop-nav">
     <button class="tnav active" data-act="tab" data-arg="scores"><i data-lucide="bar-chart-2" class="nav-icon"></i> Mi Score</button>
-    <div class="tnav-group">
-      <button class="tnav" data-act="tab" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
-      <div class="tnav-drop">
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="cal"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
-      </div>
-    </div>
-    <button class="tnav" data-act="tab" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i> Trabajos</button>
-    <button class="tnav" data-act="tab" data-arg="rubrica"><i data-lucide="clipboard-list" class="nav-icon"></i> Rúbrica</button>
-    <button class="tnav" data-act="tab" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
+    <button class="tnav" data-act="tab" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i> Entregas</button>
+    <button class="tnav" data-act="tab" data-arg="historial"><i data-lucide="history" class="nav-icon"></i> Historial</button>
   </nav>
   <div class="tb-user">
     <span id="gestion-switch" hidden></span>
@@ -65,16 +58,8 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-nav-links">
     <button class="mobile-nav-btn active" data-act="tabMovil" data-arg="scores"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
-    <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" data-act="grupoMovil"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
-      <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="periodos"><i data-lucide="layers" class="nav-icon"></i>Períodos</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="cal"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
-      </div>
-    </div>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i>Trabajos</button>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="rubrica"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i>Entregas</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="historial"><i data-lucide="history" class="nav-icon"></i>Historial</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
       <button class="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
@@ -111,19 +96,22 @@
     <div class="pe-row" id="pe-row-scores" role="group" aria-label="Seleccionar período de evaluación">
     </div>
     <div id="score-body"><div class="loading-box"><span class="spin"></span></div></div>
+    <!-- La rubrica deja de ser pestana: es referencia de "como se califica
+         esto" y se consulta justo donde surge la duda, bajo las barras. -->
+    <details class="rubrica-details" id="rubrica-details">
+      <summary class="rubrica-summary">¿Cómo se califica esto?</summary>
+      <div class="rubrica-wrap">
+        <p class="rubrica-intro">Cada criterio se evalúa del <strong>1 al 4</strong>. Puntaje máximo: <strong>28 puntos</strong>.</p>
+        <div class="rubrica-grid" id="rubrica-grid"></div>
+      </div>
+    </details>
     <div class="ql-section-label">Accesos rápidos</div>
     <div class="ql-grid" id="quick-links"></div>
   </div>
 </div>
 
 <!-- TAB: PERÍODOS -->
-<div id="tab-periodos" class="tab-content">
-  <div class="m-content tab-top-pad">
-    <h2 class="tab-title tab-title--mb">PERÍODOS DE EVALUACIÓN</h2>
-    <p class="rubrica-intro">Consulta las fechas y estado de cada período de evaluación.</p>
-    <div id="periodos-body" class="pe-cards-grid" style="margin-top:20px"></div>
-  </div>
-</div>
+
 
 <!-- TAB: TRABAJOS ENTREGADOS -->
 <div id="tab-trabajos" class="tab-content">
@@ -136,31 +124,34 @@
 </div>
 
 <!-- TAB: RÚBRICA -->
-<div id="tab-rubrica" class="tab-content">
-  <div class="m-content tab-top-pad">
-    <h2 class="tab-title tab-title--mb">TABLA DE PUNTUACIÓN</h2>
-    <div class="rubrica-wrap">
-      <p class="rubrica-intro">Cada criterio se evalúa del <strong>1 al 4</strong>. Puntaje máximo: <strong>28 puntos</strong>.</p>
-      <div class="rubrica-grid" id="rubrica-grid"></div>
-    </div>
-  </div>
-</div>
+
 
 <!-- TAB: REPORTES -->
-<div id="tab-reportes" class="tab-content">
-  <div class="m-content tab-top-pad">
-    <h2 class="tab-title tab-title--mb">MI REPORTE DE DESEMPEÑO</h2>
-    <div id="rpt-user-body"><div class="loading-box"><span class="spin"></span></div></div>
-  </div>
-</div>
+
 
 <!-- TAB: CALENDARIO -->
-<div id="tab-cal" class="tab-content">
+
+
+
+<!-- TAB: HISTORIAL — "Periodos" y "Calendario" eran el mismo dato (las
+     fechas de cada PE) partido en dos, y "Reportes" es su vista temporal. -->
+<div id="tab-historial" class="tab-content">
   <div class="m-content tab-top-pad">
-    <h2 class="tab-title tab-title--mb">CALENDARIO DE EVALUACIONES</h2>
-    <div class="cal-grid" id="cal-grid">
-      <div class="loading-box" style="grid-column:1/-1"><span class="spin"></span></div>
-    </div>
+    <h2 class="tab-title tab-title--mb">HISTORIAL</h2>
+    <section class="hist-sec">
+      <h3 class="hist-sub">Mi desempeño</h3>
+      <div id="rpt-user-body"><div class="loading-box"><span class="spin"></span></div></div>
+    </section>
+    <section class="hist-sec">
+      <h3 class="hist-sub">Períodos de evaluación</h3>
+      <div id="periodos-body" class="pe-cards-grid"></div>
+    </section>
+    <section class="hist-sec">
+      <h3 class="hist-sub">Calendario</h3>
+      <div class="cal-grid" id="cal-grid">
+        <div class="loading-box" style="grid-column:1/-1"><span class="spin"></span></div>
+      </div>
+    </section>
   </div>
 </div>
 
