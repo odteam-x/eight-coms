@@ -36,35 +36,35 @@
     <span class="admin-badge">ADMIN</span>
   </div>
   <nav class="tb-nav" id="desktop-nav">
-    <button class="tnav active" onclick="switchTab('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i> Overview</button>
+    <button class="tnav active" data-act="tab" data-arg="overview"><i data-lucide="layout-dashboard" class="nav-icon"></i> Overview</button>
     <div class="tnav-group">
-      <button class="tnav" onclick="switchTab('evaluar',this)"><i data-lucide="users" class="nav-icon"></i> Usuarios <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
+      <button class="tnav" data-act="tab" data-arg="evaluar"><i data-lucide="users" class="nav-icon"></i> Usuarios <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
       <div class="tnav-drop">
-        <button class="tnav-drop-item" onclick="switchTab('evaluar')"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
-        <button class="tnav-drop-item" onclick="switchTab('usuarios')"><i data-lucide="user-cog" class="nav-icon"></i> Gestión</button>
-        <button class="tnav-drop-item" onclick="switchTab('roles')"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="evaluar"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="usuarios"><i data-lucide="user-cog" class="nav-icon"></i> Gestión</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="roles"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
       </div>
     </div>
-    <button class="tnav" onclick="switchTab('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
+    <button class="tnav" data-act="tab" data-arg="distritos"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
     <div class="tnav-group">
-      <button class="tnav" onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
+      <button class="tnav" data-act="tab" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
       <div class="tnav-drop">
-        <button class="tnav-drop-item" onclick="switchTab('calendario')"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
-        <button class="tnav-drop-item" onclick="switchTab('rubrica')"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
-        <button class="tnav-drop-item" onclick="switchTab('gestiones')"><i data-lucide="archive" class="nav-icon"></i> Gestiones</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="calendario"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="rubrica"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="gestiones"><i data-lucide="archive" class="nav-icon"></i> Gestiones</button>
       </div>
     </div>
-    <button class="tnav" onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
+    <button class="tnav" data-act="tab" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
   </nav>
   <div class="tb-user">
     <span id="gestion-switch" hidden></span>
     <span class="last-updated-badge" id="ts-badge"></span>
     <div class="avatar admin-av" id="av-desktop">A</div>
     <span class="uname" id="uname-desktop">Admin</span>
-    <button class="btn-out" onclick="Auth.logout()">Salir</button>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+    <button class="btn-out" data-act="salir">Salir</button>
+    <button class="theme-toggle" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
   </div>
-  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" onclick="toggleMenu()">
+  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" data-act="fn" data-arg="toggleMenu">
     <span></span><span></span><span></span>
   </button>
 </header>
@@ -72,29 +72,29 @@
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-nav-links">
-    <button class="mobile-nav-btn active" onclick="switchTabMobile('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i>Overview</button>
+    <button class="mobile-nav-btn active" data-act="tabMovil" data-arg="overview"><i data-lucide="layout-dashboard" class="nav-icon"></i>Overview</button>
     <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="users" class="nav-icon"></i>Usuarios <i data-lucide="chevron-down" class="mob-chev"></i></button>
+      <button class="mobile-nav-btn mob-nav-header" data-act="grupoMovil"><i data-lucide="users" class="nav-icon"></i>Usuarios <i data-lucide="chevron-down" class="mob-chev"></i></button>
       <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" onclick="switchTabMobile('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('usuarios',this)"><i data-lucide="user-cog" class="nav-icon"></i>Gestión</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('roles',this)"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="evaluar"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="usuarios"><i data-lucide="user-cog" class="nav-icon"></i>Gestión</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="roles"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
       </div>
     </div>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="distritos"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
     <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
+      <button class="mobile-nav-btn mob-nav-header" data-act="grupoMovil"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
       <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('gestiones',this)"><i data-lucide="archive" class="nav-icon"></i>Gestiones</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="calendario"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="rubrica"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="gestiones"><i data-lucide="archive" class="nav-icon"></i>Gestiones</button>
       </div>
     </div>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+      <button class="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
     </div>
   </div>
   <div class="mobile-user-section">
@@ -104,7 +104,7 @@
       <div class="mobile-urole">Panel de control</div>
       <div class="last-updated-badge" id="ts-badge-mob"></div>
     </div>
-    <button class="btn-out-mobile" onclick="Auth.logout()">Salir</button>
+    <button class="btn-out-mobile" data-act="salir">Salir</button>
   </div>
 </div>
 
@@ -181,7 +181,7 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
       <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" oninput="renderRoles()">
-      <button class="btn-cfg-add" onclick="showRolModal()">+ Nuevo rol</button>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button>
     </div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -192,7 +192,7 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
       <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" oninput="renderPeriodos()">
-      <button class="btn-cfg-add" onclick="showPeriodoModal()">+ Nuevo período</button>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal">+ Nuevo período</button>
     </div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -205,7 +205,7 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
       <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" oninput="renderCriterios()">
-      <button class="btn-cfg-add" onclick="showCriterioModal()">+ Nuevo criterio</button>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
     </div>
     <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
 
@@ -213,7 +213,7 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
       <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" oninput="renderRubrica()">
-      <button class="btn-cfg-add" onclick="showRubricaModal()">+ Nueva entrada</button>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
     </div>
     <div class="rubrica-wrap" style="max-width:900px">
       <div class="rubrica-grid" id="rubrica-admin-grid"></div>
@@ -225,7 +225,7 @@
     <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
     <div class="cal-editor-toolbar">
       <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" oninput="renderCalendario()">
-      <button class="btn-add-evento" onclick="showCalModal()">+ Agregar actividad</button>
+      <button class="btn-add-evento" data-act="fn" data-arg="showCalModal">+ Agregar actividad</button>
     </div>
     <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -271,7 +271,7 @@
         <span class="eval-pe-lbl">Período:</span>
         <div id="rpt-pe-btns"></div>
       </div>
-      <button class="btn-save btn-print-rpt" onclick="printAdminReport()">
+      <button class="btn-save btn-print-rpt" data-act="fn" data-arg="printAdminReport">
         <i data-lucide="printer" style="width:15px;height:15px"></i>
         Descargar PDF
       </button>
@@ -291,7 +291,7 @@
       Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.
     </p>
     <div style="display:flex;gap:10px;margin:18px 0">
-      <button class="btn-cfg-add" onclick="showAbrirGestionModal()">+ Abrir gestión nueva</button>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showAbrirGestionModal">+ Abrir gestión nueva</button>
     </div>
     <div id="gestiones-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -299,7 +299,7 @@
 </div>
 
 <!-- MODAL: ROL -->
-<div class="modal-overlay" id="modal-rol" style="display:none" onclick="if(event.target===this)closeModal('modal-rol')">
+<div class="modal-overlay" id="modal-rol" style="display:none" data-act="cerrarModalFondo" data-arg="modal-rol">
   <div class="modal-box">
     <div class="modal-title" id="modal-rol-title">Nuevo rol</div>
     <input type="hidden" id="mrol-id">
@@ -309,8 +309,8 @@
       <input type="checkbox" id="mrol-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveRol()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-rol')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveRol">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-rol">Cancelar</button>
     </div>
     <div class="modal-err" id="mrol-err"></div>
   </div>
@@ -318,7 +318,7 @@
 
 
 <!-- MODAL: ABRIR GESTIÓN -->
-<div class="modal-overlay" id="modal-gestion" style="display:none" onclick="if(event.target===this)closeModal('modal-gestion')">
+<div class="modal-overlay" id="modal-gestion" style="display:none" data-act="cerrarModalFondo" data-arg="modal-gestion">
   <div class="modal-box">
     <div class="modal-title">Abrir gestión nueva</div>
     <div class="field"><label for="mg-nombre">Nombre (ej: 2027-2028)</label>
@@ -329,15 +329,15 @@
       ninguna evaluación y sin ningún período activo.
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="confirmarAbrirGestion()">Abrir gestión</button>
-      <button class="btn-out" onclick="closeModal('modal-gestion')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="confirmarAbrirGestion">Abrir gestión</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-gestion">Cancelar</button>
     </div>
     <div class="modal-err" id="mg-err"></div>
   </div>
 </div>
 
 <!-- MODAL: PERÍODO -->
-<div class="modal-overlay" id="modal-periodo" style="display:none" onclick="if(event.target===this)closeModal('modal-periodo')">
+<div class="modal-overlay" id="modal-periodo" style="display:none" data-act="cerrarModalFondo" data-arg="modal-periodo">
   <div class="modal-box">
     <div class="modal-title" id="modal-periodo-title">Nuevo período</div>
     <input type="hidden" id="mpe-id">
@@ -360,15 +360,15 @@
       desactiva automáticamente y todos los portales pasan a mostrarlo.
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="savePeriodo()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-periodo')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="savePeriodo">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-periodo">Cancelar</button>
     </div>
     <div class="modal-err" id="mpe-err"></div>
   </div>
 </div>
 
 <!-- MODAL: CALENDARIO -->
-<div class="modal-overlay" id="modal-cal" style="display:none" onclick="if(event.target===this)closeModal('modal-cal')">
+<div class="modal-overlay" id="modal-cal" style="display:none" data-act="cerrarModalFondo" data-arg="modal-cal">
   <div class="modal-box">
     <div class="modal-title" id="modal-cal-title">Nueva actividad</div>
     <input type="hidden" id="mcal-id">
@@ -395,15 +395,15 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveCal()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-cal')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveCal">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-cal">Cancelar</button>
     </div>
     <div class="modal-err" id="mcal-err"></div>
   </div>
 </div>
 
 <!-- MODAL: CRITERIO -->
-<div class="modal-overlay" id="modal-criterio" style="display:none" onclick="if(event.target===this)closeModal('modal-criterio')">
+<div class="modal-overlay" id="modal-criterio" style="display:none" data-act="cerrarModalFondo" data-arg="modal-criterio">
   <div class="modal-box">
     <div class="modal-title" id="modal-criterio-title">Nuevo criterio</div>
     <input type="hidden" id="mcrit-id">
@@ -417,15 +417,15 @@
       <input type="checkbox" id="mcrit-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveCriterioEntry()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-criterio')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveCriterioEntry">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-criterio">Cancelar</button>
     </div>
     <div class="modal-err" id="mcrit-err"></div>
   </div>
 </div>
 
 <!-- MODAL: RUBRICA ROW -->
-<div class="modal-overlay" id="modal-rubrica" style="display:none" onclick="if(event.target===this)closeModal('modal-rubrica')">
+<div class="modal-overlay" id="modal-rubrica" style="display:none" data-act="cerrarModalFondo" data-arg="modal-rubrica">
   <div class="modal-box" style="max-width:540px">
     <div class="modal-title" id="modal-rubrica-title">Nueva entrada de rúbrica</div>
     <input type="hidden" id="mrub-id">
@@ -441,15 +441,15 @@
     <div class="field"><label>Nivel 1 — Bajo</label><textarea class="cfg-inp cfg-textarea" id="mrub-n1" rows="2" placeholder="Descripción del nivel bajo..."></textarea></div>
     <div class="field"><label>Orden</label><input class="cfg-inp" type="number" id="mrub-orden" min="1" value="99"></div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveRubricaEntry()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-rubrica')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveRubricaEntry">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-rubrica">Cancelar</button>
     </div>
     <div class="modal-err" id="mrub-err"></div>
   </div>
 </div>
 
 <!-- MODAL: ELIMINAR USUARIO -->
-<div class="modal-overlay" id="modal-del-user" style="display:none" onclick="if(event.target===this)closeModal('modal-del-user')">
+<div class="modal-overlay" id="modal-del-user" style="display:none" data-act="cerrarModalFondo" data-arg="modal-del-user">
   <div class="modal-box" style="max-width:400px;text-align:center">
     <div style="margin-bottom:16px"><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--accent)"></i></div>
     <div class="modal-title" style="margin-bottom:8px">Eliminar usuario</div>
@@ -458,8 +458,8 @@
     <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px" id="modal-del-user-email"></p>
     <p style="font-size:.8rem;color:var(--accent);margin-bottom:20px">Esta acción eliminará su perfil y no se puede deshacer.</p>
     <div class="modal-actions" style="justify-content:center">
-      <button class="btn-save btn-confirm" onclick="executeDeleteUser()">Eliminar</button>
-      <button class="btn-out" onclick="closeModal('modal-del-user')">Cancelar</button>
+      <button class="btn-save btn-confirm" data-act="fn" data-arg="executeDeleteUser">Eliminar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-del-user">Cancelar</button>
     </div>
   </div>
 </div>

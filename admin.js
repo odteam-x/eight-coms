@@ -146,7 +146,7 @@ function renderEvalPEBar() {
   if (!_activePE) _activePE = _periodos.find(p => p.activo) || _periodos[0];
 
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
+    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" data-act="peEval" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 
   loadEvalPEData();
@@ -207,7 +207,7 @@ function renderEvalUserList() {
       if (u.estado === 'publicado') rank++;
       const medal = u.estado === 'publicado' ? (rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${rank}</span>`) : '';
       const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
-      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" onclick="selectEvalUser('${u.id}')">
+      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" data-act="evaluarUsuario" data-arg="${u.id}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
@@ -253,7 +253,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setScore('${c.key}',${v},this)" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
+            data-act="puntaje" data-arg="${c.key}" data-arg2="${v}" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
@@ -297,7 +297,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
         <label class="eval-extra-label">Bono de excelencia (0–2)</label>
         <div style="display:flex;align-items:center;gap:8px">
           ${[0,1,2].map(v => `<button class="score-btn${bono===v?' active':''}"
-            onclick="setBono(${v},this)" style="--sc:var(--sex)">${v}</button>`).join('')}
+            data-act="bono" data-arg="${v}" style="--sc:var(--sex)">${v}</button>`).join('')}
           <input type="hidden" id="sc-bono" value="${bono}">
         </div>
       </div>
@@ -314,12 +314,12 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
              Evaluación publicada — visible para el miembro
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveEvaluacion('publicado','${evaluadoId}')">Confirmar cambios</button>
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
+             <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveEvaluacion('publicado','${evaluadoId}')">Publicar evaluación</button>
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Guardar borrador</button>
+             <button class="btn-save btn-publish" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Publicar evaluación</button>
            </div>`
       }
     </div>`;
@@ -380,7 +380,7 @@ function renderUsuariosPEBar() {
   }
   if (!_activePEUsers) _activePEUsers = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
+    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" data-act="peUsers" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -452,7 +452,7 @@ function renderUsuarios() {
             </div>
             <div class="tbl-cell">
               <button class="pe-toggle ${aprobado ? 'pe-toggle--on' : 'pe-toggle--off'}"
-                onclick="updateUserAprobado('${u.id}',${!aprobado})"
+                data-act="aprobarUser" data-arg="${u.id}" data-arg2="${!aprobado}"
                 title="${aprobado ? 'Revocar el acceso al portal' : 'Aprobar el acceso al portal'}">
                 ${aprobado ? 'Aprobado' : 'Pendiente'}
               </button>
@@ -466,13 +466,13 @@ function renderUsuarios() {
             ${showPECol ? `
             <div class="tbl-cell">
               <button class="pe-toggle ${inactivo ? 'pe-toggle--off' : 'pe-toggle--on'}"
-                onclick="toggleParticipante('${u.id}',${inactivo})"
+                data-act="participante" data-arg="${u.id}" data-arg2="${inactivo}"
                 title="${inactivo ? 'Activar en este PE' : 'Desactivar en este PE'}">
                 ${inactivo ? 'Inactivo' : 'Activo'}
               </button>
             </div>` : ''}
             <div class="tbl-cell">
-              <button class="btn-icon btn-icon--danger" onclick="confirmDeleteUser('${u.id}')" title="Eliminar usuario">${ICONS.trash}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarUsuario" data-arg="${u.id}" title="Eliminar usuario">${ICONS.trash}</button>
             </div>
           </div>`;
         }).join('')}
@@ -575,19 +575,22 @@ function renderRoles() {
               <span class="estado-pill ${r.activo?'pill--ok':'pill--off'}">${r.activo?'Activo':'Inactivo'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showRolModal(${r.id},${escHtml(JSON.stringify(r.nombre))},${r.activo})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteRol(${r.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalRol" data-arg="${r.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarRol" data-arg="${r.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
     </div>`;
 }
 
-function showRolModal(id, nombre, activo) {
-  document.getElementById('mrol-id').value     = id || '';
-  document.getElementById('mrol-nombre').value = nombre || '';
-  document.getElementById('mrol-activo').checked = activo !== false;
-  setEl('modal-rol-title', id ? 'Editar rol' : 'Nuevo rol');
+/** Busca el rol por id en vez de recibir nombre y activo por argumento:
+    así el botón solo necesita data-arg con el id. */
+function showRolModal(id) {
+  const r = _roles.find(x => String(x.id) === String(id)) || {};
+  document.getElementById('mrol-id').value     = r.id || '';
+  document.getElementById('mrol-nombre').value = r.nombre || '';
+  document.getElementById('mrol-activo').checked = r.activo !== false;
+  setEl('modal-rol-title', r.id ? 'Editar rol' : 'Nuevo rol');
   document.getElementById('mrol-err').textContent = '';
   openModal('modal-rol');
 }
@@ -641,8 +644,8 @@ function renderPeriodos() {
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal('${p.id}')" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalPeriodo" data-arg="${p.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarPeriodo" data-arg="${p.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
@@ -739,8 +742,8 @@ function renderCriterios() {
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showCriterioModal(${c.id})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteCriterioEntry(${c.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalCriterio" data-arg="${c.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarCriterio" data-arg="${c.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
@@ -821,7 +824,7 @@ function renderRubrica() {
     const color = c.color || '#888';
     return `
       <div class="rubrica-card" id="rca-${i}">
-        <div class="rubrica-card-head" onclick="document.getElementById('rca-${i}').classList.toggle('open')">
+        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}">
           <div class="rubrica-dot" style="background:${color}"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio || c.label || '—')}</div>
           <span class="rubrica-chev"></span>
@@ -831,8 +834,8 @@ function renderRubrica() {
             ${levels.map(l => `<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]] || '—'}</div></div>`).join('')}
           </div>
           <div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--faint)">
-            <button class="btn-icon" onclick="showRubricaModal(${r.id})" title="Editar entrada">${ICONS.edit}</button>
-            <button class="btn-icon btn-icon--danger" onclick="deleteRubricaEntry(${r.id})" title="Eliminar">${ICONS.trash}</button>
+            <button class="btn-icon" data-act="modalRubrica" data-arg="${r.id}" title="Editar entrada">${ICONS.edit}</button>
+            <button class="btn-icon btn-icon--danger" data-act="borrarRubrica" data-arg="${r.id}" title="Eliminar">${ICONS.trash}</button>
           </div>
         </div>
       </div>`;
@@ -914,8 +917,8 @@ function renderCalendario() {
             <div class="cal-t ${cT[c] || cT.rojo}">${escHtml(p.titulo)}</div>
             ${rows.map(([l,v]) => `<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
             <div style="display:flex;gap:6px;margin-top:10px">
-              <button class="btn-icon" onclick="showCalModal('${p.id}')" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteCal('${p.id}')" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalCal" data-arg="${p.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarCal" data-arg="${p.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>
         </div>`;
@@ -981,7 +984,7 @@ function renderDistPEBar() {
   }
   if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
+    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" data-act="peDist" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
   renderDistritoSelect();
   renderDistritoRanking(_activePEDist?.id);
@@ -1039,7 +1042,7 @@ async function renderDistritoRanking(periodoId) {
       <div class="tbl-body">
         ${ranked.map((d, i) => `
           <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
-               onclick="document.getElementById('dist-eval-select').value='${escHtml(d.distrito_id)}';onDistSelectChange()">
+               data-act="elegirDistrito" data-arg="${escHtml(d.distrito_id)}">
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
             <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
@@ -1110,7 +1113,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
+            data-act="puntajeDist" data-arg="${c.key}" data-arg2="${v}" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
@@ -1155,12 +1158,12 @@ function renderDistEvalForm(ev, distId, historial = []) {
              Evaluación publicada — visible en el ranking de distritos
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado','${distId}')">Confirmar cambios</button>
+             <button class="btn-draft" data-act="guardarDist" data-arg="borrador" data-arg2="${distId}">Volver a borrador</button>
+             <button class="btn-save btn-confirm" data-act="guardarDist" data-arg="publicado" data-arg2="${distId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveDistEval('publicado','${distId}')">Publicar</button>
+             <button class="btn-draft" data-act="guardarDist" data-arg="borrador" data-arg2="${distId}">Guardar borrador</button>
+             <button class="btn-save btn-publish" data-act="guardarDist" data-arg="publicado" data-arg2="${distId}">Publicar</button>
            </div>`
       }
     </div>`;
@@ -1228,7 +1231,7 @@ function renderOvPEBar() {
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   if (!_activePEOv) _activePEOv = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
+    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" data-act="peOv" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -1328,12 +1331,12 @@ function renderOverview() {
     </div>
 
     <div class="ov-actions">
-      <button class="ov-action-btn" onclick="switchTab('evaluar')">${ICONS.zap} Evaluar</button>
-      <button class="ov-action-btn" onclick="switchTab('usuarios')">${ICONS.users} Usuarios</button>
-      <button class="ov-action-btn" onclick="switchTab('distritos')">${ICONS.map} Distritos</button>
-      <button class="ov-action-btn" onclick="switchTab('periodos')">${ICONS.calendar} Períodos</button>
-      <button class="ov-action-btn" onclick="switchTab('calendario')">${ICONS.calendar} Calendario</button>
-      <button class="ov-action-btn" onclick="switchTab('rubrica')">${ICONS.ruler} Rúbrica</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="evaluar">${ICONS.zap} Evaluar</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="usuarios">${ICONS.users} Usuarios</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="distritos">${ICONS.map} Distritos</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="periodos">${ICONS.calendar} Períodos</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="calendario">${ICONS.calendar} Calendario</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="rubrica">${ICONS.ruler} Rúbrica</button>
     </div>
 
     <div class="ov-cols">
@@ -1341,8 +1344,8 @@ function renderOverview() {
         <div class="rank-panel-header">
           <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${escHtml(_activePEOv?.nombre || '')}</div>
           <div class="rank-tabs">
-            <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" onclick="switchRankTab('users')">Usuarios</button>
-            <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" onclick="switchRankTab('dist')">Distritos</button>
+            <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" data-act="rankTab" data-arg="users">Usuarios</button>
+            <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" data-act="rankTab" data-arg="dist">Distritos</button>
           </div>
         </div>
 
@@ -1560,7 +1563,7 @@ function renderRptPEBar() {
   const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   bar.innerHTML = _periodos.map(p =>
-    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
+    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" data-act="peRpt" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 

@@ -43,6 +43,107 @@ function debug(...args) {
  * Usa listeners reales (no onclick inline) para poder activar la CSP.
  * En la Fase 3 esto se muda a core/render.js.
  */
+/* ══ DESPACHADOR DE ACCIONES ═══════════════════════════════════════════
+ * Sustituye a los `onclick=` inline. Un `onclick` en el HTML es código
+ * ejecutable dentro del marcado, así que una CSP con
+ * `script-src 'self'` los bloquea todos: mientras existan, no se puede
+ * activar la CSP, y sin CSP la defensa contra XSS depende solo de que
+ * escHtml() no se olvide en ningún sitio.
+ *
+ * En vez de un listener por botón, uno solo delegado en `document`:
+ * funciona también con el marcado que los portales generan por innerHTML,
+ * que es donde viven 49 de los 161 handlers.
+ *
+ *   <button data-act="tab" data-arg="scores">
+ *
+ * `_fn` llama a una función global por nombre, contra una lista blanca:
+ * `data-arg` viene del HTML, así que no puede ser un nombre arbitrario.
+ */
+const _ACCIONES_SIMPLES = new Set([
+  'toggleTheme', 'toggleMenu', 'logout', 'printAdminReport',
+  'saveCal', 'saveRol', 'savePeriodo', 'saveCriterioEntry', 'saveRubricaEntry',
+  'showCalModal', 'showRolModal', 'showPeriodoModal', 'showCriterioModal',
+  'showRubricaModal', 'showAbrirGestionModal', 'confirmarAbrirGestion',
+  'executeDeleteUser', 'sendResetCode', 'verifyAndResetPassword',
+]);
+
+const ACCIONES = {
+  /** Llama a una función global sin argumentos, si está en la lista blanca. */
+  fn: (arg) => {
+    if (!_ACCIONES_SIMPLES.has(arg)) { console.warn('[acciones] no permitida:', arg); return; }
+    const f = window[arg];
+    if (typeof f === 'function') f();
+  },
+  salir:            ()            => (typeof logout === 'function' ? logout() : Auth.logout()),
+  tab:              (arg, el)     => switchTab(arg, el),
+  tabSinBtn:        (arg)         => switchTab(arg, null),
+  tabPrimero:       (arg)         => switchTab(arg, document.querySelector('#desktop-nav .tnav')),
+  tabMovil:         (arg, el)     => switchTabMobile(arg, el),
+  grupoMovil:       (arg, el)     => toggleMobGroup(el),
+  cerrarModal:      (arg)         => closeModal(arg),
+  /** Solo si el clic cae en el fondo del overlay, no en su contenido. */
+  cerrarModalFondo: (arg, el, e)  => { if (e.target === el) closeModal(arg); },
+  verPass:          (arg, el)     => togglePassField(el, arg),
+  modoRubrica:      (arg, el)     => setRubricaMode(arg, el),
+  mostrarReset:     ()            => showResetForm(),
+  volverLogin:      ()            => backToLogin(),
+  resetPaso1:       ()            => resetStep1(),
+
+  /* ── Acciones del marcado generado por los portales ── */
+  irTab:        (a)             => goTab(a),
+  rankTab:      (a)             => switchRankTab(a),
+  abrirCerrar:  (a)             => document.getElementById(a)?.classList.toggle('open'),
+  elegirDistrito: (a)           => {
+    const s = document.getElementById('dist-eval-select');
+    if (s) { s.value = a; onDistSelectChange(); }
+  },
+
+  // Un solo argumento
+  borrarUsuario:  (a) => confirmDeleteUser(a),
+  borrarCal:      (a) => deleteCal(a),
+  borrarCriterio: (a) => deleteCriterioEntry(_num(a)),
+  borrarPeriodo:  (a) => deletePeriodo(a),
+  borrarRol:      (a) => deleteRol(_num(a)),
+  borrarRubrica:  (a) => deleteRubricaEntry(_num(a)),
+  borrarTrabajo:  (a) => deleteTrabajo(a),
+  evaluarUsuario: (a) => selectEvalUser(a),
+  modalCal:       (a) => showCalModal(a),
+  modalCriterio:  (a) => showCriterioModal(_num(a)),
+  modalPeriodo:   (a) => showPeriodoModal(a),
+  modalRol:       (a) => showRolModal(_num(a)),
+  modalRubrica:   (a) => showRubricaModal(_num(a)),
+  guardarTrabajo: ()  => saveTrabajo(),
+
+  // Barras de período del admin: (id, botón)
+  peDist:   (a, el) => selectDistPE(a, el),
+  peEval:   (a, el) => selectEvalPE(a, el),
+  peOv:     (a, el) => selectOvPE(a, el),
+  peRpt:    (a, el) => selectRptPE(a, el),
+  peUsers:  (a, el) => selectUsersPE(a, el),
+
+  // Dos o tres argumentos: el segundo viaja en data-arg2
+  bono:        (a, el) => setBono(_num(a), el),
+  puntaje:     (a, el) => setScore(a, _num(el.dataset.arg2), el),
+  puntajeDist: (a, el) => setDistScore(a, _num(el.dataset.arg2), el),
+  guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
+  guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),
+  participante:(a, el) => toggleParticipante(a, el.dataset.arg2 === 'true'),
+  aprobarUser: (a, el) => updateUserAprobado(a, el.dataset.arg2 === 'true'),
+};
+
+/** Los ids de criterios, roles y rúbrica son enteros; data-* llega como texto. */
+function _num(v) { const n = Number(v); return Number.isFinite(n) ? n : v; }
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const accion = ACCIONES[el.dataset.act];
+  if (!accion) { console.warn('[acciones] desconocida:', el.dataset.act); return; }
+  // Los <a href="#"> llevaban `return false` para no saltar al ancla.
+  if (el.tagName === 'A') e.preventDefault();
+  accion(el.dataset.arg, el, e);
+});
+
 /** Mes en castellano de un YYYY-MM-DD, o null. Sin desfase de zona horaria. */
 function mesDe(iso) {
   if (!iso) return null;

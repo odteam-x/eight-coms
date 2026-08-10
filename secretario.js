@@ -614,7 +614,7 @@ function renderRubrica() {
   if (!rubrica.length) { el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
+  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
 }
 
 /* ── TABLA DE EVALUACIÓN (solo secretario) ── */
@@ -647,7 +647,7 @@ function _renderRubricaGrid(elId, rubrica, criterios) {
   el.innerHTML=rubrica.map((r,i)=>{
     const c=criterios[i]||{}, color=c.color||'#888', uid=`${elId}-${i}`;
     return `<div class="rubrica-card" id="${uid}">
-      <div class="rubrica-card-head" onclick="document.getElementById('${uid}').classList.toggle('open')">
+      <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="${uid}">
         <div class="rubrica-dot" style="background:${color}"></div>
         <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
         <span class="rubrica-chev">▾</span>
@@ -751,7 +751,7 @@ function renderQuickLinks() {
     { tab:'reportes',  icon:'bar-chart-2',    title:'Mis Estadísticas', desc:'Historial y evolución de tu desempeño' },
   ];
   el.innerHTML = links.map(l =>
-    `<button class="ql-card" onclick="goTab('${l.tab}')" aria-label="Ir a ${l.title}">
+    `<button class="ql-card" data-act="irTab" data-arg="${l.tab}" aria-label="Ir a ${l.title}">
        <i data-lucide="${l.icon}" class="ql-icon"></i>
        <div class="ql-text"><div class="ql-title">${l.title}</div><div class="ql-desc">${l.desc}</div></div>
        <i data-lucide="chevron-right" class="ql-arrow"></i>
@@ -815,7 +815,7 @@ function renderTrabajosBody(trabajos) {
       </div>
       <input class="cfg-inp" id="tj-titulo" type="text" placeholder="Título del trabajo" style="width:100%;margin-bottom:8px">
       <textarea class="cfg-inp" id="tj-desc" placeholder="Describe la actividad realizada..." rows="3" style="width:100%;resize:vertical"></textarea>
-      <button class="btn-save" style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px" onclick="saveTrabajo()">
+      <button class="btn-save" style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px" data-act="guardarTrabajo">
         <i data-lucide="send" style="width:14px;height:14px"></i> Agregar trabajo
       </button>
     </div>
@@ -828,7 +828,7 @@ function renderTrabajosBody(trabajos) {
           <div class="trabajo-item">
             <div class="trabajo-item-head">
               <div class="trabajo-titulo">${t.titulo?escHtml(t.titulo):'<span class="tj-notitle">Sin título</span>'}</div>
-              <button class="btn-icon-del" onclick="deleteTrabajo('${t.id}')" title="Eliminar" aria-label="Eliminar">
+              <button class="btn-icon-del" data-act="borrarTrabajo" data-arg="${t.id}" title="Eliminar" aria-label="Eliminar">
                 <i data-lucide="trash-2" style="width:13px;height:13px"></i>
               </button>
             </div>

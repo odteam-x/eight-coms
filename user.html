@@ -32,31 +32,31 @@
 
 <!-- TOPBAR -->
 <header class="topbar" id="topbar">
-  <button class="tb-brand tb-brand--link" onclick="switchTab('scores',document.querySelector('#desktop-nav .tnav'))" aria-label="Ir a Mi Score">
+  <button class="tb-brand tb-brand--link" data-act="tabPrimero" data-arg="scores" aria-label="Ir a Mi Score">
     <picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp"><img src="logo.png" alt="" class="tb-logo" width="44" height="44" onerror="this.style.display='none'"></picture>
     <span class="tb-title">EIGHT<em> CREATORS</em></span>
   </button>
   <nav class="tb-nav" id="desktop-nav">
-    <button class="tnav active" onclick="switchTab('scores',this)"><i data-lucide="bar-chart-2" class="nav-icon"></i> Mi Score</button>
+    <button class="tnav active" data-act="tab" data-arg="scores"><i data-lucide="bar-chart-2" class="nav-icon"></i> Mi Score</button>
     <div class="tnav-group">
-      <button class="tnav" onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
+      <button class="tnav" data-act="tab" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
       <div class="tnav-drop">
-        <button class="tnav-drop-item" onclick="switchTab('cal')"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
+        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="cal"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
       </div>
     </div>
-    <button class="tnav" onclick="switchTab('trabajos',this)"><i data-lucide="folder-open" class="nav-icon"></i> Trabajos</button>
-    <button class="tnav" onclick="switchTab('rubrica',this)"><i data-lucide="clipboard-list" class="nav-icon"></i> Rúbrica</button>
-    <button class="tnav" onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
+    <button class="tnav" data-act="tab" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i> Trabajos</button>
+    <button class="tnav" data-act="tab" data-arg="rubrica"><i data-lucide="clipboard-list" class="nav-icon"></i> Rúbrica</button>
+    <button class="tnav" data-act="tab" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
   </nav>
   <div class="tb-user">
     <span id="gestion-switch" hidden></span>
     <span class="last-updated-badge" id="ts-badge"></span>
     <div class="avatar" id="av-desktop">?</div>
     <span class="uname" id="uname-desktop">—</span>
-    <button class="btn-out" onclick="logout()">Salir</button>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+    <button class="btn-out" data-act="salir">Salir</button>
+    <button class="theme-toggle" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
   </div>
-  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" onclick="toggleMenu()">
+  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" data-act="fn" data-arg="toggleMenu">
     <span></span><span></span><span></span>
   </button>
 </header>
@@ -64,20 +64,20 @@
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-nav-links">
-    <button class="mobile-nav-btn active" onclick="switchTabMobile('scores',this)"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
+    <button class="mobile-nav-btn active" data-act="tabMovil" data-arg="scores"><i data-lucide="bar-chart-2" class="nav-icon"></i>Mi Score</button>
     <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
+      <button class="mobile-nav-btn mob-nav-header" data-act="grupoMovil"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
       <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" onclick="switchTabMobile('periodos',this)"><i data-lucide="layers" class="nav-icon"></i>Períodos</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('cal',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="periodos"><i data-lucide="layers" class="nav-icon"></i>Períodos</button>
+        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="cal"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
       </div>
     </div>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('trabajos',this)"><i data-lucide="folder-open" class="nav-icon"></i>Trabajos</button>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('rubrica',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="trabajos"><i data-lucide="folder-open" class="nav-icon"></i>Trabajos</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="rubrica"><i data-lucide="clipboard-list" class="nav-icon"></i>Rúbrica</button>
+    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
     <div class="mobile-theme-row">
       <span class="mobile-theme-lbl">Tema</span>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+      <button class="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
     </div>
   </div>
   <div class="mobile-user-section">
@@ -87,7 +87,7 @@
       <div class="mobile-urole">Miembro del equipo</div>
       <div class="last-updated-badge" id="ts-badge-mob"></div>
     </div>
-    <button class="btn-out-mobile" onclick="logout()">Salir</button>
+    <button class="btn-out-mobile" data-act="salir">Salir</button>
   </div>
 </div>
 

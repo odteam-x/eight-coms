@@ -315,7 +315,7 @@
   <div class="bg-orb bg-orb-3"></div>
 </div>
 
-<button class="theme-toggle theme-toggle-fixed" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
+<button class="theme-toggle theme-toggle-fixed" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
 
 <div class="login-layout">
 
@@ -364,7 +364,7 @@
       <div class="login-loading" id="li-loading" aria-live="polite"><span class="spin"></span>Verificando acceso...</div>
       <div class="login-err" id="li-err" role="alert" aria-live="polite">Email o contraseña incorrectos.</div>
       <div style="margin-top:16px;text-align:center;font-size:.82rem;color:var(--muted);">
-        <a href="#" onclick="showResetForm();return false" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
+        <a href="#" data-act="mostrarReset" style="color:var(--accent);text-decoration:none;font-weight:600;">Olvidé mi contraseña</a>
       </div>
       <div style="margin-top:20px;text-align:center;font-size:.85rem;color:var(--muted);padding-top:16px;border-top:1px solid var(--faint);">
         ¿No tienes cuenta? <a href="registro.html" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
@@ -391,7 +391,7 @@
                    autocomplete="new-password" required minlength="8">
             <button type="button" class="btn-pass-toggle"
                     aria-label="Mostrar contraseña"
-                    onclick="togglePassField(this,'reset-pass')">
+                    data-act="verPass" data-arg="reset-pass">
               <i data-lucide="eye" class="pass-eye"></i>
             </button>
           </div>
@@ -403,12 +403,12 @@
                    autocomplete="new-password" required minlength="8">
             <button type="button" class="btn-pass-toggle"
                     aria-label="Mostrar contraseña"
-                    onclick="togglePassField(this,'reset-pass2')">
+                    data-act="verPass" data-arg="reset-pass2">
               <i data-lucide="eye" class="pass-eye"></i>
             </button>
           </div>
         </div>
-        <button type="button" class="btn-login" id="btn-send-code" onclick="sendResetCode()">Enviar código de verificación</button>
+        <button type="button" class="btn-login" id="btn-send-code" data-act="fn" data-arg="sendResetCode">Enviar código de verificación</button>
       </div>
 
       <!-- Paso 2: Código OTP -->
@@ -420,16 +420,16 @@
                  style="text-align:center;letter-spacing:6px;font-size:1.4rem;font-weight:700">
         </div>
         <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 8 dígitos.</p>
-        <button type="button" class="btn-login" id="btn-verify-code" onclick="verifyAndResetPassword()">Verificar y cambiar contraseña</button>
+        <button type="button" class="btn-login" id="btn-verify-code" data-act="fn" data-arg="verifyAndResetPassword">Verificar y cambiar contraseña</button>
         <div style="margin-top:12px;text-align:center;">
-          <a href="#" onclick="resetStep1();return false" style="color:var(--muted);text-decoration:none;font-size:.8rem;">← Cambiar datos</a>
+          <a href="#" data-act="resetPaso1" style="color:var(--muted);text-decoration:none;font-size:.8rem;">← Cambiar datos</a>
         </div>
       </div>
 
       <div class="login-err" id="reset-err" role="alert" aria-live="polite"></div>
       <div class="login-ok" id="reset-ok" role="status" aria-live="polite" style="display:none"></div>
       <div style="margin-top:16px;text-align:center;">
-        <a href="#" onclick="backToLogin();return false" style="color:var(--muted);text-decoration:none;font-size:.82rem;">← Volver al inicio de sesión</a>
+        <a href="#" data-act="volverLogin" style="color:var(--muted);text-decoration:none;font-size:.82rem;">← Volver al inicio de sesión</a>
       </div>
     </div>
   </div>

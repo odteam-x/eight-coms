@@ -294,7 +294,10 @@ function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap =
   } else {
     const parent = parentMap[tab] || tab;
     document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      if ((b.getAttribute('onclick') || '').includes(`'${parent}'`)) b.classList.add('active');
+      // La pestaña de cada botón sale de data-arg. Antes se leía del
+      // atributo onclick con includes("'tab'"), que además de frágil
+      // impedía activar la CSP.
+      if (b.dataset.arg === parent) b.classList.add('active');
     });
   }
 
@@ -320,7 +323,7 @@ function switchTabMobileCore(tab, btn, switchFn) {
 /** Salta a una pestaña buscando su botón visible en el nav de escritorio. */
 function goTabCore(tab, switchFn) {
   const btn = [...document.querySelectorAll('#desktop-nav .tnav')]
-    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`) && b.style.display !== 'none');
+    .find(b => b.dataset.arg === tab && b.style.display !== 'none');
   switchFn(tab, btn);
 }
 
