@@ -67,6 +67,17 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 
 The `credenciales` table (plaintext passwords) is dropped by migration `0002`. Do not recreate it.
 
+### Shared core (`core/`)
+
+Loaded by `user.html`, `secretario.html` and `admin.html`, right after `config.js`:
+
+- **`core/store.js`** — single application state. One `periodoId` (UUID) governs the whole page; `Store.setPeriodo()` notifies subscribers so every section repaints together. Also holds the per-tab load policy (`necesitaCarga` / `marcarCargado` / `invalidar`) — one rule for all tabs, with explicit invalidation.
+- **`core/render.js`** — shared presentation helpers, defined as globals because the portals are classic scripts: the `NIVELES` table, `scoreColor/Label/Class`, `getCriterios`, `calcScore` (portal rows) vs `calcScorePuntajes` (admin `puntajes` + bonus), `parseJSON`, `initials`, `setEl`, `pad`, `timeAgo`, `showToast`, `openModal`/`closeModal`, `switchTabCore`, `initScrollEffects`, `updateTimestamp`, and the three view states `renderCargando` / `renderVacio` / `renderError`.
+
+Do not copy these back into the page scripts. They were duplicated across all three portals and had silently diverged.
+
+**There is no `CRITERIOS_DEFAULT` fallback.** If the criteria query fails, `getCriterios()` returns `[]` and the view must show an error — check `hayCriterios()` before rendering scores. Showing seven plausible-but-wrong criteria was worse than failing.
+
 ### Active period (PE)
 
 **Single source of truth: `periodos_evaluacion.activo`.** A partial unique index (`periodos_solo_uno_activo`) makes "only one active period" a database invariant, not a JS convention. Change it only through the `set_periodo_activo(uuid)` RPC, which deactivates the previous one and activates the new one atomically — passing `null` leaves the gestión with no active period.
@@ -92,7 +103,7 @@ The reset email redirects to `index.html`. Supabase delivers the token in the UR
 - All user-supplied data rendered via `innerHTML` must go through `escHtml()` (defined in `config.js`)
 - Lucide icons auto-render via MutationObserver in `config.js` — just add `data-lucide` attributes
 - Each page calls `Auth.requireRole()` / `Auth.requireAuth()` on DOMContentLoaded to enforce access; unauthorized users redirect to `index.html`
-- Scoring: 7 criteria × 4 points max = 28 base + 2 bonus = 30 max. Levels: Excelente ≥24, Bueno ≥18, En Proceso ≥10, Bajo <10
+- Scoring: 7 criteria × 4 points max = 28 base + 2 bonus = 30 max. Levels: **Excelente ≥26, Bueno ≥20, En Proceso ≥11, Bajo <11** — defined once in the `NIVELES` table in `core/render.js`. `scoreColor`, `scoreLabel` and `scoreClass` all derive from it; never write thresholds inline. (Before Phase 3A, `scoreClass` used 24/18/10 in `user.js`/`admin.js` while the label and colour used 26/20/11, so a score of 25 rendered the text "Bueno" inside an "Excelente"-styled badge.)
 - District evaluations use a separate 4-criteria system (CGO, CCT, COM, CEE) with max 7 per criterion
 
 ## Language

@@ -5,19 +5,9 @@
 
 let CU = null, D = null, mPE = 'PE1', _lastUpdated = null, _menuOpen = false, _peInited = false, _rptUserLoaded = false;
 
-const CRITERIOS_DEFAULT = [
-  { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
-  { key:'rev', label:'Revisión',            abbr:'REV', color:'#38BDF8' },
-  { key:'edi', label:'Edición Creativa',    abbr:'EDI', color:'#2ECC71' },
-  { key:'dis', label:'Diseño Creativo',     abbr:'DIS', color:'#5B7FFF' },
-  { key:'flu', label:'Fluidez Oral',        abbr:'FLU', color:'#C084FC' },
-  { key:'nar', label:'Narrativa / Guión',   abbr:'NAR', color:'#F0C040' },
-  { key:'eje', label:'Ejecución en Redes',  abbr:'EJE', color:'#FB923C' },
-];
-
-const getCriterios = () => D?.criterios?.length ? D.criterios : CRITERIOS_DEFAULT;
-const getMaxScore  = () => getCriterios().length * 4; // 28 pts base
-const MAX_TOTAL    = () => getMaxScore() + 2;         // 30 pts con bono
+/* CRITERIOS_DEFAULT eliminado: si la consulta de criterios falla, la vista
+   debe mostrar un error, no siete criterios inventados que parecen reales.
+   getCriterios/getMaxScore/MAX_TOTAL viven en core/render.js y leen Store. */
 
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -65,13 +55,23 @@ async function loadData() {
     Auth.setCachedData(data);
     _lastUpdated = new Date();
 
+    // El Store es la fuente única: períodos, criterios y período elegido.
+    Store.set({
+      profile:     CU,
+      periodos:    data.periodos  || [],
+      criterios:   data.criterios || [],
+      data,
+      lastUpdated: _lastUpdated,
+    });
+
     // El período activo sale de periodos_evaluacion.activo, vía API.
     // Puede ser null: la gestión puede no tener período en curso.
     if (!_peInited) {
       const activoName = data.periodoActivo || data.periodos?.[0]?.pe || null;
       if (activoName) {
+        Store.setPeriodo(activoName);
         mPE = activoName;
-        _trabajosPE = mPE;
+        _trabajosPE = activoName;
       }
       _peInited = true;
     }
@@ -158,6 +158,7 @@ function renderPEDates(pe) {
 /* ── SCORES ── */
 function selectPE(pe, btn) {
   mPE = pe;
+  Store.setPeriodo(pe);
   // Solo la barra que contiene el botón pulsado. Antes usaba
   // '.pe-row .pb' global y desactivaba también la barra de Trabajos.
   syncPEBar(btn.closest('.pe-row'), pe);
@@ -168,7 +169,14 @@ function selectPE(pe, btn) {
 
 function renderScores(pe) {
   const container = document.getElementById('score-body'); if (!container) return;
-  if (!D) { container.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
+  if (!D) { renderCargando(container); return; }
+
+  // Sin criterios no se puede puntuar nada. Antes se caía a
+  // CRITERIOS_DEFAULT y el usuario veía barras plausibles pero falsas.
+  if (!hayCriterios()) {
+    renderError(container, 'No se pudieron cargar los criterios de evaluación.', () => location.reload());
+    return;
+  }
 
   const criterios = getCriterios();
   const MAX       = getMaxScore();
@@ -302,40 +310,30 @@ async function handleRefresh() {
   showToast('Datos actualizados ✓', 'ok');
 }
 
-/* ── HELPERS ── */
-const calcScore  = row => getCriterios().reduce((s,c)=>s+(row[c.key]||0),0) + (row.ext||0);
-const scoreColor = s => s>=26?'var(--sex)':s>=20?'var(--sbu)':s>=11?'var(--spr)':'var(--sba)';
-const scoreLabel = s => s>=26?'Excelente':s>=20?'Bueno':s>=11?'En Proceso':'Bajo';
-const scoreClass = s => s>=24?'sex':s>=18?'sbu':s>=10?'spr':'sba';
-const initials   = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-const setEl      = (id,txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
-const pad        = n => String(n).padStart(2,'0');
+/* Los helpers (calcScore, scoreColor/Label/Class, initials, setEl, pad,
+   showToast, timeAgo...) viven ahora en core/render.js. */
 
 /* ── TABS ── */
 const _userTabParent = { scores:'scores', periodos:'periodos', cal:'periodos', trabajos:'trabajos', rubrica:'rubrica', reportes:'reportes' };
 
 function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  if (btn) { btn.classList.add('active'); }
-  else {
-    const parent = _userTabParent[tab] || tab;
-    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      if ((b.getAttribute('onclick')||'').includes(`'${parent}'`)) b.classList.add('active');
-    });
+  switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _userTabParent });
+
+  // Política única de carga (3.11): se carga la primera vez y solo se
+  // repite si alguien invalida la pestaña explícitamente.
+  if (tab === 'reportes' && Store.necesitaCarga('reportes')) {
+    Store.marcarCargado('reportes'); renderUserReport();
   }
-  if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
   if (tab === 'periodos') renderPeriodosTab();
-  if (tab === 'trabajos' && !_trabajosLoaded) { _trabajosLoaded = true; _trabajosPE = mPE; syncTrabajoPEBtns(); renderTrabajosTab(); }
+  if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
+    Store.marcarCargado('trabajos');
+    _trabajosPE = Store.periodoNombre();
+    syncTrabajoPEBtns();
+    renderTrabajosTab();
+  }
 }
 
-function switchTabMobile(tab, btn) {
-  switchTab(tab, null);
-  document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active');
-  closeMenu();
-}
+function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
 
@@ -346,7 +344,7 @@ function renderUserReport() {
   if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
 
   const criterios = getCriterios();
-  const pes       = D?.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
+  const pes       = (Store.periodos() || []).map(p => p.pe);
   const data      = pes.map(pe => {
     const row = D.scores?.[pe]?.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
     return row ? { pe, row, total: calcScore(row) } : null;
@@ -477,39 +475,11 @@ document.addEventListener('click', e => {
 });
 window.addEventListener('resize', ()=>{ if(window.innerWidth>720) closeMenu(); });
 
-/* ── TIMESTAMP ── */
-function updateTimestamp() {
-  if (!_lastUpdated) return;
-  const t=_lastUpdated, txt=`✓ ${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-  ['ts-badge','ts-badge-mob'].forEach(id => {
-    const el=document.getElementById(id); if(!el) return;
-    el.textContent=txt; el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1000);
-  });
-}
-
-/* ── TOAST ── */
-function showToast(msg, type='') {
-  const t=document.getElementById('toast'); if(!t) return;
-  t.textContent=msg; t.className=`toast${type?' toast--'+type:''} show`;
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-
 /* ── LOGOUT ── */
 function logout() { Auth.logout(); }
 
-/* ── SCROLL ── */
-function initScrollEffects() {
-  const topbar=document.getElementById('topbar'), backTop=document.getElementById('back-top');
-  let ticking=false;
-  window.addEventListener('scroll',()=>{ if(!ticking){ requestAnimationFrame(()=>{ const y=window.scrollY; topbar?.classList.toggle('scrolled',y>10); backTop?.classList.toggle('visible',y>300); ticking=false; }); ticking=true; }},{passive:true});
-}
-
-/* ── NAVEGACIÓN DIRECTA ── */
-function goTab(tab) {
-  const btn = [...document.querySelectorAll('#desktop-nav .tnav')]
-    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`));
-  switchTab(tab, btn);
-}
+/* updateTimestamp, showToast, initScrollEffects → core/render.js */
+function goTab(tab) { goTabCore(tab, switchTab); }
 
 /* ── ATAJOS RÁPIDOS ── */
 function renderQuickLinks() {

@@ -29,18 +29,11 @@ let _selectedEvalUser = null;
 
 const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
-function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
+/* parseJSON → core/render.js */
 
-const CRITERIOS_DEFAULT = [
-  { key:'pla', label:'Planificación',      abbr:'PLA', color:'#E05A6A' },
-  { key:'rev', label:'Revisión',           abbr:'REV', color:'#38BDF8' },
-  { key:'edi', label:'Edición Creativa',   abbr:'EDI', color:'#2ECC71' },
-  { key:'dis', label:'Diseño Creativo',    abbr:'DIS', color:'#5B7FFF' },
-  { key:'flu', label:'Fluidez Oral',       abbr:'FLU', color:'#C084FC' },
-  { key:'nar', label:'Narrativa / Guión',  abbr:'NAR', color:'#F0C040' },
-  { key:'eje', label:'Ejecución en Redes', abbr:'EJE', color:'#FB923C' },
-];
-const getCriterios = () => _criterios.length ? _criterios : CRITERIOS_DEFAULT;
+/* CRITERIOS_DEFAULT eliminado — getCriterios() vive en core/render.js y lee
+   Store. Si la consulta falla, la vista debe mostrar un error, no criterios
+   inventados que el admin podría acabar puntuando. */
 
 const DIST_CRITERIOS = [
   { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7,
@@ -113,6 +106,9 @@ async function loadAllData() {
   _calendario = cal;
   _distritos  = dists;
 
+  // getCriterios() de core/render.js lee del Store, no de _criterios.
+  Store.set({ profile: CU, periodos: _periodos, criterios: _criterios, lastUpdated: new Date() });
+
   const defPE = _periodos.find(p => p.activo) || _periodos[0];
   if (defPE && !_activePE) _activePE = defPE;
   if (defPE && !_activePEDist) _activePEDist = defPE;
@@ -181,7 +177,7 @@ function renderEvalUserList() {
 
   const sorted = nonAdmins.map(u => {
     const ev = evalMap[u.id];
-    const score = ev ? calcScore(ev.puntajes, ev.bono_ext) : -1;
+    const score = ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1;
     const estado = ev?.estado || 'pendiente';
     return { ...u, ev, score, estado };
   }).sort((a, b) => {
@@ -772,6 +768,7 @@ async function saveCriterioEntry() {
   showToast(id ? 'Criterio actualizado' : 'Criterio creado', 'ok');
   closeModal('modal-criterio');
   _criterios = await API.getCriterios();
+  Store.set({ criterios: _criterios });
   renderCriterios();
   renderRubrica();
 }
@@ -782,6 +779,7 @@ async function deleteCriterioEntry(id) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast('Criterio eliminado', 'ok');
   _criterios = await API.getCriterios();
+  Store.set({ criterios: _criterios });
   _rubrica   = await API.getRubrica();
   renderCriterios();
   renderRubrica();
@@ -1207,21 +1205,8 @@ async function handleAvatarUpload(e) {
   e.target.value = '';
 }
 
-/* ── SCORE HELPERS ── */
-const calcScore  = (p, b) => Object.values(parseJSON(p)).reduce((s,v)=>s+(Number(v)||0),0)+(Number(b)||0);
-const scoreColor = s => s >= 26 ? 'var(--sex)' : s >= 20 ? 'var(--sbu)' : s >= 11 ? 'var(--spr)' : 'var(--sba)';
-const scoreLabel = s => s >= 26 ? 'Excelente' : s >= 20 ? 'Bueno' : s >= 11 ? 'En Proceso' : 'Bajo';
-const scoreClass = s => s >= 24 ? 'sex' : s >= 18 ? 'sbu' : s >= 10 ? 'spr' : 'sba';
-
-/* ── MODALES ── */
-function openModal(id)  {
-  const m = document.getElementById(id);
-  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-}
-function closeModal(id) {
-  const m = document.getElementById(id);
-  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
-}
+/* Score helpers y modales → core/render.js.
+   El admin usa calcScorePuntajes(puntajes, bono); los portales, calcScore(fila). */
 
 /* ══════════════════════════════════════════════════
    TAB: OVERVIEW
@@ -1270,7 +1255,7 @@ function renderOverview() {
 
   const scored = pub.map(e => ({
     ...e,
-    score: calcScore(e.puntajes, e.bono_ext),
+    score: calcScorePuntajes(e.puntajes, e.bono_ext),
     user:  _users.find(u => u.id === e.evaluado_id),
   })).filter(e => e.user).sort((a, b) => b.score - a.score);
 
@@ -1421,7 +1406,7 @@ function renderOverview() {
           ${recent.length ? recent.map(e => {
             const user = _users.find(u=>u.id===e.evaluado_id);
             const evtr = _users.find(u=>u.id===e.evaluador_id);
-            const sc   = calcScore(e.puntajes, e.bono_ext);
+            const sc   = calcScorePuntajes(e.puntajes, e.bono_ext);
             const d    = e.updated_at||e.created_at;
             return `<div class="activity-item">
               <div class="activity-dot" style="background:${scoreColor(sc)}"></div>
@@ -1472,33 +1457,22 @@ const _tabParentMap = {
   reportes:'reportes',
 };
 
-function switchTab(tab, btn) {
-  document.querySelectorAll('.atab-content').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
-
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
-  if (btn) { btn.classList.add('active'); }
-  else {
-    const parent = _tabParentMap[tab] || tab;
-    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      const oc = b.getAttribute('onclick') || '';
-      if (oc.includes(`'${parent}'`)) b.classList.add('active');
-    });
+function switchTabAdminHooks(tab) {
+  if (tab === 'overview' && Store.necesitaCarga('overview')) {
+    Store.marcarCargado('overview'); loadOverview();
   }
-
-  if (tab === 'overview' && !_overviewEvals.length) loadOverview();
   if (tab === 'reportes' && !_rptPE && _periodos.length) {
     const def = _periodos.find(p => p.activo) || _periodos[0];
     if (def) selectRptPE(def.id, document.querySelector('#rpt-pe-btns .rpt-pe-btn'));
   }
 }
 
-function switchTabMobile(tab, btn) {
-  switchTab(tab, null);
-  document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b => b.classList.remove('active'));
-  btn?.classList.add('active');
-  closeMenu();
+function switchTab(tab, btn) {
+  switchTabCore(tab, btn, { contentSelector: '.atab-content', parentMap: _tabParentMap });
+  switchTabAdminHooks(tab);
 }
+
+function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) {
   header.classList.toggle('open');
@@ -1535,7 +1509,7 @@ function renderAdminReport() {
 
   const scored = pub.map(e => ({
     ...e,
-    score: calcScore(e.puntajes, e.bono_ext),
+    score: calcScorePuntajes(e.puntajes, e.bono_ext),
     user:  _users.find(u => u.id === e.evaluado_id),
   })).filter(e => e.user).sort((a, b) => b.score - a.score);
 
@@ -1750,19 +1724,5 @@ document.addEventListener('click', e => {
 });
 window.addEventListener('resize', () => { if (window.innerWidth > 720) closeMenu(); });
 
-/* ── HELPERS ── */
-const initials = n => (n || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
-const setEl    = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast'); if (!t) return;
-  t.textContent = msg; t.className = `toast${type ? ' toast--' + type : ''} show`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function initScrollEffects() {
-  const topbar = document.getElementById('topbar');
-  window.addEventListener('scroll', () => {
-    topbar?.classList.toggle('scrolled', window.scrollY > 10);
-  }, { passive: true });
-}
+/* initials, setEl, showToast, initScrollEffects → core/render.js.
+   El admin no tiene #back-top; initScrollEffects lo comprueba con ?. */

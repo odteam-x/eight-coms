@@ -6,23 +6,15 @@
 'use strict';
 
 let CU = null, D = null;
-function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
-let mPE='PE1', rPE='PE1', dPE='PE1';
+/* parseJSON → core/render.js */
+
+/* Un solo período gobierna toda la página: mPE, rPE y dPE son ahora vistas
+   del mismo valor del Store, no tres estados independientes. Antes elegir
+   "PE2" en Mi Score dejaba el ranking en PE1. */
+let mPE=null, rPE=null, dPE=null;
 let _lastUpdated=null, _menuOpen=false, _peInited=false;
 
-const CRITERIOS_DEFAULT = [
-  { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
-  { key:'rev', label:'Revisión',            abbr:'REV', color:'#38BDF8' },
-  { key:'edi', label:'Edición Creativa',    abbr:'EDI', color:'#2ECC71' },
-  { key:'dis', label:'Diseño Creativo',     abbr:'DIS', color:'#5B7FFF' },
-  { key:'flu', label:'Fluidez Oral',        abbr:'FLU', color:'#C084FC' },
-  { key:'nar', label:'Narrativa / Guión',   abbr:'NAR', color:'#F0C040' },
-  { key:'eje', label:'Ejecución en Redes',  abbr:'EJE', color:'#FB923C' },
-];
-
-const getCriterios = () => D?.criterios?.length ? D.criterios : CRITERIOS_DEFAULT;
-const getMaxScore  = () => getCriterios().length * 4;
-const MAX_TOTAL    = () => getMaxScore() + 2;
+/* CRITERIOS_DEFAULT eliminado — ver core/render.js. */
 const isSecretario = () => CU?.rol === 'secretario';
 
 const DIST_CRITERIOS = [
@@ -93,11 +85,19 @@ async function loadData() {
     Auth.setCachedData(data);
     _lastUpdated = new Date();
 
+    Store.set({
+      profile:     CU,
+      periodos:    data.periodos  || [],
+      criterios:   data.criterios || [],
+      data,
+      lastUpdated: _lastUpdated,
+    });
+
     if (!_peInited) {
       const activoName = data.periodoActivo || data.periodos?.[0]?.pe || null;
       if (activoName) {
-        mPE = rPE = dPE = activoName;
-        _trabajosPE = activoName;
+        Store.setPeriodo(activoName);
+        mPE = rPE = dPE = _trabajosPE = activoName;
       }
       _peInited = true;
     }
@@ -211,11 +211,23 @@ function renderPEDates(pe, tabId) {
 }
 
 /* ── MI SCORE ── */
-function selectPE(pe, btn) {
-  mPE = pe;
-  syncPEBar(btn.closest('.pe-row'), pe);
-  setEl('hero-pe',pe); renderPEDates(pe,'tab-miscore'); renderMyScore(pe);
+/* Un solo período para toda la página (3.8): cambiarlo en cualquier barra
+   repinta Mi Score, Ranking, Mi Distrito y Trabajos a la vez. */
+function cambiarPeriodo(pe, btn) {
+  if (!pe) return;
+  mPE = rPE = dPE = _trabajosPE = pe;
+  Store.setPeriodo(pe);
+  if (btn) syncPEBar(btn.closest('.pe-row'), pe);
+  syncAllPEButtons();
+  setEl('hero-pe', pe);
+  renderPEDates(pe, 'tab-miscore');
+  renderMyScore(pe);
+  renderRankingDistritos(pe);
+  renderDistrito(pe);
+  if (Store.necesitaCarga('trabajos') === false) renderTrabajosTab();
 }
+
+function selectPE(pe, btn)         { cambiarPeriodo(pe, btn); }
 
 function renderMyScore(pe) {
   const container = document.getElementById('score-body'); if (!container) return;
@@ -272,7 +284,7 @@ function renderMyScore(pe) {
 
 function renderTendenciaInline() {
   if (!D) return '';
-  const peNames = D.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
+  const peNames = (Store.periodos() || []).map(p => p.pe);
   const cards=peNames.map(pe=>{
     const row=D.scores?.[pe]?.find(r=>r.usuario===CU.user||r.evaluado_id===CU.id);
     return {pe, s:row?calcScore(row):null, isCur:pe===mPE};
@@ -294,11 +306,7 @@ function renderTendenciaInline() {
 }
 
 /* ── RANKING DE DISTRITOS (solo secretario) ── */
-function selectPERankDist(pe, btn) {
-  dPE = pe;
-  syncPEBar(btn.closest('.pe-row'), pe);
-  renderRankingDistritos(pe);
-}
+function selectPERankDist(pe, btn) { cambiarPeriodo(pe, btn); }
 
 function renderRankingDistritos(pe) {
   const el = document.getElementById('ranking-dist-body');
@@ -387,11 +395,7 @@ function renderRankingDistritos(pe) {
 }
 
 /* ── MI DISTRITO ── */
-function selectPERank(pe, btn) {
-  rPE=pe;
-  syncPEBar(btn.closest('.pe-row'), pe);
-  renderDistrito(pe);
-}
+function selectPERank(pe, btn) { cambiarPeriodo(pe, btn); }
 
 function renderDistrito(pe) {
   renderCalificacionDistrito(pe);
@@ -592,14 +596,7 @@ async function handleRefresh() {
   showToast('Datos actualizados ✓','ok');
 }
 
-/* ── HELPERS ── */
-const calcScore  = row => getCriterios().reduce((s,c)=>s+(row[c.key]||0),0)+(row.ext||0);
-const scoreColor = s => s>=26?'var(--sex)':s>=20?'var(--sbu)':s>=11?'var(--spr)':'var(--sba)';
-const scoreLabel = s => s>=26?'Excelente':s>=20?'Bueno':s>=11?'En Proceso':'Bajo';
-const scoreClass = s => s>=26?'sex':s>=20?'sbu':s>=11?'spr':'sba';
-const initials   = n => String(n||'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?';
-const setEl      = (id,txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
-const pad        = n => String(n).padStart(2,'0');
+/* Los helpers viven ahora en core/render.js. */
 
 /* ── TABS ── */
 const _secTabParent = {
@@ -609,27 +606,21 @@ const _secTabParent = {
 };
 
 function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  if (btn) { btn.classList.add('active'); }
-  else {
-    const parent = _secTabParent[tab] || tab;
-    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      if ((b.getAttribute('onclick')||'').includes(`'${parent}'`)) b.classList.add('active');
-    });
-  }
+  switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
+
   if (tab === 'periodos') renderPeriodosTab();
-  if (tab === 'trabajos' && !_trabajosLoaded) { _trabajosLoaded = true; _trabajosPE = mPE; syncTrabajoPEBtns(); renderTrabajosTab(); }
-  if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
+  if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
+    Store.marcarCargado('trabajos');
+    _trabajosPE = Store.periodoNombre();
+    syncTrabajoPEBtns();
+    renderTrabajosTab();
+  }
+  if (tab === 'reportes' && Store.necesitaCarga('reportes')) {
+    Store.marcarCargado('reportes'); renderUserReport();
+  }
 }
 
-function switchTabMobile(tab, btn) {
-  switchTab(tab, null);
-  document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active');
-  closeMenu();
-}
+function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
 function toggleMenu() {
@@ -648,28 +639,10 @@ function closeMenu() {
 }
 document.addEventListener('click',e=>{const menu=document.getElementById('mobile-menu'),ham=document.getElementById('hamburger');if(menu?.classList.contains('open')&&!menu.contains(e.target)&&!ham?.contains(e.target))closeMenu();});
 window.addEventListener('resize',()=>{if(window.innerWidth>720)closeMenu();});
-function updateTimestamp() {
-  if(!_lastUpdated)return;
-  const t=_lastUpdated,txt=`✓ ${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-  ['ts-badge','ts-badge-mob'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.textContent=txt;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1000);});
-}
-function showToast(msg,type='') {
-  const t=document.getElementById('toast');if(!t)return;
-  t.textContent=msg;t.className=`toast${type?' toast--'+type:''} show`;
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
 function logout(){Auth.logout();}
-function initScrollEffects(){
-  const topbar=document.getElementById('topbar'),backTop=document.getElementById('back-top');let ticking=false;
-  window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const y=window.scrollY;topbar?.classList.toggle('scrolled',y>10);backTop?.classList.toggle('visible',y>300);ticking=false;});ticking=true;}},{passive:true});
-}
 
-/* ── NAVEGACIÓN DIRECTA ── */
-function goTab(tab) {
-  const btn = [...document.querySelectorAll('#desktop-nav .tnav')]
-    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`) && b.style.display !== 'none');
-  switchTab(tab, btn);
-}
+/* updateTimestamp, showToast, initScrollEffects → core/render.js */
+function goTab(tab) { goTabCore(tab, switchTab); }
 
 /* ── ATAJOS RÁPIDOS ── */
 function renderQuickLinks() {
@@ -728,11 +701,7 @@ function syncTrabajoPEBtns() {
   syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
 }
 
-function selectTrabajoPE(pe, btn) {
-  _trabajosPE = pe;
-  syncPEBar(btn.closest('.pe-row'), pe);
-  renderTrabajosTab();
-}
+function selectTrabajoPE(pe, btn) { cambiarPeriodo(pe, btn); }
 
 async function renderTrabajosTab() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
@@ -809,7 +778,7 @@ function renderUserReport() {
   const el = document.getElementById('rpt-user-body'); if (!el) return;
   if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
   const criterios = getCriterios();
-  const pes = ['PE1','PE2','PE3'];
+  const pes = (Store.periodos() || []).map(p => p.pe);
   const data = pes.map(pe => {
     const all = D.scores?.[pe] || [];
     const row = all.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
