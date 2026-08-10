@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared.css">
   <style>
     body { overflow:hidden; }
@@ -86,8 +86,8 @@
     }
 
     .login-hero-tag {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:.65rem;
+      font-family:'Source Sans 3',sans-serif;
+      font-size:.8rem;
       font-weight:700;
       letter-spacing:2.5px;
       text-transform:uppercase;
@@ -120,8 +120,8 @@
     .login-brand-foot {
       position:relative;
       z-index:1;
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:.62rem;
+      font-family:'Source Sans 3',sans-serif;
+      font-size:.8rem;
       font-weight:600;
       letter-spacing:2px;
       text-transform:uppercase;
@@ -160,7 +160,7 @@
     .login-form-header { margin-bottom:32px; }
 
     .login-form-title {
-      font-family:'Source Sans 3','Barlow',sans-serif;
+      font-family:'Source Sans 3',sans-serif;
       font-size:1.75rem;
       font-weight:700;
       letter-spacing:-.02em;
@@ -169,7 +169,7 @@
     }
 
     .login-form-sub {
-      font-family:'Source Sans 3','Barlow',sans-serif;
+      font-family:'Source Sans 3',sans-serif;
       font-size:.92rem;
       color:var(--muted);
     }
@@ -178,7 +178,7 @@
 
     .field label {
       display:block;
-      font-family:'Source Sans 3','Barlow',sans-serif;
+      font-family:'Source Sans 3',sans-serif;
       font-size:.88rem;
       font-weight:600;
       color:var(--txt);
@@ -191,7 +191,7 @@
       border:1px solid var(--faint);
       border-radius:var(--r-md);
       color:var(--txt);
-      font-family:'Source Sans 3','Barlow',sans-serif;
+      font-family:'Source Sans 3',sans-serif;
       font-size:1rem;
       padding:13px 16px;
       transition:border-color .2s,background .2s,box-shadow .2s;
@@ -212,7 +212,7 @@
       padding:14px;
       background:linear-gradient(135deg,var(--accent),var(--blue));
       border-radius:var(--r-pill);
-      font-family:'Barlow Condensed','Source Sans 3',sans-serif;
+      font-family:'Source Sans 3',sans-serif;
       font-size:.88rem;
       font-weight:700;
       letter-spacing:2px;
@@ -232,7 +232,7 @@
       justify-content:center;
       gap:10px;
       margin-top:14px;
-      font-size:.78rem;
+      font-size:.8rem;
       color:var(--muted);
     }
     .login-loading.visible { display:flex; }
@@ -419,10 +419,10 @@
                  autocomplete="one-time-code" required inputmode="numeric"
                  style="text-align:center;letter-spacing:6px;font-size:1.4rem;font-weight:700">
         </div>
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 8 dígitos.</p>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;text-align:center;">Revisa tu correo — te enviamos un código de 8 dígitos.</p>
         <button type="button" class="btn-login" id="btn-verify-code" onclick="verifyAndResetPassword()">Verificar y cambiar contraseña</button>
         <div style="margin-top:12px;text-align:center;">
-          <a href="#" onclick="resetStep1();return false" style="color:var(--muted);text-decoration:none;font-size:.78rem;">← Cambiar datos</a>
+          <a href="#" onclick="resetStep1();return false" style="color:var(--muted);text-decoration:none;font-size:.8rem;">← Cambiar datos</a>
         </div>
       </div>
 

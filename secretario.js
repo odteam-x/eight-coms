@@ -335,9 +335,9 @@ function renderMyScore(pe) {
   const bars=criterios.map((c,i)=>{
     const val=puntajeDe(myScore,c.key), critFb=myFb?.[c.key]||'';
     return `<div class="cbar" style="animation-delay:${i*40}ms">
-      <div class="cbar-top"><div><div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
-      <div class="cbar-val" style="color:${escHtml(c.color)}">${val}<span>/4</span></div></div>
-      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div></div>
+      <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
+      <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div></div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div></div>
       ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
     </div>`;
   }).join('');
@@ -447,9 +447,9 @@ function renderRankingDistritos(pe) {
       const critBars = COMP.map(c => {
         const val = d[c.key] ?? 0;
         return `<div class="dm-crit-row">
-          <span class="dm-crit-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
-          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:${escHtml(c.color)}"></div></div>
-          <span class="dm-crit-val" style="color:${escHtml(c.color)}">${val}</span>
+          <span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:var(--criterio)"></div></div>
+          <span class="dm-crit-val" style="color:var(--criterio)">${val}</span>
         </div>`;
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
@@ -514,9 +514,9 @@ function renderCalificacionDistrito(pe) {
     const critBars = DIST_CRITERIOS.map(c => {
       const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
-        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${escHtml(c.color)}"></div></div>
-        <span class="dist-cal-val" style="color:${escHtml(c.color)}">${val}</span>
+        <span class="dist-cal-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:var(--criterio)"></div></div>
+        <span class="dist-cal-val" style="color:var(--criterio)">${val}</span>
       </div>`;
     }).join('');
     el.innerHTML = `<div class="dist-cal-card">
@@ -581,7 +581,7 @@ function renderMiembrosDistrito(pe) {
     const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
     const critBars=hasEval?criterios.map(c=>{
       const val=puntajeDe(r.scoreRow,c.key);
-      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div></div><span class="dm-crit-val" style="color:${escHtml(c.color)}">${val}</span></div>`;
+      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div></div><span class="dm-crit-val" style="color:var(--criterio)">${val}</span></div>`;
     }).join(''):'';
     const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
     return `<div class="dm-card${isMe?' dm-card--me':''}">
@@ -602,7 +602,7 @@ function renderMiembrosDistrito(pe) {
         </div>
       </div>
       ${critBars?`<div class="dm-crit-bars">${critBars}</div>`:''}
-      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:${escHtml(c.color)};font-weight:700;font-size:.65rem;letter-spacing:1px">${escHtml(c.abbr)}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
+      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:var(--criterio);font-weight:700;font-size:.65rem;letter-spacing:1px">${escHtml(c.abbr)}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -919,7 +919,7 @@ async function renderUserReport() {
         <tbody>
           ${criterios.map(c=>`<tr>
             <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${escHtml(c.abbr||c.label)}</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:${escHtml(c.color)}">${puntajeDe(d.row,c.key)}</td>`).join('')}
+            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:var(--criterio)">${puntajeDe(d.row,c.key)}</td>`).join('')}
           </tr>`).join('')}
           <tr>
             <td class="urpt-td urpt-td-pe">TOTAL</td>

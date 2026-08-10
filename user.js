@@ -285,13 +285,13 @@ function renderScores(pe) {
       <div class="cbar" style="animation-delay:${i*40}ms">
         <div class="cbar-top">
           <div>
-            <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+            <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
             <div class="cbar-name">${escHtml(c.label)}</div>
           </div>
-          <div class="cbar-val" style="color:${escHtml(c.color)}">${val}<span>/4</span></div>
+          <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div>
         </div>
         <div class="cbar-track">
-          <div class="cbar-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div>
+          <div class="cbar-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div>
         </div>
         ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
       </div>`;
@@ -496,9 +496,9 @@ async function renderUserReport() {
           const pct = (c.avg / 4) * 100;
           const tag = i === 0 ? '↑ Mejor' : i === critAvg.length - 1 ? '↓ A mejorar' : '';
           return `<div class="urpt-crit-row">
-            <div class="urpt-crit-lbl" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+            <div class="urpt-crit-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
             <div class="urpt-crit-bar-track">
-              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:${escHtml(c.color)}"></div>
+              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:var(--criterio)"></div>
             </div>
             <div class="urpt-crit-val">${c.avg.toFixed(1)}</div>
             ${tag ? `<div class="urpt-crit-tag" style="color:${i===0?'var(--sex)':'var(--sba)'}">${tag}</div>` : '<div></div>'}
@@ -513,7 +513,7 @@ async function renderUserReport() {
             <thead>
               <tr>
                 <th class="urpt-th">PE</th>
-                ${criterios.map(c=>`<th class="urpt-th" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</th>`).join('')}
+                ${criterios.map(c=>`<th class="urpt-th" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</th>`).join('')}
                 <th class="urpt-th">Bono</th>
                 <th class="urpt-th">Total</th>
                 <th class="urpt-th">Nivel</th>

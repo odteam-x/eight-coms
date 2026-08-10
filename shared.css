@@ -7,25 +7,35 @@
   /* ═══════════════════════════════════════
      DESIGN SYSTEM TOKENS — paleta principal
      ═══════════════════════════════════════ */
-  --navy-900: #002247;
+  --navy-900: #002247;   /* identidad de marca; ya no es el fondo */
   --blue-700: #005286;
   --blue-500: #0087F1;
   --cyan-400: #00CBFF;
   --cyan-200: #66DFFF;
 
-  /* Fondos */
-  --bg:  var(--navy-900);
-  --s1:  #002A5C;
-  --s2:  #003070;
-  --s3:  #003A82;
-  --s4:  var(--blue-700);
+  /* ── Fondos ───────────────────────────────────────────────────────
+     #002247 no es neutro: es azul saturado. Detrás del contenido hacía
+     que los criterios fríos perdieran separación entre sí y los cálidos
+     saltaran de más. --bg pasa a un navy desaturado; la identidad
+     (navy→cyan) se mantiene en acentos, bordes y degradados. */
+  --bg:  #0A1628;
+  --s1:  #10202F;
+  --s2:  #16283A;
+  --s3:  #1D3346;
+  --s4:  #24405A;
 
-  /* Texto */
-  --txt:        #E8EAF0;
+  /* ── Texto ────────────────────────────────────────────────────────
+     --muted era #7090B0: 4.78:1 sobre el fondo viejo, o sea AA raspado,
+     y estaba aplicado a texto de .65rem (10.4px). Ahora 7.40:1 sobre
+     #0A1628, y el mínimo de tamaño sube a .8rem (ver --fs-min). */
+  --txt:        #E8EAF0;   /* 15.07:1 */
   --text-strong: var(--txt);
-  --muted:      #7090B0;
+  --muted:      #8FA8C4;   /*  7.40:1 */
   --text-muted:  var(--muted);
   --faint:      rgba(0,135,241,.20);
+
+  /* Tamaño mínimo para texto secundario. No bajar de aquí. */
+  --fs-min: .8rem;
 
   /* Surface */
   --surface: rgba(0,40,100,.30);
@@ -45,11 +55,28 @@
   --purple: #C084FC;
   --orange: #FB923C;
 
-  /* Niveles de score — usados por scoreClass() en JS */
-  --sex: #2ECC71;
-  --sbu: var(--blue-500);
-  --spr: #F0C040;
-  --sba: #FF6063;
+  /* ── Niveles de score ─────────────────────────────────────────────
+     UN solo hue (194°, el cyan de marca) en cuatro pasos de luminancia
+     decreciente, no cuatro hues distintos.
+
+     Antes --sex era #2ECC71, el MISMO verde del criterio "Edición
+     Creativa", y --sba era idéntico a --accent, que además es el rojo
+     de acción: tres significados para un tono.
+
+     Contraste sobre --bg (medido): 13.26 / 9.84 / 6.89 / 4.69.
+     Los cuatro pasan AA para texto normal. */
+  --sex: #A1E7FD;   /* Excelente  */
+  --sbu: #94C7D6;   /* Bueno      */
+  --spr: #5CAAC1;   /* En Proceso */
+  --sba: #3E8BA3;   /* Bajo       */
+
+  /* ── Color único de criterio ──────────────────────────────────────
+     Los 7 criterios se pintan todos igual. Cada barra ya lleva su
+     etiqueta (PLA, REV, EDI…) y su longitud: el color no aportaba
+     información, y sus 7 tonos saturados chocaban con la escala de
+     nivel y con el rojo de acción. `criterios.color` sigue en la base
+     y editable, pero la vista de puntajes ya no lo usa. */
+  --criterio: var(--cyan-400);
 
   /* Glass */
   --glass:        rgba(0,50,110,.26);
@@ -63,10 +90,14 @@
   --glow-accent: 0 0 24px rgba(255,96,99,.30), 0 0 48px rgba(255,96,99,.14);
   --glow-blue:   0 0 24px rgba(0,135,241,.28), 0 0 48px rgba(0,135,241,.14);
 
-  /* Orbes */
-  --orb1: radial-gradient(circle, rgba(0,135,241,.70) 0%, transparent 70%);
-  --orb2: radial-gradient(circle, rgba(0,203,255,.60) 0%, transparent 70%);
-  --orb3: radial-gradient(circle, rgba(255,96,99,.42) 0%, transparent 70%);
+  /* ── Orbes ────────────────────────────────────────────────────────
+     Estaban a .70/.60/.42. Introducían variación de luminancia detrás
+     del contenido, así que el mismo texto tenía distinto contraste
+     según dónde cayera en el scroll. Bajados a ≤.15 y ocultos en móvil
+     (ver @media más abajo), donde además cuestan compositing continuo. */
+  --orb1: radial-gradient(circle, rgba(0,135,241,.15) 0%, transparent 70%);
+  --orb2: radial-gradient(circle, rgba(0,203,255,.13) 0%, transparent 70%);
+  --orb3: radial-gradient(circle, rgba(0,135,241,.10) 0%, transparent 70%);
 
   /* Tokens adaptativos */
   --topbar-bg:    rgba(0,22,55,.90);
@@ -126,10 +157,13 @@
   --green:  #1A9050;
   --gold:   #B08000;
 
-  --sex: #1AAA5A;
-  --sbu: #0070CC;
-  --spr: #C09000;
-  --sba: #DD3040;
+  /* Misma rampa monocroma que en oscuro, invertida: mas oscuro = mejor.
+     Contraste sobre #EBF5FF (medido): 10.56 / 7.64 / 5.99 / 4.63. */
+  --sex: #183D49;
+  --sbu: #0C546A;
+  --spr: #286477;
+  --sba: #04779A;
+  --criterio: #0A6E92;   /* 5.20:1 */
 
   --glass:        rgba(255,255,255,.82);
   --glass-border: rgba(0,135,241,.22);
@@ -143,7 +177,7 @@
 
   --orb1: radial-gradient(circle, rgba(0,135,241,.14) 0%, transparent 70%);
   --orb2: radial-gradient(circle, rgba(0,203,255,.12) 0%, transparent 70%);
-  --orb3: radial-gradient(circle, rgba(255,96,99,.10) 0%, transparent 70%);
+  --orb3: radial-gradient(circle, rgba(0,135,241,.08) 0%, transparent 70%);
 
   --topbar-bg:    rgba(235,245,255,.92);
   --mobile-bg:    rgba(235,245,255,.98);
@@ -163,7 +197,7 @@
     --border: rgba(0,135,241,.16); --border-glow: rgba(0,135,241,.38);
     --accent: #FF6063; --red: #DD3040; --blue: #0070CC; --cyan: #0099D4;
     --green: #1A9050; --gold: #B08000;
-    --sex: #1AAA5A; --sbu: #0070CC; --spr: #C09000; --sba: #DD3040;
+    --sex: #183D49; --sbu: #0C546A; --spr: #286477; --sba: #04779A; --criterio: #0A6E92;
     --glass: rgba(255,255,255,.82); --glass-border: rgba(0,135,241,.22); --glass-hi: rgba(255,255,255,.96);
     --shadow-sm: 0 2px 8px rgba(0,34,71,.08), 0 1px 3px rgba(0,34,71,.06);
     --shadow-md: 0 4px 12px rgba(0,34,71,.10), 0 12px 32px rgba(0,34,71,.08);
@@ -186,7 +220,7 @@ html { scroll-behavior:smooth; scrollbar-width:thin; scrollbar-color:var(--scrol
 ::-webkit-scrollbar        { width:5px; }
 ::-webkit-scrollbar-track  { background:var(--s1); }
 ::-webkit-scrollbar-thumb  { background:var(--scrollbar-c); border-radius:3px; }
-body { background:var(--bg); color:var(--txt); font-family:'Source Sans 3','Barlow',sans-serif; font-size:16px; line-height:1.6; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
+body { background:var(--bg); color:var(--txt); font-family:'Source Sans 3',sans-serif; font-size:16px; line-height:1.6; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
 a { color:inherit; text-decoration:none; }
 button { cursor:pointer; border:none; background:none; font-family:inherit; }
 img { display:block; max-width:100%; }
@@ -205,6 +239,12 @@ img { display:block; max-width:100%; }
 .bg-orb-1 { width:60vmax; height:60vmax; background:var(--orb1); top:-25%; left:-20%; animation:orbFloat1 24s ease-in-out infinite, fadeIn .8s .1s forwards; }
 .bg-orb-2 { width:48vmax; height:48vmax; background:var(--orb2); top:35%; right:-18%; animation:orbFloat2 30s ease-in-out infinite, fadeIn .8s .3s forwards; }
 .bg-orb-3 { width:40vmax; height:40vmax; background:var(--orb3); bottom:-12%; left:28%; animation:orbFloat3 38s ease-in-out infinite, fadeIn .8s .5s forwards; }
+
+/* Fuera en móvil: tres capas con blur(100px) animadas obligan a
+   compositing continuo y en Android de gama media el scroll se cae. */
+@media (max-width: 768px) {
+  .bg-canvas { display: none; }
+}
 @keyframes orbFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(4%,3%) scale(1.04)} 66%{transform:translate(-3%,5%) scale(.97)} }
 @keyframes orbFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-5%,-4%) scale(1.05)} 70%{transform:translate(3%,3%) scale(.96)} }
 @keyframes orbFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(4%,-5%) scale(1.06)} }
@@ -219,9 +259,9 @@ img { display:block; max-width:100%; }
 .tb-logo  { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; }
 .tb-title { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:2px; }
 .tb-title em { color:var(--accent); font-style:normal; }
-.admin-badge { background:linear-gradient(135deg,var(--gold),#c8960a); color:#000; font-family:'Barlow Condensed',sans-serif; font-size:.58rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
+.admin-badge { background:linear-gradient(135deg,var(--gold),#c8960a); color:#000; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
 .tb-nav { display:flex; gap:4px; flex:1; }
-.tnav { padding:7px 15px; min-height:36px; font-family:'Barlow Condensed',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-sm); transition:color .18s var(--ease),background .18s var(--ease); position:relative; display:inline-flex; align-items:center; gap:5px; }
+.tnav { padding:7px 15px; min-height:36px; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-sm); transition:color .18s var(--ease),background .18s var(--ease); position:relative; display:inline-flex; align-items:center; gap:5px; }
 .tnav::after { content:''; position:absolute; bottom:-1px; left:50%; right:50%; height:2px; background:linear-gradient(90deg,var(--accent),var(--blue)); border-radius:2px; transition:left .2s var(--ease),right .2s var(--ease); }
 .tnav:hover { color:var(--txt); background:var(--hover-subtle); }
 .tnav.active { color:var(--txt); background:rgba(255,96,99,.07); }
@@ -241,7 +281,7 @@ img { display:block; max-width:100%; }
 .tnav-group:focus-within .tnav-drop { display:block; }
 .tnav-drop-item {
   display:flex; align-items:center; gap:8px; width:100%;
-  padding:8px 16px; font-family:'Barlow Condensed',sans-serif;
+  padding:8px 16px; font-family:'Source Sans 3',sans-serif;
   font-size:.8rem; font-weight:600; letter-spacing:.5px;
   text-transform:uppercase; color:var(--muted);
   transition:background .12s, color .12s;
@@ -262,7 +302,7 @@ img { display:block; max-width:100%; }
 .mob-nav-header.open + .mob-nav-sub { display:flex; }
 
 .tb-user { margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.uname { font-family:'Source Sans 3','Barlow',sans-serif; font-size:.85rem; font-weight:500; letter-spacing:.01em; color:var(--muted); }
+.uname { font-family:'Source Sans 3',sans-serif; font-size:.85rem; font-weight:500; letter-spacing:.01em; color:var(--muted); }
 
 /* ── THEME TOGGLE ── */
 .theme-toggle {
@@ -291,7 +331,7 @@ img { display:block; max-width:100%; }
 
 /* ── BOTONES ── */
 .btn-out, .btn-out-mobile {
-  font-family:'Source Sans 3','Barlow',sans-serif; font-size:.8rem; font-weight:500;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:500;
   letter-spacing:.01em; color:var(--muted); padding:7px 16px;
   border:1px solid var(--faint); border-radius:var(--r-pill);
   transition:color .2s, border-color .2s, background .2s;
@@ -302,7 +342,7 @@ img { display:block; max-width:100%; }
 .btn-refresh {
   display:flex; align-items:center; gap:6px;
   padding:8px 18px; min-height:44px;
-  font-family:'Barlow Condensed',sans-serif; font-size:.65rem; font-weight:700;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase;
   color:var(--muted); border:1px solid var(--faint); border-radius:var(--r-pill);
   transition:color .2s, border-color .2s, background .2s, box-shadow .2s;
@@ -341,17 +381,17 @@ img { display:block; max-width:100%; }
 .mobile-menu { position:fixed; top:var(--topbar-h); left:0; right:0; bottom:0; z-index:var(--z-menu); background:var(--mobile-bg); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); display:flex; flex-direction:column; padding:20px; transform:translateX(100%); transition:transform .3s var(--ease), visibility .3s; overflow-y:auto; visibility:hidden; pointer-events:none; }
 .mobile-menu.open { transform:translateX(0); visibility:visible; pointer-events:auto; }
 .mobile-nav-links { display:flex; flex-direction:column; gap:4px; margin-bottom:20px; }
-.mobile-nav-btn { display:flex; align-items:center; gap:10px; padding:14px 16px; font-family:'Barlow Condensed',sans-serif; font-size:.95rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-md); transition:all .2s; text-align:left; min-height:52px; }
+.mobile-nav-btn { display:flex; align-items:center; gap:10px; padding:14px 16px; font-family:'Source Sans 3',sans-serif; font-size:.95rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-md); transition:all .2s; text-align:left; min-height:52px; }
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color:var(--txt); background:var(--glass); }
 .mobile-nav-btn.active { color:var(--accent); }
 .mobile-nav-btn--refresh { margin-top:12px; border:1px solid var(--faint); }
 .mobile-nav-btn--refresh:hover { border-color:var(--blue); color:var(--blue); }
 .mobile-theme-row { padding:12px 16px 4px; display:flex; align-items:center; gap:12px; }
-.mobile-theme-lbl { font-family:'Barlow Condensed',sans-serif; font-size:.65rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); flex:1; }
+.mobile-theme-lbl { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); flex:1; }
 .mobile-user-section { margin-top:auto; display:flex; align-items:center; gap:14px; padding:16px; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-lg); }
 .mobile-uinfo { flex:1; min-width:0; }
-.mobile-uname { font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.mobile-urole { font-size:.72rem; color:var(--muted); margin-top:2px; }
+.mobile-uname { font-family:'Source Sans 3',sans-serif; font-size:1rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mobile-urole { font-size:.8rem; color:var(--muted); margin-top:2px; }
 
 /* ── TABS ── */
 .tab-content, .atab-content { display:none; }
@@ -382,18 +422,18 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .gestion-select {
   background:var(--s2); color:var(--txt);
   border:1px solid var(--border); border-radius:var(--r-sm);
-  font-size:.75rem; padding:4px 8px; cursor:pointer;
+  font-size:.8rem; padding:4px 8px; cursor:pointer;
 }
 
 .pe-row { display:flex; gap:8px; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; }
 .pe-row--no-mb { margin-bottom:0; }
 /* Mensaje cuando la barra de períodos no se puede construir.
    Un fallo de carga debe verse, no quedar como una fila vacía. */
-.pe-bar-msg { font-size:.78rem; color:var(--muted); line-height:1.4; }
+.pe-bar-msg { font-size:.8rem; color:var(--muted); line-height:1.4; }
 .pe-bar-msg--error { color:var(--accent); }
 .pb {
   padding:8px 22px; min-height:40px;
-  font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
   letter-spacing:2px; text-transform:uppercase;
   color:var(--muted); border:1px solid var(--faint);
   border-radius:var(--r-pill);
@@ -426,12 +466,12 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   display:flex; align-items:center; gap:8px;
 }
 .pe-sticky-bar .pe-viewing-label {
-  font-family:'Barlow Condensed',sans-serif; font-size:.65rem; font-weight:700;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
   letter-spacing:.1em; color:var(--muted); text-transform:uppercase; margin-right:6px;
 }
 
 /* ── TIMESTAMP ── */
-.last-updated-badge { font-family:'Barlow Condensed',sans-serif; font-size:.6rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+.last-updated-badge { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
 .last-updated-badge.flash { color:var(--green); }
 
 /* ── LOADING / EMPTY ── */
@@ -449,7 +489,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   background:var(--glass); border:1px solid var(--glass-border);
   border-radius:var(--r-pill);
   padding:10px 24px;
-  font-family:'Barlow Condensed',sans-serif; font-size:.75rem; font-weight:700;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase; color:var(--txt);
   box-shadow:var(--shadow-md); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
   transition:transform .3s var(--ease), opacity .3s;
@@ -497,7 +537,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .cdot {
   display:inline-flex; align-items:center; justify-content:center;
   width:26px; height:26px;
-  font-family:'Barlow Condensed',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
   border-radius:var(--r-sm);
 }
 .cdot.d4 { background:rgba(46,204,113,.15);  color:var(--sex); }
@@ -509,7 +549,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 /* ── TABLA RANKING ── */
 .tbl { font-size:.8rem; }
 .tbl-h { display:grid; padding:8px 14px; }
-.tbl-th { font-family:'Barlow Condensed',sans-serif; font-size:.58rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.tbl-th { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
 .tbl-r { display:grid; padding:10px 14px; border-top:1px solid var(--border); transition:background .15s; animation:slideRow .3s var(--ease) both; cursor:pointer; }
 .tbl-r:hover { background:var(--glass); }
 @keyframes slideRow { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
@@ -521,7 +561,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .tbl-score-cell { display:flex; align-items:center; justify-content:center; }
 
 /* ── SECTION LABELS ── */
-.section-label { font-family:'Barlow Condensed',sans-serif; font-size:.62rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; margin-top:24px; }
+.section-label { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; margin-top:24px; }
 .tab-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:3px; }
 .tab-title--mb { margin-bottom:1.5rem; }
 
@@ -535,7 +575,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rubrica-card-head { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; user-select:none; transition:background .2s; }
 .rubrica-card-head:hover { background:var(--hover-subtle); }
 .rubrica-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.rubrica-title { flex:1; font-family:'Barlow Condensed',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.rubrica-title { flex:1; font-family:'Source Sans 3',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
 .rubrica-chev {
   width:18px; height:18px; flex-shrink:0; font-size:0;
   display:inline-flex; align-items:center; justify-content:center;
@@ -556,8 +596,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rubrica-levels { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1px; background:var(--faint); margin:0 16px 16px; border-radius:var(--r-sm); overflow:hidden; }
 .rlevel { background:var(--s2); padding:12px 14px; }
 .rlevel-badge { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; line-height:1; }
-.rlevel-lbl   { font-family:'Barlow Condensed',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-.rlevel-desc  { font-size:.75rem; color:var(--desc-txt); line-height:1.5; }
+.rlevel-lbl   { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+.rlevel-desc  { font-size:.8rem; color:var(--desc-txt); line-height:1.5; }
 
 /* ── CALENDARIO ── */
 .cal-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
@@ -576,13 +616,13 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .cal-acc--azul     { background:linear-gradient(to bottom, var(--blue), #0050B0); }
 .cal-acc--amarillo { background:linear-gradient(to bottom, var(--gold), #B08000); }
 .cal-body { flex:1; padding:16px; }
-.cal-num  { font-family:'Barlow Condensed',sans-serif; font-size:.58rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.cal-num  { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
 .cal-t    { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; margin-bottom:12px; }
 .cal-t--rojo{color:var(--accent)} .cal-t--verde{color:var(--green)} .cal-t--azul{color:var(--blue)} .cal-t--amarillo{color:var(--gold)}
-.cal-r  { display:flex; justify-content:space-between; font-size:.74rem; padding:3px 0; border-bottom:1px solid var(--border); gap:8px; }
+.cal-r  { display:flex; justify-content:space-between; font-size:.8rem; padding:3px 0; border-bottom:1px solid var(--border); gap:8px; }
 .cal-r:last-of-type { border-bottom:none; }
 .cal-rl { color:var(--muted); }
-.cst { display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-family:'Barlow Condensed',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; border-radius:var(--r-pill); }
+.cst { display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; border-radius:var(--r-pill); }
 .cst.sa  { color:var(--green); background:rgba(46,204,113,.1);  border:1px solid rgba(46,204,113,.2); }
 .cst.sp  { color:var(--blue);  background:rgba(0,135,241,.1);   border:1px solid rgba(0,135,241,.2); }
 .cst.spe { color:var(--muted); background:var(--glass);         border:1px solid var(--faint); }
@@ -592,8 +632,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .bono-badge {
   display:inline-flex; align-items:center; gap:5px;
   padding:4px 14px; border-radius:var(--r-pill);
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.65rem; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  font-family:'Source Sans 3',sans-serif;
+  font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase;
   background:rgba(240,192,64,.12); color:var(--gold);
   border:1px solid rgba(240,192,64,.3);
 }
@@ -603,8 +643,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .secretario-badge {
   background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
   color:#fff;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.55rem; font-weight:900;
+  font-family:'Source Sans 3',sans-serif;
+  font-size:.8rem; font-weight:900;
   letter-spacing:2px; text-transform:uppercase;
   padding:3px 10px; border-radius:var(--r-pill);
 }
@@ -613,8 +653,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .portal-badge {
   background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
   color:#fff;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.55rem; font-weight:900;
+  font-family:'Source Sans 3',sans-serif;
+  font-size:.8rem; font-weight:900;
   letter-spacing:2px; text-transform:uppercase;
   padding:3px 10px; border-radius:var(--r-pill);
 }
@@ -648,8 +688,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   gap: 10px;
   flex-wrap: wrap;
   padding: 6px 0 12px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: .62rem;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size:.8rem;
   letter-spacing: 1px;
   color: var(--muted);
   animation: tabIn .2s var(--ease);
@@ -663,7 +703,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .pe-dates-item { display:flex; align-items:center; gap:4px; }
 .pe-dates-lbl  { font-weight: 600; color: var(--muted); }
 .pe-dates-estado {
-  font-size: .58rem; font-weight: 700;
+  font-size:.8rem; font-weight: 700;
   letter-spacing: 1.5px; text-transform: uppercase;
   padding: 3px 10px; border-radius: var(--r-pill);
   border: 1px solid; margin-left: auto;
@@ -685,8 +725,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 
 /* ── ACCESOS RÁPIDOS (quick links) ── */
 .ql-section-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: .6rem; font-weight: 700; letter-spacing: 2.5px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size:.8rem; font-weight: 700; letter-spacing: 2.5px;
   text-transform: uppercase; color: var(--muted);
   margin: 28px 0 10px; padding: 0 4px;
 }
@@ -717,11 +757,11 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .ql-text { flex: 1; min-width: 0; }
 .ql-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   font-size: .85rem; font-weight: 700; letter-spacing: .5px;
   text-transform: uppercase; color: var(--txt); margin-bottom: 2px;
 }
-.ql-desc { font-size: .72rem; color: var(--muted); line-height: 1.4; }
+.ql-desc { font-size:.8rem; color: var(--muted); line-height: 1.4; }
 .ql-arrow { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; }
 
 /* ── TARJETAS DE PERÍODOS ── */
@@ -751,7 +791,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .pe-card-nombre { font-size: .8rem; color: var(--muted); flex: 1; }
 .pe-card-now {
-  font-family: 'Barlow Condensed', sans-serif; font-size: .56rem;
+  font-family: 'Source Sans 3', sans-serif; font-size:.8rem;
   font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--accent); white-space: nowrap;
 }
@@ -761,8 +801,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   border-top: 1px solid var(--border);
 }
 .pe-card-date { display: flex; flex-direction: column; gap: 1px; }
-.pe-card-lbl { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.pe-card-val { font-size: .78rem; color: var(--txt); font-weight: 600; }
+.pe-card-lbl { font-size:.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.pe-card-val { font-size:.8rem; color: var(--txt); font-weight: 600; }
 
 /* ── TRABAJOS ENTREGADOS ── */
 .trabajo-form-card {
@@ -771,7 +811,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .trabajo-form-title {
-  font-family: 'Barlow Condensed', sans-serif; font-size: .78rem;
+  font-family: 'Source Sans 3', sans-serif; font-size:.8rem;
   font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--muted); margin-bottom: 12px;
   display: flex; align-items: center; gap: 6px;
@@ -788,7 +828,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .trabajo-titulo { font-size: .88rem; font-weight: 600; color: var(--txt); line-height: 1.3; }
 .tj-notitle { opacity: .45; font-style: italic; font-weight: 400; }
 .trabajo-desc { font-size: .82rem; color: var(--desc-txt); line-height: 1.6; margin-bottom: 8px; }
-.trabajo-meta { font-size: .7rem; color: var(--muted); display: flex; align-items: center; }
+.trabajo-meta { font-size:.8rem; color: var(--muted); display: flex; align-items: center; }
 .btn-icon-del {
   flex-shrink: 0; width: 28px; height: 28px;
   border-radius: var(--r-sm); color: var(--muted);

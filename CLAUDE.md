@@ -40,6 +40,22 @@ Vercel config is in `vercel.json` (security headers only). Note that `vercel.jso
 - `shared.css` — design system: CSS variables, glass morphism, dark/light theme, grid utilities, animations
 - `user.css`, `secretario.css`, `admin.css` — page-specific styles
 
+**One view, one colour dimension.** The rule that keeps this readable:
+
+- **All seven criteria render in a single colour** — `var(--criterio)`. Each bar already carries its label (PLA, REV, EDI…) and its length; the colour added nothing and its seven saturated hues collided with the level scale. `criterios.color` still exists in the DB and stays admin-editable, but the score views ignore it.
+- **The level scale is one hue (194°, brand cyan) in four luminance steps**, not four different hues. Measured contrast on `--bg`: 13.26 / 9.84 / 6.89 / 4.69 — all pass AA. Light theme has its own ramp (10.56 / 7.64 / 5.99 / 4.63).
+- **`#FF6063` is reserved for action and alert.** Never use it for a score level, a criterion or a decorative orb.
+
+`--bg` is `#0A1628`, a desaturated navy — **not** the brand `#002247`, which is saturated blue and distorted the colours in front of it. The brand navy→cyan identity lives in accents, borders and gradients.
+
+Background orbs sit at opacity ≤.15 and are hidden below 768px (`.bg-canvas { display:none }`): three blurred animated layers force continuous compositing.
+
+**Minimum font size is `.8rem`** (`--fs-min`). `--muted` is `#8FA8C4` (7.40:1). Before Phase 5 it was `#7090B0` at 4.78:1 applied to `.65rem` text.
+
+Typography is **two families**: `Bebas Neue` (large numbers and section titles) and `Source Sans 3` (everything else, weights 400/600/700). Barlow and Barlow Condensed were removed — they competed for the same role. Four font files, down from ~14.
+
+Medal colours in `secretario.css` are tokenised (`--medalla-oro/plata/bronce`) with light-theme variants: the hardcoded gold scored 1.55:1 on the light background.
+
 ### Security model (Phase 1)
 
 - **Registration grants nothing.** `registro.html` collects only name, email, password. The `profiles` row is created server-side by the `on_auth_user_created` trigger (migration `0001`) with fixed values: `tipo_miembro='miembro'`, `es_admin=false`, `distrito=NULL`, `rol_id=NULL`, `aprobado=false`. The client cannot influence any of them.
