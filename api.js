@@ -10,6 +10,25 @@
 /** Total de perfiles devuelto por la última getAllUsers() (para paginar). */
 let _totalUsuarios = 0;
 
+/**
+ * Gestión sobre la que se está trabajando. Se fija en getContexto().
+ * Todo lo que se escriba (períodos, criterios, rúbrica, calendario, config)
+ * pertenece a esta gestión: sus tablas ya no tienen unicidad global.
+ */
+let _gestionActual = null;
+
+/**
+ * Id de la gestión en curso, resolviéndolo si hace falta.
+ * admin.js llama a getPeriodos()/getCriterios() directamente en el arranque,
+ * sin pasar por getContexto(), así que no puede asumirse que ya esté fijado.
+ */
+async function _gid() {
+  if (_gestionActual != null) return _gestionActual;
+  const { data } = await SB.from('gestiones').select('id').eq('activa', true).maybeSingle();
+  _gestionActual = data?.id ?? null;
+  return _gestionActual;
+}
+
 const API = {
 
   // ── AUTH ────────────────────────────────────────────────────────
@@ -55,14 +74,19 @@ const API = {
    * ['PE1','PE2','PE3'] y el usuario veía PE1 sin ningún error visible.
    */
   async getPeriodos() {
-    const { data, error } = await SB.from('periodos_evaluacion').select('*').order('created_at');
+    const g = await _gid();
+    let q = SB.from('periodos_evaluacion').select('*').order('created_at');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
     if (error) throw new Error('No se pudieron cargar los períodos: ' + error.message);
     return data ?? [];
   },
 
   /** Criterios. LANZA si falla: sin ellos no se puede puntuar nada. */
   async getCriterios(onlyActive = false) {
+    const g = await _gid();
     let q = SB.from('criterios').select('*');
+    if (g != null) q = q.eq('gestion_id', g);
     if (onlyActive) q = q.eq('activo', true);
     const { data, error } = await q.order('orden');
     if (error) throw new Error('No se pudieron cargar los criterios: ' + error.message);
@@ -70,10 +94,10 @@ const API = {
   },
 
   async getRubrica() {
-    const { data } = await SB
-      .from('rubrica')
-      .select('*, criterios(key, label, abbr, color)')
-      .order('orden');
+    const g = await _gid();
+    let q = SB.from('rubrica').select('*, criterios(key, label, abbr, color)').order('orden');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data } = await q;
     return data ?? [];
   },
 
@@ -81,7 +105,7 @@ const API = {
     const p = { key: key.trim().toLowerCase(), label: label.trim(), abbr: abbr.trim().toUpperCase(), color, orden: Number(orden) || 99, activo };
     const { error } = id
       ? await SB.from('criterios').update(p).eq('id', id)
-      : await SB.from('criterios').insert(p);
+      : await SB.from('criterios').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -94,7 +118,7 @@ const API = {
     const p = { criterio_id: Number(criterio_id), criterio, nivel4, nivel3, nivel2, nivel1, orden: Number(orden) || 99 };
     const { error } = id
       ? await SB.from('rubrica').update(p).eq('id', id)
-      : await SB.from('rubrica').insert(p);
+      : await SB.from('rubrica').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -104,20 +128,28 @@ const API = {
   },
 
   async getCalendario() {
-    const { data } = await SB.from('calendario').select('*').order('numero');
+    const g = await _gid();
+    let q = SB.from('calendario').select('*').order('numero');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data } = await q;
     return data ?? [];
   },
 
   async getConfig() {
-    const { data } = await SB.from('config').select('*');
+    const g = await _gid();
+    let qc = SB.from('config').select('*');
+    if (g != null) qc = qc.eq('gestion_id', g);
+    const { data } = await qc;
     const cfg = {};
     (data ?? []).forEach(r => { cfg[r.clave] = r.valor; });
     return cfg;
   },
 
   async saveConfig(clave, valor) {
+    // La PK de config pasó a ser (gestion_id, clave) en la migración 0005:
+    // la misma clave puede existir en gestiones distintas.
     const { error } = await SB.from('config')
-      .upsert({ clave, valor }, { onConflict: 'clave' });
+      .upsert({ gestion_id: await _gid(), clave, valor }, { onConflict: 'gestion_id,clave' });
     return { ok: !error, error: error?.message };
   },
 
@@ -220,7 +252,7 @@ const API = {
     };
     const { data, error } = id
       ? await SB.from('periodos_evaluacion').update(p).eq('id', id).select('id').maybeSingle()
-      : await SB.from('periodos_evaluacion').insert(p).select('id').maybeSingle();
+      : await SB.from('periodos_evaluacion').insert({ ...p, gestion_id: await _gid() }).select('id').maybeSingle();
     return { ok: !error, error: error?.message, id: data?.id ?? id ?? null };
   },
 
@@ -297,7 +329,7 @@ const API = {
     const { id, ...p } = ev;
     const { error } = id
       ? await SB.from('calendario').update(p).eq('id', id)
-      : await SB.from('calendario').insert(p);
+      : await SB.from('calendario').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -344,8 +376,13 @@ const API = {
   },
 
   async getEvalDistritoByNombreAndPE(distNombre, peNombre) {
-    const { data: pe } = await SB
-      .from('periodos_evaluacion').select('id').eq('nombre', peNombre).maybeSingle();
+    // Acotado a la gestión en curso: los nombres de PE se repiten entre
+    // gestiones, así que sin este filtro maybeSingle() encontraría varias
+    // filas y devolvería null.
+    const g = await _gid();
+    let qp = SB.from('periodos_evaluacion').select('id').eq('nombre', peNombre);
+    if (g != null) qp = qp.eq('gestion_id', g);
+    const { data: pe } = await qp.maybeSingle();
     if (!pe) return null;
     const { data } = await SB
       .from('evaluaciones_distrito')
@@ -382,17 +419,25 @@ const API = {
   },
 
   // ── TRABAJOS ENTREGADOS ──────────────────────────────────────────────
-  async getTrabajosEntregados(userId, periodoNombre) {
+  /**
+   * Trabajos del usuario en un período. Indexado por periodo_id (UUID).
+   *
+   * Antes se guardaba `periodo_nombre` TEXT. Con multi-gestión los nombres
+   * de PE se repiten entre gestiones, así que "PE3" dejaría de identificar
+   * un período. La migración 0005 hizo el backfill y eliminó la columna.
+   */
+  async getTrabajosEntregados(userId, periodoId) {
+    if (!periodoId) return [];
     const { data } = await SB.from('trabajos_entregados')
       .select('*')
       .eq('user_id', userId)
-      .eq('periodo_nombre', periodoNombre)
+      .eq('periodo_id', periodoId)
       .order('created_at', { ascending: false });
     return data ?? [];
   },
 
-  async upsertTrabajo({ id, user_id, periodo_nombre, titulo, descripcion }) {
-    const payload = { user_id, periodo_nombre, titulo: titulo || '', descripcion,
+  async upsertTrabajo({ id, user_id, periodo_id, titulo, descripcion }) {
+    const payload = { user_id, periodo_id, titulo: titulo || '', descripcion,
       updated_at: new Date().toISOString() };
     if (id) payload.id = id;
     const { data, error } = await SB.from('trabajos_entregados').upsert(payload).select().single();
@@ -416,12 +461,20 @@ const API = {
    *
    * Devuelve SIEMPRE { ok, ... } — nunca un [] silencioso.
    */
-  async getContexto() {
+  async getContexto(gestionId = null) {
     const { data: { session } } = await SB.auth.getSession();
     if (!session) return { ok: false, error: 'Tu sesión no es válida. Vuelve a iniciar sesión.' };
 
     const profile = await Auth.getProfile();
     if (!profile) return { ok: false, error: 'No se pudo leer tu perfil.' };
+
+    // Sin argumento se usa la gestión activa.
+    const gestiones = await this.getGestiones();
+    const gestion = gestionId
+      ? gestiones.find(g => String(g.id) === String(gestionId))
+      : gestiones.find(g => g.activa);
+    if (!gestion) return { ok: false, error: 'No hay ninguna gestión configurada.' };
+    _gestionActual = gestion.id;
 
     let criteriosRaw, rubricaRaw, calRaw, periodosRaw;
     try {
@@ -475,7 +528,49 @@ const API = {
     const periodoActivo = periodos.find(p => p.activo) ?? null;
 
     return { ok: true, profile, criterios, periodos, rubrica, calendario,
-             periodoActivo, periodoActivoId: periodoActivo?.id ?? null };
+             periodoActivo, periodoActivoId: periodoActivo?.id ?? null,
+             gestion, gestiones,
+             // Una gestión archivada se lee siempre, se escribe nunca.
+             soloLectura: !!gestion.archivada };
+  },
+
+  // ── GESTIONES ────────────────────────────────────────────────────────
+  async getGestiones() {
+    const { data, error } = await SB.from('gestiones')
+      .select('id, nombre, inicio, fin, activa, archivada')
+      .order('created_at', { ascending: false });
+    if (error) { console.warn('[API.getGestiones]', error.message); return []; }
+    return data ?? [];
+  },
+
+  /** Id de la gestión sobre la que se está trabajando. */
+  gestionActual() { return _gestionActual; },
+
+  /**
+   * Fija la gestión de trabajo. admin.js no pasa por getContexto(), así que
+   * necesita fijarla explícitamente antes de cargar nada; si no, los getters
+   * resolverían siempre la gestión activa e ignorarían ?gestion= de la URL.
+   */
+  setGestion(id) { _gestionActual = id == null ? null : id; },
+
+  /**
+   * Abre una gestión nueva: archiva la activa, clona criterios, rúbrica,
+   * calendario y los PE base como plantilla editable, y arranca con cero
+   * evaluaciones y cero miembros.
+   */
+  async abrirGestion(nombre, clonarDe = null) {
+    const { data, error } = await SB.rpc('abrir_gestion', {
+      p_nombre: nombre, p_clonar_de: clonarDe,
+    });
+    return { ok: !error, error: error?.message, id: data ?? null };
+  },
+
+  async saveGestion({ id, nombre, inicio, fin }) {
+    const p = { nombre: (nombre || '').trim(), inicio: inicio || null, fin: fin || null };
+    const { error } = id
+      ? await SB.from('gestiones').update(p).eq('id', id)
+      : await SB.from('gestiones').insert(p);
+    return { ok: !error, error: error?.message };
   },
 
   /**

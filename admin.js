@@ -71,6 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   setEl('uname-desktop', name); setEl('uname-mobile', name);
 
+  // La gestión debe fijarse ANTES de cargar: los getters filtran por ella.
+  const gid = new URLSearchParams(location.search).get('gestion');
+  if (gid) API.setGestion(gid);
+
   await loadAllData();
   renderOvPEBar();
   renderEvalPEBar();
@@ -108,6 +112,14 @@ async function loadAllData() {
 
   // getCriterios() de core/render.js lee del Store, no de _criterios.
   Store.set({ profile: CU, periodos: _periodos, criterios: _criterios, lastUpdated: new Date() });
+
+  // Gestión elegida por URL (?gestion=). Si está archivada, solo lectura.
+  const gs = await API.getGestiones();
+  const gActual = gs.find(g => String(g.id) === String(new URLSearchParams(location.search).get('gestion')))
+               || gs.find(g => g.activa) || null;
+  renderBannerSoloLectura(gActual);
+  renderSelectorGestion('gestion-switch', gs, gActual?.id,
+    id => location.assign('admin.html?gestion=' + encodeURIComponent(id)));
 
   const defPE = _periodos.find(p => p.activo) || _periodos[0];
   if (defPE && !_activePE) _activePE = defPE;
@@ -1454,10 +1466,75 @@ function switchRankTab(tab) {
 const _tabParentMap = {
   overview:'overview', evaluar:'evaluar', usuarios:'evaluar', roles:'evaluar',
   distritos:'distritos', periodos:'periodos', calendario:'periodos', rubrica:'periodos',
+  gestiones:'periodos',
   reportes:'reportes',
 };
 
+/* ── TAB: GESTIONES ──────────────────────────────────────────────────
+ * Cada gestión es un contenedor estanco: sus períodos, criterios, rúbrica
+ * y calendario le pertenecen. Lo pasado se lee siempre, se escribe nunca —
+ * lo garantiza gestion_escribible() en el WITH CHECK de las policies.
+ */
+let _gestiones = [];
+
+async function renderGestiones() {
+  const el = document.getElementById('gestiones-list'); if (!el) return;
+  _gestiones = await API.getGestiones();
+
+  if (!_gestiones.length) {
+    renderVacio(el, 'No hay gestiones configuradas.');
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="tbl">
+      <div class="tbl-head"><div>Gestión</div><div>Estado</div><div>Períodos</div><div></div></div>
+      <div class="tbl-body">
+        ${_gestiones.map(g => `
+          <div class="tbl-row">
+            <div class="tbl-cell"><strong>${escHtml(g.nombre)}</strong></div>
+            <div class="tbl-cell">
+              <span class="estado-pill ${g.activa ? 'pill--ok' : 'pill--off'}">
+                ${g.activa ? 'Activa' : g.archivada ? 'Archivada' : 'Inactiva'}
+              </span>
+            </div>
+            <div class="tbl-cell tbl-muted">${g.activa ? 'en curso' : 'solo lectura'}</div>
+            <div class="tbl-cell tbl-actions">
+              <a class="btn-icon" href="admin.html?gestion=${encodeURIComponent(g.id)}"
+                 title="Ver esta gestión">${ICONS.search}</a>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function showAbrirGestionModal() {
+  document.getElementById('mg-nombre').value = '';
+  document.getElementById('mg-err').textContent = '';
+  openModal('modal-gestion');
+}
+
+async function confirmarAbrirGestion() {
+  const nombre = document.getElementById('mg-nombre').value.trim();
+  const err    = document.getElementById('mg-err');
+  if (!nombre) { err.textContent = 'Escribe el nombre de la gestión.'; return; }
+
+  const actual = _gestiones.find(g => g.activa);
+  if (!confirm(
+    `Se archivará "${actual?.nombre ?? 'la gestión actual'}" y se abrirá "${nombre}".\n\n` +
+    'La gestión archivada seguirá siendo consultable, pero no se podrá modificar. ¿Continuar?'
+  )) return;
+
+  const res = await API.abrirGestion(nombre);
+  if (!res.ok) { err.textContent = res.error; return; }
+
+  closeModal('modal-gestion');
+  showToast('Gestión abierta', 'ok');
+  location.assign('admin.html');
+}
+
 function switchTabAdminHooks(tab) {
+  if (tab === 'gestiones') renderGestiones();
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }

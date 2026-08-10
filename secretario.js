@@ -85,7 +85,7 @@ function initRevalidacion() {
 /* ── FASE 1: CONTEXTO ── */
 async function loadContexto() {
   try {
-    const ctx = await API.getContexto();
+    const ctx = await API.getContexto(gestionDeURL());
     if (!ctx.ok) { mostrarErrorCarga(ctx.error); return false; }
 
     _lastUpdated = new Date();
@@ -96,7 +96,12 @@ async function loadContexto() {
       lastUpdated: _lastUpdated,
     });
     D = { ...(D || {}), criterios: ctx.criterios, periodos: ctx.periodos,
-          rubrica: ctx.rubrica, calendario: ctx.calendario };
+          rubrica: ctx.rubrica, calendario: ctx.calendario,
+          gestion: ctx.gestion, gestiones: ctx.gestiones, soloLectura: ctx.soloLectura };
+
+    // Lo pasado se lee siempre, se escribe nunca.
+    renderBannerSoloLectura(ctx.gestion);
+    renderSelectorGestion('gestion-switch', ctx.gestiones, ctx.gestion?.id, cambiarGestion);
 
     if (!_peInited) {
       const inicial = ctx.periodoActivo || ctx.periodos?.[0] || null;
@@ -112,6 +117,22 @@ async function loadContexto() {
     mostrarErrorCarga(e.message || String(e));
     return false;
   }
+}
+
+/**
+ * Cambia de gestión. Recarga la página con ?gestion=<id>: reconstruir el
+ * estado a mano (períodos, contenido, historial, caché de pestañas) es más
+ * frágil que empezar limpio, y cambiar de gestión es una acción rara.
+ */
+function cambiarGestion(gestionId) {
+  const u = new URL(location.href);
+  u.searchParams.set('gestion', gestionId);
+  location.assign(u.toString());
+}
+
+/** Gestión pedida por URL, si la hay. */
+function gestionDeURL() {
+  return new URLSearchParams(location.search).get('gestion') || null;
 }
 
 /* ── FASE 2: CONTENIDO del período elegido (lazy, cancelable) ── */
@@ -777,7 +798,9 @@ function selectTrabajoPE(pe, btn) { cambiarPeriodo(pe, btn); }
 async function renderTrabajosTab() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
   el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  const data = await API.getTrabajosEntregados(CU.id, _trabajosPE);
+  // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
+  const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
+  const data = await API.getTrabajosEntregados(CU.id, pidTrab);
   renderTrabajosBody(data);
 }
 
@@ -827,7 +850,9 @@ async function saveTrabajo() {
   const tEl = document.getElementById('tj-titulo'), dEl = document.getElementById('tj-desc');
   const titulo = tEl?.value.trim()||'', desc = dEl?.value.trim()||'';
   if (!desc) { showToast('Describe el trabajo antes de agregar.','error'); dEl?.focus(); return; }
-  const res = await API.upsertTrabajo({ user_id:CU.id, periodo_nombre:_trabajosPE, titulo, descripcion:desc });
+  const pidNuevo = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
+  if (!pidNuevo) { showToast('No se pudo identificar el período.', 'error'); return; }
+  const res = await API.upsertTrabajo({ user_id:CU.id, periodo_id:pidNuevo, titulo, descripcion:desc });
   if (!res.ok) { showToast('Error: '+res.error,'error'); return; }
   if (tEl) tEl.value=''; if (dEl) dEl.value='';
   showToast('✓ Trabajo registrado','ok');

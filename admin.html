@@ -51,11 +51,13 @@
       <div class="tnav-drop">
         <button class="tnav-drop-item" onclick="switchTab('calendario')"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
         <button class="tnav-drop-item" onclick="switchTab('rubrica')"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
+        <button class="tnav-drop-item" onclick="switchTab('gestiones')"><i data-lucide="archive" class="nav-icon"></i> Gestiones</button>
       </div>
     </div>
     <button class="tnav" onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
   </nav>
   <div class="tb-user">
+    <span id="gestion-switch" hidden></span>
     <span class="last-updated-badge" id="ts-badge"></span>
     <div class="avatar admin-av" id="av-desktop">A</div>
     <span class="uname" id="uname-desktop">Admin</span>
@@ -86,6 +88,7 @@
         <button class="mobile-nav-btn" onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
         <button class="mobile-nav-btn" onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
         <button class="mobile-nav-btn" onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
+        <button class="mobile-nav-btn" onclick="switchTabMobile('gestiones',this)"><i data-lucide="archive" class="nav-icon"></i>Gestiones</button>
       </div>
     </div>
     <button class="mobile-nav-btn" onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
@@ -280,6 +283,19 @@
     </div>
   </div>
 
+  <!-- ── TAB: GESTIONES ── -->
+  <div id="tab-gestiones" class="atab-content">
+    <div class="ptitle">GESTIONES</div>
+    <p class="rubrica-intro" style="max-width:70ch">
+      Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario.
+      Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.
+    </p>
+    <div style="display:flex;gap:10px;margin:18px 0">
+      <button class="btn-cfg-add" onclick="showAbrirGestionModal()">+ Abrir gestión nueva</button>
+    </div>
+    <div id="gestiones-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
 </div>
 
 <!-- MODAL: ROL -->
@@ -297,6 +313,26 @@
       <button class="btn-out" onclick="closeModal('modal-rol')">Cancelar</button>
     </div>
     <div class="modal-err" id="mrol-err"></div>
+  </div>
+</div>
+
+
+<!-- MODAL: ABRIR GESTIÓN -->
+<div class="modal-overlay" id="modal-gestion" style="display:none" onclick="if(event.target===this)closeModal('modal-gestion')">
+  <div class="modal-box">
+    <div class="modal-title">Abrir gestión nueva</div>
+    <div class="field"><label for="mg-nombre">Nombre (ej: 2027-2028)</label>
+      <input class="cfg-inp" type="text" id="mg-nombre" placeholder="2027-2028"></div>
+    <div class="modal-hint" style="font-size:.72rem;color:var(--muted);line-height:1.5">
+      Se archivará la gestión actual y se clonarán criterios, rúbrica, calendario
+      y los períodos base como plantilla editable. La gestión nueva arranca sin
+      ninguna evaluación y sin ningún período activo.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="confirmarAbrirGestion()">Abrir gestión</button>
+      <button class="btn-out" onclick="closeModal('modal-gestion')">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mg-err"></div>
   </div>
 </div>
 

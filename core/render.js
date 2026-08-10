@@ -76,6 +76,54 @@ const calcScorePuntajes = (puntajes, bono) =>
   Object.values(parseJSON(puntajes)).reduce((s, v) => s + (Number(v) || 0), 0) + (Number(bono) || 0);
 
 
+/* ══ GESTIONES ═════════════════════════════════════════════════════════
+ * Lo pasado se lee siempre, se escribe nunca. Cuando la gestión que se está
+ * viendo está archivada, se muestra un banner y se ocultan los controles de
+ * escritura, que además la base rechaza vía gestion_escribible().
+ */
+function renderBannerSoloLectura(gestion) {
+  const previo = document.getElementById('banner-solo-lectura');
+  if (previo) previo.remove();
+  if (!gestion?.archivada) {
+    document.body.classList.remove('gestion-archivada');
+    return;
+  }
+
+  document.body.classList.add('gestion-archivada');
+  const b = document.createElement('div');
+  b.id = 'banner-solo-lectura';
+  b.className = 'banner-readonly';
+  b.setAttribute('role', 'status');
+  b.textContent = `Estás viendo la gestión ${gestion.nombre}, archivada. Solo lectura: no se puede modificar nada.`;
+  document.body.insertBefore(b, document.body.firstChild);
+}
+
+/**
+ * Selector de gestión en el topbar. Solo aparece si hay más de una: con una
+ * sola gestión no significa nada y ocupa sitio.
+ */
+function renderSelectorGestion(contenedorId, gestiones, actualId, onSelect) {
+  const host = document.getElementById(contenedorId);
+  if (!host) return;
+  host.replaceChildren();
+  if (!gestiones || gestiones.length < 2) { host.hidden = true; return; }
+
+  host.hidden = false;
+  const sel = document.createElement('select');
+  sel.className = 'gestion-select';
+  sel.setAttribute('aria-label', 'Gestión');
+  for (const g of gestiones) {
+    const o = document.createElement('option');
+    o.value = String(g.id);
+    o.textContent = g.nombre + (g.activa ? ' (actual)' : g.archivada ? ' (archivada)' : '');
+    if (String(g.id) === String(actualId)) o.selected = true;
+    sel.appendChild(o);
+  }
+  sel.addEventListener('change', () => onSelect(sel.value));
+  host.appendChild(sel);
+}
+
+
 /* ══ ESTADO DE UN PERÍODO ══════════════════════════════════════════════
  * Tres estados, no dos. Antes todo período no activo se marcaba "Cerrado",
  * incluidos los que aún no han empezado.
