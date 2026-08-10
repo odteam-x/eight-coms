@@ -25,6 +25,13 @@ function escHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
+/* ── Log de depuración — activar con localStorage.setItem('ec-debug','1') ── */
+function debug(...args) {
+  try {
+    if (localStorage.getItem('ec-debug') === '1') console.log(...args);
+  } catch { /* localStorage bloqueado (modo privado / cookies off) */ }
+}
+
 /* ── Lucide icon helper — returns a <i data-lucide> tag that lucide.createIcons() renders ── */
 function renderLucideIcon(name, cls) {
   return '<i data-lucide="' + name + '"' + (cls ? ' class="' + cls + '"' : '') + '></i>';

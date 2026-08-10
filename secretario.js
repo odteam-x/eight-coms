@@ -8,7 +8,7 @@
 let CU = null, D = null;
 function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
 let mPE='PE1', rPE='PE1', dPE='PE1';
-let _arTimer=null, _lastUpdated=null, _menuOpen=false, _peInited=false;
+let _lastUpdated=null, _menuOpen=false, _peInited=false;
 
 const CRITERIOS_DEFAULT = [
   { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
@@ -56,21 +56,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAnyRole(['secretario','miembro']);
   if (!CU) return;
 
-  const cached = Auth.getCachedData();
-  if (cached) {
-    D = cached;
-    if (!_peInited) {
-      const activoName = cached.config?.periodoActivo
-        || cached.periodos?.find(p => p.estado === 'Activo')?.pe;
-      if (activoName) {
-        mPE = rPE = dPE = activoName;
-        _trabajosPE = mPE;
-        _peInited = true;
-      }
-    }
-    syncAllPEButtons();
-    initUI();
-  }
   await loadData();
   initUI();
 });
@@ -621,7 +606,7 @@ function showToast(msg,type='') {
   t.textContent=msg;t.className=`toast${type?' toast--'+type:''} show`;
   setTimeout(()=>t.classList.remove('show'),3000);
 }
-function logout(){if(_arTimer)clearInterval(_arTimer);Auth.logout();}
+function logout(){Auth.logout();}
 function initScrollEffects(){
   const topbar=document.getElementById('topbar'),backTop=document.getElementById('back-top');let ticking=false;
   window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const y=window.scrollY;topbar?.classList.toggle('scrolled',y>10);backTop?.classList.toggle('visible',y>300);ticking=false;});ticking=true;}},{passive:true});

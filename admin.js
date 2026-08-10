@@ -1226,7 +1226,7 @@ async function loadOverview() {
     API.getEvalDistritosByPE(_activePEOv.id),
     API.getParticipantes(_activePEOv.id),
   ]);
-  console.log('[Overview] PE:', _activePEOv.nombre, '| evals:', evals.length, '| publicadas:', evals.filter(e=>e.estado==='publicado').length, '| distEvals:', distEvals.length, '| participantes:', participantes.length, '| inactivos:', participantes.filter(r=>!r.activo).length);
+  debug('[Overview] PE:', _activePEOv.nombre, '| evals:', evals.length, '| publicadas:', evals.filter(e=>e.estado==='publicado').length, '| distEvals:', distEvals.length, '| participantes:', participantes.length, '| inactivos:', participantes.filter(r=>!r.activo).length);
   _overviewEvals     = evals;
   _overviewDistEvals = distEvals;
   _ovInactivosPE     = new Set(participantes.filter(r => !r.activo).map(r => r.user_id));

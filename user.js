@@ -3,7 +3,7 @@
  */
 'use strict';
 
-let CU = null, D = null, mPE = 'PE1', _arTimer = null, _lastUpdated = null, _menuOpen = false, _peInited = false, _rptUserLoaded = false;
+let CU = null, D = null, mPE = 'PE1', _lastUpdated = null, _menuOpen = false, _peInited = false, _rptUserLoaded = false;
 
 const CRITERIOS_DEFAULT = [
   { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
@@ -23,22 +23,6 @@ const MAX_TOTAL    = () => getMaxScore() + 2;         // 30 pts con bono
 document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireRole('miembro');
   if (!CU) return;
-
-  const cached = Auth.getCachedData();
-  if (cached) {
-    D = cached;
-    if (!_peInited) {
-      const activoName = cached.config?.periodoActivo
-        || cached.periodos?.find(p => p.estado === 'Activo')?.pe;
-      if (activoName) {
-        mPE = activoName;
-        _trabajosPE = mPE;
-        _peInited = true;
-      }
-    }
-    syncAllPEButtons();
-    initUI();
-  }
 
   await loadData();
   initUI();
@@ -451,7 +435,7 @@ function showToast(msg, type='') {
 }
 
 /* ── LOGOUT ── */
-function logout() { if(_arTimer) clearInterval(_arTimer); Auth.logout(); }
+function logout() { Auth.logout(); }
 
 /* ── SCROLL ── */
 function initScrollEffects() {

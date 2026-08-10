@@ -197,7 +197,7 @@ const API = {
       .eq('periodo_id', periodo_id)
       .order('created_at');
     if (error) console.error('[API] getEvaluacionesByPE ERROR:', error, 'status:', status);
-    console.log('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
+    debug('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
     return (data ?? []).map(e => ({
       ...e,
       evaluado_id:  e.evaluado_id  ?? e.evaluado?.id,
