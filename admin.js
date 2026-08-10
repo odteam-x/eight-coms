@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const name = CU.nombre || CU.email;
   const avContent = CU.avatar_url
-    ? `<img src="${CU.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    ? `<img src="${escHtml(CU.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
     : _USER_ICON;
   ['av-desktop','av-mobile'].forEach(id => {
     const el = document.getElementById(id);
@@ -138,7 +138,7 @@ function renderEvalPEBar() {
   if (!_activePE) _activePE = _periodos.find(p => p.activo) || _periodos[0];
 
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
   ).join('');
 
   loadEvalPEData();
@@ -239,13 +239,13 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const rows = criterios.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
-        <div class="eval-crit-label">${c.label}</div>
+        <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+        <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
+            onclick="setScore('${c.key}',${v},this)" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
@@ -256,7 +256,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const trabajosHTML = trabajos && trabajos.length ? `
     <details class="eval-trabajos-section" open>
       <summary class="eval-extra-label" style="cursor:pointer;user-select:none">
-        Trabajos entregados — ${_activePE?.nombre || ''} <span style="font-weight:400;color:var(--muted)">(${trabajos.length})</span>
+        Trabajos entregados — ${escHtml(_activePE?.nombre || '')} <span style="font-weight:400;color:var(--muted)">(${trabajos.length})</span>
       </summary>
       <div class="eval-trabajos-list">
         ${trabajos.map(t => `<div class="eval-trabajo-item">
@@ -267,7 +267,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       </div>
     </details>` : `
     <div class="eval-extras" style="opacity:.5">
-      <div class="eval-extra-label">Trabajos entregados — ${_activePE?.nombre || ''}</div>
+      <div class="eval-extra-label">Trabajos entregados — ${escHtml(_activePE?.nombre || '')}</div>
       <div style="font-size:.78rem;color:var(--muted)">Este miembro no ha entregado trabajos en este período.</div>
     </div>`;
 
@@ -372,7 +372,7 @@ function renderUsuariosPEBar() {
   }
   if (!_activePEUsers) _activePEUsers = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -400,20 +400,25 @@ function renderUsuarios() {
   }
   const showPECol = !!_activePEUsers;
   const distOpts = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
+  const filaCls = 'tbl--usuarios' + (showPECol ? ' tbl--usuarios-pe' : '');
   el.innerHTML = `
     <div class="tbl">
-      <div class="tbl-head">
-        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Tipo</div><div>Rol</div><div>Admin</div>
+      <div class="tbl-head ${filaCls}">
+        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Tipo</div><div>Rol</div><div>Acceso</div><div>Admin</div>
         ${showPECol ? '<div>Estado PE</div>' : ''}
         <div></div>
       </div>
       <div class="tbl-body">
         ${list.map(u => {
           const inactivo = _inactivosPE.has(u.id);
+          // `aprobado !== false` → si la migración 0001 aún no se aplicó el
+          // campo es undefined y se muestra como aprobado, igual que el gate
+          // de auth.js. Así el panel no miente antes de correr el SQL.
+          const aprobado = u.aprobado !== false;
           return `
-          <div class="tbl-row">
+          <div class="tbl-row ${filaCls}">
             <div class="tbl-cell">
-              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${initials(u.nombre||u.email)}</div>
+              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${escHtml(initials(u.nombre||u.email))}</div>
               <span>${escHtml(u.nombre || '—')}</span>
             </div>
             <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>
@@ -436,6 +441,13 @@ function renderUsuarios() {
                 onchange="updateUserRol('${u.id}',this.value)">
                 ${_roles.map(r => `<option value="${r.id}"${r.id===u.rol_id?' selected':''}>${escHtml(r.nombre)}</option>`).join('')}
               </select>
+            </div>
+            <div class="tbl-cell">
+              <button class="pe-toggle ${aprobado ? 'pe-toggle--on' : 'pe-toggle--off'}"
+                onclick="updateUserAprobado('${u.id}',${!aprobado})"
+                title="${aprobado ? 'Revocar el acceso al portal' : 'Aprobar el acceso al portal'}">
+                ${aprobado ? 'Aprobado' : 'Pendiente'}
+              </button>
             </div>
             <div class="tbl-cell">
               <label class="toggle-switch" title="${u.es_admin?'Quitar admin':'Hacer admin'}">
@@ -520,6 +532,14 @@ async function updateUserRol(userId, rolId) {
   _users = _users.map(u => u.id === userId ? { ...u, rol_id: Number(rolId) } : u);
 }
 
+async function updateUserAprobado(userId, aprobado) {
+  const res = await API.updateUserAprobado(userId, aprobado);
+  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
+  showToast(aprobado ? 'Acceso aprobado' : 'Acceso revocado', 'ok');
+  _users = _users.map(u => u.id === userId ? { ...u, aprobado } : u);
+  renderUsuarios();
+}
+
 async function updateUserAdmin(userId, esAdmin) {
   const res = await API.updateUserAdmin(userId, esAdmin);
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
@@ -533,7 +553,7 @@ function renderRoles() {
   const q = (document.getElementById('search-roles')?.value || '').toLowerCase().trim();
   const list = _roles.filter(r => !q || (r.nombre||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin roles.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin roles.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -598,7 +618,7 @@ function renderPeriodos() {
     (p.nombre||'').toLowerCase().includes(q) ||
     (p.descripcion||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin períodos.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin períodos.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -687,7 +707,7 @@ function renderCriterios() {
     (c.key||'').toLowerCase().includes(q) ||
     (c.abbr||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin criterios. Agrega el primero.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin criterios. Agrega el primero.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -696,9 +716,9 @@ function renderCriterios() {
       <div class="tbl-body">
         ${list.map(c => `
           <div class="tbl-row">
-            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};flex-shrink:0"></span></div>
-            <div class="tbl-cell"><strong>${c.label}</strong></div>
-            <div class="tbl-cell"><span class="cbar-tag" style="color:${c.color}">${c.abbr}</span></div>
+            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${escHtml(c.color)};flex-shrink:0"></span></div>
+            <div class="tbl-cell"><strong>${escHtml(c.label)}</strong></div>
+            <div class="tbl-cell"><span class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span></div>
             <div class="tbl-cell tbl-muted">${c.key}</div>
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
@@ -768,7 +788,7 @@ function renderRubrica() {
     (r.criterios?.label||'').toLowerCase().includes(q) ||
     (r.criterios?.abbr||'').toLowerCase().includes(q));
   if (!rubList.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
     return;
   }
   const levels = [
@@ -785,12 +805,12 @@ function renderRubrica() {
       <div class="rubrica-card" id="rca-${i}">
         <div class="rubrica-card-head" onclick="document.getElementById('rca-${i}').classList.toggle('open')">
           <div class="rubrica-dot" style="background:${color}"></div>
-          <div class="rubrica-title" style="color:${color}">${r.criterio || c.label || '—'}</div>
+          <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio || c.label || '—')}</div>
           <span class="rubrica-chev"></span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
-            ${levels.map(l => `<div class="rlevel"><div class="rlevel-badge" style="color:${l.color}">${l.n}</div><div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]] || '—'}</div></div>`).join('')}
+            ${levels.map(l => `<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]] || '—'}</div></div>`).join('')}
           </div>
           <div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--faint)">
             <button class="btn-icon" onclick="showRubricaModal(${r.id})" title="Editar entrada">${ICONS.edit}</button>
@@ -806,7 +826,7 @@ function showRubricaModal(id) {
   const critSel = document.getElementById('mrub-criterio');
   const allCrits = _criterios.length ? _criterios : getCriterios();
   critSel.innerHTML = '<option value="">Seleccionar criterio...</option>' +
-    allCrits.map(c => `<option value="${c.id}" ${r?.criterio_id === c.id ? 'selected' : ''}>${c.label}</option>`).join('');
+    allCrits.map(c => `<option value="${c.id}" ${r?.criterio_id === c.id ? 'selected' : ''}>${escHtml(c.label)}</option>`).join('');
 
   document.getElementById('mrub-id').value    = r?.id || '';
   document.getElementById('mrub-n4').value    = r?.nivel4 || '';
@@ -859,7 +879,7 @@ function renderCalendario() {
     (p.titulo||'').toLowerCase().includes(q) ||
     String(p.numero||'').includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
     return;
   }
   const cAcc = { rojo:'cal-acc--rojo', verde:'cal-acc--verde', azul:'cal-acc--azul', amarillo:'cal-acc--amarillo' };
@@ -873,7 +893,7 @@ function renderCalendario() {
           <div class="cal-acc ${cAcc[c] || cAcc.rojo}"></div>
           <div class="cal-body">
             <div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div>
-            <div class="cal-t ${cT[c] || cT.rojo}">${p.titulo}</div>
+            <div class="cal-t ${cT[c] || cT.rojo}">${escHtml(p.titulo)}</div>
             ${rows.map(([l,v]) => `<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
             <div style="display:flex;gap:6px;margin-top:10px">
               <button class="btn-icon" onclick="showCalModal('${p.id}')" title="Editar">${ICONS.edit}</button>
@@ -943,7 +963,7 @@ function renderDistPEBar() {
   }
   if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
   ).join('');
   renderDistritoSelect();
   renderDistritoRanking(_activePEDist?.id);
@@ -960,7 +980,7 @@ async function selectDistPE(periodoId, btn) {
 function renderDistritoSelect() {
   const sel = document.getElementById('dist-eval-select'); if (!sel) return;
   sel.innerHTML = '<option value="">Seleccionar distrito...</option>' +
-    _distritos.map(d => `<option value="${d.id}">${d.nombre}</option>`).join('');
+    _distritos.map(d => `<option value="${d.id}">${escHtml(d.nombre)}</option>`).join('');
 }
 
 function onDistSelectChange() {
@@ -988,7 +1008,7 @@ async function renderDistritoRanking(periodoId) {
     .sort((a, b) => b.score - a.score);
 
   if (!ranked.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
     return;
   }
 
@@ -1001,7 +1021,7 @@ async function renderDistritoRanking(periodoId) {
       <div class="tbl-body">
         ${ranked.map((d, i) => `
           <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
-               onclick="document.getElementById('dist-eval-select').value='${d.distrito_id}';onDistSelectChange()">
+               onclick="document.getElementById('dist-eval-select').value='${escHtml(d.distrito_id)}';onDistSelectChange()">
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
             <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
@@ -1051,10 +1071,10 @@ function renderDistEvalForm(ev, distId, historial = []) {
       ${prevHistory.map(h => {
         const s = calcDistScore(h.puntajes);
         return `<div class="dist-hist-card">
-          <div class="dist-hist-pe">${h.periodos_evaluacion?.nombre || '—'}</div>
+          <div class="dist-hist-pe">${escHtml(h.periodos_evaluacion?.nombre || '—')}</div>
           ${DIST_CRITERIOS.map(c => `
             <div class="dist-hist-crit">
-              <span class="dist-hist-abbr" style="color:${c.color}">${c.abbr}</span>
+              <span class="dist-hist-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
               <span class="dist-hist-val">${h.puntajes?.[c.key] ?? '—'}</span>
             </div>`).join('')}
           <div class="dist-hist-total" style="color:${distScoreColor(s)}">${s}<span style="font-size:.6rem;color:var(--muted);font-weight:400">/${MAX_DIST}</span></div>
@@ -1066,13 +1086,13 @@ function renderDistEvalForm(ev, distId, historial = []) {
   const rows = DIST_CRITERIOS.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
-        <div class="eval-crit-label">${c.label}</div>
+        <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+        <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
+            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
@@ -1096,9 +1116,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
       <div class="ig-stats-grid">
         ${_IG_FIELDS.map(f => `
           <div class="ig-stat-field">
-            <label class="ig-stat-lbl">${f.label}</label>
+            <label class="ig-stat-lbl">${escHtml(f.label)}</label>
             <input class="ig-stat-inp" type="text" id="ig-${f.key}"
-              placeholder="${f.placeholder}" value="${igStats[f.key] || ''}">
+              placeholder="${escHtml(f.placeholder)}" value="${escHtml(igStats[f.key] || '')}">
           </div>`).join('')}
       </div>
 
@@ -1203,7 +1223,7 @@ function renderOvPEBar() {
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   if (!_activePEOv) _activePEOv = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -1314,7 +1334,7 @@ function renderOverview() {
     <div class="ov-cols">
       <div class="ov-panel">
         <div class="rank-panel-header">
-          <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${_activePEOv?.nombre || ''}</div>
+          <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${escHtml(_activePEOv?.nombre || '')}</div>
           <div class="rank-tabs">
             <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" onclick="switchRankTab('users')">Usuarios</button>
             <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" onclick="switchRankTab('dist')">Distritos</button>
@@ -1381,8 +1401,8 @@ function renderOverview() {
             const n   = dist[l.key]||0;
             const pct = scored.length ? Math.round(n/scored.length*100) : 0;
             return `<div class="level-dist-row">
-              <div class="level-dist-lbl" style="color:${l.color}">${l.lbl}</div>
-              <div class="level-dist-bar"><div class="level-dist-fill" style="width:${pct}%;background:${l.color}"></div></div>
+              <div class="level-dist-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
+              <div class="level-dist-bar"><div class="level-dist-fill" style="width:${pct}%;background:${escHtml(l.color)}"></div></div>
               <div class="level-dist-num">${n}</div>
             </div>`;
           }).join('')}
@@ -1413,10 +1433,10 @@ function renderOverview() {
       <div class="crit-bars-grid">
         ${critAvg.map(c => `
           <div class="crit-bar-row">
-            <div class="crit-bar-tag" style="color:${c.color}">${c.abbr}</div>
+            <div class="crit-bar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
             <div style="flex:1;min-width:0">
-              <div class="crit-bar-name">${c.label}</div>
-              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${c.avg/4*100}%;background:${c.color}"></div></div>
+              <div class="crit-bar-name">${escHtml(c.label)}</div>
+              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${c.avg/4*100}%;background:${escHtml(c.color)}"></div></div>
             </div>
             <div class="crit-bar-val">${c.avg?c.avg.toFixed(1):'—'}<span style="font-size:.6rem;color:var(--muted)"> /4</span></div>
           </div>`).join('')}
@@ -1481,7 +1501,7 @@ function renderRptPEBar() {
   const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   bar.innerHTML = _periodos.map(p =>
-    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE('${p.id}',this)">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -1551,8 +1571,8 @@ function renderAdminReport() {
         ${criterios.map(c => {
           const val = Number(punt[c.key]) || 0;
           return `<div class="rpt-ind-bar-row">
-            <div class="rpt-ind-bar-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
-            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${c.color}"></div></div>
+            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${escHtml(c.color)}"></div></div>
             <div class="rpt-ind-bar-val">${val}/4</div>
           </div>`;
         }).join('')}
@@ -1563,13 +1583,13 @@ function renderAdminReport() {
         </div>
       </div>
       ${strongCrit || weakCrit ? `<div class="rpt-ind-highlights">
-        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${strongCrit.label} (${maxCrit}/4)</div>` : ''}
-        ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${weakCrit.label} (${minCrit}/4)</div>` : ''}
+        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${escHtml(strongCrit.label)} (${maxCrit}/4)</div>` : ''}
+        ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${escHtml(weakCrit.label)} (${minCrit}/4)</div>` : ''}
       </div>` : ''}
       ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
         ${comKeys.map(k => {
           const c = criterios.find(cr => cr.key === k);
-          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${c?.color||'var(--txt)'}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
+          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${escHtml(c?.color||'var(--txt)')}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
         }).join('')}
         ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${escHtml(comentarios.general)}</div>` : ''}
       </div>` : ''}
@@ -1584,7 +1604,7 @@ function renderAdminReport() {
       <div>
         <div class="rpt-org">EIGHT CREATORS LABs</div>
         <div class="rpt-title-big">REPORTE DE EVALUACIONES</div>
-        <div class="rpt-period-lbl">${_rptPE.nombre}${_rptPE.descripcion ? ' · ' + _rptPE.descripcion : ''}</div>
+        <div class="rpt-period-lbl">${escHtml(_rptPE.nombre)}${escHtml(_rptPE.descripcion ? ' · ' + _rptPE.descripcion : '')}</div>
       </div>
       <div class="rpt-date-wrap">
         <div class="rpt-date-lbl">Generado el</div>
@@ -1609,7 +1629,7 @@ function renderAdminReport() {
             <th class="rpt-th rpt-th-num">#</th>
             <th class="rpt-th">Nombre</th>
             <th class="rpt-th">Rol</th>
-            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${c.label}">${c.abbr}</th>`).join('')}
+            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${escHtml(c.label)}">${escHtml(c.abbr)}</th>`).join('')}
             <th class="rpt-th">Bono</th>
             <th class="rpt-th">Total</th>
             <th class="rpt-th">Nivel</th>
@@ -1655,9 +1675,9 @@ function renderAdminReport() {
             const cnt = dist[n.key] || 0;
             const pct = evaluated ? Math.round(cnt / evaluated * 100) : 0;
             return `<div class="rpt-dist-item">
-              <div class="rpt-dist-bar-track"><div class="rpt-dist-bar-fill" style="height:${pct}%;background:${n.color}"></div></div>
-              <div class="rpt-dist-count" style="color:${n.color}">${cnt}</div>
-              <div class="rpt-dist-nlbl">${n.label}</div>
+              <div class="rpt-dist-bar-track"><div class="rpt-dist-bar-fill" style="height:${pct}%;background:${escHtml(n.color)}"></div></div>
+              <div class="rpt-dist-count" style="color:${escHtml(n.color)}">${cnt}</div>
+              <div class="rpt-dist-nlbl">${escHtml(n.label)}</div>
               <div class="rpt-dist-pct">${pct}%</div>
             </div>`;
           }).join('')}
@@ -1669,9 +1689,9 @@ function renderAdminReport() {
         ${critAvg.map(c => {
           const pct = (c.avg / 4) * 100;
           return `<div class="rpt-crit-row">
-            <div class="rpt-crit-lbl" title="${c.label}">${c.abbr}</div>
+            <div class="rpt-crit-lbl" title="${escHtml(c.label)}">${escHtml(c.abbr)}</div>
             <div class="rpt-crit-bar-track">
-              <div class="rpt-crit-bar-fill" style="width:${pct}%;background:${c.color||'var(--accent2)'}"></div>
+              <div class="rpt-crit-bar-fill" style="width:${pct}%;background:${escHtml(c.color||'var(--accent2)')}"></div>
             </div>
             <div class="rpt-crit-val">${c.avg ? c.avg.toFixed(1) : '—'}</div>
           </div>`;
@@ -1692,7 +1712,7 @@ function renderAdminReport() {
     </div>` : ''}
     `}
 
-    <div class="rpt-footer">EIGHT CREATORS LABs · ${_rptPE.nombre} · Generado el ${today}</div>
+    <div class="rpt-footer">EIGHT CREATORS LABs · ${escHtml(_rptPE.nombre)} · Generado el ${today}</div>
   </div>`;
 }
 

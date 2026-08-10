@@ -16,28 +16,25 @@ const API = {
     return { ok: true };
   },
 
-  async register({ email, password, nombre, rol_id, distrito, tipo_miembro }) {
-    const { data, error } = await SB.auth.signUp({
+  /**
+   * Alta de cuenta. SOLO acepta email, contraseña y nombre.
+   *
+   * SEGURIDAD: no escribe en `profiles`. La fila la crea el trigger
+   * on_auth_user_created (migración 0001) con valores fijos del servidor:
+   * tipo_miembro='miembro', es_admin=false, distrito=NULL, rol_id=NULL,
+   * aprobado=false. El cliente no puede influir en ninguno.
+   *
+   * Antes se hacía un upsert desde aquí con los valores del formulario, que
+   * incluía un <select> con la opción "Secretario". Además, con "Confirm
+   * email" activo aún no hay sesión en signUp, así que auth.uid() es NULL y
+   * el upsert fallaba en silencio dejando usuarios sin perfil.
+   */
+  async register({ email, password, nombre }) {
+    const { error } = await SB.auth.signUp({
       email, password,
-      options: { data: { nombre } },
+      options: { data: { nombre } },   // solo se usa para el nombre a mostrar
     });
     if (error) return { ok: false, error: error.message };
-    if (data.user) {
-      // Upsert perfil
-      const { error: pe } = await SB.from('profiles').upsert({
-        id:           data.user.id,
-        email:        email,
-        nombre:       nombre || email.split('@')[0],
-        rol_id:       rol_id   ? Number(rol_id) : null,
-        distrito:     distrito  || null,
-        tipo_miembro: tipo_miembro || 'miembro',
-      }, { onConflict: 'id' });
-      if (pe) console.warn('[register] profiles upsert:', pe.message);
-
-      // SECURITY: La tabla credenciales almacenaba contraseñas en texto plano.
-      // Supabase Auth ya hashea las contraseñas con bcrypt — no es necesario
-      // (ni seguro) guardar una copia en texto plano en otra tabla.
-    }
     return { ok: true };
   },
 
@@ -129,9 +126,13 @@ const API = {
 
   // ── ADMIN: usuarios ──────────────────────────────────────────────
   async getAllUsers() {
+    // `*` en vez de lista explícita a propósito: si se nombra `aprobado` y la
+    // migración 0001 aún no se ha aplicado, PostgREST devuelve error 42703 y
+    // la lista de usuarios del admin queda vacía. Con `*` funciona en ambos
+    // casos. (La paginación de esta consulta entra en la Fase 3.4.)
     const { data } = await SB
       .from('profiles')
-      .select('id, nombre, email, es_admin, rol_id, roles(id, nombre), distrito, tipo_miembro, avatar_url, created_at')
+      .select('*, roles(id, nombre)')
       .order('nombre');
     return data ?? [];
   },
@@ -143,6 +144,12 @@ const API = {
 
   async updateUserAdmin(user_id, es_admin) {
     const { error } = await SB.from('profiles').update({ es_admin }).eq('id', user_id);
+    return { ok: !error, error: error?.message };
+  },
+
+  /** Aprueba o revoca el acceso al portal. Solo admin (lo garantiza RLS). */
+  async updateUserAprobado(user_id, aprobado) {
+    const { error } = await SB.from('profiles').update({ aprobado }).eq('id', user_id);
     return { ok: !error, error: error?.message };
   },
 

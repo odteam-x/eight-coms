@@ -437,7 +437,7 @@
 </div>
 
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
@@ -451,7 +451,7 @@
   if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
 })();
 </script>
-<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 'use strict';
 if(typeof lucide!=='undefined') lucide.createIcons();
@@ -460,6 +460,19 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   e.preventDefault();
   doLogin();
 });
+
+// Aviso de cuenta pendiente de aprobación.
+// auth.js cierra la sesión y redirige aquí con ?pendiente=1 cuando el perfil
+// tiene aprobado = false.
+(function avisoPendiente() {
+  if (new URLSearchParams(location.search).get('pendiente') !== '1') return;
+  const err = document.getElementById('li-err');
+  err.textContent = 'Tu cuenta está pendiente de aprobación por el administrador. '
+                  + 'Podrás entrar en cuanto la active.';
+  err.classList.add('visible');
+  // Limpia el parámetro para que no reaparezca al recargar.
+  history.replaceState(null, '', location.pathname);
+})();
 
 function togglePassField(btn, inputId) {
   var inp = document.getElementById(inputId);

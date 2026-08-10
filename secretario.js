@@ -134,7 +134,7 @@ function renderDistritoHeader() {
     el.innerHTML = `<div style="padding:14px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:4px">⚠ Sin distrito asignado</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="distrito-title-block"><div class="distrito-label">TU DISTRITO</div><div class="distrito-nombre">${nombre}</div></div>`;
+  el.innerHTML = `<div class="distrito-title-block"><div class="distrito-label">TU DISTRITO</div><div class="distrito-nombre">${escHtml(nombre)}</div></div>`;
 }
 
 /* ── PE DATES ── */
@@ -153,7 +153,7 @@ function renderPEDates(pe, tabId) {
   if (!p) { el.innerHTML = ''; return; }
   const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
   const estadoCls = (p.estado||'').toLowerCase().replace(/\s+/g,'-');
-  el.innerHTML = `<span class="pe-dates-nombre">${p.nombre||p.pe}</span>` +
+  el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
     items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${v}</span>`).join('') +
     (p.estado?`<span class="pe-dates-estado pe-estado--${estadoCls}">${p.estado}</span>`:'');
 }
@@ -191,9 +191,9 @@ function renderMyScore(pe) {
   const bars=criterios.map((c,i)=>{
     const val=myScore[c.key]??0, critFb=myFb?.[c.key]||'';
     return `<div class="cbar" style="animation-delay:${i*40}ms">
-      <div class="cbar-top"><div><div class="cbar-tag" style="color:${c.color}">${c.abbr}</div><div class="cbar-name">${c.label}</div></div>
-      <div class="cbar-val" style="color:${c.color}">${val}<span>/4</span></div></div>
-      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div>
+      <div class="cbar-top"><div><div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
+      <div class="cbar-val" style="color:${escHtml(c.color)}">${val}<span>/4</span></div></div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div></div>
       ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
     </div>`;
   }).join('');
@@ -202,8 +202,8 @@ function renderMyScore(pe) {
     <div class="score-summary-card">
       <div class="sse-left">
         <div class="sse-label">Puntaje total — ${pe}</div>
-        <div class="sse-name">${CU.name||CU.user}</div>
-        <div class="sse-role">${isSecretario()?'Secretario':'Creator'} · ${getMyDistrito()||'Sin distrito'}</div>
+        <div class="sse-name">${escHtml(CU.name||CU.user)}</div>
+        <div class="sse-role">${isSecretario()?'Secretario':'Creator'} · ${escHtml(getMyDistrito()||'Sin distrito')}</div>
         ${ext>0?`<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono +${ext}</span></div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -295,9 +295,9 @@ function renderRankingDistritos(pe) {
       const critBars = COMP.map(c => {
         const val = d[c.key] ?? 0;
         return `<div class="dm-crit-row">
-          <span class="dm-crit-abbr" style="color:${c.color}">${c.abbr}</span>
-          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:${c.color}"></div></div>
-          <span class="dm-crit-val" style="color:${c.color}">${val}</span>
+          <span class="dm-crit-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
+          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:${escHtml(c.color)}"></div></div>
+          <span class="dm-crit-val" style="color:${escHtml(c.color)}">${val}</span>
         </div>`;
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
@@ -366,9 +366,9 @@ function renderCalificacionDistrito(pe) {
     const critBars = DIST_CRITERIOS.map(c => {
       const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:${c.color}">${c.abbr}</span>
-        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${c.color}"></div></div>
-        <span class="dist-cal-val" style="color:${c.color}">${val}</span>
+        <span class="dist-cal-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
+        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${escHtml(c.color)}"></div></div>
+        <span class="dist-cal-val" style="color:${escHtml(c.color)}">${val}</span>
       </div>`;
     }).join('');
     el.innerHTML = `<div class="dist-cal-card">
@@ -394,7 +394,7 @@ function renderDistStats(pe) {
   const rows=getDistritoRows(pe);
   const totalMembers=members.length;
   if (!totalMembers) {
-    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${myD||'tu distrito'}</strong>.</div>`;
+    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${escHtml(myD||'tu distrito')}</strong>.</div>`;
     return;
   }
   const evaluated=rows.length;
@@ -433,13 +433,13 @@ function renderMiembrosDistrito(pe) {
     const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
     const critBars=hasEval?criterios.map(c=>{
       const val=r.scoreRow[c.key]||0;
-      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:${c.color}">${c.abbr}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div><span class="dm-crit-val" style="color:${c.color}">${val}</span></div>`;
+      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div></div><span class="dm-crit-val" style="color:${escHtml(c.color)}">${val}</span></div>`;
     }).join(''):'';
     const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
     return `<div class="dm-card${isMe?' dm-card--me':''}">
       <div class="dm-card-head">
         <div class="dm-rank ${rc}">${pos?'#'+pos:'—'}</div>
-        <div class="dm-avatar">${initials(r.nombre||r.email)}</div>
+        <div class="dm-avatar">${escHtml(initials(r.nombre||r.email))}</div>
         <div class="dm-info">
           <div class="dm-name">${escHtml(r.nombre||r.email)}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
           <div class="dm-role">${escHtml(rolName)}</div>
@@ -454,7 +454,7 @@ function renderMiembrosDistrito(pe) {
         </div>
       </div>
       ${critBars?`<div class="dm-crit-bars">${critBars}</div>`:''}
-      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:${c.color};font-weight:700;font-size:.65rem;letter-spacing:1px">${c.abbr}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
+      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:${escHtml(c.color)};font-weight:700;font-size:.65rem;letter-spacing:1px">${escHtml(c.abbr)}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -466,7 +466,7 @@ function renderRubrica() {
   if (!rubrica.length) { el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${r.criterio}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${l.color}">${l.n}</div><div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
+  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
 }
 
 /* ── TABLA DE EVALUACIÓN (solo secretario) ── */
@@ -501,15 +501,15 @@ function _renderRubricaGrid(elId, rubrica, criterios) {
     return `<div class="rubrica-card" id="${uid}">
       <div class="rubrica-card-head" onclick="document.getElementById('${uid}').classList.toggle('open')">
         <div class="rubrica-dot" style="background:${color}"></div>
-        <div class="rubrica-title" style="color:${color}">${r.criterio}</div>
+        <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
         <span class="rubrica-chev">▾</span>
       </div>
       <div class="rubrica-body">
         <div class="rubrica-levels">
           ${levels.map(l=>`<div class="rlevel">
-            <div class="rlevel-badge" style="color:${l.color}">${l.n}</div>
-            <div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div>
-            <div class="rlevel-desc">${r[lk[l.n]]||'—'}</div>
+            <div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div>
+            <div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
+            <div class="rlevel-desc">${escHtml(r[lk[l.n]]||'—')}</div>
           </div>`).join('')}
         </div>
       </div>
@@ -525,7 +525,7 @@ function renderCalendario() {
   const cAcc={rojo:'cal-acc--rojo',verde:'cal-acc--verde',azul:'cal-acc--azul',amarillo:'cal-acc--amarillo'};
   const cT={rojo:'cal-t--rojo',verde:'cal-t--verde',azul:'cal-t--azul',amarillo:'cal-t--amarillo'};
   const emap={'en curso':{cls:'sa',dot:true,txt:'En curso'},'próximo':{cls:'sp',dot:true,txt:'Próximo'},'proximo':{cls:'sp',dot:true,txt:'Próximo'},'pendiente':{cls:'spe',dot:false,txt:'Pendiente'},'completado':{cls:'spe',dot:false,txt:'Completado'}};
-  el.innerHTML=cal.map(p=>{const c=(p.color||'rojo').toLowerCase(),es=emap[(p.estado||'pendiente').toLowerCase()]||emap.pendiente,rows=[['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body"><div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${p.titulo}</div>${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}<div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;}).join('');
+  el.innerHTML=cal.map(p=>{const c=(p.color||'rojo').toLowerCase(),es=emap[(p.estado||'pendiente').toLowerCase()]||emap.pendiente,rows=[['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body"><div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}<div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;}).join('');
 }
 
 /* ── REFRESH ── */
@@ -658,8 +658,8 @@ function renderPeriodosTab() {
     const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
     return `<div class="pe-card${active?' pe-card--active':''}">
       <div class="pe-card-head">
-        <div class="pe-card-code">${p.pe}</div>
-        <div class="pe-card-nombre">${p.nombre||p.pe}</div>
+        <div class="pe-card-code">${escHtml(p.pe)}</div>
+        <div class="pe-card-nombre">${escHtml(p.nombre||p.pe)}</div>
         ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
         ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
       </div>
@@ -775,7 +775,7 @@ function renderUserReport() {
   const maxT = MAX_TOTAL();
   el.innerHTML = `
     <div class="urpt-header">
-      <div class="urpt-name">${CU.name||CU.user}</div>
+      <div class="urpt-name">${escHtml(CU.name||CU.user)}</div>
       <div class="urpt-meta">Historial de desempeño · ${data.length} período${data.length!==1?'s':''} evaluado${data.length!==1?'s':''}</div>
     </div>
     <div class="urpt-kpi-row">
@@ -787,7 +787,7 @@ function renderUserReport() {
     <div class="urpt-section-lbl">Evolución por período</div>
     <div class="urpt-history">${data.map(d=>`
       <div class="urpt-hist-card">
-        <div class="urpt-hist-pe">${d.pe}</div>
+        <div class="urpt-hist-pe">${escHtml(d.pe)}</div>
         <div class="urpt-hist-bar-track"><div class="urpt-hist-bar-fill" style="width:${Math.round(d.total/maxT*100)}%;background:${scoreColor(d.total)}"></div></div>
         <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}</div>
         <div style="font-size:.6rem;color:var(--muted)">${scoreLabel(d.total)}</div>
@@ -798,12 +798,12 @@ function renderUserReport() {
       <div class="urpt-table-wrap"><table class="urpt-table">
         <thead><tr>
           <th class="urpt-th">Criterio</th>
-          ${data.map(d=>`<th class="urpt-th">${d.pe}</th>`).join('')}
+          ${data.map(d=>`<th class="urpt-th">${escHtml(d.pe)}</th>`).join('')}
         </tr></thead>
         <tbody>
           ${criterios.map(c=>`<tr>
-            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${c.abbr||c.label}</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:${c.color}">${d.row[c.key]||0}</td>`).join('')}
+            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${escHtml(c.abbr||c.label)}</td>
+            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:${escHtml(c.color)}">${d.row[c.key]||0}</td>`).join('')}
           </tr>`).join('')}
           <tr>
             <td class="urpt-td urpt-td-pe">TOTAL</td>

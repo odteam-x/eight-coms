@@ -980,6 +980,22 @@ option {
 }
 .tbl-row:first-child { border-top:none; }
 .tbl-row:hover { background:var(--hover-subtle); }
+/* Tabla de usuarios: 8 columnas (9 con la de Estado PE).
+   La rejilla genérica de arriba solo define 4, así que sin esto las celdas
+   sobrantes caen a filas implícitas y la tabla se desalinea. */
+.tbl-head.tbl--usuarios,
+.tbl-row.tbl--usuarios {
+  grid-template-columns:1.4fr 1.6fr 1fr .9fr 1fr 90px 60px 40px;
+}
+.tbl-head.tbl--usuarios-pe,
+.tbl-row.tbl--usuarios-pe {
+  grid-template-columns:1.4fr 1.6fr 1fr .9fr 1fr 90px 60px 80px 40px;
+}
+@media (max-width:1100px) {
+  .tbl-head.tbl--usuarios, .tbl-row.tbl--usuarios,
+  .tbl-head.tbl--usuarios-pe, .tbl-row.tbl--usuarios-pe { min-width:900px; }
+}
+
 .tbl-cell { display:flex; align-items:center; gap:6px; font-size:.82rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tbl-muted { color:var(--muted); font-size:.78rem; }
 .tbl-actions { gap:4px; overflow:visible; }

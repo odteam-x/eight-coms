@@ -91,7 +91,7 @@ function renderPEDates(pe) {
   if (!p) { el.innerHTML = ''; return; }
   const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
   const estadoCls = (p.estado||'').toLowerCase().replace(/\s+/g,'-');
-  el.innerHTML = `<span class="pe-dates-nombre">${p.nombre||p.pe}</span>` +
+  el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
     items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${v}</span>`).join('') +
     (p.estado?`<span class="pe-dates-estado pe-estado--${estadoCls}">${p.estado}</span>`:'');
 }
@@ -149,13 +149,13 @@ function renderScores(pe) {
       <div class="cbar" style="animation-delay:${i*40}ms">
         <div class="cbar-top">
           <div>
-            <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
-            <div class="cbar-name">${c.label}</div>
+            <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+            <div class="cbar-name">${escHtml(c.label)}</div>
           </div>
-          <div class="cbar-val" style="color:${c.color}">${val}<span>/4</span></div>
+          <div class="cbar-val" style="color:${escHtml(c.color)}">${val}<span>/4</span></div>
         </div>
         <div class="cbar-track">
-          <div class="cbar-fill" style="width:${(val/4)*100}%;background:${c.color}"></div>
+          <div class="cbar-fill" style="width:${(val/4)*100}%;background:${escHtml(c.color)}"></div>
         </div>
         ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
       </div>`;
@@ -165,8 +165,8 @@ function renderScores(pe) {
     <div class="score-summary-card">
       <div class="sse-left">
         <div class="sse-label">Puntaje total — ${pe}</div>
-        <div class="sse-name">${CU.name || CU.user}</div>
-        ${myScore.area ? `<div class="sse-role">Área: ${myScore.area}</div>` : ''}
+        <div class="sse-name">${escHtml(CU.name || CU.user)}</div>
+        ${myScore.area ? `<div class="sse-role">Área: ${escHtml(myScore.area)}</div>` : ''}
         ${ext > 0 ? `<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${ext}</span></div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -194,12 +194,12 @@ function renderRubrica() {
       <div class="rubrica-card" id="rc-${i}">
         <div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')">
           <div class="rubrica-dot" style="background:${color}"></div>
-          <div class="rubrica-title" style="color:${color}">${r.criterio}</div>
+          <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
           <span class="rubrica-chev">▾</span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
-            ${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${l.color}">${l.n}</div><div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}
+            ${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}
           </div>
         </div>
       </div>`;
@@ -223,7 +223,7 @@ function renderCalendario() {
         <div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div>
         <div class="cal-body">
           <div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div>
-          <div class="cal-t ${cT[c]||cT.rojo}">${p.titulo}</div>
+          <div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>
           ${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
           <div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div>
         </div>
@@ -311,14 +311,14 @@ function renderUserReport() {
 
   el.innerHTML = `
     <div class="urpt-header">
-      <div class="urpt-name">${CU.name || CU.user}</div>
-      <div class="urpt-meta">Períodos evaluados: ${data.map(d=>d.pe).join(' · ')}</div>
+      <div class="urpt-name">${escHtml(CU.name || CU.user)}</div>
+      <div class="urpt-meta">Períodos evaluados: ${escHtml(data.map(d=>d.pe).join(' · '))}</div>
     </div>
 
     <div class="urpt-kpi-row">
       <div class="urpt-kpi">
         <div class="urpt-kpi-val" style="color:${scoreColor(best.total)}">${best.total}</div>
-        <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${best.pe}</span></div>
+        <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${escHtml(best.pe)}</span></div>
       </div>
       <div class="urpt-kpi">
         <div class="urpt-kpi-val" style="color:var(--accent2)">${avg.toFixed(1)}</div>
@@ -340,7 +340,7 @@ function renderUserReport() {
         const pct = Math.round((d.total / MAX) * 100);
         return `
           <div class="urpt-hist-card">
-            <div class="urpt-hist-pe">${d.pe}</div>
+            <div class="urpt-hist-pe">${escHtml(d.pe)}</div>
             <div class="urpt-hist-bar-track">
               <div class="urpt-hist-bar-fill" style="width:${pct}%;background:${scoreColor(d.total)}"></div>
             </div>
@@ -357,9 +357,9 @@ function renderUserReport() {
           const pct = (c.avg / 4) * 100;
           const tag = i === 0 ? '↑ Mejor' : i === critAvg.length - 1 ? '↓ A mejorar' : '';
           return `<div class="urpt-crit-row">
-            <div class="urpt-crit-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
+            <div class="urpt-crit-lbl" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
             <div class="urpt-crit-bar-track">
-              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:${c.color}"></div>
+              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:${escHtml(c.color)}"></div>
             </div>
             <div class="urpt-crit-val">${c.avg.toFixed(1)}</div>
             ${tag ? `<div class="urpt-crit-tag" style="color:${i===0?'var(--sex)':'var(--sba)'}">${tag}</div>` : '<div></div>'}
@@ -374,7 +374,7 @@ function renderUserReport() {
             <thead>
               <tr>
                 <th class="urpt-th">PE</th>
-                ${criterios.map(c=>`<th class="urpt-th" title="${c.label}" style="color:${c.color}">${c.abbr}</th>`).join('')}
+                ${criterios.map(c=>`<th class="urpt-th" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</th>`).join('')}
                 <th class="urpt-th">Bono</th>
                 <th class="urpt-th">Total</th>
                 <th class="urpt-th">Nivel</th>
@@ -383,7 +383,7 @@ function renderUserReport() {
             <tbody>
               ${data.map(d=>`
                 <tr>
-                  <td class="urpt-td urpt-td-pe">${d.pe}</td>
+                  <td class="urpt-td urpt-td-pe">${escHtml(d.pe)}</td>
                   ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${d.row[c.key]||0}</td>`).join('')}
                   <td class="urpt-td urpt-td-s">${d.row.ext||0}</td>
                   <td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>
@@ -485,8 +485,8 @@ function renderPeriodosTab() {
     const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
     return `<div class="pe-card${active?' pe-card--active':''}">
       <div class="pe-card-head">
-        <div class="pe-card-code">${p.pe}</div>
-        <div class="pe-card-nombre">${p.nombre||p.pe}</div>
+        <div class="pe-card-code">${escHtml(p.pe)}</div>
+        <div class="pe-card-nombre">${escHtml(p.nombre||p.pe)}</div>
         ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
         ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
       </div>

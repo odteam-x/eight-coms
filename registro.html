@@ -110,7 +110,7 @@
     <form id="register-form" class="login-form-inner" novalidate autocomplete="on">
       <div class="login-form-header">
         <h2 class="login-form-title">Crear cuenta</h2>
-        <p class="login-form-sub">Completa tus datos para registrarte</p>
+        <p class="login-form-sub">El administrador asignará tu rol y distrito, y activará tu acceso.</p>
       </div>
 
       <div class="field">
@@ -120,38 +120,6 @@
       <div class="field">
         <label for="r-email">Email</label>
         <input type="email" id="r-email" placeholder="tu@email.com" autocomplete="email" required aria-required="true">
-      </div>
-      <div class="field">
-        <label for="r-rol">Rol en el equipo</label>
-        <select id="r-rol" required aria-required="true">
-          <option value="">Cargando roles...</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="r-distrito">Distrito</label>
-          <select id="r-distrito" required aria-required="true">
-            <option value="">Tu distrito...</option>
-            <option value="08-01">08-01</option>
-            <option value="08-02">08-02</option>
-            <option value="08-03">08-03</option>
-            <option value="08-04">08-04</option>
-            <option value="08-05">08-05</option>
-            <option value="08-06">08-06</option>
-            <option value="08-07">08-07</option>
-            <option value="08-08">08-08</option>
-            <option value="08-09">08-09</option>
-            <option value="08-10">08-10</option>
-            <option value="especial">Invitado Especial</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="r-tipo">Tipo de miembro</label>
-          <select id="r-tipo" required aria-required="true">
-            <option value="miembro">Miembro normal</option>
-            <option value="secretario">Secretario</option>
-          </select>
-        </div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -178,7 +146,8 @@
       <div class="login-loading" id="r-loading" aria-live="polite"><span class="spin"></span>Creando cuenta...</div>
       <div class="login-err" id="r-err" role="alert" aria-live="polite"></div>
       <div class="login-ok" id="r-ok" role="status" aria-live="polite">
-        ¡Cuenta creada con éxito! Ya puedes iniciar sesión con tu email y contraseña.
+        ¡Cuenta creada! Un administrador debe aprobarla y asignarte rol y distrito
+        antes de que puedas entrar al portal. Te avisaremos cuando esté lista.
       </div>
       <div class="login-link">¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></div>
     </form>
@@ -186,7 +155,7 @@
 </div>
 
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>
 <script src="api.js"></script>
@@ -199,7 +168,7 @@
   if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
 })();
 </script>
-<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 'use strict';
 
@@ -219,27 +188,13 @@ document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
   });
 });
 
-// Cargar roles para el dropdown
-(async function loadRoles() {
-  const sel = document.getElementById('r-rol');
-  const FALLBACK_ROLES = [
-    { id:'Filmmaker',       nombre:'Filmmaker' },
-    { id:'Maquetación',     nombre:'Maquetación' },
-    { id:'Ideas Creativas', nombre:'Ideas Creativas' },
-    { id:'P-CLIT',          nombre:'P-CLIT' },
-    { id:'Motion Editor',   nombre:'Motion Editor' },
-    { id:'X DEFINIR',       nombre:'X DEFINIR' },
-  ];
-  let roles = [];
-  try {
-    const { data } = await SB.from('roles').select('id, nombre').eq('activo', true).order('orden');
-    roles = data && data.length ? data : FALLBACK_ROLES;
-  } catch(e) {
-    roles = FALLBACK_ROLES;
-  }
-  sel.innerHTML = '<option value="">Selecciona tu rol</option>' +
-    roles.map(r => `<option value="${r.id}">${escHtml(r.nombre)}</option>`).join('');
-})();
+// SEGURIDAD: el registro NO pide rol, distrito ni tipo de miembro.
+// Un <select> público con la opción "Secretario" permitía autoproclamarse
+// secretario de cualquier distrito y leer, vía las policies
+// profiles_read_secretario y evaluaciones_read_secretario, los perfiles y
+// todas las evaluaciones publicadas de ese distrito.
+// Esos tres campos los asigna el admin desde el panel; el perfil lo crea el
+// trigger on_auth_user_created del servidor con valores fijos.
 
 function authErrEs(msg) {
   if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
@@ -262,9 +217,6 @@ function authErrEs(msg) {
 async function doRegister() {
   const nombre   = document.getElementById('r-nombre').value.trim();
   const email    = document.getElementById('r-email').value.trim();
-  const rol_id   = document.getElementById('r-rol').value;
-  const distrito = document.getElementById('r-distrito').value;
-  const tipo     = document.getElementById('r-tipo').value || 'miembro';
   const pass     = document.getElementById('r-pass').value;
   const pass2    = document.getElementById('r-pass2').value;
   const btn      = document.getElementById('btn-reg');
@@ -276,14 +228,12 @@ async function doRegister() {
 
   if (!nombre)          { err.textContent='Escribe tu nombre completo.'; err.classList.add('visible'); return; }
   if (!email)           { err.textContent='Escribe tu email.'; err.classList.add('visible'); return; }
-  if (!rol_id)          { err.textContent='Selecciona tu rol en el equipo.'; err.classList.add('visible'); return; }
-  if (!distrito)        { err.textContent='Selecciona tu distrito.'; err.classList.add('visible'); return; }
   if (pass.length < 8)  { err.textContent='La contraseña debe tener al menos 8 caracteres.'; err.classList.add('visible'); return; }
   if (pass !== pass2)   { err.textContent='Las contraseñas no coinciden.'; err.classList.add('visible'); return; }
 
   btn.disabled = true; load.classList.add('visible');
 
-  const res = await API.register({ email, password: pass, nombre, rol_id, distrito, tipo_miembro: tipo });
+  const res = await API.register({ email, password: pass, nombre });
 
   load.classList.remove('visible'); btn.disabled = false;
 
