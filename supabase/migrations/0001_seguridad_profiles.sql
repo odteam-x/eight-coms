@@ -30,17 +30,28 @@
 -- ══════════════════════════════════════════════════════════════════════
 
 
--- ── 1. Columna `aprobado` ─────────────────────────────────────────────
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS aprobado BOOLEAN NOT NULL DEFAULT false;
+-- ── 1. Columna `aprobado` + backfill de una sola vez ──────────────────
+--  El backfill va DENTRO del IF NOT existia: si se ejecutara suelto, cada
+--  re-ejecución de la migración volvería a aprobar a los usuarios que el
+--  admin hubiera dejado en pendiente a propósito.
+DO $$
+DECLARE existia BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name   = 'profiles'
+       AND column_name  = 'aprobado'
+  ) INTO existia;
 
--- Backfill: todo perfil que ya existe es legítimo (gestión 2026-2027 en uso).
--- Solo corre la primera vez; en re-ejecuciones no hay filas con created_at
--- anterior a la migración que sigan en false por accidente.
-UPDATE public.profiles
-   SET aprobado = true
- WHERE aprobado = false
-   AND created_at < NOW();
+  IF NOT existia THEN
+    ALTER TABLE public.profiles
+      ADD COLUMN aprobado BOOLEAN NOT NULL DEFAULT false;
+
+    -- Todo perfil que ya existe es legítimo (gestión 2026-2027 en uso).
+    UPDATE public.profiles SET aprobado = true;
+  END IF;
+END $$;
 
 
 -- ── 2. Alta automática de perfil al crear el usuario ──────────────────
