@@ -58,47 +58,99 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadData();
   initUI();
+  initRevalidacion();
 });
+
+/* ── REVALIDACIÓN AL VOLVER A LA PESTAÑA ── */
+const REVALIDAR_MS = 60000;
+
+function initRevalidacion() {
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) return;
+    if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
+
+    const peAnterior = D?.periodoActivo ?? null;
+    if (!(await loadData())) return;
+
+    // Un solo período gobierna todas las secciones: si el admin lo cambió,
+    // Mi Score, Ranking, Mi Distrito y Trabajos lo siguen a la vez.
+    const peNuevo = D?.periodoActivo ?? null;
+    if (peNuevo && peNuevo !== peAnterior) {
+      mPE = rPE = dPE = peNuevo;
+      _trabajosPE = peNuevo;
+    }
+    initUI();
+    if (_trabajosLoaded) renderTrabajosTab();
+  });
+}
 
 async function loadData() {
   try {
     const data = await API.getData();
-    if (data.ok !== false) {
-      D = data;
-      if (!_peInited) {
-        const activoName = data.config?.periodoActivo
-          || data.periodos?.find(p => p.estado === 'Activo')?.pe;
-        if (activoName) {
-          mPE = rPE = dPE = activoName;
-          _trabajosPE = mPE;
-          _peInited = true;
-          syncAllPEButtons();
-        }
+    if (data.ok === false) { mostrarErrorCarga(data.error); return false; }
+
+    D = data;
+    Auth.setCachedData(data);
+    _lastUpdated = new Date();
+
+    if (!_peInited) {
+      const activoName = data.periodoActivo || data.periodos?.[0]?.pe || null;
+      if (activoName) {
+        mPE = rPE = dPE = activoName;
+        _trabajosPE = activoName;
       }
-      Auth.setCachedData(data);
-      _lastUpdated = new Date();
+      _peInited = true;
     }
-  } catch(e) { console.error('[Portal]', e); }
+    return true;
+  } catch(e) {
+    console.error('[Portal]', e);
+    mostrarErrorCarga(e.message || String(e));
+    return false;
+  }
+}
+
+/** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
+function mostrarErrorCarga(msg) {
+  const cont = document.getElementById('score-body');
+  if (!cont) return;
+  cont.replaceChildren();
+  const box = document.createElement('div');
+  box.className = 'no-data-msg';
+  box.setAttribute('role', 'alert');
+  const t = document.createElement('div');
+  t.className = 'no-data-txt';
+  t.textContent = 'No se pudieron cargar los datos. ' + (msg || '');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pb';
+  btn.style.marginTop = '12px';
+  btn.textContent = 'Reintentar';
+  btn.addEventListener('click', () => location.reload());
+  box.append(t, btn);
+  cont.appendChild(box);
+}
+
+/* Las cuatro barras se generan desde los datos. */
+function buildPEBars() {
+  const pes = D?.periodos || [];
+  renderPEBar(document.getElementById('pe-row-miscore'),  pes, mPE,         selectPE);
+  renderPEBar(document.getElementById('pe-row-rankdist'), pes, dPE,         selectPERankDist);
+  renderPEBar(document.getElementById('pe-row-rank'),     pes, rPE,         selectPERank);
+  renderPEBar(document.getElementById('trabajos-pe-row'), pes, _trabajosPE, selectTrabajoPE);
+  setEl('hero-pe', mPE);
 }
 
 function syncAllPEButtons() {
-  document.querySelectorAll('.pe-row').forEach(row => {
-    row.querySelectorAll('.pb').forEach(b => {
-      const oc = b.getAttribute('onclick') || '';
-      const pe = oc.match(/'(PE\d)'/)?.[1];
-      const target = oc.includes('selectPERankDist') ? dPE
-                   : oc.includes('selectPERank')     ? rPE
-                   : oc.includes('selectTrabajoPE')  ? _trabajosPE
-                   : mPE;
-      b.classList.toggle('active', pe === target);
-    });
-  });
+  syncPEBar(document.getElementById('pe-row-miscore'),  mPE);
+  syncPEBar(document.getElementById('pe-row-rankdist'), dPE);
+  syncPEBar(document.getElementById('pe-row-rank'),     rPE);
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
   setEl('hero-pe', mPE);
 }
 
 function initUI() {
   if (!CU || !D) return;
-  syncAllPEButtons();
+  buildPEBars();
 
   // Mostrar/ocultar elementos exclusivos del secretario
   const sec = isSecretario();
@@ -161,8 +213,8 @@ function renderPEDates(pe, tabId) {
 /* ── MI SCORE ── */
 function selectPE(pe, btn) {
   mPE = pe;
-  document.querySelectorAll('#tab-miscore .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); setEl('hero-pe',pe); renderPEDates(pe,'tab-miscore'); renderMyScore(pe);
+  syncPEBar(btn.closest('.pe-row'), pe);
+  setEl('hero-pe',pe); renderPEDates(pe,'tab-miscore'); renderMyScore(pe);
 }
 
 function renderMyScore(pe) {
@@ -244,8 +296,8 @@ function renderTendenciaInline() {
 /* ── RANKING DE DISTRITOS (solo secretario) ── */
 function selectPERankDist(pe, btn) {
   dPE = pe;
-  document.querySelectorAll('#tab-ranking .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderRankingDistritos(pe);
+  syncPEBar(btn.closest('.pe-row'), pe);
+  renderRankingDistritos(pe);
 }
 
 function renderRankingDistritos(pe) {
@@ -337,8 +389,8 @@ function renderRankingDistritos(pe) {
 /* ── MI DISTRITO ── */
 function selectPERank(pe, btn) {
   rPE=pe;
-  document.querySelectorAll('#tab-distrito .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderDistrito(pe);
+  syncPEBar(btn.closest('.pe-row'), pe);
+  renderDistrito(pe);
 }
 
 function renderDistrito(pe) {
@@ -669,19 +721,16 @@ function renderPeriodosTab() {
 }
 
 /* ── TAB: TRABAJOS ── */
-let _trabajosPE = 'PE1', _trabajosLoaded = false;
+// null hasta que loadData() resuelva el período activo real.
+let _trabajosPE = null, _trabajosLoaded = false;
 
 function syncTrabajoPEBtns() {
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => {
-    const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
-    b.classList.toggle('active', pe === _trabajosPE);
-  });
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
 }
 
 function selectTrabajoPE(pe, btn) {
   _trabajosPE = pe;
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  syncPEBar(btn.closest('.pe-row'), pe);
   renderTrabajosTab();
 }
 

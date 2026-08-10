@@ -633,7 +633,7 @@ function renderPeriodos() {
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal('${p.id}',${escHtml(JSON.stringify(p.nombre||''))},${escHtml(JSON.stringify(p.descripcion||''))},${p.activo})" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon" onclick="showPeriodoModal('${p.id}')" title="Editar">${ICONS.edit}</button>
               <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
@@ -641,12 +641,17 @@ function renderPeriodos() {
     </div>`;
 }
 
-function showPeriodoModal(id, nombre, desc, activo) {
-  document.getElementById('mpe-id').value     = id || '';
-  document.getElementById('mpe-nombre').value = nombre || '';
-  document.getElementById('mpe-desc').value   = desc || '';
-  document.getElementById('mpe-activo').checked = !!activo;
-  setEl('modal-periodo-title', id ? 'Editar período' : 'Nuevo período');
+function showPeriodoModal(id) {
+  const p = _periodos.find(x => String(x.id) === String(id)) || {};
+  document.getElementById('mpe-id').value         = p.id || '';
+  document.getElementById('mpe-nombre').value     = p.nombre || '';
+  document.getElementById('mpe-desc').value       = p.descripcion || '';
+  document.getElementById('mpe-inicio').value     = p.fecha_inicio || '';
+  document.getElementById('mpe-fintrabajo').value = p.fecha_fin_trabajo || '';
+  document.getElementById('mpe-entrega').value    = p.fecha_entrega || '';
+  document.getElementById('mpe-jornada').value    = p.fecha_jornada || '';
+  document.getElementById('mpe-activo').checked   = !!p.activo;
+  setEl('modal-periodo-title', p.id ? 'Editar período' : 'Nuevo período');
   document.getElementById('mpe-err').textContent = '';
   openModal('modal-periodo');
 }
@@ -659,23 +664,26 @@ async function savePeriodo() {
   const err    = document.getElementById('mpe-err');
   if (!nombre) { err.textContent = 'Escribe un nombre.'; return; }
 
-  // Si se marca como activo, desactivar los demás primero
-  if (activo) {
-    const others = _periodos.filter(p => p.activo && String(p.id) !== String(id));
-    for (const o of others) {
-      await API.savePeriodo({ id: o.id, nombre: o.nombre, descripcion: o.descripcion || '', activo: false });
-    }
-  }
+  const fechas = {
+    inicio:     document.getElementById('mpe-inicio').value     || null,
+    finTrabajo: document.getElementById('mpe-fintrabajo').value || null,
+    entrega:    document.getElementById('mpe-entrega').value    || null,
+    jornada:    document.getElementById('mpe-jornada').value    || null,
+  };
 
-  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, activo });
+  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, fechas });
   if (!res.ok) { err.textContent = res.error; return; }
 
-  // Sincronizar config.periodo_activo para que miembros y secretarios lo detecten
+  // El flag `activo` NO va en el update: lo cambia el RPC set_periodo_activo,
+  // que desactiva el anterior y activa este en una sola operación. El bucle
+  // JS anterior hacía N updates sueltos y podía dejar dos activos.
+  const eraActivo = _periodos.find(p => String(p.id) === String(id))?.activo;
   if (activo) {
-    await API.saveConfig('periodo_activo', nombre);
-  } else if (_periodos.find(p => String(p.id) === String(id))?.activo) {
-    // Se desactivó el período que estaba activo — limpiar config
-    await API.saveConfig('periodo_activo', '');
+    const r = await API.setPeriodoActivo(res.id);
+    if (!r.ok) { err.textContent = r.error; return; }
+  } else if (eraActivo) {
+    const r = await API.setPeriodoActivo(null);
+    if (!r.ok) { err.textContent = r.error; return; }
   }
 
   showToast(id ? 'Período actualizado' : 'Período creado', 'ok');

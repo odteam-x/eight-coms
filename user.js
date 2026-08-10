@@ -26,42 +26,101 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadData();
   initUI();
+  initRevalidacion();
 });
+
+/* ── REVALIDACIÓN AL VOLVER A LA PESTAÑA ──────────────────────────────
+ * Sin esto, si el admin cambia el período activo mientras el miembro tiene
+ * la pestaña abierta, el miembro no se entera nunca y la etiqueta "Última
+ * actualización" miente: marca cuándo se cargó la página, no cuándo cambió
+ * el dato.
+ */
+const REVALIDAR_MS = 60000;
+
+function initRevalidacion() {
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) return;
+    if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
+
+    const peAnterior = D?.periodoActivo ?? null;
+    if (!(await loadData())) return;
+
+    // Si el admin cambió el período activo, seguirlo.
+    const peNuevo = D?.periodoActivo ?? null;
+    if (peNuevo && peNuevo !== peAnterior) {
+      mPE = peNuevo;
+      _trabajosPE = peNuevo;
+    }
+    initUI();
+    if (_trabajosLoaded) renderTrabajosTab();
+  });
+}
 
 async function loadData() {
   try {
     const data = await API.getData();
-    if (data.ok !== false) {
-      D = data;
-      Auth.setCachedData(data);
-      _lastUpdated = new Date();
-      if (!_peInited) {
-        const activoName = data.config?.periodoActivo
-          || data.periodos?.find(p => p.estado === 'Activo')?.pe;
-        if (activoName) {
-          mPE = activoName;
-          _trabajosPE = mPE;
-          _peInited = true;
-          syncAllPEButtons();
-        }
+    if (data.ok === false) { mostrarErrorCarga(data.error); return false; }
+
+    D = data;
+    Auth.setCachedData(data);
+    _lastUpdated = new Date();
+
+    // El período activo sale de periodos_evaluacion.activo, vía API.
+    // Puede ser null: la gestión puede no tener período en curso.
+    if (!_peInited) {
+      const activoName = data.periodoActivo || data.periodos?.[0]?.pe || null;
+      if (activoName) {
+        mPE = activoName;
+        _trabajosPE = mPE;
       }
+      _peInited = true;
     }
-  } catch (e) { console.error('[User]', e); }
+    return true;
+  } catch (e) {
+    console.error('[User]', e);
+    mostrarErrorCarga(e.message || String(e));
+    return false;
+  }
+}
+
+/** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
+function mostrarErrorCarga(msg) {
+  const cont = document.getElementById('score-body');
+  if (!cont) return;
+  cont.replaceChildren();
+  const box = document.createElement('div');
+  box.className = 'no-data-msg';
+  box.setAttribute('role', 'alert');
+  const t = document.createElement('div');
+  t.className = 'no-data-txt';
+  t.textContent = 'No se pudieron cargar tus datos. ' + (msg || '');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pb';
+  btn.style.marginTop = '12px';
+  btn.textContent = 'Reintentar';
+  btn.addEventListener('click', () => location.reload());
+  box.append(t, btn);
+  cont.appendChild(box);
+}
+
+/* Barras de período: se construyen desde los datos, no desde HTML fijo. */
+function buildPEBars() {
+  const pes = D?.periodos || [];
+  renderPEBar(document.getElementById('pe-row-scores'),   pes, mPE,         selectPE);
+  renderPEBar(document.getElementById('trabajos-pe-row'), pes, _trabajosPE, selectTrabajoPE);
+  setEl('hero-pe', mPE);
 }
 
 function syncAllPEButtons() {
-  document.querySelectorAll('.pe-row').forEach(row => {
-    row.querySelectorAll('.pb').forEach(b => {
-      const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
-      b.classList.toggle('active', pe === mPE);
-    });
-  });
+  syncPEBar(document.getElementById('pe-row-scores'),   mPE);
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
   setEl('hero-pe', mPE);
 }
 
 function initUI() {
   if (!CU || !D) return;
-  syncAllPEButtons();
+  buildPEBars();
   const name = CU.name || CU.user;
   const ini  = initials(name);
   setEl('av-desktop', ini); setEl('av-mobile', ini);
@@ -99,8 +158,9 @@ function renderPEDates(pe) {
 /* ── SCORES ── */
 function selectPE(pe, btn) {
   mPE = pe;
-  document.querySelectorAll('.pe-row .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  // Solo la barra que contiene el botón pulsado. Antes usaba
+  // '.pe-row .pb' global y desactivaba también la barra de Trabajos.
+  syncPEBar(btn.closest('.pe-row'), pe);
   setEl('hero-pe', pe);
   renderPEDates(pe);
   renderScores(pe);
@@ -496,19 +556,17 @@ function renderPeriodosTab() {
 }
 
 /* ── TAB: TRABAJOS ── */
-let _trabajosPE = 'PE1', _trabajosLoaded = false;
+// null hasta que loadData() resuelva el período activo real.
+// Antes era 'PE1' fijo, que con PE4 activo mostraba el período equivocado.
+let _trabajosPE = null, _trabajosLoaded = false;
 
 function syncTrabajoPEBtns() {
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => {
-    const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
-    b.classList.toggle('active', pe === _trabajosPE);
-  });
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
 }
 
 function selectTrabajoPE(pe, btn) {
   _trabajosPE = pe;
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  syncPEBar(btn.closest('.pe-row'), pe);
   renderTrabajosTab();
 }
 

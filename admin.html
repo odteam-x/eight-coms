@@ -307,9 +307,21 @@
     <input type="hidden" id="mpe-id">
     <div class="field"><label>Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
     <div class="field"><label>Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field-row" style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label for="mpe-inicio">Inicio</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
+      <div class="field" style="flex:1"><label for="mpe-fintrabajo">Fin de trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
+    </div>
+    <div class="field-row" style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label for="mpe-entrega">Entrega</label><input class="cfg-inp" type="date" id="mpe-entrega"></div>
+      <div class="field" style="flex:1"><label for="mpe-jornada">Jornada</label><input class="cfg-inp" type="date" id="mpe-jornada"></div>
+    </div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
       <label style="margin:0">Activo (período actual)</label>
       <input type="checkbox" id="mpe-activo" style="width:auto">
+    </div>
+    <div class="modal-hint" style="font-size:.72rem;color:var(--muted);line-height:1.5">
+      Solo puede haber un período activo. Al marcarlo aquí, el anterior se
+      desactiva automáticamente y todos los portales pasan a mostrarlo.
     </div>
     <div class="modal-actions">
       <button class="btn-save" onclick="savePeriodo()">Guardar</button>

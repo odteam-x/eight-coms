@@ -366,6 +366,10 @@ img { display:block; max-width:100%; }
 /* ── PE SELECTOR ── */
 .pe-row { display:flex; gap:8px; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; }
 .pe-row--no-mb { margin-bottom:0; }
+/* Mensaje cuando la barra de períodos no se puede construir.
+   Un fallo de carga debe verse, no quedar como una fila vacía. */
+.pe-bar-msg { font-size:.78rem; color:var(--muted); line-height:1.4; }
+.pe-bar-msg--error { color:var(--accent); }
 .pb {
   padding:8px 22px; min-height:40px;
   font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700;

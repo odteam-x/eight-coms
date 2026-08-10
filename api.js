@@ -46,15 +46,23 @@ const API = {
     return data ?? [];
   },
 
+  /**
+   * Períodos. LANZA si la query falla, en vez de devolver [].
+   * Un [] silencioso hacía que el portal cayera al fallback duro
+   * ['PE1','PE2','PE3'] y el usuario veía PE1 sin ningún error visible.
+   */
   async getPeriodos() {
-    const { data } = await SB.from('periodos_evaluacion').select('*').order('created_at');
+    const { data, error } = await SB.from('periodos_evaluacion').select('*').order('created_at');
+    if (error) throw new Error('No se pudieron cargar los períodos: ' + error.message);
     return data ?? [];
   },
 
+  /** Criterios. LANZA si falla: sin ellos no se puede puntuar nada. */
   async getCriterios(onlyActive = false) {
     let q = SB.from('criterios').select('*');
     if (onlyActive) q = q.eq('activo', true);
-    const { data } = await q.order('orden');
+    const { data, error } = await q.order('orden');
+    if (error) throw new Error('No se pudieron cargar los criterios: ' + error.message);
     return data ?? [];
   },
 
@@ -183,11 +191,35 @@ const API = {
   },
 
   // ── ADMIN: períodos ──────────────────────────────────────────────
-  async savePeriodo({ id, nombre, descripcion = '', activo = false }) {
-    const p = { nombre: nombre.trim(), descripcion: descripcion.trim(), activo };
-    const { error } = id
-      ? await SB.from('periodos_evaluacion').update(p).eq('id', id)
-      : await SB.from('periodos_evaluacion').insert(p);
+  /**
+   * Crea o actualiza un período. NO toca `activo`: eso va por
+   * setPeriodoActivo(), que es atómico y respeta el índice único.
+   */
+  async savePeriodo({ id, nombre, descripcion = '', fechas = {} }) {
+    const p = {
+      nombre:            nombre.trim(),
+      descripcion:       descripcion.trim(),
+      fecha_inicio:      fechas.inicio     || null,
+      fecha_fin_trabajo: fechas.finTrabajo || null,
+      fecha_entrega:     fechas.entrega    || null,
+      fecha_jornada:     fechas.jornada    || null,
+    };
+    const { data, error } = id
+      ? await SB.from('periodos_evaluacion').update(p).eq('id', id).select('id').maybeSingle()
+      : await SB.from('periodos_evaluacion').insert(p).select('id').maybeSingle();
+    return { ok: !error, error: error?.message, id: data?.id ?? id ?? null };
+  },
+
+  /**
+   * Cambia el período activo de forma atómica vía RPC (migración 0003).
+   * Pasar null deja la gestión sin período en curso.
+   *
+   * El bucle JS anterior hacía N updates secuenciales: si uno fallaba
+   * quedaban dos períodos activos y find(p => p.activo) tomaba el primero
+   * por created_at. Ahora la base garantiza que solo haya uno.
+   */
+  async setPeriodoActivo(id) {
+    const { error } = await SB.rpc('set_periodo_activo', { p_id: id ?? null });
     return { ok: !error, error: error?.message };
   },
 
@@ -371,14 +403,20 @@ const API = {
     const profile = await Auth.getProfile();
     if (!profile) return { ok: false };
 
-    const [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
-      this.getCriterios(true),
-      this.getRubrica(),
-      this.getCalendario(),
-      this.getPeriodos(),
-    ]);
-
-    const config = await this.getConfig();
+    // Criterios y períodos LANZAN si fallan. Sin ellos la vista no significa
+    // nada, así que se propaga el error en vez de pintar un estado vacío.
+    let criteriosRaw, rubricaRaw, calRaw, periodosRaw, config;
+    try {
+      [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
+        this.getCriterios(true),
+        this.getRubrica(),
+        this.getCalendario(),
+        this.getPeriodos(),
+      ]);
+      config = await this.getConfig();
+    } catch (e) {
+      return { ok: false, error: e.message || String(e) };
+    }
 
     // Criterios normalizados (columna DB es max_valor)
     const criterios = criteriosRaw.map(c => ({
@@ -390,18 +428,20 @@ const API = {
       pe:         p.nombre,
       id:         p.id,
       nombre:     p.descripcion || p.nombre,
+      activo:     !!p.activo,
       estado:     p.activo ? 'Activo' : 'Cerrado',
-      inicio:     p.fecha_inicio     || p.inicio     || null,
-      finTrabajo: p.fecha_fin_trabajo || p.fin_trabajo|| null,
-      entrega:    p.fecha_entrega     || p.entrega    || null,
-      jornada:    p.fecha_jornada     || p.jornada    || null,
+      inicio:     p.fecha_inicio      || null,
+      finTrabajo: p.fecha_fin_trabajo || null,
+      entrega:    p.fecha_entrega     || null,
+      jornada:    p.fecha_jornada     || null,
     }));
 
-    // Inicializar scores y feedback por período
+    // Inicializar scores y feedback por período.
+    // Sin el relleno ['PE1','PE2','PE3']: inventaba períodos que quizá no
+    // existen y ocultaba que la consulta había fallado.
     const scores   = {};
     const feedback = {};
     periodos.forEach(p => { scores[p.pe] = []; feedback[p.pe] = []; });
-    if (!scores.PE1) { ['PE1','PE2','PE3'].forEach(k => { scores[k]=[]; feedback[k]=[]; }); }
 
     // Construir lista de user IDs a consultar
     let targetIds = [session.user.id];
@@ -518,10 +558,16 @@ const API = {
       districtScores[pe].sort((a, b) => b.total - a.total);
     });
 
-    const periodoActivo = config.periodo_activo ||
-      periodosRaw.find(p => p.activo)?.nombre || 'PE1';
+    // ÚNICA fuente de verdad del período activo: periodos_evaluacion.activo.
+    // Antes se leía config.periodo_activo, que era una tercera fuente escrita
+    // con un nombre y sembrada con otro (periodoActivo vs periodo_activo). Si
+    // el admin marcaba `activo` directo en Supabase, la fila nunca existía y
+    // el portal caía a 'PE1'. La migración 0003 borró esas filas.
+    // null es un valor legítimo: la gestión puede no tener período en curso.
+    const periodoActivo = periodos.find(p => p.activo)?.pe ?? null;
 
-    return { criterios, rubrica, calendario, periodos, scores, feedback, config: { periodoActivo }, districtScores, districtMembers };
+    return { ok: true, criterios, rubrica, calendario, periodos, scores, feedback,
+             config, periodoActivo, districtScores, districtMembers };
   },
 
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────

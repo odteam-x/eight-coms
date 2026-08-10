@@ -32,6 +32,54 @@ function debug(...args) {
   } catch { /* localStorage bloqueado (modo privado / cookies off) */ }
 }
 
+/* ── Barra de períodos ─────────────────────────────────────────────────
+ * Genera los botones desde los datos, nunca desde HTML fijo.
+ *
+ * Antes los botones PE1/PE2/PE3 estaban escritos a mano en el HTML y
+ * syncAllPEButtons() leía el período del atributo onclick con /'(PE\d)'/.
+ * Con PE4 activo no había botón que emparejar, así que ninguno quedaba
+ * marcado y no se podía llegar al período en curso.
+ *
+ * Usa listeners reales (no onclick inline) para poder activar la CSP.
+ * En la Fase 3 esto se muda a core/render.js.
+ */
+function renderPEBar(container, periodos, current, onSelect) {
+  if (!container) return;
+
+  if (!periodos || !periodos.length) {
+    container.replaceChildren();
+    const msg = document.createElement('span');
+    msg.className = 'pe-bar-msg pe-bar-msg--error';
+    msg.setAttribute('role', 'alert');
+    msg.textContent = 'No se pudieron cargar los períodos. Recarga la página.';
+    container.appendChild(msg);
+    return;
+  }
+
+  container.replaceChildren(...periodos.map(p => {
+    const activo = p.pe === current;
+    const b = document.createElement('button');
+    b.type      = 'button';
+    b.className = 'pb' + (activo ? ' active' : '');
+    b.textContent = p.pe;
+    b.dataset.pe  = p.pe;
+    b.setAttribute('aria-pressed', String(activo));
+    if (p.nombre && p.nombre !== p.pe) b.title = p.nombre;
+    b.addEventListener('click', () => onSelect(p.pe, b));
+    return b;
+  }));
+}
+
+/** Marca cuál botón de una barra está activo, sin volver a construirla. */
+function syncPEBar(container, current) {
+  if (!container) return;
+  container.querySelectorAll('.pb').forEach(b => {
+    const activo = b.dataset.pe === current;
+    b.classList.toggle('active', activo);
+    b.setAttribute('aria-pressed', String(activo));
+  });
+}
+
 /* ── Lucide icon helper — returns a <i data-lucide> tag that lucide.createIcons() renders ── */
 function renderLucideIcon(name, cls) {
   return '<i data-lucide="' + name + '"' + (cls ? ' class="' + cls + '"' : '') + '></i>';
