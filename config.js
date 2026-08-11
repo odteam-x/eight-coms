@@ -65,6 +65,10 @@ const _ACCIONES_SIMPLES = new Set([
   'showCalModal', 'showRolModal', 'showPeriodoModal', 'showCriterioModal',
   'showRubricaModal', 'showAbrirGestionModal', 'confirmarAbrirGestion',
   'executeDeleteUser', 'sendResetCode', 'verifyAndResetPassword',
+  // buscadores y selectores de admin.html (data-input / data-change)
+  'renderEvalUserList', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
+  'renderCriterios', 'renderRubrica', 'renderCalendario',
+  'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
 ]);
 
 const ACCIONES = {
@@ -148,6 +152,20 @@ document.addEventListener('click', e => {
   if (el.tagName === 'A') e.preventDefault();
   accion(el.dataset.arg, el, e);
 });
+
+/* Los `oninput=` y `onchange=` de los buscadores y selectores de admin.html
+   sobrevivieron al barrido de `onclick`, y la CSP los bloquea igual. Van por
+   `data-input` / `data-change` con la misma lista blanca que `data-act="fn"`,
+   sin `closest`: el evento nace ya en el control. */
+function _despacharPorNombre(nombre, el, e) {
+  if (!nombre) return;
+  if (!_ACCIONES_SIMPLES.has(nombre)) { console.warn('[acciones] no permitida:', nombre); return; }
+  const f = window[nombre];
+  if (typeof f === 'function') f(el, e);
+}
+
+document.addEventListener('input',  e => _despacharPorNombre(e.target?.dataset?.input,  e.target, e));
+document.addEventListener('change', e => _despacharPorNombre(e.target?.dataset?.change, e.target, e));
 
 /** Mes en castellano de un YYYY-MM-DD, o null. Sin desfase de zona horaria. */
 function mesDe(iso) {

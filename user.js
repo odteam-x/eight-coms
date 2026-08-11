@@ -399,9 +399,11 @@ function switchTab(tab, btn) {
   // Política única de carga (3.11): se carga la primera vez y solo se
   // repite si alguien invalida la pestaña explícitamente.
   if (tab === 'historial') {
-    renderPeriodosTab();
     if (Store.necesitaCarga('reportes')) { Store.marcarCargado('reportes'); renderUserReport(); }
   }
+  // Entregas reúne trabajos, fechas del período y calendario: es la
+  // pestaña de "qué debo entregar y cuándo".
+  if (tab === 'trabajos') renderPeriodosTab();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();

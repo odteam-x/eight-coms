@@ -716,7 +716,9 @@ function switchTab(tab, btn) {
   tab = _ALIAS_TAB[tab] || tab;
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
 
-  if (tab === 'historial') renderPeriodosTab();
+  // Entregas reúne trabajos, fechas del período y calendario: es la
+  // pestaña de "qué debo entregar y cuándo".
+  if (tab === 'trabajos') renderPeriodosTab();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();

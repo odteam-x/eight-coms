@@ -38,6 +38,20 @@
   --data:   var(--cyan-400);   /* 10.03 relleno de barras y gráficos    */
   --alert:  var(--coral);      /* 6.48  alerta y destructivo            */
 
+  /* Relleno de botón primario. Va aparte de --action porque los requisitos
+     son distintos: --action se usa como COLOR (texto de enlace, anillo de
+     foco, borde activo) y ahí basta con que contraste contra el fondo de
+     página; como RELLENO tiene que contrastar además contra su propio texto.
+     Blanco sobre --blue-500 da 3.66 y un botón no es texto grande.
+       oscuro: --navy-900 sobre --cyan-400 →  8.32 texto / 10.03 forma
+       claro:  #FFF      sobre #0068C9    →  5.45 texto /  4.87 forma
+     Sí, en oscuro coincide con --data. Es la excepción: en las pantallas de
+     acceso no se dibuja ni una barra, así que el cian no está diciendo
+     "dato" en ningún otro sitio de esa vista. */
+  --action-fill:       var(--cyan-400);
+  --action-fill-hover: var(--cyan-200);
+  --action-on:         var(--navy-900);
+
   /* ── ESCALA DE NIVEL ──────────────────────────────────────────────────
      Reasignada respecto al brief. blue-700 (#005286) sobre un fondo casi
      negro da 2.33 contra --bg y 1.72 contra --surface-3: una barra
@@ -113,7 +127,6 @@
   /* El brief retira los glow y los orbes: se anulan aquí para que las
      reglas que aún los invocan no pinten nada. */
   --glow-accent:none; --glow-blue:none;
-  --orb1:none; --orb2:none; --orb3:none;
 }
 
 /* ═══ TEMA CLARO ═══════════════════════════════════════════════════════════
@@ -134,6 +147,11 @@
   --action: #0068C9;   /* 5.07 */
   --data:   #0082E8;   /* 3.18 sobre --surface-3, relleno de barra */
   --alert:  #C0272B;   /* 5.44 */
+
+  /* En claro sí puede ser azul: blanco sobre #0068C9 da 5.45. */
+  --action-fill:       #0068C9;
+  --action-fill-hover: #005286;
+  --action-on:         #FFFFFF;
 
   /*                        sobre --bg / sobre --surface-3 */
   --sex: #0079AE;   /* Excelente   4.46 / 3.92 */
@@ -192,21 +210,9 @@ img { display:block; max-width:100%; }
   border-radius: var(--r-sm);
 }
 
-/* ── BG ANIMADO ── */
-.bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-.bg-orb { position:absolute; border-radius:50%; filter:blur(100px); opacity:0; will-change:transform,opacity; }
-.bg-orb-1 { width:60vmax; height:60vmax; background:var(--orb1); top:-25%; left:-20%; animation:orbFloat1 24s ease-in-out infinite, fadeIn .8s .1s forwards; }
-.bg-orb-2 { width:48vmax; height:48vmax; background:var(--orb2); top:35%; right:-18%; animation:orbFloat2 30s ease-in-out infinite, fadeIn .8s .3s forwards; }
-.bg-orb-3 { width:40vmax; height:40vmax; background:var(--orb3); bottom:-12%; left:28%; animation:orbFloat3 38s ease-in-out infinite, fadeIn .8s .5s forwards; }
-
-/* Fuera en móvil: tres capas con blur(100px) animadas obligan a
-   compositing continuo y en Android de gama media el scroll se cae. */
-@media (max-width: 768px) {
-  .bg-canvas { display: none; }
-}
-@keyframes orbFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(4%,3%) scale(1.04)} 66%{transform:translate(-3%,5%) scale(.97)} }
-@keyframes orbFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-5%,-4%) scale(1.05)} 70%{transform:translate(3%,3%) scale(.96)} }
-@keyframes orbFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(4%,-5%) scale(1.06)} }
+/* Los tres orbes de fondo (blur(100px) animados, capa fija a pantalla
+   completa) desaparecen del marcado y de aquí. Forzaban compositing
+   continuo y, con --bg ya neutro, no aportaban nada visible. */
 @keyframes fadeIn { to { opacity:1; } }
 
 /* ── TOPBAR ── */
@@ -636,7 +642,6 @@ body.gestion-archivada .toggle-switch { display:none !important; }
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
-  .bg-orb { opacity: .35 !important; }
   .scroll-progress { transition: none; }
 }
 

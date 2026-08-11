@@ -16,16 +16,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <script src="core/theme.js"></script>
   <link rel="stylesheet" href="shared.css">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-<div class="bg-canvas" aria-hidden="true">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-</div>
 <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
 <!-- Navegación: rail (escritorio) y barra inferior (móvil).
@@ -62,10 +58,10 @@
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
-      <input class="search-inp" id="search-eval-users" type="text" placeholder="Buscar miembro…" oninput="renderEvalUserList()">
+      <input class="search-inp" id="search-eval-users" type="text" placeholder="Buscar miembro…" data-input="renderEvalUserList">
       <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
         <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-        <select class="cfg-inp cfg-select" id="eval-distrito-filter" onchange="renderEvalUserList()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" data-change="renderEvalUserList" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
           <option value="">Todos los distritos</option>
         </select>
       </div>
@@ -84,10 +80,10 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" oninput="renderUsuarios()">
+        <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
         <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
           <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" onchange="renderUsuarios()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
+          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" data-change="renderUsuarios" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
             <option value="">Todos los distritos</option>
           </select>
         </div>
@@ -105,7 +101,7 @@
     <div class="ptitle">ROLES</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
-      <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" oninput="renderRoles()">
+      <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" data-input="renderRoles">
       <button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button>
     </div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -116,7 +112,7 @@
     <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
-      <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" oninput="renderPeriodos()">
+      <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" data-input="renderPeriodos">
       <button class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal">+ Nuevo período</button>
     </div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -129,7 +125,7 @@
     <div class="section-label">Criterios de evaluación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
-      <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" oninput="renderCriterios()">
+      <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" data-input="renderCriterios">
       <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
     </div>
     <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -137,7 +133,7 @@
     <div class="section-label" style="margin-top:32px">Tabla de puntuación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
-      <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" oninput="renderRubrica()">
+      <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" data-input="renderRubrica">
       <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
     </div>
     <div class="rubrica-wrap" style="max-width:900px">
@@ -149,7 +145,7 @@
   <div id="tab-calendario" class="atab-content">
     <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
     <div class="cal-editor-toolbar">
-      <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" oninput="renderCalendario()">
+      <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" data-input="renderCalendario">
       <button class="btn-add-evento" data-act="fn" data-arg="showCalModal">+ Agregar actividad</button>
     </div>
     <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -168,7 +164,7 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
       <span class="section-label" style="margin-bottom:0">Ranking de distritos</span>
-      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" oninput="renderDistritoRanking(_activePEDist?.id)" style="font-size:.8rem;padding:5px 12px;width:180px">
+      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" data-input="buscarDistritos" style="font-size:.8rem;padding:5px 12px;width:180px">
     </div>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
@@ -176,7 +172,7 @@
 
     <div style="margin:24px auto 10px;max-width:700px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eval-pe-lbl">Evaluar distrito:</span>
-      <select class="cfg-inp cfg-select" id="dist-eval-select" onchange="onDistSelectChange()" style="max-width:240px">
+      <select class="cfg-inp cfg-select" id="dist-eval-select" data-change="onDistSelectChange" style="max-width:240px">
         <option value="">Seleccionar distrito...</option>
       </select>
     </div>
@@ -240,7 +236,6 @@
     <div class="modal-err" id="mrol-err"></div>
   </div>
 </div>
-
 
 <!-- MODAL: ABRIR GESTIÓN -->
 <div class="modal-overlay" id="modal-gestion" style="display:none" data-act="cerrarModalFondo" data-arg="modal-gestion">
@@ -390,7 +385,7 @@
 </div>
 
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+<input type="file" id="avatar-file-input" accept="image/*" style="display:none" data-change="handleAvatarUpload">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
 <script src="core/store.js"></script>
@@ -400,23 +395,6 @@
 <script src="auth.js"></script>
 <script src="api.js"></script>
 <script src="admin.js"></script>
-<script>
-(function(){
-  var R=document.documentElement,K='ec-theme';
-  function apply(t){ R.dataset.theme=t; }
-  window.toggleTheme=function(){ var n=R.dataset.theme==='light'?'dark':'light'; localStorage.setItem(K,n); apply(n); };
-  var s=localStorage.getItem(K);
-  if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
-})();
-</script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script>
-if(typeof lucide!=='undefined')lucide.createIcons();
-
-window.addEventListener('scroll', function() {
-  var p = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-  document.getElementById('scroll-progress').style.width = p + '%';
-}, { passive: true });
-</script>
 </body>
 </html>

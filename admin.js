@@ -1024,6 +1024,9 @@ function renderDistritoSelect() {
     _distritos.map(d => `<option value="${d.id}">${escHtml(d.nombre)}</option>`).join('');
 }
 
+/** Buscador de distritos: repinta el ranking del PE seleccionado. */
+function buscarDistritos() { renderDistritoRanking(_activePEDist?.id); }
+
 function onDistSelectChange() {
   const sel = document.getElementById('dist-eval-select'); if (!sel?.value) return;
   _activeDistId = sel.value;
@@ -1225,8 +1228,10 @@ async function saveDistEval(estado, distId) {
 }
 
 /* ── AVATAR UPLOAD ── */
-async function handleAvatarUpload(e) {
-  const file = e.target.files?.[0]; if (!file) return;
+/* El despachador de config.js llama (elemento, evento): el archivo se lee
+ * del propio <input>, no de e.target, que con delegación no siempre es él. */
+async function handleAvatarUpload(el) {
+  const file = el.files?.[0]; if (!file) return;
   if (file.size > 2 * 1024 * 1024) { showToast('Imagen demasiado grande (máx. 2 MB)', 'error'); return; }
   showToast('Subiendo foto...', 'info');
   const res = await API.uploadAvatar(CU.id, file);

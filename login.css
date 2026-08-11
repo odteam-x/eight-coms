@@ -1,0 +1,369 @@
+/**
+ * EIGHT CREATORS LABs — Acceso y registro
+ *
+ * Una sola hoja para index.html y registro.html: los dos tenían el mismo
+ * layout copiado en sendos bloques <style>, y ya habían divergido.
+ *
+ * Sin hex literales fuera de los tres blancos: todo sale de shared.css.
+ */
+
+/* --navy-900 vuelve aquí como superficie de marca, que es su único papel:
+   una pieza sólida de alto contraste por pantalla. Nada de degradados
+   decorativos ni orbes desenfocados delante del texto. */
+
+.login-layout {
+  display: grid;
+  grid-template-columns: 42% 58%;
+  min-height: 100dvh;
+}
+
+/* ══ PANEL IZQUIERDO: MARCA ═════════════════════════════════════════════ */
+.login-panel-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-7) var(--sp-6);
+  background: var(--navy-900);
+  color: #fff;
+  min-width: 0;
+}
+
+.login-brand-top { display: flex; align-items: center; gap: var(--sp-3); }
+
+.logo-img { width: 56px; height: 56px; object-fit: contain; }
+
+/* El <h1> ya es el logotipo escrito. Mostrar además "EIGHT CREATORS" junto
+   al logo repetía la marca dos veces en la misma cabecera. */
+.login-brand-name { display: none; }
+
+.login-brand-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.login-hero-tag {
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan-400);
+  margin-bottom: var(--sp-4);
+}
+
+.login-hero-h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-hero);
+  font-weight: 700;
+  line-height: .9;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: var(--sp-5);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.login-hero-h1 em               { color: var(--cyan-400); font-style: normal; display: block; }
+.login-hero-h1 .login-hero-labs { color: var(--cyan-200); display: block; }
+
+.login-hero-desc {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--cyan-200);   /* 9.71:1 sobre --navy-900 */
+  max-width: 34ch;
+}
+
+.login-brand-foot {
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  /* Mezclado a opaco: con rgba, getComputedStyle devuelve el color sin
+     componer y cualquier medida de contraste sale falseada. 6.80:1. */
+  color: #9FADBE;
+}
+
+/* ══ PANEL DERECHO: FORMULARIO ══════════════════════════════════════════ */
+.login-panel-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--sp-7) var(--sp-6);
+  background: var(--bg);
+  min-width: 0;
+}
+
+.login-form-inner { width: 100%; max-width: 400px; }
+
+.login-form-header { margin-bottom: var(--sp-6); }
+
+.login-form-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--txt);
+  margin-bottom: var(--sp-1);
+}
+
+.login-form-sub {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  color: var(--txt-2);
+  line-height: 1.5;
+}
+
+/* ── Campos ── */
+.field { margin-bottom: var(--sp-4); min-width: 0; }
+
+.field label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--txt-2);
+  margin-bottom: var(--sp-2);
+}
+
+.field input {
+  width: 100%;
+  background: var(--surface-1);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-md);
+  color: var(--txt);
+  font-family: var(--font-body);
+  /* 16px reales: por debajo, iOS hace zoom al enfocar y descuadra la página. */
+  font-size: 16px;
+  padding: 13px var(--sp-4);
+  min-height: 48px;
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+.field input::placeholder { color: var(--txt-muted); }
+
+.field input:focus,
+.field input:focus-visible {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px rgba(0,135,241,.28);
+}
+
+/* El campo en error se marca además del mensaje: el color por sí solo no
+   es un indicador accesible. */
+.field input[aria-invalid="true"] {
+  border-color: var(--alert);
+  box-shadow: 0 0 0 3px rgba(255,96,99,.22);
+}
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+
+.pass-wrap { position: relative; }
+.pass-wrap input { padding-right: 52px; }
+
+.btn-pass-toggle {
+  position: absolute;
+  top: 50%; right: var(--sp-1);
+  transform: translateY(-50%);
+  /* 44×44 es el mínimo táctil; el icono sigue midiendo 18px. */
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--txt-muted);
+  border-radius: var(--r-sm);
+}
+.btn-pass-toggle:hover { color: var(--txt); }
+.btn-pass-toggle:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.pass-eye { width: 18px; height: 18px; }
+
+/* ── Botón principal ── */
+.btn-login {
+  width: 100%;
+  margin-top: var(--sp-2);
+  padding: 14px var(--sp-4);
+  min-height: 48px;
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  background: var(--action-fill);
+  border: none;
+  border-radius: var(--r-md);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  /* 8.32 en oscuro, 5.45 en claro — ver --action-fill en shared.css */
+  color: var(--action-on);
+  cursor: pointer;
+  transition: background .18s var(--ease), transform .12s var(--ease);
+}
+.btn-login:hover:not(:disabled)  { background: var(--action-fill-hover); }
+.btn-login:active:not(:disabled) { transform: translateY(1px); }
+.btn-login:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.btn-login:disabled { opacity: .55; cursor: not-allowed; }
+
+/* El spinner vive dentro del botón: el estado de carga se lee donde se
+   pulsó, no en una línea aparte que hay que ir a buscar. */
+.btn-login .spin {
+  width: 16px; height: 16px;
+  /* currentColor: el spinner sigue al texto, que cambia de color por tema. */
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  animation: btnSpin .7s linear infinite;
+}
+@keyframes btnSpin { to { transform: rotate(360deg); } }
+
+/* ── Mensajes ── */
+.login-err, .login-ok {
+  display: none;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  border-radius: var(--r-sm);
+  border: 1px solid;
+}
+.login-err.visible, .login-ok.visible { display: block; }
+
+.login-err { color: var(--alert); background: rgba(255,96,99,.10); border-color: rgba(255,96,99,.32); }
+.login-ok  { color: var(--data);  background: rgba(0,203,255,.10); border-color: rgba(0,203,255,.32); }
+
+/* Sustituido por el spinner dentro del botón. El nodo se conserva por si
+   algún script todavía lo referencia. */
+.login-loading { display: none !important; }
+
+/* ── Enlaces auxiliares ── */
+.login-aux {
+  margin-top: var(--sp-4);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--txt-2);
+}
+.login-aux + .login-aux {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.login-aux a, .login-link a {
+  /* inline-block + padding: "Olvidé mi contraseña" y "Regístrate aquí" son
+     acciones reales, no enlaces incrustados en un párrafo, así que necesitan
+     un objetivo táctil de 44px de alto. */
+  display: inline-block;
+  padding: 13px var(--sp-2);
+  color: var(--action);
+  text-decoration: none;
+  font-weight: 600;
+}
+.login-aux a:hover, .login-link a:hover { text-decoration: underline; }
+.login-aux a:focus-visible, .login-link a:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+
+.login-link {
+  margin-top: var(--sp-5);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--txt-2);
+}
+
+.otp-input {
+  text-align: center;
+  letter-spacing: 8px;
+  font-size: 1.4rem !important;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+.otp-hint {
+  font-size: var(--fs-xs);
+  color: var(--txt-2);
+  margin-bottom: var(--sp-4);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Medidor de fortaleza de contraseña ──────────────────────────────────
+   Reutiliza la escala de nivel: el usuario ya la asocia a "peor → mejor"
+   en sus puntajes, así que no hay un segundo código de color que aprender.
+   El texto acompaña siempre a la barra — el color solo no es accesible. */
+.pass-meter { margin: 0 0 var(--sp-4); }
+.pass-meter-track {
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+.pass-meter-fill {
+  height: 100%;
+  width: 0;
+  border-radius: var(--r-full);
+  background: var(--sba);
+  transition: width .25s var(--ease), background .25s var(--ease);
+}
+.pass-meter[data-nivel="1"] .pass-meter-fill { width: 25%; }
+.pass-meter[data-nivel="2"] .pass-meter-fill { width: 50%;  background: var(--spr); }
+.pass-meter[data-nivel="3"] .pass-meter-fill { width: 75%;  background: var(--sbu); }
+.pass-meter[data-nivel="4"] .pass-meter-fill { width: 100%; background: var(--sex); }
+.pass-meter-txt {
+  margin-top: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--txt-2);
+}
+
+.theme-toggle-fixed {
+  position: fixed;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  z-index: var(--z-sticky);
+}
+
+/* ══ RESPONSIVE ═════════════════════════════════════════════════════════
+   Una columna por debajo de 860px. El panel de marca se reduce a cabecera:
+   en vertical no hay sitio para dos bloques de altura completa, y el
+   formulario debe quedar visible sin hacer scroll. */
+@media (max-width: 860px) {
+  .login-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .login-panel-brand {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--sp-3);
+    /* 56px a la derecha: ahí flota el botón de tema, que si no se monta
+       encima del logotipo. */
+    padding: var(--sp-4) 56px var(--sp-4) var(--sp-5);
+  }
+  .login-brand-center { flex: 1; }
+  .logo-img { width: 40px; height: 40px; }
+  .login-hero-tag, .login-hero-desc, .login-brand-foot { display: none; }
+  .login-hero-h1 {
+    font-size: var(--fs-lg);
+    margin-bottom: 0;
+    line-height: 1.1;
+    /* En una línea las tres partes van pegadas: "EIGHTCREATORSLABs". */
+    word-spacing: normal;
+  }
+  .login-hero-h1 em, .login-hero-h1 .login-hero-labs { display: inline; }
+  .login-hero-h1 em::before,
+  .login-hero-h1 .login-hero-labs::before { content: '\00a0'; }
+  .login-panel-form {
+    padding: var(--sp-6) var(--sp-5) var(--sp-7);
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 400px) {
+  .login-panel-brand { padding: var(--sp-3) var(--sp-4); }
+  .login-panel-form  { padding: var(--sp-5) var(--sp-4) var(--sp-6); }
+  .field-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-login, .field input, .pass-meter-fill { transition: none; }
+  .btn-login .spin { animation-duration: 1.4s; }
+}

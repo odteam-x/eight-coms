@@ -1659,7 +1659,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   /* Inside .amain, hide everything except #tab-reportes */
   .amain > *:not(#tab-reportes) { display:none !important; }
   /* Also hide any stray UI elements */
-  .topbar, .mobile-menu, .bg-canvas, .scroll-progress, .back-top,
+  .topbar, .mobile-menu, .scroll-progress, .back-top,
   .toast, .hamburger, .modal-overlay { display:none !important; }
 
   .amain {
