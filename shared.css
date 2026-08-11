@@ -835,3 +835,197 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   }
   .tnav-group:hover .tnav-drop { transform: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVEGACIÓN — rail lateral (escritorio) y barra inferior (móvil)
+   Sustituye a .topbar / .tb-nav / .mobile-menu.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root { --rail-w:232px; --rail-w-min:72px; --bb-h:60px; }
+
+/* El contenido se desplaza para dejar sitio al rail. */
+.con-rail #contenido,
+.con-rail .amain { min-width:0; }
+
+@media (min-width:768px) {
+  .con-rail #contenido, .con-rail .amain { margin-left:var(--rail-w); }
+  .con-rail.rail-colapsado #contenido,
+  .con-rail.rail-colapsado .amain { margin-left:var(--rail-w-min); }
+}
+
+/* ── RAIL ─────────────────────────────────────────────────────────────── */
+.rail {
+  position:fixed; inset:0 auto 0 0; width:var(--rail-w);
+  display:none; flex-direction:column; gap:var(--sp-2);
+  padding:var(--sp-4) var(--sp-3);
+  background:var(--surface-2); border-right:1px solid var(--border);
+  z-index:var(--z-rail); overflow-y:auto; overscroll-behavior:contain;
+  transition:width .18s var(--ease);
+}
+@media (min-width:768px) { .rail { display:flex; } }
+.rail-colapsado .rail { width:var(--rail-w-min); padding-inline:var(--sp-2); }
+
+.rail-marca {
+  display:flex; align-items:center; gap:var(--sp-2); min-width:0;
+  padding:var(--sp-2); margin-bottom:var(--sp-3); border-radius:var(--r-md);
+}
+.rail-logo { width:32px; height:32px; object-fit:contain; flex:0 0 auto; }
+.rail-marca-txt {
+  font-family:var(--font-display); font-size:var(--fs-md); font-weight:700;
+  text-transform:uppercase; letter-spacing:.04em; color:var(--txt);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
+}
+.rail-badge {
+  font-family:var(--font-ui); font-size:var(--fs-xs); font-weight:600;
+  padding:2px 8px; border-radius:var(--r-full);
+  background:var(--action); color:#fff; white-space:nowrap;
+}
+
+.rail-nav { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+
+.rail-sep {
+  margin:var(--sp-4) 0 var(--sp-2); padding-top:var(--sp-3);
+  border-top:1px solid var(--border);
+}
+.rail-sep span {
+  font-family:var(--font-ui); font-size:var(--fs-xs); font-weight:600;
+  text-transform:uppercase; letter-spacing:.06em; color:var(--txt-muted);
+  padding-inline:var(--sp-2);
+}
+
+.rail-item {
+  position:relative; display:flex; align-items:center; gap:var(--sp-3);
+  min-height:44px; padding:var(--sp-2) var(--sp-3); min-width:0;
+  border-radius:var(--r-md); color:var(--txt-2);
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:500;
+  text-align:left; transition:background .15s, color .15s;
+}
+.rail-item:hover { background:var(--surface-3); color:var(--txt); }
+.rail-item.active { background:var(--surface-3); color:var(--txt); font-weight:600; }
+/* La barra de 3px es lo que marca el destino activo, no el color de fondo. */
+.rail-item.active::before {
+  content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:3px; height:60%; border-radius:0 var(--r-sm) var(--r-sm) 0;
+  background:var(--action);
+}
+.rail-item.active .rail-ico { color:var(--action); }
+.rail-ico { width:20px; height:20px; flex:0 0 auto; }
+.rail-txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.rail-item--sec { color:var(--txt-muted); }
+
+.rail-pie { display:flex; flex-direction:column; gap:2px; margin-top:auto; }
+.rail-user {
+  display:flex; align-items:center; gap:var(--sp-2); min-width:0;
+  padding:var(--sp-2) var(--sp-3); margin-block:var(--sp-2);
+}
+.rail-user-info { min-width:0; }
+.rail-uname {
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; color:var(--txt);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rail-ts { font-family:var(--font-ui); font-size:var(--fs-xs); color:var(--txt-muted); }
+.rail-toggle {
+  display:flex; align-items:center; justify-content:center;
+  min-height:44px; border-radius:var(--r-md); color:var(--txt-muted);
+}
+.rail-toggle:hover { background:var(--surface-3); color:var(--txt); }
+.rail-colapsado .rail-toggle .rail-ico { transform:rotate(180deg); }
+
+/* Colapsado: solo iconos, con tooltip. */
+.rail-colapsado .rail-txt,
+.rail-colapsado .rail-marca-txt,
+.rail-colapsado .rail-badge,
+.rail-colapsado .rail-user-info,
+.rail-colapsado .rail-sep span { display:none; }
+.rail-colapsado .rail-item,
+.rail-colapsado .rail-marca { justify-content:center; padding-inline:var(--sp-2); }
+.rail-colapsado .rail-sep { margin:var(--sp-3) 0; padding-top:var(--sp-3); }
+
+@media (hover:hover) and (pointer:fine) {
+  .rail-colapsado .rail-item[data-tip]:hover::after {
+    content:attr(data-tip); position:absolute; left:calc(100% + var(--sp-2));
+    top:50%; transform:translateY(-50%); white-space:nowrap;
+    background:var(--surface-3); color:var(--txt);
+    font-family:var(--font-ui); font-size:var(--fs-xs);
+    padding:6px 10px; border-radius:var(--r-sm);
+    border:1px solid var(--border); box-shadow:var(--shadow-md);
+    z-index:calc(var(--z-rail) + 1); pointer-events:none;
+  }
+}
+
+/* Entre 768 y 1023 el rail va siempre colapsado. */
+@media (min-width:768px) and (max-width:1023px) {
+  .rail { width:var(--rail-w-min); padding-inline:var(--sp-2); }
+  .rail .rail-txt, .rail .rail-marca-txt, .rail .rail-badge,
+  .rail .rail-user-info, .rail .rail-sep span { display:none; }
+  .rail .rail-item, .rail .rail-marca { justify-content:center; }
+  .rail-toggle { display:none; }
+  .con-rail #contenido, .con-rail .amain { margin-left:var(--rail-w-min); }
+}
+
+/* ── BARRA INFERIOR (móvil) ───────────────────────────────────────────── */
+.bottom-bar {
+  position:fixed; inset:auto 0 0 0; display:flex; z-index:var(--z-rail);
+  background:var(--surface-2); border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@media (min-width:768px) { .bottom-bar { display:none; } }
+
+.bb-item {
+  flex:1 1 0; min-width:0; min-height:var(--bb-h);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  color:var(--txt-muted); font-family:var(--font-ui); font-size:var(--fs-xs);
+  padding:var(--sp-1);
+}
+.bb-ico { width:22px; height:22px; }
+.bb-txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.bb-item.active { color:var(--action); }
+
+/* El contenido no debe quedar bajo la barra. */
+@media (max-width:767px) {
+  .con-rail #contenido, .con-rail .amain {
+    padding-bottom:calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-4));
+  }
+}
+
+/* Hoja inferior con los destinos que no caben. */
+.bb-hoja {
+  position:fixed; inset:0; z-index:var(--z-modal);
+  background:rgba(0,0,0,.5); display:none;
+}
+.bb-hoja.open { display:block; }
+.bb-hoja-panel {
+  position:absolute; inset:auto 0 0 0;
+  background:var(--surface-1); border-top:1px solid var(--border);
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+  padding:var(--sp-3) var(--sp-4);
+  padding-bottom:max(var(--sp-5), env(safe-area-inset-bottom));
+  max-height:80dvh; overflow-y:auto;
+}
+.bb-hoja-tirador {
+  width:40px; height:4px; border-radius:var(--r-full);
+  background:var(--border-hi); margin:0 auto var(--sp-3);
+}
+.bb-hoja-item {
+  display:flex; align-items:center; gap:var(--sp-3); width:100%;
+  min-height:48px; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md);
+  color:var(--txt-2); font-family:var(--font-ui); font-size:var(--fs-sm); text-align:left;
+}
+.bb-hoja-item:hover { background:var(--surface-2); color:var(--txt); }
+
+/* Skip link: primer tabulable de la página, visible solo con teclado. */
+.skip-link {
+  position:absolute; left:var(--sp-3); top:-100px; z-index:calc(var(--z-modal) + 1);
+  padding:10px 16px; border-radius:var(--r-md);
+  background:var(--action); color:#fff;
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
+  transition:top .15s var(--ease);
+}
+.skip-link:focus { top:var(--sp-3); }
+
+/* Objetivo táctil mínimo 44px en punteros gruesos. Los chips de período
+   medían 40 de alto. */
+@media (pointer: coarse) {
+  .pb, .bb-item, .rail-item, .btn-icon { min-height: 44px; }
+  .btn-icon { min-width: 44px; }
+}

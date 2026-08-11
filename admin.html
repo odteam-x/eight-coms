@@ -28,82 +28,13 @@
 </div>
 <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
-<!-- TOPBAR -->
-<header class="topbar" id="topbar">
-  <div class="tb-brand">
-    <picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp"><img src="logo.png" alt="" class="tb-logo" width="44" height="44" onerror="this.style.display='none'"></picture>
-    <span class="tb-title">EIGHT<em> CREATORS</em></span>
-    <span class="admin-badge">ADMIN</span>
-  </div>
-  <nav class="tb-nav" id="desktop-nav">
-    <!-- Operación diaria a la izquierda; configuración, que se toca dos
-         veces por gestión, detrás del engranaje. Antes eran 9 destinos al
-         mismo nivel y "Evaluar" competía con "Rúbrica". -->
-    <button class="tnav active" data-act="tab" data-arg="overview"><i data-lucide="layout-dashboard" class="nav-icon"></i> Overview</button>
-    <button class="tnav" data-act="tab" data-arg="evaluar"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
-    <button class="tnav" data-act="tab" data-arg="usuarios"><i data-lucide="users" class="nav-icon"></i> Usuarios</button>
-    <button class="tnav" data-act="tab" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
-    <div class="tnav-group tnav-group--cfg">
-      <button class="tnav" data-act="tab" data-arg="periodos" aria-label="Configuración"><i data-lucide="settings" class="nav-icon"></i> <span class="cfg-lbl">Configuración</span> <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
-      <div class="tnav-drop">
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i> Períodos</button>
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="calendario"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="rubrica"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="roles"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="distritos"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
-        <button class="tnav-drop-item" data-act="tabSinBtn" data-arg="gestiones"><i data-lucide="archive" class="nav-icon"></i> Gestiones</button>
-      </div>
-    </div>
-  </nav>
-  <div class="tb-user">
-    <span id="gestion-switch" hidden></span>
-    <span class="last-updated-badge" id="ts-badge"></span>
-    <div class="avatar admin-av" id="av-desktop">A</div>
-    <span class="uname" id="uname-desktop">Admin</span>
-    <button class="btn-out" data-act="salir">Salir</button>
-    <button class="theme-toggle" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
-  </div>
-  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" data-act="fn" data-arg="toggleMenu">
-    <span></span><span></span><span></span>
-  </button>
-</header>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobile-menu">
-  <div class="mobile-nav-links">
-    <button class="mobile-nav-btn active" data-act="tabMovil" data-arg="overview"><i data-lucide="layout-dashboard" class="nav-icon"></i>Overview</button>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="evaluar"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="usuarios"><i data-lucide="users" class="nav-icon"></i>Usuarios</button>
-    <button class="mobile-nav-btn" data-act="tabMovil" data-arg="reportes"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
-    <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" data-act="grupoMovil"><i data-lucide="settings" class="nav-icon"></i>Configuración <i data-lucide="chevron-down" class="mob-chev"></i></button>
-      <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="periodos"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="calendario"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="rubrica"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="roles"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="distritos"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
-        <button class="mobile-nav-btn" data-act="tabMovil" data-arg="gestiones"><i data-lucide="archive" class="nav-icon"></i>Gestiones</button>
-      </div>
-    </div>
-    <div class="mobile-theme-row">
-      <span class="mobile-theme-lbl">Tema</span>
-      <button class="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
-    </div>
-  </div>
-  <div class="mobile-user-section">
-    <div class="avatar admin-av" id="av-mobile">A</div>
-    <div class="mobile-uinfo">
-      <div class="mobile-uname" id="uname-mobile">Administrador</div>
-      <div class="mobile-urole">Panel de control</div>
-      <div class="last-updated-badge" id="ts-badge-mob"></div>
-    </div>
-    <button class="btn-out-mobile" data-act="salir">Salir</button>
-  </div>
-</div>
-
+<!-- Navegación: rail (escritorio) y barra inferior (móvil).
+     El marcado lo genera initNav() de core/rail.js desde datos. -->
+<aside class="rail" id="rail"></aside>
+<nav class="bottom-bar" id="bottom-bar"></nav>
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
 <!-- CONTENIDO ADMIN -->
-<div class="amain">
+<main class="amain" id="contenido">
 
   <!-- ── TAB: OVERVIEW ── -->
   <div id="tab-overview" class="atab-content active">
@@ -290,7 +221,7 @@
     <div id="gestiones-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
-</div>
+</main>
 
 <!-- MODAL: ROL -->
 <div class="modal-overlay" id="modal-rol" style="display:none" data-act="cerrarModalFondo" data-arg="modal-rol">
@@ -464,6 +395,7 @@
 <script src="config.js"></script>
 <script src="core/store.js"></script>
 <script src="core/render.js"></script>
+<script src="core/rail.js"></script>
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
 <script src="api.js"></script>

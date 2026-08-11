@@ -323,6 +323,9 @@ function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap =
       b.setAttribute('aria-selected', String(b.classList.contains('active')));
     });
   }
+
+  // Rail y barra inferior comparten el destino activo (core/rail.js).
+  if (typeof marcarActivo === 'function') marcarActivo(tab);
 }
 
 function switchTabMobileCore(tab, btn, switchFn) {

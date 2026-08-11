@@ -71,6 +71,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   setEl('uname-desktop', name); setEl('uname-mobile', name);
 
+  initNav({
+    marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview',
+    grupos: [
+      { items: [
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Overview' },
+        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
+        { tab:'usuarios', icono:'users',            etiqueta:'Usuarios' },
+        { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
+      ]},
+      { titulo:'Configuración', items: [
+        { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
+        { tab:'calendario', icono:'calendar-days', etiqueta:'Calendario' },
+        { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
+        { tab:'roles',      icono:'tag',           etiqueta:'Roles'      },
+        { tab:'distritos',  icono:'map-pin',       etiqueta:'Distritos'  },
+        { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
+      ]},
+    ],
+  });
+
   // La gestión debe fijarse ANTES de cargar: los getters filtran por ella.
   const gid = new URLSearchParams(location.search).get('gestion');
   if (gid) API.setGestion(gid);

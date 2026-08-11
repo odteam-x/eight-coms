@@ -207,8 +207,21 @@ function initUI() {
   buildPEBars();
 
   if (!_uiMontada) {
-    // Mostrar/ocultar elementos exclusivos del secretario
     const sec = isSecretario();
+    initNav({
+      marca: 'EIGHT CREATORS',
+      badge: sec ? 'SECRETARIO' : 'CREATOR',
+      activo: 'miscore',
+      grupos: [{ items: [
+        { tab:'miscore',   icono:'bar-chart-2', etiqueta:'Mi Score' },
+        ...(sec ? [
+        { tab:'ranking',   icono:'trophy',      etiqueta:'Ranking' },
+        { tab:'distrito',  icono:'map',         etiqueta:'Mi Distrito' }] : []),
+        { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas' },
+        { tab:'historial', icono:'history',     etiqueta:'Historial' },
+      ]}],
+    });
+    // Mostrar/ocultar elementos exclusivos del secretario
     document.querySelectorAll('.sec-only').forEach(el => { el.style.display = sec ? '' : 'none'; });
     document.querySelectorAll('.mem-only').forEach(el => { el.style.display = sec ? 'none' : ''; });
     const dc = document.getElementById('dist-calificacion');

@@ -89,6 +89,11 @@ const ACCIONES = {
   volverLogin:      ()            => backToLogin(),
   resetPaso1:       ()            => resetStep1(),
 
+  /* ── Navegación: rail y barra inferior (core/rail.js) ── */
+  railColapso:   ()    => alternarColapso(),
+  masDestinos:   ()    => abrirHoja(),
+  tabDesdeHoja:  (arg) => { cerrarHoja(); switchTab(arg, null); },
+
   /* ── Acciones del marcado generado por los portales ── */
   irTab:        (a)             => goTab(a),
   rankTab:      (a)             => switchRankTab(a),

@@ -181,6 +181,15 @@ function initUI() {
   buildPEBars();
 
   if (!_uiMontada) {
+    initNav({
+      marca: 'EIGHT CREATORS',
+      activo: 'scores',
+      grupos: [{ items: [
+        { tab:'scores',    icono:'bar-chart-2', etiqueta:'Mi Score'  },
+        { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas'  },
+        { tab:'historial', icono:'history',     etiqueta:'Historial' },
+      ]}],
+    });
     const name = CU.name || CU.user;
     const ini  = initials(name);
     setEl('av-desktop', ini); setEl('av-mobile', ini);
