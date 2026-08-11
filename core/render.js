@@ -49,8 +49,20 @@ const scoreClass = s => nivelDe(s).key;
  * mostrar un error — fallar visible es mejor que mentir.
  */
 const getCriterios = () => Store.criterios();
-const getMaxScore  = () => getCriterios().length * 4;   // 28 con 7 criterios
-const MAX_TOTAL    = () => getMaxScore() + 2;           // +2 de bono
+
+/**
+ * Suma de los máximos reales de cada criterio, no `nCriterios * 4`.
+ * `criterios.max` es editable por el admin: con el 4 fijo, subirlo a 5
+ * hacía que el total mostrado y la longitud de las barras mintieran.
+ */
+const getMaxScore = () => getCriterios().reduce((s, c) => s + maxDe(c), 0);
+const MAX_TOTAL   = () => getMaxScore() + 2;            // +2 de bono
+
+/** Máximo de un criterio, con 4 como valor por defecto sensato. */
+const maxDe = c => (Number(c?.max) > 0 ? Number(c.max) : 4);
+
+/** Porcentaje de relleno de una barra, acotado a 0–100. */
+const pctBarra = (val, c) => Math.max(0, Math.min(100, (Number(val) || 0) / maxDe(c) * 100));
 
 /** ¿Hay criterios utilizables? Úsalo antes de pintar cualquier puntaje. */
 const hayCriterios = () => getCriterios().length > 0;

@@ -337,7 +337,7 @@ function renderMyScore(pe) {
     return `<div class="cbar" style="animation-delay:${i*40}ms">
       <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
       <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div></div>
-      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div></div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div>
       ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
     </div>`;
   }).join('');
@@ -581,7 +581,7 @@ function renderMiembrosDistrito(pe) {
     const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
     const critBars=hasEval?criterios.map(c=>{
       const val=puntajeDe(r.scoreRow,c.key);
-      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div></div><span class="dm-crit-val" style="color:var(--criterio)">${val}</span></div>`;
+      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div><span class="dm-crit-val" style="color:var(--criterio)">${val}</span></div>`;
     }).join(''):'';
     const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
     return `<div class="dm-card${isMe?' dm-card--me':''}">
@@ -760,7 +760,7 @@ function renderQuickLinks() {
        <i data-lucide="chevron-right" class="ql-arrow"></i>
      </button>`
   ).join('');
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 /* ── TAB: PERÍODOS ── */
@@ -846,7 +846,7 @@ function renderTrabajosBody(trabajos) {
            <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
            <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
          </div>`}`;
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 async function saveTrabajo() {

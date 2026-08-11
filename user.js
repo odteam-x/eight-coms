@@ -291,7 +291,7 @@ function renderScores(pe) {
           <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div>
         </div>
         <div class="cbar-track">
-          <div class="cbar-fill" style="width:${(val/4)*100}%;background:var(--criterio)"></div>
+          <div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div>
         </div>
         ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
       </div>`;
@@ -578,7 +578,7 @@ function renderQuickLinks() {
        <i data-lucide="chevron-right" class="ql-arrow"></i>
      </button>`
   ).join('');
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 /* ── TAB: PERÍODOS ── */
@@ -669,7 +669,7 @@ function renderTrabajosBody(trabajos) {
            <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
            <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
          </div>`}`;
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 async function saveTrabajo() {

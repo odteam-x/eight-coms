@@ -212,20 +212,25 @@ const ICONS = new Proxy({}, {
 });
 
 /* Auto-render Lucide icons when new data-lucide elements appear in the DOM */
-(function() {
-  var _pending = false;
-  function refresh() {
-    _pending = false;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
-  function schedule() {
-    if (!_pending) { _pending = true; requestAnimationFrame(refresh); }
-  }
-  if (typeof MutationObserver !== 'undefined') {
-    new MutationObserver(function(muts) {
-      for (var i = 0; i < muts.length; i++) {
-        if (muts[i].addedNodes.length) { schedule(); return; }
-      }
-    }).observe(document.documentElement, { childList: true, subtree: true });
-  }
-})();
+/**
+ * Renderiza los iconos Lucide de un contenedor concreto.
+ *
+ * Antes esto era un MutationObserver sobre `documentElement` con
+ * `subtree: true`: cada `innerHTML` masivo —y los portales hacen muchos—
+ * disparaba un barrido de iconos del DOM completo, aunque los nodos
+ * añadidos no tuvieran ni un `data-lucide`.
+ *
+ * Ahora la llamada es explícita y acotada al nodo recién pintado. Si se
+ * omite el argumento recorre el documento, que es lo que hace falta una
+ * sola vez al arrancar.
+ */
+function renderIconos(contenedor) {
+  if (typeof lucide === 'undefined') return;
+  try {
+    if (contenedor && contenedor.nodeType === 1) lucide.createIcons({ nodes: [contenedor] });
+    else lucide.createIcons();
+  } catch (e) { debug('[iconos]', e); }
+}
+
+// Pasada inicial: el marcado estático de la página.
+document.addEventListener('DOMContentLoaded', function () { renderIconos(); });

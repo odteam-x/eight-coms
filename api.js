@@ -488,9 +488,11 @@ const API = {
       return { ok: false, error: e.message || String(e) };
     }
 
-    // Criterios normalizados (la columna en DB es max_valor)
+    // La columna real es `max`. `max_valor` no existe en la base: el
+    // fallback `?? c.max` era lo único que mantenía esto en pie.
     const criterios = criteriosRaw.map(c => ({
-      key: c.key, label: c.label, abbr: c.abbr, color: c.color, max: c.max_valor ?? c.max ?? 4,
+      key: c.key, label: c.label, abbr: c.abbr, color: c.color,
+      max: Number(c.max) > 0 ? Number(c.max) : 4,
     }));
 
     // Períodos: SOLO datos. `activo` es booleano y las fechas van crudas.
