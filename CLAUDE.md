@@ -29,30 +29,37 @@ Vercel config is in `vercel.json` (security headers only). Note that `vercel.jso
 
 | File | Role gate | JS logic |
 |------|-----------|----------|
-| `index.html` | None (login page) | Inline — login, password reset, password recovery detection via `onAuthStateChange('PASSWORD_RECOVERY')` |
-| `registro.html` | None | Inline — registration form |
+| `index.html` | None (login page) | `login.js` — login, password reset, recovery detection via `onAuthStateChange('PASSWORD_RECOVERY')` |
+| `registro.html` | None | `registro.js` — registration form + password strength meter |
 | `user.html` | `Auth.requireRole('miembro')` | `user.js` — member dashboard (scores, feedback, rubrica, calendario) |
 | `secretario.html` | `Auth.requireAnyRole(['secretario','miembro'])` | `secretario.js` — secretary view (adds ranking, district management) |
 | `admin.html` | `Auth.requireAuth(true)` | `admin.js` — full admin panel (users, roles, periodos, evaluaciones, criterios, rubrica, calendario, config) |
 
 ### Styling
 
-- `shared.css` — design system: CSS variables, glass morphism, dark/light theme, grid utilities, animations
+- `shared.css` — the token system and everything shared. `:root` is the closed palette; nothing outside it.
+- `login.css` — `index.html` + `registro.html`
 - `user.css`, `secretario.css`, `admin.css` — page-specific styles
 
-**One view, one colour dimension.** The rule that keeps this readable:
+**The palette is closed.** Six brand colours (`--navy-900`, `--blue-700`, `--blue-500`, `--cyan-400`, `--cyan-200`, `--coral`), a neutral base, and three semantic slots. **No hex literal outside `:root`** — the only exceptions are pure white on the brand panel and the medal colours, both commented in place.
 
-- **All seven criteria render in a single colour** — `var(--criterio)`. Each bar already carries its label (PLA, REV, EDI…) and its length; the colour added nothing and its seven saturated hues collided with the level scale. `criterios.color` still exists in the DB and stays admin-editable, but the score views ignore it.
-- **The level scale is one hue (194°, brand cyan) in four luminance steps**, not four different hues. Measured contrast on `--bg`: 13.26 / 9.84 / 6.89 / 4.69 — all pass AA. Light theme has its own ramp (10.56 / 7.64 / 5.99 / 4.63).
-- **`#FF6063` is reserved for action and alert.** Never use it for a score level, a criterion or a decorative orb.
+**Every contrast figure in this file was computed, never estimated.** When you change a colour, recompute it against the surface it actually sits on. Two values from the original design brief had to be rejected for failing: `--spr` at `#005286` scored 2.33 on `--bg` (an invisible "En Proceso" bar) and white on `--blue-500` scored 3.66 as a button label.
 
-`--bg` is `#0A1628`, a desaturated navy — **not** the brand `#002247`, which is saturated blue and distorted the colours in front of it. The brand navy→cyan identity lives in accents, borders and gradients.
+**One view, one colour dimension:**
 
-Background orbs sit at opacity ≤.15 and are hidden below 768px (`.bg-canvas { display:none }`): three blurred animated layers force continuous compositing.
+- **All seven criteria render in a single colour** — `var(--criterio)`. Each bar already carries its label (PLA, REV, EDI…) and its length; seven saturated hues collided with the level scale. `criterios.color` still exists in the DB and stays admin-editable, but the score views ignore it.
+- **The level scale is four luminance steps of the brand cyan**, not four hues. Dark: `--sex` 13.95 / `--sbu` 10.03 / `--spr` 5.23 / `--sba` 6.48 on `--bg`. Light has its own ramp.
+- **`--alert` (`#FF6063`) is for alerts and destructive actions.** It doubles as `--sba` ("Bajo") because a failing score *is* the alert state; do not use it for anything else.
 
-**Minimum font size is `.8rem`** (`--fs-min`). `--muted` is `#8FA8C4` (7.40:1). Before Phase 5 it was `#7090B0` at 4.78:1 applied to `.65rem` text.
+`--bg` is `#0E0F12`, a near-black neutral. `--navy-900` is **not** a page background — it is a brand surface, one solid high-contrast piece per screen (hero, login panel). As a page background it distorted every colour in front of it.
 
-Typography is **two families**: `Bebas Neue` (large numbers and section titles) and `Source Sans 3` (everything else, weights 400/600/700). Barlow and Barlow Condensed were removed — they competed for the same role. Four font files, down from ~14.
+**Minimum font size is `--fs-xs` (`.8rem`).** Type is a fluid `clamp()` scale (`--fs-xs` … `--fs-hero`); do not write raw `rem` sizes.
+
+Typography is **three families, one role each**: `Barlow Condensed` (`--font-display`, numbers and titles), `Barlow` (`--font-ui`, labels and buttons), `Source Sans 3` (`--font-body`, running text).
+
+There are **three shadows** (`--shadow-sm/md/lg`), down from 104 distinct declarations, and one spacing scale (`--sp-1` … `--sp-7`).
+
+⚠️ **`shared.css` still carries a compatibility alias block** (`--s1`, `--glass`, `--accent`, `--muted`, …) mapping ~625 references to the old token names. It is marked TEMPORARY and is being retired stylesheet by stylesheet. Do not use those names in new code.
 
 Medal colours in `secretario.css` are tokenised (`--medalla-oro/plata/bronce`) with light-theme variants: the hardcoded gold scored 1.55:1 on the light background.
 
@@ -70,7 +77,7 @@ CDN scripts are pinned to exact versions with SRI hashes, both served from `cdn.
 curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-**CSP is not enabled yet.** It requires removing the 137 inline `onclick=` handlers (Phase 3). Once they are gone, add to `vercel.json`:
+**CSP is live as `Report-Only`.** See "No executable code in the markup" below for what had to be removed first. The header in `vercel.json`:
 
 ```json
 { "key": "Content-Security-Policy",
@@ -86,13 +93,37 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 - **The logo is `logo.webp` (16 KB) via `<picture>`**, with `logo.png` (39 KB) as fallback. It was a 749×1093 PNG of 279 KB rendered at 44px. Regenerate both if the source changes; keep `width`/`height` on the `<img>` to avoid layout shift.
 - The member score is rendered **once**, in the hero. Quick links are mobile-only — on desktop they duplicated the topbar.
 
-**No inline `onclick` anywhere.** All 161 were replaced by a single delegated listener with an action table in `config.js` (`data-act` + `data-arg`, plus `data-arg2` where a second argument is needed). Delegated rather than one listener per button because 49 of them lived in markup generated by `innerHTML`. Adding a new button means adding an entry to `ACCIONES` — never an `onclick`.
+### No executable code in the markup (Phase 7)
+
+**Nothing runs from an HTML attribute or an inline `<script>`.** `script-src 'self'` blocks both, so anything left behind silently stops working the moment the CSP stops being Report-Only.
+
+- **All 161 `onclick`** became a single delegated listener with an action table in `config.js` (`data-act` + `data-arg`, plus `data-arg2` for a second argument). Delegated rather than one listener per button because 49 of them lived in markup generated by `innerHTML`. Adding a button means adding an entry to `ACCIONES` — never an `onclick`.
+- **The 12 `oninput` / `onchange`** in `admin.html` survived that sweep, which only looked for `onclick`. They now use `data-input` / `data-change`, dispatched by two more delegated listeners against the same `_ACCIONES_SIMPLES` allow-list. The handler is called as `f(elemento, evento)`.
+- **The six inline `<script>` blocks** moved to `core/theme.js`, `login.js` and `registro.js`. `core/theme.js` loads in `<head>` **without `defer`** on purpose: applying the theme after first paint flashes white on a dark theme. It also owns the scroll-progress bar, which was writing `style.width` on every scroll event without rAF.
 
 The CSP ships as `Content-Security-Policy-Report-Only`. To enforce it, drop `-Report-Only` from the key in `vercel.json`.
 
+### Login and registration (Phase 7)
+
+`index.html` and `registro.html` share **`login.css`** — the same layout used to live in two `<style>` blocks that had already diverged.
+
+- Two panels **42 / 58**, brand side on solid `--navy-900`, form capped at `400px`, single column below `860px`. `body { overflow:hidden }` is gone: it blocked scrolling with the virtual keyboard open.
+- Inputs are **16px**; anything smaller makes iOS zoom on focus and knocks the page sideways.
+- The spinner lives **inside the button** (`cargando(btn, activo, texto)`), not in a separate line below the form.
+- Errors set `aria-invalid` on the offending field as well as filling the `role="alert"` box — colour alone is not an accessible indicator.
+- The password strength meter reuses the **level scale** (`--sba` → `--sex`), so there is no second colour code to learn, and always prints the level as text.
+
+**`--action-fill` / `--action-on` / `--action-fill-hover` are separate from `--action`.** `--action` is used as a *colour* (link text, focus ring, active border) and only needs to contrast with the page. As a *fill* it also has to contrast with its own label, and white on `--blue-500` is 3.66 — a button is not large text. In dark theme the fill is `--cyan-400` with `--navy-900` text (8.32 / 10.03); in light, `#0068C9` with white (5.45 / 4.87). The dark fill deliberately coincides with `--data`: the auth screens draw no bars, so cyan is not saying "data" anywhere in that view.
+
+**The three background orbs are gone** — markup, CSS, keyframes and `--orb*` tokens. Three animated `blur(100px)` layers forced continuous compositing, and with `--bg` already neutral they contributed nothing visible.
+
 ### Navigation
 
-**Member (`user.html`): three destinations.** Mi Score · Entregas · Historial. "Períodos" and "Calendario" were the same data — the dates of each PE — split across two tabs, and "Reportes" is its temporal view; all three are sections inside Historial. The rubric is no longer a tab: it is a `<details>` under the score bars, where the question "how is this graded?" actually arises.
+**Member (`user.html`): three destinations.** Mi Score · Entregas · Historial.
+
+- **Entregas** holds the delivered works, the period dates and the calendar. All three answer one question — *what do I owe and when* — and "Períodos" and "Calendario" were the same data (the dates of each PE) split across two tabs.
+- **Historial** holds only the evolution across periods, which is a different question.
+- The rubric is no longer a tab: it is a `<details>` under the score bars, where "how is this graded?" actually arises.
 
 **Secretary (`secretario.html`): four.** Same consolidation, keeping Ranking (with Mi Distrito) which is secretary-specific.
 
