@@ -3,214 +3,173 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── DARK MODE (default) ── */
+/* ═══════════════════════════════════════════════════════════════════════
+   TOKENS — fuente única. Ninguna otra hoja declara hex propios.
+   Todos los contrastes de este bloque están MEDIDOS con la fórmula WCAG,
+   no elegidos a ojo. El número entre paréntesis es el ratio.
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  /* ═══════════════════════════════════════
-     DESIGN SYSTEM TOKENS — paleta principal
-     ═══════════════════════════════════════ */
-  --navy-900: #002247;   /* identidad de marca; ya no es el fondo */
-  --blue-700: #005286;
-  --blue-500: #0087F1;
-  --cyan-400: #00CBFF;
-  --cyan-200: #66DFFF;
 
-  /* ── Fondos ───────────────────────────────────────────────────────
-     #002247 no es neutro: es azul saturado. Detrás del contenido hacía
-     que los criterios fríos perdieran separación entre sí y los cálidos
-     saltaran de más. --bg pasa a un navy desaturado; la identidad
-     (navy→cyan) se mantiene en acentos, bordes y degradados. */
-  --bg:  #0A1628;
-  --s1:  #10202F;
-  --s2:  #16283A;
-  --s3:  #1D3346;
-  --s4:  #24405A;
+  /* ── MARCA — idéntica en ambos temas ──────────────────────────────────
+     Es la paleta cerrada. Ningún color fuera de aquí. */
+  --navy-900:#002247;
+  --blue-700:#005286;
+  --blue-500:#0087F1;
+  --cyan-400:#00CBFF;
+  --cyan-200:#A9E5FB;
+  --coral:   #FF6063;
 
-  /* ── Texto ────────────────────────────────────────────────────────
-     --muted era #7090B0: 4.78:1 sobre el fondo viejo, o sea AA raspado,
-     y estaba aplicado a texto de .65rem (10.4px). Ahora 7.40:1 sobre
-     #0A1628, y el mínimo de tamaño sube a .8rem (ver --fs-min). */
-  --txt:        #E8EAF0;   /* 15.07:1 */
-  --text-strong: var(--txt);
-  --muted:      #8FA8C4;   /*  7.40:1 */
-  --text-muted:  var(--muted);
-  --faint:      rgba(0,135,241,.20);
+  /* ── BASE NEUTRA (dark) ───────────────────────────────────────────────
+     --navy-900 deja de ser fondo de página: era azul saturado y distorsionaba
+     todo lo que iba delante. Pasa a ser superficie de marca — una sola pieza
+     de alto contraste por pantalla (hero, panel de login). */
+  --bg:        #0E0F12;
+  --surface-1: #17181C;
+  --surface-2: #1F2126;
+  --surface-3: #282B32;
+  --border:    rgba(255,255,255,.07);
+  --border-hi: rgba(255,255,255,.14);
+  --txt:       #F2F4F7;   /* 17.39 */
+  --txt-2:     #B4BCC8;   /* 10.01 */
+  --txt-muted: #7C8697;   /*  5.21 */
 
-  /* Tamaño mínimo para texto secundario. No bajar de aquí. */
-  --fs-min: .8rem;
+  /* ── SEMÁNTICA — máximo 3 colores simultáneos por vista ───────────────── */
+  --action: var(--blue-500);   /* 5.23  acción, foco, elemento activo   */
+  --data:   var(--cyan-400);   /* 10.03 relleno de barras y gráficos    */
+  --alert:  var(--coral);      /* 6.48  alerta y destructivo            */
 
-  /* Surface */
-  --surface: rgba(0,40,100,.30);
+  /* ── ESCALA DE NIVEL ──────────────────────────────────────────────────
+     Reasignada respecto al brief. blue-700 (#005286) sobre un fondo casi
+     negro da 2.33 contra --bg y 1.72 contra --surface-3: una barra
+     "En Proceso" habría sido invisible. Estos cuatro salen de la misma
+     paleta, solo ocupan otro peldaño.
+                                        sobre --bg / sobre --surface-3 */
+  --sex: var(--cyan-200);   /* Excelente   13.95 / 10.32 */
+  --sbu: var(--cyan-400);   /* Bueno       10.03 /  7.41 */
+  --spr: var(--blue-500);   /* En Proceso   5.23 /  3.87 */
+  --sba: var(--coral);      /* Bajo         6.48 /  4.79 */
 
-  /* Bordes */
-  --border:      rgba(0,203,255,.08);
-  --border-glow: rgba(0,203,255,.26);
+  /* Los 7 criterios comparten un solo color: la etiqueta (PLA, REV…) y la
+     longitud de la barra ya distinguen. `criterios.color` sigue en la base
+     pero el render lo ignora. */
+  --criterio: var(--data);
 
-  /* Colores de marca */
-  --accent: #FF6063;
-  --red:    #FF6063;
-  --blue:   var(--blue-500);
-  --cyan:   var(--cyan-400);
-  --teal:   #00C2C5;
-  --green:  #2ECC71;
-  --gold:   #F0C040;
-  --purple: #C084FC;
-  --orange: #FB923C;
+  /* Medallas del ranking. Fuera de la paleta de marca a propósito: oro,
+     plata y bronce son semánticos, no decorativos. Único caso permitido. */
+  --medalla-oro:    #E0A93A;
+  --medalla-plata:  #A8B2C4;
+  --medalla-bronce: #C87C40;
 
-  /* ── Niveles de score ─────────────────────────────────────────────
-     UN solo hue (194°, el cyan de marca) en cuatro pasos de luminancia
-     decreciente, no cuatro hues distintos.
+  /* ── FORMA ────────────────────────────────────────────────────────────── */
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-full:999px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
+  --sp-5:24px; --sp-6:32px; --sp-7:48px;
 
-     Antes --sex era #2ECC71, el MISMO verde del criterio "Edición
-     Creativa", y --sba era idéntico a --accent, que además es el rojo
-     de acción: tres significados para un tono.
+  /* Tres sombras. Antes había 104 declaraciones distintas. */
+  --shadow-sm:0 1px 2px rgba(0,0,0,.30);
+  --shadow-md:0 4px 16px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.45);
 
-     Contraste sobre --bg (medido): 13.26 / 9.84 / 6.89 / 4.69.
-     Los cuatro pasan AA para texto normal. */
-  --sex: #A1E7FD;   /* Excelente  */
-  --sbu: #94C7D6;   /* Bueno      */
-  --spr: #5CAAC1;   /* En Proceso */
-  --sba: #3E8BA3;   /* Bajo       */
+  /* ── TIPOGRAFÍA — tres familias, un rol cada una ─────────────────────── */
+  --font-display:'Barlow Condensed',system-ui,sans-serif;  /* números y títulos */
+  --font-ui:     'Barlow',system-ui,sans-serif;            /* etiquetas, botones */
+  --font-body:   'Source Sans 3',system-ui,sans-serif;     /* texto corrido      */
 
-  /* ── Color único de criterio ──────────────────────────────────────
-     Los 7 criterios se pintan todos igual. Cada barra ya lleva su
-     etiqueta (PLA, REV, EDI…) y su longitud: el color no aportaba
-     información, y sus 7 tonos saturados chocaban con la escala de
-     nivel y con el rojo de acción. `criterios.color` sigue en la base
-     y editable, pero la vista de puntajes ya no lo usa. */
-  --criterio: var(--cyan-400);
+  /* Ningún texto por debajo de --fs-xs (.8rem = 12.8px). */
+  --fs-xs:  clamp(.80rem,.78rem + .10vw,.875rem);
+  --fs-sm:  clamp(.875rem,.85rem + .12vw,.95rem);
+  --fs-md:  clamp(.95rem,.92rem + .15vw,1.05rem);
+  --fs-lg:  clamp(1.15rem,1.05rem + .5vw,1.5rem);
+  --fs-xl:  clamp(1.6rem,1.3rem + 1.5vw,2.5rem);
+  --fs-hero:clamp(2.8rem,2rem + 4vw,4.5rem);
 
-  /* Glass */
-  --glass:        rgba(0,50,110,.26);
-  --glass-border: rgba(0,203,255,.15);
-  --glass-hi:     rgba(0,203,255,.10);
+  /* ── VARIOS ───────────────────────────────────────────────────────────── */
+  --topbar-h:58px;
+  --ease:cubic-bezier(.25,.46,.45,.94);
+  --ease-spring:cubic-bezier(.16,1,.3,1);
 
-  /* Sombras suaves multicapa */
-  --shadow-sm:   0 2px 8px rgba(0,20,50,.10), 0 1px 3px rgba(0,20,50,.08);
-  --shadow-md:   0 4px 12px rgba(0,20,50,.12), 0 12px 32px rgba(0,20,50,.10);
-  --shadow-lg:   0 8px 24px rgba(0,20,50,.18), 0 24px 56px rgba(0,20,50,.14);
-  --glow-accent: 0 0 24px rgba(255,96,99,.30), 0 0 48px rgba(255,96,99,.14);
-  --glow-blue:   0 0 24px rgba(0,135,241,.28), 0 0 48px rgba(0,135,241,.14);
+  --z-content:10; --z-sticky:90; --z-rail:100; --z-modal:300; --z-toast:9999;
 
-  /* ── Orbes ────────────────────────────────────────────────────────
-     Estaban a .70/.60/.42. Introducían variación de luminancia detrás
-     del contenido, así que el mismo texto tenía distinto contraste
-     según dónde cayera en el scroll. Bajados a ≤.15 y ocultos en móvil
-     (ver @media más abajo), donde además cuestan compositing continuo. */
-  --orb1: radial-gradient(circle, rgba(0,135,241,.15) 0%, transparent 70%);
-  --orb2: radial-gradient(circle, rgba(0,203,255,.13) 0%, transparent 70%);
-  --orb3: radial-gradient(circle, rgba(0,135,241,.10) 0%, transparent 70%);
+  /* ═══ COMPATIBILIDAD — TEMPORAL, SE RETIRA EN LA FASE 6 ═══════════════
+     Las cuatro hojas y los tres JS usan 625 referencias a los nombres
+     viejos. Sin estos alias el sitio se rompe entero al cambiar los
+     tokens, así que la migración se hace hoja por hoja y este bloque
+     desaparece cuando el contador llegue a cero.
 
-  /* Tokens adaptativos */
-  --topbar-bg:    rgba(0,22,55,.90);
-  --mobile-bg:    rgba(0,16,42,.97);
-  --hover-subtle: rgba(0,203,255,.04);
-  --grid-line:    rgba(255,255,255,.015);
-  --desc-txt:     rgba(232,234,240,.55);
-  --fb-txt:       rgba(232,234,240,.60);
-  --scrollbar-c:  var(--blue-500);
-
-  /* Border-radius system */
-  --r-sm:   8px;
-  --r-md:   16px;
-  --r-lg:   20px;
-  --r-xl:   24px;
-  --r-pill: 9999px;
-
-  --topbar-h: 58px;
-  --ease: cubic-bezier(.25,.46,.45,.94);
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* Z-index scale */
-  --z-scroll:   1;
-  --z-content:  10;
-  --z-sticky:   90;
-  --z-topbar:   100;
-  --z-menu:     99;
-  --z-back-top: 200;
-  --z-modal:    300;
-  --z-toast:    9999;
+     NO uses estos nombres en código nuevo. */
+  --s1:var(--surface-1);  --s2:var(--surface-2);
+  --s3:var(--surface-3);  --s4:var(--surface-3);
+  --glass:var(--surface-1); --glass-border:var(--border); --glass-hi:var(--border-hi);
+  --faint:var(--border);  --border-glow:var(--border-hi);
+  --accent:var(--action); --blue:var(--action); --cyan:var(--data); --red:var(--alert);
+  --green:var(--sex);     --gold:var(--spr);
+  --purple:var(--data);   --orange:var(--data); --teal:var(--data);
+  --muted:var(--txt-muted); --text-muted:var(--txt-muted); --text-strong:var(--txt);
+  --desc-txt:var(--txt-2);  --fb-txt:var(--txt-2);
+  --topbar-bg:var(--surface-2); --mobile-bg:var(--surface-2);
+  --grid-line:var(--border);    --scrollbar-c:var(--border-hi);
+  --r-pill:var(--r-full);       --fs-min:var(--fs-xs);
+  --hover-subtle:rgba(255,255,255,.04);
+  /* El brief retira los glow y los orbes: se anulan aquí para que las
+     reglas que aún los invocan no pinten nada. */
+  --glow-accent:none; --glow-blue:none;
+  --orb1:none; --orb2:none; --orb3:none;
 }
 
-/* ── LIGHT MODE ── */
+/* ═══ TEMA CLARO ═══════════════════════════════════════════════════════════
+   Los colores de nivel se usan aquí como RELLENO o BORDE, nunca como color
+   de texto pequeño: sobre blanco no alcanzan 4.5:1. El texto de una píldora
+   va en --txt o en blanco sobre relleno sólido. */
 [data-theme="light"] {
-  --bg:  #EBF5FF;
-  --s1:  #FFFFFF;
-  --s2:  #F5F9FF;
-  --s3:  #EBF4FD;
-  --s4:  #D8ECFB;
+  --bg:        #F4F6F9;
+  --surface-1: #FFFFFF;
+  --surface-2: #EEF1F6;
+  --surface-3: #E3E8EF;
+  --border:    rgba(0,34,71,.10);
+  --border-hi: rgba(0,34,71,.18);
+  --txt:       #0E1726;   /* 16.59 */
+  --txt-2:     #3E4A5C;   /*  8.29 */
+  --txt-muted: #64718A;   /*  4.54 */
 
-  --txt:        #002247;
-  --text-strong: var(--txt);
-  --muted:      #4A6080;
-  --text-muted:  var(--muted);
-  --faint:      rgba(0,82,134,.14);
+  --action: #0068C9;   /* 5.07 */
+  --data:   #0082E8;   /* 3.18 sobre --surface-3, relleno de barra */
+  --alert:  #C0272B;   /* 5.44 */
 
-  --surface: rgba(255,255,255,.80);
+  /*                        sobre --bg / sobre --surface-3 */
+  --sex: #0079AE;   /* Excelente   4.46 / 3.92 */
+  --sbu: #0068C9;   /* Bueno       5.07 / 4.46 */
+  --spr: #00406B;   /* En Proceso  9.97 / 8.77 */
+  --sba: #C0272B;   /* Bajo        5.44 / 4.78 */
 
-  --border:      rgba(0,135,241,.16);
-  --border-glow: rgba(0,135,241,.38);
+  --criterio: var(--data);
 
-  --accent: #FF6063;
-  --red:    #DD3040;
-  --blue:   #0070CC;
-  --cyan:   #0099D4;
-  --teal:   #009EA0;
-  --green:  #1A9050;
-  --gold:   #B08000;
+  /* El oro fijo daba 1.55:1 sobre fondo claro: texto invisible. */
+  --medalla-oro:    #8A6300;
+  --medalla-plata:  #5A6275;
+  --medalla-bronce: #8A4E18;
 
-  /* Misma rampa monocroma que en oscuro, invertida: mas oscuro = mejor.
-     Contraste sobre #EBF5FF (medido): 10.56 / 7.64 / 5.99 / 4.63. */
-  --sex: #183D49;
-  --sbu: #0C546A;
-  --spr: #286477;
-  --sba: #04779A;
-  --criterio: #0A6E92;   /* 5.20:1 */
+  --shadow-sm:0 1px 2px rgba(0,34,71,.08);
+  --shadow-md:0 4px 16px rgba(0,34,71,.12);
+  --shadow-lg:0 12px 40px rgba(0,34,71,.16);
 
-  --glass:        rgba(255,255,255,.82);
-  --glass-border: rgba(0,135,241,.22);
-  --glass-hi:     rgba(255,255,255,.96);
-
-  --shadow-sm: 0 2px 8px rgba(0,34,71,.08), 0 1px 3px rgba(0,34,71,.06);
-  --shadow-md: 0 4px 12px rgba(0,34,71,.10), 0 12px 32px rgba(0,34,71,.08);
-  --shadow-lg: 0 8px 24px rgba(0,34,71,.14), 0 24px 56px rgba(0,34,71,.10);
-  --glow-accent: 0 0 16px rgba(255,96,99,.20);
-  --glow-blue:   0 0 16px rgba(0,112,204,.18);
-
-  --orb1: radial-gradient(circle, rgba(0,135,241,.14) 0%, transparent 70%);
-  --orb2: radial-gradient(circle, rgba(0,203,255,.12) 0%, transparent 70%);
-  --orb3: radial-gradient(circle, rgba(0,135,241,.08) 0%, transparent 70%);
-
-  --topbar-bg:    rgba(235,245,255,.92);
-  --mobile-bg:    rgba(235,245,255,.98);
-  --hover-subtle: rgba(0,135,241,.04);
-  --grid-line:    rgba(0,34,71,.04);
-  --desc-txt:     rgba(0,34,71,.58);
-  --fb-txt:       rgba(0,34,71,.62);
-  --scrollbar-c:  #0070CC;
+  /* Único alias que necesita valor propio por tema; el resto son var(). */
+  --hover-subtle:rgba(0,34,71,.04);
 }
 
-/* ── DETECCIÓN AUTOMÁTICA (CSS-only antes de que cargue el JS) ── */
+/* Mismo tema claro cuando el sistema lo pide y no hay preferencia guardada. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg:  #EBF5FF; --s1: #FFFFFF; --s2: #F5F9FF; --s3: #EBF4FD; --s4: #D8ECFB;
-    --txt: #002247; --text-strong: #002247; --muted: #4A6080; --text-muted: #4A6080;
-    --faint: rgba(0,82,134,.14); --surface: rgba(255,255,255,.80);
-    --border: rgba(0,135,241,.16); --border-glow: rgba(0,135,241,.38);
-    --accent: #FF6063; --red: #DD3040; --blue: #0070CC; --cyan: #0099D4;
-    --green: #1A9050; --gold: #B08000;
-    --sex: #183D49; --sbu: #0C546A; --spr: #286477; --sba: #04779A; --criterio: #0A6E92;
-    --glass: rgba(255,255,255,.82); --glass-border: rgba(0,135,241,.22); --glass-hi: rgba(255,255,255,.96);
-    --shadow-sm: 0 2px 8px rgba(0,34,71,.08), 0 1px 3px rgba(0,34,71,.06);
-    --shadow-md: 0 4px 12px rgba(0,34,71,.10), 0 12px 32px rgba(0,34,71,.08);
-    --shadow-lg: 0 8px 24px rgba(0,34,71,.14), 0 24px 56px rgba(0,34,71,.10);
-    --glow-accent: 0 0 16px rgba(255,96,99,.20);
-    --glow-blue:   0 0 16px rgba(0,112,204,.18);
-    --orb1: radial-gradient(circle, rgba(0,135,241,.14) 0%, transparent 70%);
-    --orb2: radial-gradient(circle, rgba(0,203,255,.12) 0%, transparent 70%);
-    --orb3: radial-gradient(circle, rgba(255,96,99,.10) 0%, transparent 70%);
-    --topbar-bg: rgba(235,245,255,.92); --mobile-bg: rgba(235,245,255,.98);
-    --hover-subtle: rgba(0,135,241,.04); --grid-line: rgba(0,34,71,.04);
-    --desc-txt: rgba(0,34,71,.58); --fb-txt: rgba(0,34,71,.62);
-    --scrollbar-c: #0070CC;
+    --bg:#F4F6F9; --surface-1:#FFFFFF; --surface-2:#EEF1F6; --surface-3:#E3E8EF;
+    --border:rgba(0,34,71,.10); --border-hi:rgba(0,34,71,.18);
+    --txt:#0E1726; --txt-2:#3E4A5C; --txt-muted:#64718A;
+    --action:#0068C9; --data:#0082E8; --alert:#C0272B;
+    --sex:#0079AE; --sbu:#0068C9; --spr:#00406B; --sba:#C0272B;
+    --criterio:var(--data);
+    --medalla-oro:#8A6300; --medalla-plata:#5A6275; --medalla-bronce:#8A4E18;
+    --shadow-sm:0 1px 2px rgba(0,34,71,.08);
+    --shadow-md:0 4px 16px rgba(0,34,71,.12);
+    --shadow-lg:0 12px 40px rgba(0,34,71,.16);
+    --hover-subtle:rgba(0,34,71,.04);
   }
 }
 
@@ -220,7 +179,7 @@ html { scroll-behavior:smooth; scrollbar-width:thin; scrollbar-color:var(--scrol
 ::-webkit-scrollbar        { width:5px; }
 ::-webkit-scrollbar-track  { background:var(--s1); }
 ::-webkit-scrollbar-thumb  { background:var(--scrollbar-c); border-radius:3px; }
-body { background:var(--bg); color:var(--txt); font-family:'Source Sans 3',sans-serif; font-size:16px; line-height:1.6; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
+body { background:var(--bg); color:var(--txt); font-family:var(--font-body); font-size:16px; line-height:1.6; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
 a { color:inherit; text-decoration:none; }
 button { cursor:pointer; border:none; background:none; font-family:inherit; }
 img { display:block; max-width:100%; }
@@ -257,11 +216,11 @@ img { display:block; max-width:100%; }
 .topbar.scrolled::after { opacity:.8; }
 .tb-brand { display:flex; align-items:center; gap:10px; flex-shrink:0; background:none; border:none; color:inherit; padding:0; }
 .tb-logo  { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; }
-.tb-title { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:2px; }
+.tb-title { font-family:var(--font-display); font-size:1.4rem; letter-spacing:2px; }
 .tb-title em { color:var(--accent); font-style:normal; }
-.admin-badge { background:linear-gradient(135deg,var(--gold),#c8960a); color:#000; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
+.admin-badge { background:linear-gradient(135deg,var(--gold),#c8960a); color:#000; font-family:var(--font-body); font-size:.8rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
 .tb-nav { display:flex; gap:4px; flex:1; }
-.tnav { padding:7px 15px; min-height:36px; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-sm); transition:color .18s var(--ease),background .18s var(--ease); position:relative; display:inline-flex; align-items:center; gap:5px; }
+.tnav { padding:7px 15px; min-height:36px; font-family:var(--font-body); font-size:.8rem; font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-sm); transition:color .18s var(--ease),background .18s var(--ease); position:relative; display:inline-flex; align-items:center; gap:5px; }
 .tnav::after { content:''; position:absolute; bottom:-1px; left:50%; right:50%; height:2px; background:linear-gradient(90deg,var(--accent),var(--blue)); border-radius:2px; transition:left .2s var(--ease),right .2s var(--ease); }
 .tnav:hover { color:var(--txt); background:var(--hover-subtle); }
 .tnav.active { color:var(--txt); background:rgba(255,96,99,.07); }
@@ -281,7 +240,7 @@ img { display:block; max-width:100%; }
 .tnav-group:focus-within .tnav-drop { display:block; }
 .tnav-drop-item {
   display:flex; align-items:center; gap:8px; width:100%;
-  padding:8px 16px; font-family:'Source Sans 3',sans-serif;
+  padding:8px 16px; font-family:var(--font-body);
   font-size:.8rem; font-weight:600; letter-spacing:.5px;
   text-transform:uppercase; color:var(--muted);
   transition:background .12s, color .12s;
@@ -302,7 +261,7 @@ img { display:block; max-width:100%; }
 .mob-nav-header.open + .mob-nav-sub { display:flex; }
 
 .tb-user { margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.uname { font-family:'Source Sans 3',sans-serif; font-size:.85rem; font-weight:500; letter-spacing:.01em; color:var(--muted); }
+.uname { font-family:var(--font-body); font-size:.85rem; font-weight:500; letter-spacing:.01em; color:var(--muted); }
 
 /* ── THEME TOGGLE ── */
 .theme-toggle {
@@ -326,12 +285,12 @@ img { display:block; max-width:100%; }
 [data-theme="light"] .icon-moon { display:block; }
 
 /* ── AVATAR ── */
-.avatar { width:34px; height:34px; background:linear-gradient(135deg,var(--accent),#c04050); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:.9rem; color:#fff; flex-shrink:0; }
+.avatar { width:34px; height:34px; background:linear-gradient(135deg,var(--accent),#c04050); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:.9rem; color:#fff; flex-shrink:0; }
 .avatar.admin-av { background:linear-gradient(135deg,var(--gold),#b08000); color:#000; }
 
 /* ── BOTONES ── */
 .btn-out, .btn-out-mobile {
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:500;
+  font-family:var(--font-body); font-size:.8rem; font-weight:500;
   letter-spacing:.01em; color:var(--muted); padding:7px 16px;
   border:1px solid var(--faint); border-radius:var(--r-pill);
   transition:color .2s, border-color .2s, background .2s;
@@ -342,7 +301,7 @@ img { display:block; max-width:100%; }
 .btn-refresh {
   display:flex; align-items:center; gap:6px;
   padding:8px 18px; min-height:44px;
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase;
   color:var(--muted); border:1px solid var(--faint); border-radius:var(--r-pill);
   transition:color .2s, border-color .2s, background .2s, box-shadow .2s;
@@ -381,16 +340,16 @@ img { display:block; max-width:100%; }
 .mobile-menu { position:fixed; top:var(--topbar-h); left:0; right:0; bottom:0; z-index:var(--z-menu); background:var(--mobile-bg); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); display:flex; flex-direction:column; padding:20px; transform:translateX(100%); transition:transform .3s var(--ease), visibility .3s; overflow-y:auto; visibility:hidden; pointer-events:none; }
 .mobile-menu.open { transform:translateX(0); visibility:visible; pointer-events:auto; }
 .mobile-nav-links { display:flex; flex-direction:column; gap:4px; margin-bottom:20px; }
-.mobile-nav-btn { display:flex; align-items:center; gap:10px; padding:14px 16px; font-family:'Source Sans 3',sans-serif; font-size:.95rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-md); transition:all .2s; text-align:left; min-height:52px; }
+.mobile-nav-btn { display:flex; align-items:center; gap:10px; padding:14px 16px; font-family:var(--font-body); font-size:.95rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-radius:var(--r-md); transition:all .2s; text-align:left; min-height:52px; }
 .mobile-nav-btn:hover, .mobile-nav-btn.active { color:var(--txt); background:var(--glass); }
 .mobile-nav-btn.active { color:var(--accent); }
 .mobile-nav-btn--refresh { margin-top:12px; border:1px solid var(--faint); }
 .mobile-nav-btn--refresh:hover { border-color:var(--blue); color:var(--blue); }
 .mobile-theme-row { padding:12px 16px 4px; display:flex; align-items:center; gap:12px; }
-.mobile-theme-lbl { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); flex:1; }
+.mobile-theme-lbl { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); flex:1; }
 .mobile-user-section { margin-top:auto; display:flex; align-items:center; gap:14px; padding:16px; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-lg); }
 .mobile-uinfo { flex:1; min-width:0; }
-.mobile-uname { font-family:'Source Sans 3',sans-serif; font-size:1rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mobile-uname { font-family:var(--font-body); font-size:1rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mobile-urole { font-size:.8rem; color:var(--muted); margin-top:2px; }
 
 /* ── TABS ── */
@@ -433,7 +392,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .pe-bar-msg--error { color:var(--accent); }
 .pb {
   padding:8px 22px; min-height:40px;
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:2px; text-transform:uppercase;
   color:var(--muted); border:1px solid var(--faint);
   border-radius:var(--r-pill);
@@ -466,12 +425,12 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   display:flex; align-items:center; gap:8px;
 }
 .pe-sticky-bar .pe-viewing-label {
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:.1em; color:var(--muted); text-transform:uppercase; margin-right:6px;
 }
 
 /* ── TIMESTAMP ── */
-.last-updated-badge { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+.last-updated-badge { font-family:var(--font-body); font-size:.8rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
 .last-updated-badge.flash { color:var(--green); }
 
 /* ── LOADING / EMPTY ── */
@@ -489,7 +448,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   background:var(--glass); border:1px solid var(--glass-border);
   border-radius:var(--r-pill);
   padding:10px 24px;
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase; color:var(--txt);
   box-shadow:var(--shadow-md); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
   transition:transform .3s var(--ease), opacity .3s;
@@ -525,7 +484,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .sbadge {
   display:inline-flex; align-items:center; justify-content:center;
   width:34px; height:34px; border-radius:50%;
-  font-family:'Bebas Neue',sans-serif; font-size:1rem; border:2px solid currentColor;
+  font-family:var(--font-display); font-size:1rem; border:2px solid currentColor;
   transition:transform .2s, box-shadow .2s;
 }
 .sbadge:hover { transform:scale(1.1); }
@@ -537,7 +496,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .cdot {
   display:inline-flex; align-items:center; justify-content:center;
   width:26px; height:26px;
-  font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700;
+  font-family:var(--font-body); font-size:.8rem; font-weight:700;
   border-radius:var(--r-sm);
 }
 .cdot.d4 { background:rgba(46,204,113,.15);  color:var(--sex); }
@@ -549,11 +508,11 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 /* ── TABLA RANKING ── */
 .tbl { font-size:.8rem; }
 .tbl-h { display:grid; padding:8px 14px; }
-.tbl-th { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.tbl-th { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
 .tbl-r { display:grid; padding:10px 14px; border-top:1px solid var(--border); transition:background .15s; animation:slideRow .3s var(--ease) both; cursor:pointer; }
 .tbl-r:hover { background:var(--glass); }
 @keyframes slideRow { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
-.rank-num { font-family:'Bebas Neue',sans-serif; font-size:1rem; color:var(--muted); min-width:28px; text-align:right; margin-right:10px; }
+.rank-num { font-family:var(--font-display); font-size:1rem; color:var(--muted); min-width:28px; text-align:right; margin-right:10px; }
 .rank-num.gold   { color:#F0C040; text-shadow:0 0 8px rgba(240,192,64,.5); }
 .rank-num.silver { color:#B0B8D0; }
 .rank-num.bronze { color:#C87C40; }
@@ -561,8 +520,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .tbl-score-cell { display:flex; align-items:center; justify-content:center; }
 
 /* ── SECTION LABELS ── */
-.section-label { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; margin-top:24px; }
-.tab-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:3px; }
+.section-label { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; margin-top:24px; }
+.tab-title { font-family:var(--font-display); font-size:1.6rem; letter-spacing:3px; }
 .tab-title--mb { margin-bottom:1.5rem; }
 
 /* ── RUBRICA ── */
@@ -575,7 +534,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rubrica-card-head { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; user-select:none; transition:background .2s; }
 .rubrica-card-head:hover { background:var(--hover-subtle); }
 .rubrica-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.rubrica-title { flex:1; font-family:'Source Sans 3',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.rubrica-title { flex:1; font-family:var(--font-body); font-size:.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
 .rubrica-chev {
   width:18px; height:18px; flex-shrink:0; font-size:0;
   display:inline-flex; align-items:center; justify-content:center;
@@ -595,8 +554,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rubrica-card.open .rubrica-body { max-height:600px; }
 .rubrica-levels { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1px; background:var(--faint); margin:0 16px 16px; border-radius:var(--r-sm); overflow:hidden; }
 .rlevel { background:var(--s2); padding:12px 14px; }
-.rlevel-badge { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; line-height:1; }
-.rlevel-lbl   { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+.rlevel-badge { font-family:var(--font-display); font-size:1.4rem; line-height:1; }
+.rlevel-lbl   { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
 .rlevel-desc  { font-size:.8rem; color:var(--desc-txt); line-height:1.5; }
 
 /* ── CALENDARIO ── */
@@ -616,13 +575,13 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .cal-acc--azul     { background:linear-gradient(to bottom, var(--blue), #0050B0); }
 .cal-acc--amarillo { background:linear-gradient(to bottom, var(--gold), #B08000); }
 .cal-body { flex:1; padding:16px; }
-.cal-num  { font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
-.cal-t    { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; margin-bottom:12px; }
+.cal-num  { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.cal-t    { font-family:var(--font-display); font-size:1.2rem; letter-spacing:2px; margin-bottom:12px; }
 .cal-t--rojo{color:var(--accent)} .cal-t--verde{color:var(--green)} .cal-t--azul{color:var(--blue)} .cal-t--amarillo{color:var(--gold)}
 .cal-r  { display:flex; justify-content:space-between; font-size:.8rem; padding:3px 0; border-bottom:1px solid var(--border); gap:8px; }
 .cal-r:last-of-type { border-bottom:none; }
 .cal-rl { color:var(--muted); }
-.cst { display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-family:'Source Sans 3',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; border-radius:var(--r-pill); }
+.cst { display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; border-radius:var(--r-pill); }
 .cst.sa  { color:var(--green); background:rgba(46,204,113,.1);  border:1px solid rgba(46,204,113,.2); }
 .cst.sp  { color:var(--blue);  background:rgba(0,135,241,.1);   border:1px solid rgba(0,135,241,.2); }
 .cst.spe { color:var(--muted); background:var(--glass);         border:1px solid var(--faint); }
@@ -632,7 +591,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .bono-badge {
   display:inline-flex; align-items:center; gap:5px;
   padding:4px 14px; border-radius:var(--r-pill);
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase;
   background:rgba(240,192,64,.12); color:var(--gold);
   border:1px solid rgba(240,192,64,.3);
@@ -643,7 +602,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .secretario-badge {
   background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
   color:#fff;
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size:.8rem; font-weight:900;
   letter-spacing:2px; text-transform:uppercase;
   padding:3px 10px; border-radius:var(--r-pill);
@@ -653,7 +612,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .portal-badge {
   background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
   color:#fff;
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size:.8rem; font-weight:900;
   letter-spacing:2px; text-transform:uppercase;
   padding:3px 10px; border-radius:var(--r-pill);
@@ -688,7 +647,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   gap: 10px;
   flex-wrap: wrap;
   padding: 6px 0 12px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem;
   letter-spacing: 1px;
   color: var(--muted);
@@ -725,7 +684,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 
 /* ── ACCESOS RÁPIDOS (quick links) ── */
 .ql-section-label {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; font-weight: 700; letter-spacing: 2.5px;
   text-transform: uppercase; color: var(--muted);
   margin: 28px 0 10px; padding: 0 4px;
@@ -757,7 +716,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .ql-text { flex: 1; min-width: 0; }
 .ql-title {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size: .85rem; font-weight: 700; letter-spacing: .5px;
   text-transform: uppercase; color: var(--txt); margin-bottom: 2px;
 }
@@ -786,12 +745,12 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   flex-wrap: wrap; margin-bottom: 10px;
 }
 .pe-card-code {
-  font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+  font-family: var(--font-display); font-size: 1.5rem;
   letter-spacing: 2px; color: var(--txt); line-height: 1;
 }
 .pe-card-nombre { font-size: .8rem; color: var(--muted); flex: 1; }
 .pe-card-now {
-  font-family: 'Source Sans 3', sans-serif; font-size:.8rem;
+  font-family: var(--font-body); font-size:.8rem;
   font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--accent); white-space: nowrap;
 }
@@ -811,7 +770,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .trabajo-form-title {
-  font-family: 'Source Sans 3', sans-serif; font-size:.8rem;
+  font-family: var(--font-body); font-size:.8rem;
   font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--muted); margin-bottom: 12px;
   display: flex; align-items: center; gap: 6px;

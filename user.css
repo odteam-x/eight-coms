@@ -38,34 +38,34 @@
 .hero-right { text-align: right; }
 
 .m-tag {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; font-weight: 700;
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--accent); margin-bottom: 10px;
 }
 .m-name-big {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(1.9rem, 4.5vw, 2.9rem);
   letter-spacing: 3px; line-height: .94;
   margin-bottom: 8px;
   text-wrap: balance;
 }
 .m-pe-label {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; color: var(--muted); letter-spacing: 1.5px;
 }
 .m-pe-label span { color: var(--txt); font-weight: 600; }
 
 /* Score — the centrepiece */
 .score-big {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(4rem, 10vw, 6rem);
   line-height: .88; letter-spacing: -2px;
   text-shadow: 0 0 48px currentColor, 0 0 90px rgba(255,255,255,.05);
   transition: color .4s ease, text-shadow .4s ease;
 }
 .score-lbl {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; color: var(--muted);
   letter-spacing: 2px; text-transform: uppercase;
   margin-top: 6px;
@@ -89,7 +89,7 @@
 }
 .score-track-labels {
   display: flex; justify-content: space-between;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; color: var(--muted); letter-spacing: 1px;
   margin-top: 5px;
 }
@@ -108,9 +108,9 @@
   transform: translateX(2px);
 }
 .cbar-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.cbar-tag  { font-family: 'Source Sans 3', sans-serif; font-size:.8rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+.cbar-tag  { font-family: var(--font-body); font-size:.8rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
 .cbar-name { font-size: .8rem; color: var(--desc-txt); }
-.cbar-val  { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; line-height: 1; }
+.cbar-val  { font-family: var(--font-display); font-size: 1.5rem; line-height: 1; }
 .cbar-val span { font-size:.8rem; margin-left: 2px; color: var(--muted); }
 .cbar-track { height: 3px; background: var(--faint); border-radius: 2px; overflow: hidden; margin-bottom: 0; }
 .cbar-fill  { height: 100%; border-radius: 2px; transition: width .65s var(--ease) .1s; box-shadow: 0 0 6px currentColor; }
@@ -137,17 +137,17 @@
 }
 .sse-left { flex: 1; min-width: 0; }
 .sse-label {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; font-weight: 700;
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--muted); margin-bottom: 4px;
 }
-.sse-name  { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sse-name  { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sse-role  { font-size:.8rem; color: var(--muted); margin-top: 2px; }
 
 .nivel-badge {
   padding: 5px 16px; border-radius: var(--r-pill);
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--font-body);
   font-size:.8rem; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase;
   border: 1px solid currentColor;
@@ -172,7 +172,7 @@
   border-radius: var(--r-md);
   padding: 14px 18px; margin-top: 12px;
 }
-.fb-lbl  { font-family: 'Source Sans 3', sans-serif; font-size:.8rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+.fb-lbl  { font-family: var(--font-body); font-size:.8rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
 .fb-txt  { font-size: .82rem; color: var(--fb-txt); line-height: 1.75; }
 
 .no-data-msg {
@@ -211,22 +211,22 @@
 
 /* ── TAB: REPORTES (usuario) ── */
 .urpt-header { margin-bottom:20px; }
-.urpt-name { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:.05em; color:var(--txt); line-height:1; }
+.urpt-name { font-family:var(--font-display); font-size:1.8rem; letter-spacing:.05em; color:var(--txt); line-height:1; }
 .urpt-meta { font-size:.8rem; color:var(--muted); margin-top:3px; }
 
 .urpt-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:24px; }
 .urpt-kpi { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:14px 16px; text-align:center; }
-.urpt-kpi-val { font-family:'Bebas Neue',sans-serif; font-size:1.7rem; line-height:1; color:var(--txt); margin-bottom:4px; }
+.urpt-kpi-val { font-family:var(--font-display); font-size:1.7rem; line-height:1; color:var(--txt); margin-bottom:4px; }
 .urpt-kpi-lbl { font-size:.8rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); line-height:1.4; }
 
 .urpt-section-lbl { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--muted); margin:20px 0 10px; }
 
 .urpt-history { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
 .urpt-hist-card { flex:1; min-width:120px; background:var(--s2); border:1px solid var(--border); border-radius:var(--r-md); padding:14px 16px; display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center; }
-.urpt-hist-pe { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:.08em; color:var(--muted); }
+.urpt-hist-pe { font-family:var(--font-display); font-size:1rem; letter-spacing:.08em; color:var(--muted); }
 .urpt-hist-bar-track { width:100%; height:6px; background:var(--faint); border-radius:3px; overflow:hidden; }
 .urpt-hist-bar-fill { height:100%; border-radius:3px; transition:width .5s ease; }
-.urpt-hist-score { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; line-height:1; }
+.urpt-hist-score { font-family:var(--font-display); font-size:1.6rem; line-height:1; }
 
 .urpt-bottom { display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-top:8px; }
 @media(max-width:640px){ .urpt-bottom { grid-template-columns:1fr; } }
@@ -244,7 +244,7 @@
 .urpt-table { width:100%; border-collapse:collapse; font-size:.8rem; }
 .urpt-th { background:var(--s3); color:var(--txt); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; padding:7px 8px; text-align:center; border:1px solid var(--border); white-space:nowrap; }
 .urpt-td { padding:6px 8px; border:1px solid var(--faint); text-align:center; color:var(--txt); vertical-align:middle; }
-.urpt-td-pe { font-weight:700; font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.06em; color:var(--muted); }
+.urpt-td-pe { font-weight:700; font-family:var(--font-display); font-size:.95rem; letter-spacing:.06em; color:var(--muted); }
 .urpt-td-s { font-variant-numeric:tabular-nums; }
 .urpt-td-total { font-weight:700; font-variant-numeric:tabular-nums; }
 
@@ -253,7 +253,7 @@
    separados por el selector de período. Ahora vive solo en el hero. */
 .bono-row       { margin: 4px 0 16px; }
 .desglose-label {
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size: var(--fs-min); font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase;
   color: var(--muted); margin: 4px 0 12px;
@@ -272,7 +272,7 @@
 .hist-sec { margin-bottom: 34px; }
 .hist-sec:last-child { margin-bottom: 0; }
 .hist-sub {
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size: .82rem; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase;
   color: var(--cyan); margin-bottom: 14px;
@@ -290,7 +290,7 @@
 .rubrica-summary {
   cursor: pointer; list-style: none;
   padding: 13px 18px;
-  font-family:'Source Sans 3',sans-serif;
+  font-family:var(--font-body);
   font-size: .84rem; font-weight: 600;
   color: var(--cyan);
   display: flex; align-items: center; gap: 8px;
