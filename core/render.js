@@ -451,3 +451,40 @@ function renderVacio(cont, msg, { periodo = null, calendario = null } = {}) {
   }
   cont.appendChild(box);
 }
+
+/* ══ TABLAS EN MÓVIL ═══════════════════════════════════════════════════
+ * Por debajo de 768px las tablas dejan de ser rejilla y pasan a tarjetas:
+ * cada celda en su línea, precedida por el nombre de su columna. Sin eso,
+ * la tabla de usuarios (8 columnas) se forzaba a 900px y había que
+ * arrastrarla de lado en un teléfono de 320.
+ *
+ * La etiqueta sale de la propia .tbl-head, no de un data-label escrito a
+ * mano en cada celda: son seis tablas y ninguna se puede olvidar. Se
+ * observa el DOM porque las filas nacen de innerHTML en seis funciones
+ * distintas, y una llamada explícita en cada una se acaba perdiendo.
+ */
+function etiquetarFilas(raiz) {
+  const filas = raiz.matches?.('.tbl-row') ? [raiz] : raiz.querySelectorAll?.('.tbl-row') || [];
+  for (const fila of filas) {
+    if (fila.dataset.etiquetada) continue;
+    const tabla = fila.closest('.tbl') || fila.parentElement?.parentElement;
+    const cabecera = tabla?.querySelector('.tbl-head');
+    if (!cabecera) continue;
+    const nombres = [...cabecera.children].map(c => c.textContent.trim());
+    [...fila.children].forEach((celda, i) => {
+      const n = nombres[i];
+      if (n) celda.setAttribute('data-label', n);
+    });
+    fila.dataset.etiquetada = '1';
+  }
+}
+
+new MutationObserver(muts => {
+  for (const m of muts) {
+    for (const nodo of m.addedNodes) {
+      if (nodo.nodeType === 1) etiquetarFilas(nodo);
+    }
+  }
+}).observe(document.documentElement, { childList: true, subtree: true });
+
+document.addEventListener('DOMContentLoaded', () => etiquetarFilas(document.body));

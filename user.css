@@ -201,7 +201,7 @@
 .urpt-name { font-family:var(--font-display); font-size:1.8rem; letter-spacing:.05em; color:var(--txt); line-height:1; }
 .urpt-meta { font-size:.8rem; color:var(--muted); margin-top:3px; }
 
-.urpt-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:24px; }
+.urpt-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 130px), 1fr)); gap:10px; margin-bottom:24px; }
 .urpt-kpi { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:14px 16px; text-align:center; }
 .urpt-kpi-val { font-family:var(--font-display); font-size:1.7rem; line-height:1; color:var(--txt); margin-bottom:4px; }
 .urpt-kpi-lbl { font-size:.8rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); line-height:1.4; }

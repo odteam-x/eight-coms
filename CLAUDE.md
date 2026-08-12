@@ -143,6 +143,28 @@ Every chart carries a `.chart-alt` paragraph with the same numbers in prose, wir
 
 **`criterios.color` never reaches a `style` attribute.** `escHtml()` escapes quotes but not `;`, so a stored value like `red;background:url(x)` injected extra declarations. The score views use `var(--criterio)`; the one place the stored colour is legitimately shown — the admin criteria table swatch — goes through `colorSeguro()` in `core/render.js`, which only accepts hex notation.
 
+### Responsive, 320 to 1920 (Phase 9)
+
+**Tables become cards below 768px.** The admin user table has 8 columns and was forced to `min-width: 900px`, so on a 320px phone you dragged it sideways to read one row. Below 768px `.tbl-head` is hidden, each `.tbl-row` becomes a card, and each cell renders as *label: value*.
+
+The label comes from the table's own `.tbl-head`, stamped onto the cells by `etiquetarFilas()` in `core/render.js` — **not** from a hand-written `data-label` per cell. There are six tables rendered by `innerHTML` in six different functions, and a per-call-site attribute is the kind of thing that gets forgotten on the seventh. A `MutationObserver` picks up rows as they are created.
+
+Two specificity traps when overriding those tables: `.tbl-row.tbl--usuarios` (0,2,0) beats a plain `.tbl-row` (0,1,0), and two tables set `grid-template-columns` in a `style` attribute. Both are overridden by name in the mobile block.
+
+**The mobile overrides for `.tbl` and `.modal` live in `admin.css`, not `shared.css`.** Those components are defined in `admin.css`, which loads *after* `shared.css`, so a same-specificity override in `shared.css` silently loses. Only the generic rules (`overflow-wrap`, `min-width: 0`, touch targets, safe areas) belong in `shared.css`.
+
+Other rules:
+
+- **`.tbl-cell` no longer sets `white-space: nowrap` + `overflow: hidden`.** It clipped a long email mid-character with no indication data was missing. Human-origin data (emails, district names, work titles) gets `overflow-wrap: anywhere`.
+- **Every `minmax(Npx, 1fr)` became `minmax(min(100%, Npx), 1fr)`** — 17 of them. A fixed minimum overflows the grid below that width no matter how many media queries sit on top.
+- **`min-height: 100dvh`**, not `100vh`: `vh` does not discount the mobile browser chrome.
+- **Modals are bottom sheets below 768px**, full width, `max-height: 92dvh`, rounded top only, with `env(safe-area-inset-bottom)` in the padding and stacked full-width actions. A centred box sits behind the virtual keyboard.
+- **Safe areas are folded into the existing padding with `max()`**, not layered as a separate rule — a blanket `padding-left` override reinstated the desktop 24px on phones where the mobile rule had reduced it to 14px.
+- Touch targets reach 44px under `@media (pointer: coarse)`; `.pb` and `.chip` were 40px.
+- Content is capped at 1440px above 1600px, where running text was stretching past 120 characters per line.
+
+Verified at 320, 390, 414, 768, 1024, 1440 and 1920: nothing escapes the viewport without a scrollable ancestor, no text is clipped, no touch target under 44px. Note that `body { overflow-x: hidden }` masks overflow, so `scrollWidth` is not a valid check here — measure element rects instead.
+
 ### Navigation
 
 **Member (`user.html`): three destinations.** Mi Score · Entregas · Historial.

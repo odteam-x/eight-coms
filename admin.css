@@ -11,7 +11,7 @@
    EIGHT CREATORS LABs — Estilos Panel de Administración
    ═══════════════════════════════════════════════════════ */
 
-.amain { position:relative; z-index:1; padding:0 24px 60px; max-width:1200px; margin:0 auto; }
+.amain { position:relative; z-index:1; padding:0 max(24px, env(safe-area-inset-right)) 60px max(24px, env(safe-area-inset-left)); max-width:1200px; margin:0 auto; }
 .admin-pe-bar {
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
   padding:10px 16px;
@@ -27,7 +27,7 @@
 .ptitle { font-family:var(--font-display); font-size:1.8rem; letter-spacing:3px; margin-bottom:20px; padding-top:32px; }
 
 /* ── STAT CARDS ── */
-.stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+.stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 180px), 1fr)); gap:12px; margin-bottom:24px; }
 .scard { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-lg); padding:18px 20px; position:relative; overflow:hidden; transition:border-color .2s,transform .2s; }
 .scard::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--blue),transparent); }
 .stat-cards .scard:nth-child(1)::before { background:linear-gradient(90deg,var(--blue),var(--cyan),transparent); }
@@ -64,7 +64,7 @@
 .cs-val   { font-family:var(--font-display); font-size:1rem; width:32px; text-align:right; }
 
 /* ── CRITERIO CARDS ── */
-.crit-detail-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+.crit-detail-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 260px), 1fr)); gap:14px; }
 .crit-detail-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-lg); padding:18px; transition:border-color .2s; }
 .crit-detail-card:hover { border-color:var(--border-glow); }
 .crit-detail-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
@@ -169,7 +169,7 @@
 .fb-textarea.changed { border-color:var(--gold); background:rgba(240,192,64,.05); }
 
 /* Debug */
-.debug-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:1.5rem; }
+.debug-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 200px), 1fr)); gap:10px; margin-bottom:1.5rem; }
 .debug-card { padding:12px 14px; background:var(--s2); border-radius:var(--r-md); border:1px solid; }
 .debug-card-label { font-family:var(--font-body); font-size:.8rem; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
 .debug-card-val   { font-family:var(--font-display); font-size:1.1rem; }
@@ -177,7 +177,7 @@
 
 @media (max-width:960px) { .two-col-grid{grid-template-columns:1fr} }
 @media (max-width:600px) {
-  .amain{padding:0 14px 60px}
+  .amain{padding:0 max(14px, env(safe-area-inset-right)) 60px max(14px, env(safe-area-inset-left))}
   .stat-cards{grid-template-columns:1fr 1fr}
   .crit-detail-grid{grid-template-columns:1fr}
   .score-inp{width:38px}
@@ -327,7 +327,7 @@
    ══════════════════════════════════════════════════ */
 .dist-editor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 14px;
 }
 .dist-editor-card {
@@ -468,7 +468,7 @@
 /* Fechas en grid */
 .cal-ev-dates {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
   gap: 10px;
 }
 .cal-date-field { display: flex; flex-direction: column; gap: 4px; }
@@ -685,7 +685,7 @@ option {
 
 .cfg-rubrica-levels {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: 12px;
 }
 .cfg-rubrica-level {}
@@ -785,7 +785,7 @@ option {
 
 .cfg-user-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
   gap: 10px;
 }
 .cfg-field-group { display: flex; flex-direction: column; gap: 4px; }
@@ -862,7 +862,7 @@ option {
 }
 .cfg-periodo-dates {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
   gap: 10px;
 }
 
@@ -949,7 +949,14 @@ option {
   .tbl-head.tbl--usuarios-pe, .tbl-row.tbl--usuarios-pe { min-width:900px; }
 }
 
-.tbl-cell { display:flex; align-items:center; gap:6px; font-size:.82rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Sin nowrap: con el, un correo largo se cortaba en seco a mitad de
+   caracter y el dato se perdia sin aviso. Ahora parte por donde haga
+   falta, que en un correo o un nombre de distrito es preferible. */
+.tbl-cell {
+  display:flex; align-items:center; gap:6px;
+  font-size:.82rem; min-width:0;
+  overflow-wrap:anywhere; word-break:break-word;
+}
 .tbl-muted { color:var(--muted); font-size:.8rem; }
 .tbl-actions { gap:4px; overflow:visible; }
 
@@ -1434,7 +1441,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 /* ── IG STATS GRID — evaluación de distrito ── */
 .ig-stats-grid {
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 160px), 1fr));
   gap:10px; margin-bottom:18px;
 }
 .ig-stat-field { display:flex; flex-direction:column; gap:4px; }
@@ -1513,7 +1520,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 .rpt-footer { margin-top:24px; padding-top:12px; border-top:1px solid var(--faint); font-size:.8rem; color:var(--muted); text-align:center; letter-spacing:.04em; }
 
 /* Individual report cards */
-.rpt-individuals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+.rpt-individuals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 340px), 1fr)); gap:14px; }
 .rpt-individual-card {
   background:var(--s2); border:1px solid var(--faint);
   border-radius:var(--r-lg); padding:18px 20px;
@@ -1621,3 +1628,105 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 }
 
 /* El grupo de configuración se separa visualmente de la operación diaria. */
+
+/* ── Tablas a tarjetas por debajo de 768px ──────────────────────────────
+   La rejilla de 8 columnas se forzaba a min-width:900px y había que
+   arrastrarla de lado. Cada fila pasa a ser una tarjeta y cada celda a una
+   línea con su etiqueta, que core/render.js copia de la cabecera. */
+@media (max-width: 767px) {
+  .tbl { overflow-x: visible; }
+
+  .tbl-head { display: none; }
+
+  .tbl-body {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+
+  /* Las variantes llevan .tbl--usuarios ademas de .tbl-row, asi que su
+     plantilla de 8 columnas gana por especificidad a la regla generica
+     de abajo. Hay que anularla por nombre. */
+  .tbl-head.tbl--usuarios, .tbl-row.tbl--usuarios,
+  .tbl-head.tbl--usuarios-pe, .tbl-row.tbl--usuarios-pe {
+    min-width: 0;
+    grid-template-columns: 1fr;
+  }
+  /* Igual para las plantillas escritas en un atributo style. */
+  .tbl-head[style*="grid-template-columns"],
+  .tbl-row[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tbl-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--surface-1);
+  }
+  .tbl-row:first-child { border-top: 1px solid var(--border); }
+
+  .tbl-cell {
+    display: grid;
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    gap: var(--sp-3);
+    align-items: baseline;
+    padding: 2px 0;
+  }
+  /* La etiqueta de columna, delante del dato. */
+  .tbl-cell[data-label]::before {
+    content: attr(data-label);
+    font-family: var(--font-ui);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--txt-muted);
+  }
+  /* Celdas sin etiqueta (acciones) ocupan la línea entera. */
+  .tbl-cell:not([data-label]),
+  .tbl-cell[data-label=""] {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .tbl-actions { justify-content: flex-start; }
+}
+
+/* ── Modales como hoja inferior en móvil ────────────────────────────────
+   Un cuadro centrado con el teclado virtual abierto queda medio tapado.
+   Anclado abajo, el primer campo y el botón quedan sobre el teclado. */
+@media (max-width: 767px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-box {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: var(--sp-5) var(--sp-4)
+             calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
+  }
+  /* Asidero: indica que la hoja se cierra arrastrando o tocando fuera. */
+  .modal-box::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    margin: 0 auto var(--sp-4);
+    border-radius: var(--r-full);
+    background: var(--border-hi);
+  }
+  .modal-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--sp-2);
+  }
+  .modal-actions > * { width: 100%; }
+}

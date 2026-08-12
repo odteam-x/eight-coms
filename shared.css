@@ -206,7 +206,7 @@ html { scroll-behavior:smooth; scrollbar-width:thin; scrollbar-color:var(--scrol
 ::-webkit-scrollbar        { width:5px; }
 ::-webkit-scrollbar-track  { background:var(--s1); }
 ::-webkit-scrollbar-thumb  { background:var(--scrollbar-c); border-radius:3px; }
-body { background:var(--bg); color:var(--txt); font-family:var(--font-body); font-size:16px; line-height:1.6; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
+body { background:var(--bg); color:var(--txt); font-family:var(--font-body); font-size:16px; line-height:1.6; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
 a { color:inherit; text-decoration:none; }
 button { cursor:pointer; border:none; background:none; font-family:inherit; }
 img { display:block; max-width:100%; }
@@ -303,9 +303,19 @@ img { display:block; max-width:100%; }
 @keyframes tabIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
 /* ── CONTENIDO ── */
-.m-content, .amain { position:relative; z-index:1; padding:28px 24px 60px; max-width:1200px; margin:0 auto; }
+/* max(): el notch de iOS se come el contenido si no se descuenta, pero el
+   padding base no debe crecer en un dispositivo sin notch. */
+.m-content, .amain {
+  position:relative; z-index:1;
+  padding:28px max(24px, env(safe-area-inset-right)) 60px max(24px, env(safe-area-inset-left));
+  max-width:1200px; margin:0 auto;
+}
 .tab-top-pad { padding-top:36px; }
-@media (max-width:600px) { .m-content,.amain{padding:20px 14px 60px} }
+@media (max-width:600px) {
+  .m-content, .amain {
+    padding:20px max(14px, env(safe-area-inset-right)) 60px max(14px, env(safe-area-inset-left));
+  }
+}
 
 /* ── PE SELECTOR ── */
 /* ── Gestión archivada: solo lectura ── */
@@ -336,7 +346,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .pe-bar-msg { font-size:.8rem; color:var(--muted); line-height:1.4; }
 .pe-bar-msg--error { color:var(--accent); }
 .pb {
-  padding:8px 22px; min-height:40px;
+  padding:10px 22px; min-height:44px;
   font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:2px; text-transform:uppercase;
   color:var(--muted); border:1px solid var(--faint);
@@ -497,14 +507,14 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rubrica-card.open .rubrica-chev::after { transform:rotate(-135deg) translate(-1px,2px); }
 .rubrica-body { max-height:0; overflow:hidden; transition:max-height .35s var(--ease); }
 .rubrica-card.open .rubrica-body { max-height:600px; }
-.rubrica-levels { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1px; background:var(--faint); margin:0 16px 16px; border-radius:var(--r-sm); overflow:hidden; }
+.rubrica-levels { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 140px), 1fr)); gap:1px; background:var(--faint); margin:0 16px 16px; border-radius:var(--r-sm); overflow:hidden; }
 .rlevel { background:var(--s2); padding:12px 14px; }
 .rlevel-badge { font-family:var(--font-display); font-size:1.4rem; line-height:1; }
 .rlevel-lbl   { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
 .rlevel-desc  { font-size:.8rem; color:var(--desc-txt); line-height:1.5; }
 
 /* ── CALENDARIO ── */
-.cal-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+.cal-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 260px), 1fr)); gap:16px; }
 .cal-card {
   background:var(--glass); border:1px solid var(--glass-border);
   border-top:1px solid var(--glass-hi); border-radius:var(--r-lg);
@@ -628,7 +638,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .ql-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 10px;
   margin-bottom: 24px;
 }
@@ -663,7 +673,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 /* ── TARJETAS DE PERÍODOS ── */
 .pe-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 12px;
 }
 .pe-card {
@@ -1220,4 +1230,43 @@ option { background: var(--surface-1); color: var(--txt); }
 
 @media (prefers-reduced-motion: reduce) {
   .barra-fill { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MÓVIL — 320 a 1920
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Dato de origen humano: correos, nombres de distrito, títulos de trabajo.
+   Ninguno cabe garantizado en 320px y ninguno debe recortarse en silencio. */
+.tbl-cell, .urpt-td, .rpt-td,
+.kpi__val, .cal-act, .empty-txt, .modal-title,
+.pe-card-fechas, .m-name-big {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Hijos de flex y grid: sin min-width:0 el contenido impone el ancho
+   mínimo de la pista y la rejilla desborda por más media queries que se
+   escriban encima. */
+.m-hero-inner > *, .hero-left, .hero-right,
+.tbl-cell, .kpi, .urpt-kpi, .chip, .pe-card, .cal-card,
+.page-header > *, .modal-box > * {
+  min-width: 0;
+}
+
+/* ── Objetivos táctiles ─────────────────────────────────────────────────
+   Bajo puntero grueso todo lo pulsable llega a 44px. En escritorio no
+   hace falta y engordaría las barras de herramientas densas del admin. */
+@media (pointer: coarse) {
+  button, [role="button"], a.pb, .chip, .pb,
+  .btn-icon, .btn-out, .btn-save, .tab-nav-btn {
+    min-height: 44px;
+  }
+}
+
+/* ── Escritorio ancho ───────────────────────────────────────────────────
+   Por encima de 1600px el texto corrido se estiraba a más de 120
+   caracteres por línea. */
+@media (min-width: 1600px) {
+  .m-content, .amain { max-width: 1440px; }
 }
