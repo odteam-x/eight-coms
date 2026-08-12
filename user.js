@@ -324,7 +324,7 @@ function renderRubrica() {
   const levels = [{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk = {4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
   el.innerHTML = rubrica.map((r,i) => {
-    const c = criterios[i] || {}, color = c.color || '#888';
+    const c = criterios[i] || {}, color = 'var(--criterio)';
     return `
       <div class="rubrica-card" id="rc-${i}">
         <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}">
@@ -454,6 +454,8 @@ async function renderUserReport() {
   const trendColor = trend > 0 ? 'var(--sex)' : trend < 0 ? 'var(--sba)' : 'var(--muted)';
   const MAX   = MAX_TOTAL();
 
+  borrarGrafico('rpt-evolucion');
+
   const critAvg = criterios.map(c => {
     const vals = data.map(d => puntajeDe(d.row, c.key));
     return { ...c, avg: vals.reduce((s,v)=>s+v,0) / vals.length };
@@ -471,7 +473,7 @@ async function renderUserReport() {
         <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${escHtml(best.pe)}</span></div>
       </div>
       <div class="urpt-kpi">
-        <div class="urpt-kpi-val" style="color:var(--accent2)">${avg.toFixed(1)}</div>
+        <div class="urpt-kpi-val" style="color:var(--data)">${avg.toFixed(1)}</div>
         <div class="urpt-kpi-lbl">Promedio<br><span style="font-size:.7rem;color:var(--muted)">/ ${MAX} pts</span></div>
       </div>
       <div class="urpt-kpi">
@@ -484,27 +486,20 @@ async function renderUserReport() {
       </div>
     </div>
 
-    <div class="urpt-section-lbl">Historial por período</div>
-    <div class="urpt-history">
-      ${data.map(d => {
-        const pct = Math.round((d.total / MAX) * 100);
-        return `
-          <div class="urpt-hist-card">
-            <div class="urpt-hist-pe">${escHtml(d.pe)}</div>
-            <div class="urpt-hist-bar-track">
-              <div class="urpt-hist-bar-fill" style="width:${pct}%;background:${scoreColor(d.total)}"></div>
-            </div>
-            <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}<span style="font-size:.65rem;color:var(--muted);font-weight:400">/${MAX}</span></div>
-            <span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span>
-          </div>`;
-      }).join('')}
+    <div class="urpt-section-lbl" id="rpt-evol-lbl">Evolución entre períodos</div>
+    <div class="chart-wrap">
+      <canvas id="rpt-evolucion" role="img"
+              aria-labelledby="rpt-evol-lbl" aria-describedby="rpt-evol-alt"></canvas>
     </div>
+    <p class="chart-alt" id="rpt-evol-alt">${escHtml(
+      data.map(d => `${d.pe}: ${d.total} de ${MAX} (${scoreLabel(d.total)})`).join('. ')
+    )}.</p>
 
     <div class="urpt-bottom">
       <div class="urpt-section urpt-section-crit">
         <div class="urpt-section-lbl">Promedio por criterio</div>
         ${critAvg.map((c, i) => {
-          const pct = (c.avg / 4) * 100;
+          const pct = pctBarra(c.avg, c);
           const tag = i === 0 ? '↑ Mejor' : i === critAvg.length - 1 ? '↓ A mejorar' : '';
           return `<div class="urpt-crit-row">
             <div class="urpt-crit-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
@@ -544,6 +539,9 @@ async function renderUserReport() {
         </div>
       </div>
     </div>`;
+
+  // Después del innerHTML: antes el <canvas> todavía no existe.
+  graficoEvolucion('rpt-evolucion', data, MAX);
 }
 
 /* ── MENÚ ── */

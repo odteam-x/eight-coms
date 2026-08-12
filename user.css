@@ -145,25 +145,12 @@
 .sse-name  { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sse-role  { font-size:.8rem; color: var(--muted); margin-top: 2px; }
 
-.nivel-badge {
-  padding: 5px 16px; border-radius: var(--r-pill);
-  font-family: var(--font-body);
-  font-size:.8rem; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase;
-  border: 1px solid currentColor;
-  display: inline-flex; align-items: center; min-height: 28px;
-}
 /* El tinte se deriva del propio color del nivel. Antes estaba fijo en
    verde/azul/oro/rojo, los hues que la Fase 5 retiró: el texto usaba el
    token nuevo y el fondo seguía en el viejo. */
 .nivel-badge.sex,
 .nivel-badge.sbu,
 .nivel-badge.spr,
-.nivel-badge.sba { background: color-mix(in srgb, currentColor 10%, transparent); }
-.nivel-badge.sex { color: var(--sex); }
-.nivel-badge.sbu { color: var(--sbu); }
-.nivel-badge.spr { color: var(--spr); }
-.nivel-badge.sba { color: var(--sba); }
 
 /* ── FEEDBACK / NO DATA ── */
 .fb-card {

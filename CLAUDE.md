@@ -59,7 +59,7 @@ Typography is **three families, one role each**: `Barlow Condensed` (`--font-dis
 
 There are **three shadows** (`--shadow-sm/md/lg`), down from 104 distinct declarations, and one spacing scale (`--sp-1` … `--sp-7`).
 
-⚠️ **`shared.css` still carries a compatibility alias block** (`--s1`, `--glass`, `--accent`, `--muted`, …) mapping ~625 references to the old token names. It is marked TEMPORARY and is being retired stylesheet by stylesheet. Do not use those names in new code.
+⚠️ **`shared.css` still carries a compatibility alias block** (`--s1`, `--glass`, `--accent`, `--muted`, …). It is marked TEMPORARY and is being retired stylesheet by stylesheet — **548 references left**, down from 625. Do not use those names in new code.
 
 Medal colours in `secretario.css` are tokenised (`--medalla-oro/plata/bronce`) with light-theme variants: the hardcoded gold scored 1.55:1 on the light background.
 
@@ -116,6 +116,32 @@ The CSP ships as `Content-Security-Policy-Report-Only`. To enforce it, drop `-Re
 **`--action-fill` / `--action-on` / `--action-fill-hover` are separate from `--action`.** `--action` is used as a *colour* (link text, focus ring, active border) and only needs to contrast with the page. As a *fill* it also has to contrast with its own label, and white on `--blue-500` is 3.66 — a button is not large text. In dark theme the fill is `--cyan-400` with `--navy-900` text (8.32 / 10.03); in light, `#0068C9` with white (5.45 / 4.87). The dark fill deliberately coincides with `--data`: the auth screens draw no bars, so cyan is not saying "data" anywhere in that view.
 
 **The three background orbs are gone** — markup, CSS, keyframes and `--orb*` tokens. Three animated `blur(100px)` layers forced continuous compositing, and with `--bg` already neutral they contributed nothing visible.
+
+### Components and charts (Phase 8)
+
+**Shared components live in `shared.css`, not in a page stylesheet.** `.cfg-inp` and `.btn-save` were defined only in `admin.css`, which just `admin.html` loads — so the member's "subir trabajo" form rendered with the browser's default input and a background-less button. One definition, three pages.
+
+The layer covers: `.page-header`, `.cfg-inp` / `.cfg-select` / `.cfg-textarea`, `.btn-save` / `.btn-icon`, `.nivel-badge`, `.chip` / `.chip-row`, `.kpi` / `.kpi-row`, `.barra-track` / `.barra-fill`, `.chart-wrap` / `.chart-alt`.
+
+**`.nivel-badge` is a filled pill, not coloured text.** As text on the page background, light-theme `--sex` scored 4.46. Filled, the contrast is against the pill's own background, which the token controls: `--nivel-on` is `--bg` in dark (worst of the four: 5.23) and `--surface-1` in light (worst: 4.83).
+
+**Inputs sit on `--surface-1`, not `--surface-2`.** The placeholder (`--txt-muted`) scored 4.38 on `--surface-2`; on `--surface-1` it is 4.83.
+
+#### Chart.js
+
+Loaded only by the three portals — the auth pages draw nothing. Version 4.4.7, SRI computed, never guessed. Everything goes through `core/charts.js`:
+
+- **Colours are read from the CSS at runtime** with `token()`. A hex inside a dataset is a colour outside `:root` that no theme change reaches.
+- **A theme change destroys and rebuilds.** Chart.js copies colours in at construction, so `update()` leaves the canvas on the old palette. A `MutationObserver` on `data-theme` re-runs the builder — which is why `pintarGrafico` takes a *function*, not a config object. Verified: chart ids go 1 → 2 → 3 across two toggles and every colour follows.
+- **`.chart-wrap` has a fixed height and `maintainAspectRatio: false`.** Without both, a responsive canvas inside a flexible container grows on every repaint until it fills the page.
+- The legend renders only at **≥640px**, and re-renders on crossing that breakpoint.
+- `animation: false` under `prefers-reduced-motion`.
+- **If the CDN fails**, `.chart-wrap` gets a `role="status"` message pointing at the table, instead of a blank rectangle.
+- Call `borrarGrafico(id)` **before** replacing a section by `innerHTML` — the canvas is destroyed with it and Chart.js keeps a dangling reference otherwise.
+
+Every chart carries a `.chart-alt` paragraph with the same numbers in prose, wired via `aria-describedby`.
+
+**`criterios.color` never reaches a `style` attribute.** `escHtml()` escapes quotes but not `;`, so a stored value like `red;background:url(x)` injected extra declarations. The score views use `var(--criterio)`; the one place the stored colour is legitimately shown — the admin criteria table swatch — goes through `colorSeguro()` in `core/render.js`, which only accepts hex notation.
 
 ### Navigation
 

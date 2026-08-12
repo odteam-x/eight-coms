@@ -18,10 +18,10 @@ let _lastUpdated=null, _menuOpen=false, _peInited=false;
 const isSecretario = () => CU?.rol === 'secretario';
 
 const DIST_CRITERIOS = [
-  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7 },
-  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7 },
-  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7 },
-  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7 },
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'var(--criterio)', max:7 },
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'var(--criterio)', max:7 },
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7 },
 ];
 const MAX_DIST_SEC   = 28;
 const calcDistScore  = p => { const o = parseJSON(p); return DIST_CRITERIOS.reduce((s,c) => s+(Number(o[c.key])||0), 0); };
@@ -431,10 +431,10 @@ function renderRankingDistritos(pe) {
   const myPos  = myIdx + 1;
   const myDist = myIdx >= 0 ? districts[myIdx] : null;
   const COMP = D?.distCompetencias || [
-    { key:'cgo', label:'Gestión y Organización', abbr:'CGO', color:'#38BDF8', max:7 },
-    { key:'cct', label:'Creativa y Técnica',     abbr:'CCT', color:'#2ECC71', max:7 },
-    { key:'com', label:'Comunicativa',           abbr:'COM', color:'#C084FC', max:7 },
-    { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'#F0C040', max:7 },
+    { key:'cgo', label:'Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7 },
+    { key:'cct', label:'Creativa y Técnica',     abbr:'CCT', color:'var(--criterio)', max:7 },
+    { key:'com', label:'Comunicativa',           abbr:'COM', color:'var(--criterio)', max:7 },
+    { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7 },
   ];
   const maxTotal  = Math.max(...districts.map(d=>d.total), 1);
 
@@ -627,7 +627,7 @@ function renderRubrica() {
   if (!rubrica.length) { el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
+  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color='var(--criterio)';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
 }
 
 /* ── TABLA DE EVALUACIÓN (solo secretario) ── */
@@ -645,7 +645,7 @@ function renderTablaEvaluacion() {
   if (!isSecretario()) return;
   _renderRubricaGrid('eval-rubrica-creators-grid',  D?.rubrica || [], getCriterios());
   _renderRubricaGrid('eval-rubrica-distritos-grid',  D?.rubricaDistritos || [], D?.distCompetencias || [
-    {color:'#38BDF8'},{color:'#2ECC71'},{color:'#C084FC'},{color:'#F0C040'}
+    {color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'}
   ]);
 }
 
@@ -658,7 +658,7 @@ function _renderRubricaGrid(elId, rubrica, criterios) {
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
   el.innerHTML=rubrica.map((r,i)=>{
-    const c=criterios[i]||{}, color=c.color||'#888', uid=`${elId}-${i}`;
+    const c=criterios[i]||{}, color = 'var(--criterio)', uid=`${elId}-${i}`;
     return `<div class="rubrica-card" id="${uid}">
       <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="${uid}">
         <div class="rubrica-dot" style="background:${color}"></div>
@@ -904,6 +904,8 @@ async function renderUserReport() {
                 { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
+  borrarGrafico('rpt-evolucion');
+
   const scores = data.map(d => d.total);
   const best = Math.max(...scores), avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
   const maxT = MAX_TOTAL();
@@ -918,15 +920,14 @@ async function renderUserReport() {
       <div class="urpt-kpi"><div class="urpt-kpi-val">${maxT}</div><div class="urpt-kpi-lbl">Puntaje máximo</div></div>
       <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:var(--sex);font-size:1rem">${scoreLabel(best)}</div><div class="urpt-kpi-lbl">Mejor nivel</div></div>
     </div>
-    <div class="urpt-section-lbl">Evolución por período</div>
-    <div class="urpt-history">${data.map(d=>`
-      <div class="urpt-hist-card">
-        <div class="urpt-hist-pe">${escHtml(d.pe)}</div>
-        <div class="urpt-hist-bar-track"><div class="urpt-hist-bar-fill" style="width:${Math.round(d.total/maxT*100)}%;background:${scoreColor(d.total)}"></div></div>
-        <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}</div>
-        <div style="font-size:.6rem;color:var(--muted)">${scoreLabel(d.total)}</div>
-      </div>`).join('')}
+    <div class="urpt-section-lbl" id="rpt-evol-lbl">Evolución entre períodos</div>
+    <div class="chart-wrap">
+      <canvas id="rpt-evolucion" role="img"
+              aria-labelledby="rpt-evol-lbl" aria-describedby="rpt-evol-alt"></canvas>
     </div>
+    <p class="chart-alt" id="rpt-evol-alt">${escHtml(
+      data.map(d => `${d.pe}: ${d.total} de ${maxT} (${scoreLabel(d.total)})`).join('. ')
+    )}.</p>
     <div class="urpt-section-lbl" style="margin-top:16px">Detalle por criterio</div>
     <div class="urpt-section">
       <div class="urpt-table-wrap"><table class="urpt-table">
@@ -946,4 +947,7 @@ async function renderUserReport() {
         </tbody>
       </table></div>
     </div>`;
+
+  // Después del innerHTML: antes el <canvas> todavía no existe.
+  graficoEvolucion('rpt-evolucion', data, maxT);
 }

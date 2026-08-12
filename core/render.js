@@ -59,6 +59,16 @@ const getMaxScore = () => getCriterios().reduce((s, c) => s + maxDe(c), 0);
 const MAX_TOTAL   = () => getMaxScore() + 2;            // +2 de bono
 
 /** Máximo de un criterio, con 4 como valor por defecto sensato. */
+/**
+ * Color de la base apto para un atributo style.
+ *
+ * escHtml() escapa comillas pero NO el punto y coma, así que un valor como
+ * `red;background:url(x)` inyecta declaraciones extra en el mismo atributo.
+ * Solo se admite notación hexadecimal; cualquier otra cosa cae al token.
+ */
+const colorSeguro = v => (/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(v || '').trim())
+  ? String(v).trim() : 'var(--criterio)');
+
 const maxDe = c => (Number(c?.max) > 0 ? Number(c.max) : 4);
 
 /** Porcentaje de relleno de una barra, acotado a 0–100. */

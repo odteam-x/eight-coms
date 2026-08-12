@@ -36,13 +36,13 @@ const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" 
    inventados que el admin podría acabar puntuando. */
 
 const DIST_CRITERIOS = [
-  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7,
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7,
     desc:'Evalúa la estética y organización del feed: coherencia visual, uso de portadas, colores e identidad. Feed visualmente equilibrado, atractivo y bien distribuido.' },
-  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7,
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'var(--criterio)', max:7,
     desc:'Evalúa la creatividad e innovación del contenido: diseño impactante y edición profesional adaptada a formatos de Instagram.' },
-  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7,
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'var(--criterio)', max:7,
     desc:'Evalúa la claridad y estrategia del mensaje: captions bien estructurados, narrativa coherente e intención comunicativa alineada con los objetivos del distrito.' },
-  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7,
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7,
     desc:'Evalúa la constancia y estrategia de publicación: uso óptimo de reels, stories y posts, con evidencia de alto rendimiento e interacción.' },
 ];
 const MAX_DIST       = 28;
@@ -267,13 +267,13 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const rows = criterios.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            data-act="puntaje" data-arg="${c.key}" data-arg2="${v}" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
+            data-act="puntaje" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
@@ -755,9 +755,9 @@ function renderCriterios() {
       <div class="tbl-body">
         ${list.map(c => `
           <div class="tbl-row">
-            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${escHtml(c.color)};flex-shrink:0"></span></div>
+            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${colorSeguro(c.color)};flex-shrink:0"></span></div>
             <div class="tbl-cell"><strong>${escHtml(c.label)}</strong></div>
-            <div class="tbl-cell"><span class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span></div>
+            <div class="tbl-cell"><span class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</span></div>
             <div class="tbl-cell tbl-muted">${c.key}</div>
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
@@ -841,7 +841,7 @@ function renderRubrica() {
   const lk = { 4:'nivel4', 3:'nivel3', 2:'nivel2', 1:'nivel1' };
   el.innerHTML = rubList.map((r, i) => {
     const c     = r.criterios || {};
-    const color = c.color || '#888';
+    const color = 'var(--criterio)';
     return `
       <div class="rubrica-card" id="rca-${i}">
         <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}">
@@ -1118,7 +1118,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
           <div class="dist-hist-pe">${escHtml(h.periodos_evaluacion?.nombre || '—')}</div>
           ${DIST_CRITERIOS.map(c => `
             <div class="dist-hist-crit">
-              <span class="dist-hist-abbr" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</span>
+              <span class="dist-hist-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
               <span class="dist-hist-val">${h.puntajes?.[c.key] ?? '—'}</span>
             </div>`).join('')}
           <div class="dist-hist-total" style="color:${distScoreColor(s)}">${s}<span style="font-size:.6rem;color:var(--muted);font-weight:400">/${MAX_DIST}</span></div>
@@ -1130,13 +1130,13 @@ function renderDistEvalForm(ev, distId, historial = []) {
   const rows = DIST_CRITERIOS.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            data-act="puntajeDist" data-arg="${c.key}" data-arg2="${v}" style="--sc:${escHtml(c.color)}">${v}</button>`).join('')}
+            data-act="puntajeDist" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
@@ -1466,10 +1466,10 @@ function renderOverview() {
       <div class="crit-bars-grid">
         ${critAvg.map(c => `
           <div class="crit-bar-row">
-            <div class="crit-bar-tag" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
+            <div class="crit-bar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
             <div style="flex:1;min-width:0">
               <div class="crit-bar-name">${escHtml(c.label)}</div>
-              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${c.avg/4*100}%;background:${escHtml(c.color)}"></div></div>
+              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${pctBarra(c.avg, c)}%;background:var(--criterio)"></div></div>
             </div>
             <div class="crit-bar-val">${c.avg?c.avg.toFixed(1):'—'}<span style="font-size:.6rem;color:var(--muted)"> /4</span></div>
           </div>`).join('')}
@@ -1659,8 +1659,8 @@ function renderAdminReport() {
         ${criterios.map(c => {
           const val = Number(punt[c.key]) || 0;
           return `<div class="rpt-ind-bar-row">
-            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:${escHtml(c.color)}">${escHtml(c.abbr)}</div>
-            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${escHtml(c.color)}"></div></div>
+            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
+            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:var(--criterio)"></div></div>
             <div class="rpt-ind-bar-val">${val}/4</div>
           </div>`;
         }).join('')}
@@ -1703,7 +1703,7 @@ function renderAdminReport() {
     <div class="rpt-kpi-row">
       <div class="rpt-kpi"><div class="rpt-kpi-val">${nonAdmins.length}</div><div class="rpt-kpi-lbl">Miembros</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${evaluated}</div><div class="rpt-kpi-lbl">Evaluados</div></div>
-      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--accent2)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--data)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${topScore}</div><div class="rpt-kpi-lbl">Puntaje más alto</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sba)">${unevaluated}</div><div class="rpt-kpi-lbl">Sin evaluar</div></div>
     </div>
@@ -1775,11 +1775,11 @@ function renderAdminReport() {
       <div class="rpt-section rpt-section-crit">
         <div class="rpt-section-lbl">Promedio por criterio</div>
         ${critAvg.map(c => {
-          const pct = (c.avg / 4) * 100;
+          const pct = pctBarra(c.avg, c);
           return `<div class="rpt-crit-row">
             <div class="rpt-crit-lbl" title="${escHtml(c.label)}">${escHtml(c.abbr)}</div>
             <div class="rpt-crit-bar-track">
-              <div class="rpt-crit-bar-fill" style="width:${pct}%;background:${escHtml(c.color||'var(--accent2)')}"></div>
+              <div class="rpt-crit-bar-fill" style="width:${pct}%"></div>
             </div>
             <div class="rpt-crit-val">${c.avg ? c.avg.toFixed(1) : '—'}</div>
           </div>`;
