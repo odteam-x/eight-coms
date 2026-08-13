@@ -212,9 +212,13 @@ button { cursor:pointer; border:none; background:none; font-family:inherit; }
 img { display:block; max-width:100%; }
 [hidden] { display:none !important; }
 
-/* ── FOCUS VISIBLE ACCESIBLE — WCAG AA ── */
+/* ── FOCO VISIBLE — WCAG 2.4.11 / 1.4.11 ──────────────────────────────
+   --action y no --cyan-400: el cian de marca es constante en los dos
+   temas y sobre el fondo claro da 1.77:1, muy por debajo del 3:1 que
+   necesita un indicador de foco. --action cambia con el tema:
+   5.23 en oscuro, 5.07 en claro. */
 :focus-visible {
-  outline: 2px solid var(--cyan-400, var(--cyan));
+  outline: 2px solid var(--action);
   outline-offset: 3px;
   border-radius: var(--r-sm);
 }

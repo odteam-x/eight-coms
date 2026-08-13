@@ -129,7 +129,7 @@
   -moz-appearance:textfield;
 }
 .score-inp::-webkit-inner-spin-button, .score-inp::-webkit-outer-spin-button { -webkit-appearance:none; }
-.score-inp:focus { outline:none; border-color:var(--cyan); background:rgba(0,203,255,.06); box-shadow:0 0 0 3px rgba(0,203,255,.12); }
+.score-inp:focus { outline:none; border-color:var(--action); box-shadow:0 0 0 3px rgba(0,135,241,.28); }
 .score-inp.changed { border-color:var(--gold); background:rgba(240,192,64,.08); color:var(--gold); }
 
 /* Save bar */
@@ -165,7 +165,7 @@
   transition:border-color .2s, background .2s, box-shadow .2s;
   line-height:1.6;
 }
-.fb-textarea:focus { outline:none; border-color:var(--cyan); background:rgba(0,203,255,.04); box-shadow:0 0 0 3px rgba(0,203,255,.10); }
+.fb-textarea:focus { outline:none; border-color:var(--action); box-shadow:0 0 0 3px rgba(0,135,241,.28); }
 .fb-textarea.changed { border-color:var(--gold); background:rgba(240,192,64,.05); }
 
 /* Debug */
@@ -374,7 +374,7 @@
 }
 .dist-comp-inp::-webkit-inner-spin-button,
 .dist-comp-inp::-webkit-outer-spin-button { -webkit-appearance: none; }
-.dist-comp-inp:focus { outline: none; border-color: var(--cyan); background: rgba(0,203,255,.06); box-shadow: 0 0 0 3px rgba(0,203,255,.12); }
+.dist-comp-inp:focus { outline: none; border-color: var(--action); box-shadow: 0 0 0 3px rgba(0,135,241,.28); }
 .dist-comp-inp.changed { border-color: var(--gold); background: rgba(240,192,64,.08); color: var(--gold); }
 .dist-comp-track {
   flex: 1; height: 4px; background: var(--faint);
@@ -457,7 +457,7 @@
   padding: 8px 12px;
   transition: border-color .2s, background .2s, box-shadow .2s;
 }
-.cal-inp:focus { outline: none; border-color: var(--cyan); background: rgba(0,203,255,.04); box-shadow: 0 0 0 3px rgba(0,203,255,.10); }
+.cal-inp:focus { outline: none; border-color: var(--action); box-shadow: 0 0 0 3px rgba(0,135,241,.28); }
 .cal-inp--num   { width: 60px; font-family: var(--font-display); font-size: 1.1rem; text-align: center; -moz-appearance: textfield; }
 .cal-inp--num::-webkit-inner-spin-button, .cal-inp--num::-webkit-outer-spin-button { -webkit-appearance: none; }
 .cal-inp--title { flex: 1; min-width: 160px; font-weight: 500; }
@@ -1282,9 +1282,11 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 [data-theme="light"] .field select {
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234A6080' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
+/* El halo del foco iba en coral, que es el color de alerta: un campo
+   enfocado parecia un campo con error. */
 .field input:focus, .field select:focus {
-  outline:none; border-color:var(--accent); background:rgba(255,96,99,.04);
-  box-shadow:0 0 0 3px rgba(255,96,99,.12);
+  outline:none; border-color:var(--action);
+  box-shadow:0 0 0 3px rgba(0,135,241,.28);
 }
 .field input::placeholder { color:var(--muted); opacity:.7; }
 .modal-actions { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
@@ -1457,7 +1459,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   padding:8px 12px; width:100%; min-height:38px;
   transition:border-color .2s, background .2s, box-shadow .2s;
 }
-.ig-stat-inp:focus { outline:none; border-color:var(--cyan); background:rgba(0,203,255,.04); box-shadow:0 0 0 3px rgba(0,203,255,.10); }
+.ig-stat-inp:focus { outline:none; border-color:var(--action); box-shadow:0 0 0 3px rgba(0,135,241,.28); }
 .ig-stat-inp:disabled { opacity:.55; cursor:not-allowed; }
 
 /* ── REPORTES ── */

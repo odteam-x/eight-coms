@@ -58,10 +58,10 @@
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
-      <input class="search-inp" id="search-eval-users" type="text" placeholder="Buscar miembro…" data-input="renderEvalUserList">
+      <input class="search-inp" id="search-eval-users" aria-label="Buscar miembro" type="text" placeholder="Buscar miembro…" data-input="renderEvalUserList">
       <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
         <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-        <select class="cfg-inp cfg-select" id="eval-distrito-filter" data-change="renderEvalUserList" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" aria-label="Filtrar por distrito" data-change="renderEvalUserList" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
           <option value="">Todos los distritos</option>
         </select>
       </div>
@@ -80,10 +80,10 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
+        <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
         <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
           <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" data-change="renderUsuarios" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
+          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
             <option value="">Todos los distritos</option>
           </select>
         </div>
@@ -101,7 +101,7 @@
     <div class="ptitle">ROLES</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
-      <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" data-input="renderRoles">
+      <input class="search-inp" id="search-roles" aria-label="Buscar rol" type="text" placeholder="Buscar rol…" data-input="renderRoles">
       <button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button>
     </div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -112,7 +112,7 @@
     <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
-      <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" data-input="renderPeriodos">
+      <input class="search-inp" id="search-periodos" aria-label="Buscar período" type="text" placeholder="Buscar período…" data-input="renderPeriodos">
       <button class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal">+ Nuevo período</button>
     </div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -125,7 +125,7 @@
     <div class="section-label">Criterios de evaluación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
-      <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" data-input="renderCriterios">
+      <input class="search-inp" id="search-criterios" aria-label="Buscar criterio" type="text" placeholder="Buscar criterio…" data-input="renderCriterios">
       <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
     </div>
     <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -133,7 +133,7 @@
     <div class="section-label" style="margin-top:32px">Tabla de puntuación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
-      <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" data-input="renderRubrica">
+      <input class="search-inp" id="search-rubrica" aria-label="Buscar en la rúbrica" type="text" placeholder="Buscar en rúbrica…" data-input="renderRubrica">
       <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
     </div>
     <div class="rubrica-wrap" style="max-width:900px">
@@ -145,7 +145,7 @@
   <div id="tab-calendario" class="atab-content">
     <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
     <div class="cal-editor-toolbar">
-      <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" data-input="renderCalendario">
+      <input class="search-inp" id="search-calendario" aria-label="Buscar actividad del calendario" type="text" placeholder="Buscar actividad…" data-input="renderCalendario">
       <button class="btn-add-evento" data-act="fn" data-arg="showCalModal">+ Agregar actividad</button>
     </div>
     <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
@@ -164,7 +164,7 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
       <span class="section-label" style="margin-bottom:0">Ranking de distritos</span>
-      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" data-input="buscarDistritos" style="font-size:.8rem;padding:5px 12px;width:180px">
+      <input class="search-inp" id="search-distritos" aria-label="Buscar distrito" type="text" placeholder="Buscar distrito…" data-input="buscarDistritos" style="font-size:.8rem;padding:5px 12px;width:180px">
     </div>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
@@ -172,7 +172,7 @@
 
     <div style="margin:24px auto 10px;max-width:700px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eval-pe-lbl">Evaluar distrito:</span>
-      <select class="cfg-inp cfg-select" id="dist-eval-select" data-change="onDistSelectChange" style="max-width:240px">
+      <select class="cfg-inp cfg-select" id="dist-eval-select" aria-label="Distrito a evaluar" data-change="onDistSelectChange" style="max-width:240px">
         <option value="">Seleccionar distrito...</option>
       </select>
     </div>
@@ -224,9 +224,9 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-rol-title">Nuevo rol</div>
     <input type="hidden" id="mrol-id">
-    <div class="field"><label>Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
+    <div class="field"><label for="mrol-nombre">Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo</label>
+      <label style="margin:0" for="mrol-activo">Activo</label>
       <input type="checkbox" id="mrol-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
@@ -261,8 +261,8 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-periodo-title">Nuevo período</div>
     <input type="hidden" id="mpe-id">
-    <div class="field"><label>Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
-    <div class="field"><label>Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field"><label for="mpe-nombre">Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
+    <div class="field"><label for="mpe-desc">Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
     <div class="field-row" style="display:flex;gap:12px">
       <div class="field" style="flex:1"><label for="mpe-inicio">Inicio</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
       <div class="field" style="flex:1"><label for="mpe-fintrabajo">Fin de trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
@@ -272,7 +272,7 @@
       <div class="field" style="flex:1"><label for="mpe-jornada">Jornada</label><input class="cfg-inp" type="date" id="mpe-jornada"></div>
     </div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo (período actual)</label>
+      <label style="margin:0" for="mpe-activo">Activo (período actual)</label>
       <input type="checkbox" id="mpe-activo" style="width:auto">
     </div>
     <div class="modal-hint" style="font-size:.8rem;color:var(--muted);line-height:1.5">
@@ -292,9 +292,9 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-cal-title">Nueva actividad</div>
     <input type="hidden" id="mcal-id">
-    <div class="field"><label>Número</label><input class="cfg-inp" type="number" id="mcal-num" min="1" placeholder="1"></div>
-    <div class="field"><label>Título</label><input class="cfg-inp" type="text" id="mcal-titulo" placeholder="Período de Evaluación 1"></div>
-    <div class="field"><label>Color</label>
+    <div class="field"><label for="mcal-num">Número</label><input class="cfg-inp" type="number" id="mcal-num" min="1" placeholder="1"></div>
+    <div class="field"><label for="mcal-titulo">Título</label><input class="cfg-inp" type="text" id="mcal-titulo" placeholder="Período de Evaluación 1"></div>
+    <div class="field"><label for="mcal-color">Color</label>
       <select class="cfg-inp cfg-select" id="mcal-color">
         <option value="rojo">Rojo</option>
         <option value="azul">Azul</option>
@@ -302,11 +302,11 @@
         <option value="amarillo">Amarillo</option>
       </select>
     </div>
-    <div class="field"><label>Inicio</label><input class="cfg-inp" type="text" id="mcal-inicio" placeholder="01 Mar 2026"></div>
-    <div class="field"><label>Fin de trabajo</label><input class="cfg-inp" type="text" id="mcal-fin" placeholder="14 Mar 2026"></div>
-    <div class="field"><label>Entrega scores</label><input class="cfg-inp" type="text" id="mcal-entrega" placeholder="16 Mar 2026"></div>
-    <div class="field"><label>Jornada</label><input class="cfg-inp" type="text" id="mcal-jornada" placeholder="20 Mar 2026"></div>
-    <div class="field"><label>Estado</label>
+    <div class="field"><label for="mcal-inicio">Inicio</label><input class="cfg-inp" type="text" id="mcal-inicio" placeholder="01 Mar 2026"></div>
+    <div class="field"><label for="mcal-fin">Fin de trabajo</label><input class="cfg-inp" type="text" id="mcal-fin" placeholder="14 Mar 2026"></div>
+    <div class="field"><label for="mcal-entrega">Entrega scores</label><input class="cfg-inp" type="text" id="mcal-entrega" placeholder="16 Mar 2026"></div>
+    <div class="field"><label for="mcal-jornada">Jornada</label><input class="cfg-inp" type="text" id="mcal-jornada" placeholder="20 Mar 2026"></div>
+    <div class="field"><label for="mcal-estado">Estado</label>
       <select class="cfg-inp cfg-select" id="mcal-estado">
         <option value="pendiente">Pendiente</option>
         <option value="en curso">En curso</option>
@@ -327,13 +327,13 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-criterio-title">Nuevo criterio</div>
     <input type="hidden" id="mcrit-id">
-    <div class="field"><label>Nombre completo</label><input class="cfg-inp" type="text" id="mcrit-label" placeholder="Ej: Planificación"></div>
-    <div class="field"><label>Clave interna (key)</label><input class="cfg-inp" type="text" id="mcrit-key" placeholder="pla" maxlength="10"></div>
-    <div class="field"><label>Abreviación (badge)</label><input class="cfg-inp" type="text" id="mcrit-abbr" placeholder="PLA" maxlength="5"></div>
-    <div class="field"><label>Color</label><input class="cfg-inp" type="color" id="mcrit-color" value="#888888" style="height:42px;padding:4px 8px;cursor:pointer"></div>
-    <div class="field"><label>Orden</label><input class="cfg-inp" type="number" id="mcrit-orden" min="1" value="99"></div>
+    <div class="field"><label for="mcrit-label">Nombre completo</label><input class="cfg-inp" type="text" id="mcrit-label" placeholder="Ej: Planificación"></div>
+    <div class="field"><label for="mcrit-key">Clave interna (key)</label><input class="cfg-inp" type="text" id="mcrit-key" placeholder="pla" maxlength="10"></div>
+    <div class="field"><label for="mcrit-abbr">Abreviación (badge)</label><input class="cfg-inp" type="text" id="mcrit-abbr" placeholder="PLA" maxlength="5"></div>
+    <div class="field"><label for="mcrit-color">Color</label><input class="cfg-inp" type="color" id="mcrit-color" value="#888888" style="height:42px;padding:4px 8px;cursor:pointer"></div>
+    <div class="field"><label for="mcrit-orden">Orden</label><input class="cfg-inp" type="number" id="mcrit-orden" min="1" value="99"></div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo</label>
+      <label style="margin:0" for="mcrit-activo">Activo</label>
       <input type="checkbox" id="mcrit-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
@@ -350,16 +350,16 @@
     <div class="modal-title" id="modal-rubrica-title">Nueva entrada de rúbrica</div>
     <input type="hidden" id="mrub-id">
     <div class="field">
-      <label>Criterio</label>
+      <label for="mrub-criterio">Criterio</label>
       <select class="cfg-inp cfg-select" id="mrub-criterio">
         <option value="">Seleccionar criterio...</option>
       </select>
     </div>
-    <div class="field"><label>Nivel 4 — Excelente</label><textarea class="cfg-inp cfg-textarea" id="mrub-n4" rows="2" placeholder="Descripción del nivel excelente..."></textarea></div>
-    <div class="field"><label>Nivel 3 — Bueno</label><textarea class="cfg-inp cfg-textarea" id="mrub-n3" rows="2" placeholder="Descripción del nivel bueno..."></textarea></div>
-    <div class="field"><label>Nivel 2 — En Proceso</label><textarea class="cfg-inp cfg-textarea" id="mrub-n2" rows="2" placeholder="Descripción del nivel en proceso..."></textarea></div>
-    <div class="field"><label>Nivel 1 — Bajo</label><textarea class="cfg-inp cfg-textarea" id="mrub-n1" rows="2" placeholder="Descripción del nivel bajo..."></textarea></div>
-    <div class="field"><label>Orden</label><input class="cfg-inp" type="number" id="mrub-orden" min="1" value="99"></div>
+    <div class="field"><label for="mrub-n4">Nivel 4 — Excelente</label><textarea class="cfg-inp cfg-textarea" id="mrub-n4" rows="2" placeholder="Descripción del nivel excelente..."></textarea></div>
+    <div class="field"><label for="mrub-n3">Nivel 3 — Bueno</label><textarea class="cfg-inp cfg-textarea" id="mrub-n3" rows="2" placeholder="Descripción del nivel bueno..."></textarea></div>
+    <div class="field"><label for="mrub-n2">Nivel 2 — En Proceso</label><textarea class="cfg-inp cfg-textarea" id="mrub-n2" rows="2" placeholder="Descripción del nivel en proceso..."></textarea></div>
+    <div class="field"><label for="mrub-n1">Nivel 1 — Bajo</label><textarea class="cfg-inp cfg-textarea" id="mrub-n1" rows="2" placeholder="Descripción del nivel bajo..."></textarea></div>
+    <div class="field"><label for="mrub-orden">Orden</label><input class="cfg-inp" type="number" id="mrub-orden" min="1" value="99"></div>
     <div class="modal-actions">
       <button class="btn-save" data-act="fn" data-arg="saveRubricaEntry">Guardar</button>
       <button class="btn-out" data-act="cerrarModal" data-arg="modal-rubrica">Cancelar</button>
@@ -385,7 +385,7 @@
 </div>
 
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<input type="file" id="avatar-file-input" accept="image/*" style="display:none" data-change="handleAvatarUpload">
+<input type="file" id="avatar-file-input" aria-label="Seleccionar foto de perfil" accept="image/*" style="display:none" data-change="handleAvatarUpload">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

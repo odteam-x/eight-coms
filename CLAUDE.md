@@ -77,7 +77,7 @@ CDN scripts are pinned to exact versions with SRI hashes, both served from `cdn.
 curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-**CSP is live as `Report-Only`.** See "No executable code in the markup" below for what had to be removed first. The header in `vercel.json`:
+**CSP is enforcing** (not Report-Only). See "No executable code in the markup" below for what had to be removed first. It was verified under an enforcing policy before the flip — zero violations with Supabase, Chart.js, Lucide, Google Fonts, the `data:` URI arrow on `.cfg-select`, a real `connect-src` query and the delegated click dispatcher all exercised. The header in `vercel.json`:
 
 ```json
 { "key": "Content-Security-Policy",
@@ -101,7 +101,7 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 - **The 12 `oninput` / `onchange`** in `admin.html` survived that sweep, which only looked for `onclick`. They now use `data-input` / `data-change`, dispatched by two more delegated listeners against the same `_ACCIONES_SIMPLES` allow-list. The handler is called as `f(elemento, evento)`.
 - **The six inline `<script>` blocks** moved to `core/theme.js`, `login.js` and `registro.js`. `core/theme.js` loads in `<head>` **without `defer`** on purpose: applying the theme after first paint flashes white on a dark theme. It also owns the scroll-progress bar, which was writing `style.width` on every scroll event without rAF.
 
-The CSP ships as `Content-Security-Policy-Report-Only`. To enforce it, drop `-Report-Only` from the key in `vercel.json`.
+The CSP is now enforcing. If a page ever needs a new external origin, add it to the matching directive in `vercel.json` — do not add `'unsafe-inline'` to `script-src`.
 
 ### Login and registration (Phase 7)
 
@@ -164,6 +164,18 @@ Other rules:
 - Content is capped at 1440px above 1600px, where running text was stretching past 120 characters per line.
 
 Verified at 320, 390, 414, 768, 1024, 1440 and 1920: nothing escapes the viewport without a scrollable ancestor, no text is clipped, no touch target under 44px. Note that `body { overflow-x: hidden }` masks overflow, so `scrollWidth` is not a valid check here — measure element rects instead.
+
+### Accessibility, final pass (Phase 10)
+
+**The focus ring is `--action`, never `--cyan-400`.** The brand cyan is the same value in both themes and scores **1.77:1** on the light background — a focus indicator needs 3:1 (WCAG 1.4.11). `--action` is theme-aware: 5.23 dark, 5.07 light. The same applied to six substitute rings in `admin.css` that used `--cyan`, and to one that used the coral alert tint, which made a focused field look like a field in error.
+
+Eight rules still set `outline: none` on `:focus`; every one substitutes a visible `box-shadow` ring. That is the only acceptable reason to remove an outline.
+
+**`admin.html` had 37 controls with no accessible name.** 25 modal fields used `<label>Nombre</label>` with no `for`, and the control as a *sibling* rather than a descendant — so nothing associated them and a screen reader announced a nameless edit box. The 12 search and filter inputs had only a `placeholder`, which is not an accessible name. All 47 fields now resolve to a name.
+
+Charts carry `role="img"` with `aria-labelledby` (the section title) and `aria-describedby` (a `.chart-alt` paragraph with the same numbers in prose).
+
+**Verification note:** `element.focus()` from a script does not match `:focus-visible`, and if the browser pane is not displayed `document.hasFocus()` is false so `:focus` never matches either. Auditing focus by driving the DOM produces false "no indicator" results — check the CSSOM for rules that match the element instead.
 
 ### Navigation
 
