@@ -83,9 +83,10 @@
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  /* Mezclado a opaco: con rgba, getComputedStyle devuelve el color sin
-     componer y cualquier medida de contraste sale falseada. 6.80:1. */
-  color: #9FADBE;
+  /* --cyan-200, NO --txt-2: el panel de marca es --navy-900 en LOS DOS
+     temas, y --txt-2 en claro es gris oscuro — daría 1.77:1 sobre él.
+     Los tokens de marca no cambian con el tema, y este da 11.58:1. */
+  color: var(--cyan-200);
 }
 
 /* ══ PANEL DERECHO: FORMULARIO ══════════════════════════════════════════ */

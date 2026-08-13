@@ -241,7 +241,7 @@ function renderEvalUserList() {
           <div class="eval-ucard-meta">${escHtml(u.roles?.nombre||'—')} · ${escHtml(u.distrito||'—')}</div>
         </div>
         ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(u.score)}"></div></div></div>
-        <div class="eval-ucard-score" style="color:${scoreColor(u.score)}">${u.score}</div>` : ''}
+        <div class="eval-ucard-score" style="color:${scoreColorTxt(u.score)}">${u.score}</div>` : ''}
         <span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>
       </div>`;
     }).join('')}
@@ -1372,7 +1372,7 @@ function renderOverview() {
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="color:var(--sex)">${ICONS.award}</div>
-        <div class="kpi-val" style="color:${topScore!=null?scoreColor(topScore):'var(--muted)'}">${topScore ?? '—'}</div>
+        <div class="kpi-val" style="color:${topScore != null ? scoreColorTxt(topScore) : 'var(--txt-muted)'}">${topScore ?? '—'}</div>
         <div class="kpi-lbl">Mejor score</div>
         <div class="kpi-sub">${escHtml(scored[0]?.user?.nombre?.split(' ')[0] || '—')}</div>
       </div>
@@ -1415,7 +1415,7 @@ function renderOverview() {
                 <div class="rank-role">${escHtml(e.user.roles?.nombre||e.user.distrito||'—')}</div>
               </div>
               <div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(e.score)}"></div></div></div>
-              <div class="rank-score" style="color:${scoreColor(e.score)}">${e.score}</div>
+              <div class="rank-score" style="color:${scoreColorTxt(e.score)}">${e.score}</div>
               <span class="nivel-badge ${scoreClass(e.score)}" style="padding:2px 7px;font-size:.52rem">${scoreLabel(e.score)}</span>
             </div>`;
           }).join('')}
@@ -1483,7 +1483,7 @@ function renderOverview() {
                 <div class="activity-text">${escHtml(user?.nombre||'—')}</div>
                 <div class="activity-sub">Por ${escHtml(evtr?.nombre||'Admin')} · ${d?timeAgo(d):'—'}</div>
               </div>
-              <div class="rank-score" style="color:${scoreColor(sc)}">${sc}</div>
+              <div class="rank-score" style="color:${scoreColorTxt(sc)}">${sc}</div>
             </div>`;
           }).join('') : `<div class="empty-box" style="margin:0"><div class="empty-txt">Sin actividad aún.</div></div>`}
         </div>
@@ -1676,13 +1676,13 @@ function renderAdminReport() {
     const comKeys = Object.keys(comentarios).filter(k => k !== 'general' && comentarios[k]);
     return `<div class="rpt-individual-card">
       <div class="rpt-ind-header">
-        <div class="rpt-ind-rank" style="color:${scoreColor(e.score)}">#${i+1}</div>
+        <div class="rpt-ind-rank" style="color:${scoreColorTxt(e.score)}">#${i+1}</div>
         <div class="rpt-ind-info">
           <div class="rpt-ind-name">${escHtml(e.user.nombre)}</div>
           <div class="rpt-ind-meta">${escHtml(e.user.roles?.nombre||'—')}${e.user.distrito ? ' · '+escHtml(e.user.distrito) : ''}</div>
         </div>
         <div class="rpt-ind-score-wrap">
-          <div class="rpt-ind-score" style="color:${scoreColor(e.score)}">${e.score}<span class="rpt-ind-max">/${MAX}</span></div>
+          <div class="rpt-ind-score" style="color:${scoreColorTxt(e.score)}">${e.score}<span class="rpt-ind-max">/${MAX}</span></div>
           <span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span>
         </div>
       </div>
@@ -1702,7 +1702,7 @@ function renderAdminReport() {
         </div>
       </div>
       ${strongCrit || weakCrit ? `<div class="rpt-ind-highlights">
-        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${escHtml(strongCrit.label)} (${maxCrit}/4)</div>` : ''}
+        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag rpt-ind-hl-tag--alta">Fortaleza</span> ${escHtml(strongCrit.label)} (${maxCrit}/4)</div>` : ''}
         ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${escHtml(weakCrit.label)} (${minCrit}/4)</div>` : ''}
       </div>` : ''}
       ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
@@ -1762,7 +1762,7 @@ function renderAdminReport() {
               <td class="rpt-td rpt-td-role">${escHtml(e.user.roles?.nombre || '—')}</td>
               ${criterios.map(c => `<td class="rpt-td rpt-td-score">${parseJSON(e.puntajes)[c.key] ?? 0}</td>`).join('')}
               <td class="rpt-td rpt-td-score">${e.bono_ext || 0}</td>
-              <td class="rpt-td rpt-td-total" style="color:${scoreColor(e.score)};font-weight:700">${e.score}</td>
+              <td class="rpt-td rpt-td-total" style="color:${scoreColorTxt(e.score)};font-weight:700">${e.score}</td>
               <td class="rpt-td"><span class="nivel-badge ${scoreClass(e.score)}">${scoreLabel(e.score)}</span></td>
             </tr>`).join('')}
         </tbody>

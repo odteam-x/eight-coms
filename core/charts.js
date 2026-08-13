@@ -28,6 +28,10 @@ function token(nombre, respaldo) {
   return v || respaldo || '#888';
 }
 
+/** Serie secundaria. --cyan-200 solo aparecía en la escala de nivel; aquí
+ *  da el segundo peldaño de dato sin salir de la paleta. */
+const colorDato = (n = 0) => token(n === 0 ? '--data' : '--cyan-200', '#00CBFF');
+
 /** Un color de la paleta con transparencia, para rellenos bajo la línea. */
 function conAlfa(hex, alfa) {
   const h = hex.replace('#', '');

@@ -363,7 +363,7 @@ function renderMyScore(pe) {
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="nivel-badge ${scoreClass(total)}">${scoreLabel(total)}</span>
         <div style="text-align:right">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:${scoreColor(total)};line-height:1">${total}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:${scoreColorTxt(total)};line-height:1">${total}</div>
           <div style="font-size:.65rem;color:var(--muted)">/ ${MAX_TOTAL()} pts</div>
         </div>
       </div>
@@ -604,7 +604,7 @@ function renderMiembrosDistrito(pe) {
         </div>
         <div class="dm-score-block">
           ${hasEval?`
-            <div class="dm-score-total" style="color:${scoreColor(s)}">${s}</div>
+            <div class="dm-score-total" style="color:${scoreColorTxt(s)}">${s}</div>
             <div class="dm-score-max">/ ${MAX_TOTAL()}</div>
             <span class="nivel-badge ${scoreClass(s)}" style="font-size:.55rem;padding:3px 8px">${scoreLabel(s)}</span>
             ${r.ext>0?`<span class="bono-badge" style="font-size:.55rem;padding:3px 8px;margin-top:4px"><span class="bono-icon">${ICONS.star}</span>+${r.ext}</span>`:''}
@@ -896,7 +896,7 @@ async function renderUserReport() {
       <div class="urpt-meta">Historial de desempeño · ${data.length} período${data.length!==1?'s':''} evaluado${data.length!==1?'s':''}</div>
     </div>
     <div class="urpt-kpi-row">
-      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:${scoreColor(best)}">${best}</div><div class="urpt-kpi-lbl">Mejor puntaje</div></div>
+      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:${scoreColorTxt(best)}">${best}</div><div class="urpt-kpi-lbl">Mejor puntaje</div></div>
       <div class="urpt-kpi"><div class="urpt-kpi-val">${avg}</div><div class="urpt-kpi-lbl">Promedio</div></div>
       <div class="urpt-kpi"><div class="urpt-kpi-val">${maxT}</div><div class="urpt-kpi-lbl">Puntaje máximo</div></div>
       <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:var(--sex);font-size:1rem">${scoreLabel(best)}</div><div class="urpt-kpi-lbl">Mejor nivel</div></div>
@@ -923,7 +923,7 @@ async function renderUserReport() {
           </tr>`).join('')}
           <tr>
             <td class="urpt-td urpt-td-pe">TOTAL</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>`).join('')}
+            ${data.map(d=>`<td class="urpt-td urpt-td-total" style="color:${scoreColorTxt(d.total)}">${d.total}</td>`).join('')}
           </tr>
         </tbody>
       </table></div>

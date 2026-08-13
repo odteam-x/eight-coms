@@ -31,12 +31,42 @@
   --border-hi: rgba(255,255,255,.14);
   --txt:       #F2F4F7;   /* 17.39 */
   --txt-2:     #B4BCC8;   /* 10.01 */
-  --txt-muted: #7C8697;   /*  5.21 */
+  /* Se midió contra --bg (5.21) pero se usa sobre --surface-2 y
+     --surface-3, que son más claras: daba 4.38 y 3.86. Subido hasta
+     cumplir 4.5 contra la MÁS CLARA donde aparece.
+                       bg 6.36 · s1 5.88 · s2 5.34 · s3 4.70 */
+  --txt-muted: #8C95A6;
 
   /* ── SEMÁNTICA — máximo 3 colores simultáneos por vista ───────────────── */
-  --action: var(--blue-500);   /* 5.23  acción, foco, elemento activo   */
-  --data:   var(--cyan-400);   /* 10.03 relleno de barras y gráficos    */
+  /* --action se usa como COLOR de texto solo sobre --bg (5.23) y
+     --surface-1 (4.84). Sobre --surface-2 da 4.40 y sobre --surface-3
+     3.87, así que el estado activo de rail y barra NO lo usa como texto:
+     lo lleva --marca en la barra y --txt en la etiqueta. */
+  --action: var(--blue-500);   /* 5.23  acción, foco, enlace            */
+  --data:   var(--cyan-400);   /* 10.03 RELLENO de barra y gráfico      */
   --alert:  var(--coral);      /* 6.48  alerta y destructivo            */
+
+  /* --data se validó como RELLENO (umbral 3:1) y el código lo reutilizaba
+     como color de TEXTO, donde el umbral es 4.5. En claro daba 3.62 sobre
+     --bg. Papeles separados, igual que --action / --action-fill.
+                                    peor de las cuatro superficies: 7.41 */
+  --data-txt:     var(--cyan-400);
+  --criterio-txt: var(--data-txt);
+
+  /* Rampa de TEXTO de la escala de nivel. Los cuatro de arriba son
+     RELLENO; como color de texto, --spr daba 3.87 y --sba 3.69 sobre
+     --surface-3. scoreColorTxt() de core/render.js usa esta.
+                        peor de las cuatro superficies, ambos temas */
+  --sex-txt: var(--cyan-200);   /* 10.32 */
+  --sbu-txt: var(--cyan-400);   /*  7.41 */
+  --spr-txt: #48A7F7;           /*  5.50 */
+  --sba-txt: #F2777B;           /*  5.20 */
+
+  /* ORNAMENTO DE MARCA, NO INTERACTIVO. Filete, subrayado o punto; nunca
+     superficie ni texto, así que no cuenta en el presupuesto de tres
+     colores por vista. El coral es el color de la regional y tiene que
+     verse.                              sobre --bg 6.48 · --surface-3 4.79 */
+  --marca: var(--coral);
 
   /* Relleno de botón primario. Va aparte de --action porque los requisitos
      son distintos: --action se usa como COLOR (texto de enlace, anillo de
@@ -66,12 +96,15 @@
   --sex: var(--cyan-200);   /* Excelente   13.95 / 10.32 */
   --sbu: var(--cyan-400);   /* Bueno       10.03 /  7.41 */
   --spr: var(--blue-500);   /* En Proceso   5.23 /  3.87 */
-  --sba: var(--coral);      /* Bajo         6.48 /  4.79 */
+  /* Deja de ser var(--coral) para no confundirse con --marca. Es RELLENO
+     de píldora y de barra (umbral 3:1); el texto que lleva encima es
+     --nivel-on.          sobre --bg 4.99 · --surface-3 3.69 · texto 4.99 */
+  --sba: #E8484E;           /* Bajo */
 
   /* Los 7 criterios comparten un solo color: la etiqueta (PLA, REV…) y la
      longitud de la barra ya distinguen. `criterios.color` sigue en la base
      pero el render lo ignora. */
-  --criterio: var(--data);
+  --criterio: var(--data);       /* relleno; la etiqueta usa --criterio-txt */
 
   /* Medallas del ranking. Fuera de la paleta de marca a propósito: oro,
      plata y bronce son semánticos, no decorativos. Único caso permitido. */
@@ -147,11 +180,28 @@
   --border-hi: rgba(0,34,71,.18);
   --txt:       #0E1726;   /* 16.59 */
   --txt-2:     #3E4A5C;   /*  8.29 */
-  --txt-muted: #64718A;   /*  4.54 */
+  /* Daba 4.34 sobre --surface-2 y 3.99 sobre --surface-3.
+                       bg 5.60 · s1 6.07 · s2 5.36 · s3 4.93 */
+  --txt-muted: #586376;
 
-  --action: #0068C9;   /* 5.07 */
-  --data:   #0082E8;   /* 3.18 sobre --surface-3, relleno de barra */
+  --action: #0068C9;   /* 5.07 sobre --bg; no se usa como texto en s2/s3 */
+  --data:   #0082E8;   /* 3.18 sobre --surface-3 — RELLENO, umbral 3:1 */
   --alert:  #C0272B;   /* 5.44 */
+
+  /* Como texto, --data daba 3.62 sobre --bg.   peor de las cuatro: 5.12 */
+  --data-txt:     #005FB8;
+  --criterio-txt: var(--data-txt);
+
+  /* --sex daba 3.92 y --sbu 4.46 como texto sobre --surface-3. */
+  --sex-txt: #006B96;   /* 4.81 */
+  --sbu-txt: #005FB8;   /* 5.12 */
+  --spr-txt: #00406B;   /* 8.77 */
+  --sba-txt: #A81F23;   /* 5.91 */
+
+  /* El coral sobre fondo claro da 2.73: ni siquiera llega al 3:1 que
+     necesita un ornamento. Este mide 4.19 sobre --bg y 3.69 sobre
+     --surface-3, y se distingue de --alert (#C0272B). */
+  --marca: #D93A3E;
 
   /* En claro sí puede ser azul: blanco sobre #0068C9 da 5.45. */
   --action-fill:       #0068C9;
@@ -163,10 +213,11 @@
   --nivel-on: var(--surface-1);
 
   /*                        sobre --bg / sobre --surface-3 */
-  --sex: #0079AE;   /* Excelente   4.46 / 3.92 */
-  --sbu: #0068C9;   /* Bueno       5.07 / 4.46 */
-  --spr: #00406B;   /* En Proceso  9.97 / 8.77 */
-  --sba: #C0272B;   /* Bajo        5.44 / 4.78 */
+  --sex: #0079AE;   /* Excelente   4.46 / 3.92  RELLENO */
+  --sbu: #0068C9;   /* Bueno       5.07 / 4.46  RELLENO */
+  --spr: #00406B;   /* En Proceso  9.97 / 8.77  RELLENO */
+  /* Distinto de --marca y de --alert.  bg 6.72 · s3 5.91 · blanco 7.28 */
+  --sba: #A81F23;   /* Bajo */
 
   --criterio: var(--data);
 
@@ -181,23 +232,6 @@
 
   /* Único alias que necesita valor propio por tema; el resto son var(). */
   --hover-subtle:rgba(0,34,71,.04);
-}
-
-/* Mismo tema claro cuando el sistema lo pide y no hay preferencia guardada. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --bg:#F4F6F9; --surface-1:#FFFFFF; --surface-2:#EEF1F6; --surface-3:#E3E8EF;
-    --border:rgba(0,34,71,.10); --border-hi:rgba(0,34,71,.18);
-    --txt:#0E1726; --txt-2:#3E4A5C; --txt-muted:#64718A;
-    --action:#0068C9; --data:#0082E8; --alert:#C0272B;
-    --sex:#0079AE; --sbu:#0068C9; --spr:#00406B; --sba:#C0272B;
-    --criterio:var(--data);
-    --medalla-oro:#8A6300; --medalla-plata:#5A6275; --medalla-bronce:#8A4E18;
-    --shadow-sm:0 1px 2px rgba(0,34,71,.08);
-    --shadow-md:0 4px 16px rgba(0,34,71,.12);
-    --shadow-lg:0 12px 40px rgba(0,34,71,.16);
-    --hover-subtle:rgba(0,34,71,.04);
-  }
 }
 
 /* ── RESET ── */
@@ -258,8 +292,14 @@ img { display:block; max-width:100%; }
 [data-theme="light"] .icon-moon { display:block; }
 
 /* ── AVATAR ── */
-.avatar { width:34px; height:34px; background:linear-gradient(135deg,var(--accent),#c04050); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:.9rem; color:#fff; flex-shrink:0; }
-.avatar.admin-av { background:linear-gradient(135deg,var(--gold),#b08000); color:#000; }
+.avatar {
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--action-fill); color:var(--action-on);
+  font-family:var(--font-display); font-size:.9rem; flex-shrink:0;
+  overflow:hidden;
+}
+.avatar.admin-av { background:var(--marca); color:var(--nivel-on); }
 
 /* ── BOTONES ── */
 .btn-out, .btn-out-mobile {
@@ -327,7 +367,7 @@ img { display:block; max-width:100%; }
   position:sticky; top:0; z-index:300;
   padding:10px 18px; text-align:center;
   font-size:.8rem; font-weight:600; line-height:1.4;
-  color:#1a1200; background:var(--gold,#F0C040);
+  color:var(--nivel-on); background:var(--spr);
   border-bottom:1px solid rgba(0,0,0,.18);
 }
 /* Con una gestión archivada no debe poder escribirse nada desde la UI. */
@@ -367,8 +407,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .pb:hover { color:var(--txt); border-color:var(--border-glow); background:var(--hover-subtle); }
 .pb:active { transform:scale(.96); }
 .pb.active {
-  color:#fff;
-  background:linear-gradient(135deg, var(--accent), var(--blue));
+  color:var(--action-on);
+  background:var(--action-fill);
   border-color:transparent;
   box-shadow:var(--glow-accent);
 }
@@ -477,8 +517,8 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .tbl-r:hover { background:var(--glass); }
 @keyframes slideRow { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
 .rank-num { font-family:var(--font-display); font-size:1rem; color:var(--muted); min-width:28px; text-align:right; margin-right:10px; }
-.rank-num.gold   { color:#F0C040; text-shadow:0 0 8px rgba(240,192,64,.5); }
-.rank-num.silver { color:#B0B8D0; }
+.rank-num.gold   { color:var(--medalla-oro); }
+.rank-num.silver { color:var(--medalla-plata); }
 .rank-num.bronze { color:#C87C40; }
 .tbl-name-cell { display:flex; align-items:center; }
 .tbl-score-cell { display:flex; align-items:center; justify-content:center; }
@@ -534,10 +574,10 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .cal-card:hover { transform:translateY(-3px); border-color:var(--border-glow); box-shadow:var(--shadow-md); }
 .cal-acc { width:5px; flex-shrink:0; }
-.cal-acc--rojo     { background:linear-gradient(to bottom, var(--accent), #a02030); }
-.cal-acc--verde    { background:linear-gradient(to bottom, var(--green), #1B5E4F); }
-.cal-acc--azul     { background:linear-gradient(to bottom, var(--blue), #0050B0); }
-.cal-acc--amarillo { background:linear-gradient(to bottom, var(--gold), #B08000); }
+.cal-acc--rojo     { background:var(--marca); }
+.cal-acc--verde    { background:var(--sex); }
+.cal-acc--azul     { background:var(--action); }
+.cal-acc--amarillo { background:var(--spr); }
 .cal-body { flex:1; padding:16px; }
 .cal-num  { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
 .cal-t    { font-family:var(--font-display); font-size:1.2rem; letter-spacing:2px; margin-bottom:12px; }
@@ -564,20 +604,20 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 
 /* ── SECRETARIO BADGE ── */
 .secretario-badge {
-  background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
-  color:#fff;
-  font-family:var(--font-body);
-  font-size:.8rem; font-weight:900;
+  background:var(--action-fill);
+  color:var(--action-on);
+  font-family:var(--font-ui);
+  font-size:var(--fs-xs); font-weight:600;
   letter-spacing:2px; text-transform:uppercase;
-  padding:3px 10px; border-radius:var(--r-pill);
+  padding:3px 10px; border-radius:var(--r-full);
 }
 
 /* ── PORTAL BADGE ── */
 .portal-badge {
-  background:linear-gradient(135deg, var(--blue-700), var(--blue-500));
-  color:#fff;
-  font-family:var(--font-body);
-  font-size:.8rem; font-weight:900;
+  background:var(--action-fill);
+  color:var(--action-on);
+  font-family:var(--font-ui);
+  font-size:var(--fs-xs); font-weight:600;
   letter-spacing:2px; text-transform:uppercase;
   padding:3px 10px; border-radius:var(--r-pill);
 }
@@ -762,11 +802,6 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 [data-theme="light"] .ql-card:hover {
   background: rgba(0,100,200,.06);
 }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .m-hero {
-    background: linear-gradient(160deg, rgba(0,80,180,.08) 0%, rgba(0,50,140,.04) 60%, transparent 100%);
-  }
-}
 
 /* ── DESPLEGABLES EN TÁCTIL ───────────────────────────────────────────
    Los menús .tnav-drop se abrían solo con :hover. En un dispositivo
@@ -816,7 +851,9 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rail-badge {
   font-family:var(--font-ui); font-size:var(--fs-xs); font-weight:600;
   padding:2px 8px; border-radius:var(--r-full);
-  background:var(--action); color:#fff; white-space:nowrap;
+  /* Blanco sobre --action daba 3.66. --action-fill/--action-on es el par
+     que existe exactamente para esto: 8.32 en oscuro, 5.49 en claro. */
+  background:var(--action-fill); color:var(--action-on); white-space:nowrap;
 }
 
 .rail-nav { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
@@ -844,9 +881,13 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .rail-item.active::before {
   content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
   width:3px; height:60%; border-radius:0 var(--r-sm) var(--r-sm) 0;
-  background:var(--action);
+  /* La barra la lleva --marca: es ornamento, no interactivo. */
+  background:var(--marca);
 }
-.rail-item.active .rail-ico { color:var(--action); }
+/* El icono NO va en --action: sobre --surface-3 daba 3.87. El estado
+   activo lo llevan la barra de --marca y el peso del texto, así que el
+   color deja de ser el único indicador (WCAG 1.4.1). */
+.rail-item.active .rail-ico { color:var(--txt); }
 .rail-ico { width:20px; height:20px; flex:0 0 auto; }
 .rail-txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .rail-item--sec { color:var(--txt-muted); }
@@ -910,6 +951,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 @media (min-width:768px) { .bottom-bar { display:none; } }
 
 .bb-item {
+  position:relative;
   flex:1 1 0; min-width:0; min-height:var(--bb-h);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
   color:var(--txt-muted); font-family:var(--font-ui); font-size:var(--fs-xs);
@@ -917,7 +959,13 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 .bb-ico { width:22px; height:22px; }
 .bb-txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-.bb-item.active { color:var(--action); }
+/* Igual en la barra inferior: --action sobre --surface-2 daba 4.40. */
+.bb-item.active { color:var(--txt); font-weight:600; }
+.bb-item.active::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:18px; height:3px; border-radius:0 0 var(--r-sm) var(--r-sm);
+  background:var(--marca);
+}
 
 /* El contenido no debe quedar bajo la barra. */
 @media (max-width:767px) {
@@ -985,7 +1033,7 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 .skip-link {
   position:absolute; left:var(--sp-3); top:-100px; z-index:calc(var(--z-modal) + 1);
   padding:10px 16px; border-radius:var(--r-md);
-  background:var(--action); color:#fff;
+  background:var(--action-fill); color:var(--action-on);
   font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
   transition:top .15s var(--ease);
 }

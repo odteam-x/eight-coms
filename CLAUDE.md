@@ -43,13 +43,21 @@ Vercel config is in `vercel.json` (security headers only). Note that `vercel.jso
 
 **The palette is closed.** Six brand colours (`--navy-900`, `--blue-700`, `--blue-500`, `--cyan-400`, `--cyan-200`, `--coral`), a neutral base, and three semantic slots. **No hex literal outside `:root`** — the only exceptions are pure white on the brand panel and the medal colours, both commented in place.
 
+**Run `node tools/contraste.js` before touching a colour. It is not optional.** It reads the tokens from `shared.css`, resolves the `var()` chains, composes every text×surface pair of both themes and fails under 4.5:1 (text) or 3:1 (fill, border, focus ring). It also flags hex outside `:root`, against an explicit exception list with a reason each.
+
+Two things it taught us while being written: a regex that reads token declarations must strip comments first, or a comment mentioning `--surface-3` is parsed as a token, the value comes out garbage and **that pair is skipped silently** — which is exactly the false negative the script exists to prevent. And line numbers must be computed on the original text (blank the comments in place, don't delete them) or the report points at lines that have nothing to do with the problem.
+
 **Every contrast figure in this file was computed, never estimated.** When you change a colour, recompute it against the surface it actually sits on. Two values from the original design brief had to be rejected for failing: `--spr` at `#005286` scored 2.33 on `--bg` (an invisible "En Proceso" bar) and white on `--blue-500` scored 3.66 as a button label.
 
 **One view, one colour dimension:**
 
+- **Fill and text are different tokens.** A colour validated as a bar fill (3:1) is not valid as text (4.5:1). The pairs are `--data`/`--data-txt`, `--criterio`/`--criterio-txt`, `--action`/`--action-fill`, and the level ramp `--sex`…`--sba` (fill) versus `--sex-txt`…`--sba-txt` (text). In code: `scoreColor()` fills, `scoreColorTxt()` paints text.
+- **`--action` is never text on `--surface-2` or `--surface-3`** — it scores 4.40 and 3.87 there, and inside the closed palette no blue passes without invading `--data`. The active state of the rail and the bottom bar therefore carries a `--marca` bar plus `--txt` at weight 600, so colour is not the only indicator (WCAG 1.4.1).
 - **All seven criteria render in a single colour** — `var(--criterio)`. Each bar already carries its label (PLA, REV, EDI…) and its length; seven saturated hues collided with the level scale. `criterios.color` still exists in the DB and stays admin-editable, but the score views ignore it.
 - **The level scale is four luminance steps of the brand cyan**, not four hues. Dark: `--sex` 13.95 / `--sbu` 10.03 / `--spr` 5.23 / `--sba` 6.48 on `--bg`. Light has its own ramp.
-- **`--alert` (`#FF6063`) is for alerts and destructive actions.** It doubles as `--sba` ("Bajo") because a failing score *is* the alert state; do not use it for anything else.
+- **`--alert` is for alerts and destructive actions.** Every alert also carries an icon and text: since Phase 11 it shares a family with `--marca`, so colour alone can never be the signal.
+- **`--marca` is brand ornament, never interactive and never a surface.** Rule, underline, 3px bar, dot. It does not count against the three-colours-per-view budget. It is theme-aware because plain coral scores **2.73** on the light background — below even the 3:1 an ornament needs: `--coral` in dark (6.48 / 4.79), `#D93A3E` in light (4.19 / 3.69).
+- **`--sba` stopped being `var(--coral)`** so "Bajo" is not confused with the brand: `#E8484E` in dark, `#A81F23` in light.
 
 `--bg` is `#0E0F12`, a near-black neutral. `--navy-900` is **not** a page background — it is a brand surface, one solid high-contrast piece per screen (hero, login panel). As a page background it distorted every colour in front of it.
 
@@ -59,7 +67,7 @@ Typography is **three families, one role each**: `Barlow Condensed` (`--font-dis
 
 There are **three shadows** (`--shadow-sm/md/lg`), down from 104 distinct declarations, and one spacing scale (`--sp-1` … `--sp-7`).
 
-⚠️ **`shared.css` still carries a compatibility alias block** (`--s1`, `--glass`, `--accent`, `--muted`, …). It is marked TEMPORARY and is being retired stylesheet by stylesheet — **548 references left**, down from 625. Do not use those names in new code.
+⚠️ **`shared.css` still carries a compatibility alias block** (`--s1`, `--glass`, `--accent`, `--muted`, …). It is marked TEMPORARY and is being retired stylesheet by stylesheet — **263 references left**, down from 553. `admin.css` is fully migrated. Do not use those names in new code.
 
 Medal colours in `secretario.css` are tokenised (`--medalla-oro/plata/bronce`) with light-theme variants: the hardcoded gold scored 1.55:1 on the light background.
 

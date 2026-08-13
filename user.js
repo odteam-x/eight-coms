@@ -465,7 +465,7 @@ async function renderUserReport() {
 
     <div class="urpt-kpi-row">
       <div class="urpt-kpi">
-        <div class="urpt-kpi-val" style="color:${scoreColor(best.total)}">${best.total}</div>
+        <div class="urpt-kpi-val" style="color:${scoreColorTxt(best.total)}">${best.total}</div>
         <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${escHtml(best.pe)}</span></div>
       </div>
       <div class="urpt-kpi">
@@ -527,7 +527,7 @@ async function renderUserReport() {
                   <td class="urpt-td urpt-td-pe">${escHtml(d.pe)}</td>
                   ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${puntajeDe(d.row,c.key)}</td>`).join('')}
                   <td class="urpt-td urpt-td-s">${d.row.ext||0}</td>
-                  <td class="urpt-td urpt-td-total" style="color:${scoreColor(d.total)}">${d.total}</td>
+                  <td class="urpt-td urpt-td-total" style="color:${scoreColorTxt(d.total)}">${d.total}</td>
                   <td class="urpt-td"><span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span></td>
                 </tr>`).join('')}
             </tbody>

@@ -37,7 +37,18 @@ const NIVELES = [
 ];
 
 const nivelDe    = s => NIVELES.find(n => Number(s) >= n.min) || NIVELES[NIVELES.length - 1];
+
+/** Color del nivel como RELLENO de barra o píldora. Umbral 3:1. */
 const scoreColor = s => nivelDe(s).color;
+
+/**
+ * Color del nivel como TEXTO. Umbral 4.5:1, que es más exigente.
+ *
+ * Los cuatro de scoreColor() se validaron como relleno y el código los
+ * reutilizaba para pintar números: --spr daba 3.87 y --sba 3.69 sobre
+ * --surface-3. La rampa de texto vive en shared.css como --sex-txt…--sba-txt.
+ */
+const scoreColorTxt = s => `var(--${nivelDe(s).key}-txt)`;
 const scoreLabel = s => nivelDe(s).label;
 const scoreClass = s => nivelDe(s).key;
 
