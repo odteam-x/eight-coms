@@ -204,6 +204,8 @@ function initUI() {
       marca: 'EIGHT CREATORS',
       badge: sec ? 'SECRETARIO' : 'CREATOR',
       activo: 'miscore',
+      pie: { nombre: CU.name || CU.user,
+             badge: sec ? 'Secretario de Comunicaciones' : 'Creator' },
       grupos: [{ items: [
         { tab:'miscore',   icono:'bar-chart-2', etiqueta:'Mi Score' },
         ...(sec ? [

@@ -176,6 +176,7 @@ function initUI() {
     initNav({
       marca: 'EIGHT CREATORS',
       activo: 'scores',
+      pie: { nombre: CU.name || CU.user, badge: 'Creator' },
       grupos: [{ items: [
         { tab:'scores',    icono:'bar-chart-2', etiqueta:'Mi Score'  },
         { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas'  },

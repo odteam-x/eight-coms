@@ -125,24 +125,29 @@ function renderBannerSoloLectura(gestion) {
  * sola gestión no significa nada y ocupa sitio.
  */
 function renderSelectorGestion(contenedorId, gestiones, actualId, onSelect) {
-  const host = document.getElementById(contenedorId);
-  if (!host) return;
-  host.replaceChildren();
-  if (!gestiones || gestiones.length < 2) { host.hidden = true; return; }
+  // Se pinta en dos sitios: el pie del rail y la hoja móvil. El rail es
+  // display:none por debajo de 768px, así que sin la copia de la hoja no
+  // había forma de cambiar de gestión desde un teléfono.
+  for (const id of [contenedorId, contenedorId + '-movil']) {
+    const host = document.getElementById(id);
+    if (!host) continue;
+    host.replaceChildren();
+    if (!gestiones || gestiones.length < 2) { host.hidden = true; continue; }
 
-  host.hidden = false;
-  const sel = document.createElement('select');
-  sel.className = 'gestion-select';
-  sel.setAttribute('aria-label', 'Gestión');
-  for (const g of gestiones) {
-    const o = document.createElement('option');
-    o.value = String(g.id);
-    o.textContent = g.nombre + (g.activa ? ' (actual)' : g.archivada ? ' (archivada)' : '');
-    if (String(g.id) === String(actualId)) o.selected = true;
-    sel.appendChild(o);
+    host.hidden = false;
+    const sel = document.createElement('select');
+    sel.className = 'gestion-select';
+    sel.setAttribute('aria-label', 'Gestión');
+    for (const g of gestiones) {
+      const o = document.createElement('option');
+      o.value = String(g.id);
+      o.textContent = g.nombre + (g.activa ? ' (actual)' : g.archivada ? ' (archivada)' : '');
+      if (String(g.id) === String(actualId)) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.addEventListener('change', () => onSelect(sel.value));
+    host.appendChild(sel);
   }
-  sel.addEventListener('change', () => onSelect(sel.value));
-  host.appendChild(sel);
 }
 
 

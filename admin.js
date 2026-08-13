@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initNav({
     marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview',
+    // Cabecera de cuenta de la hoja móvil, donde viven salir y el
+    // selector de gestión: el rail no existe por debajo de 768px.
+    pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
     grupos: [
       { items: [
         { tab:'overview', icono:'layout-dashboard', etiqueta:'Overview' },

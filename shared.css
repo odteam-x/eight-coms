@@ -338,10 +338,15 @@ body.gestion-archivada .pe-toggle,
 body.gestion-archivada .toggle-switch { display:none !important; }
 
 .gestion-select {
-  background:var(--s2); color:var(--txt);
-  border:1px solid var(--border); border-radius:var(--r-sm);
-  font-size:.8rem; padding:4px 8px; cursor:pointer;
+  background:var(--surface-2); color:var(--txt);
+  border:1px solid var(--border-hi); border-radius:var(--r-sm);
+  font-family:var(--font-ui); font-size:var(--fs-xs);
+  padding:var(--sp-2) var(--sp-3); cursor:pointer;
+  /* Medía 25px de alto: demasiado poco para un control de formulario,
+     con puntero fino o grueso. */
+  min-height:44px; width:100%; min-width:0;
 }
+.gestion-select:focus-visible { outline:2px solid var(--action); outline-offset:2px; }
 
 .pe-row { display:flex; gap:8px; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; }
 .pe-row--no-mb { margin-bottom:0; }
@@ -922,11 +927,13 @@ body.gestion-archivada .toggle-switch { display:none !important; }
 }
 
 /* Hoja inferior con los destinos que no caben. */
+/* La abre openModal(), que pone display:flex y aporta Escape, trampa de
+   Tab y devolución del foco. La clase .open ya no gobierna nada. */
 .bb-hoja {
   position:fixed; inset:0; z-index:var(--z-modal);
   background:rgba(0,0,0,.5); display:none;
+  align-items:flex-end;
 }
-.bb-hoja.open { display:block; }
 .bb-hoja-panel {
   position:absolute; inset:auto 0 0 0;
   background:var(--surface-1); border-top:1px solid var(--border);
@@ -945,6 +952,34 @@ body.gestion-archivada .toggle-switch { display:none !important; }
   color:var(--txt-2); font-family:var(--font-ui); font-size:var(--fs-sm); text-align:left;
 }
 .bb-hoja-item:hover { background:var(--surface-2); color:var(--txt); }
+.bb-hoja-item:focus-visible { outline:2px solid var(--action); outline-offset:-2px; }
+
+/* Cabecera de cuenta de la hoja. */
+.bb-hoja-cuenta {
+  display:flex; align-items:center; gap:var(--sp-3);
+  padding:var(--sp-2) var(--sp-3) var(--sp-4);
+}
+.bb-hoja-quien { min-width:0; }
+.bb-hoja-nombre {
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
+  color:var(--txt); overflow-wrap:anywhere;
+}
+.bb-hoja-badge {
+  margin-top:2px; font-family:var(--font-ui); font-size:var(--fs-xs);
+  letter-spacing:1px; text-transform:uppercase; color:var(--txt-2);
+}
+.bb-hoja-grupo { display:flex; flex-direction:column; gap:2px; }
+.bb-hoja-sep {
+  height:1px; background:var(--border);
+  margin:var(--sp-3) calc(var(--sp-3) * -1);
+}
+.bb-hoja-gestion { display:block; padding:var(--sp-2) var(--sp-3); }
+.bb-hoja-gestion[hidden] { display:none; }
+.bb-hoja-gestion .gestion-select { width:100%; }
+
+/* Cerrar sesión es destructivo: se distingue del resto de la lista. */
+.bb-hoja-item--salir { color:var(--alert); }
+.bb-hoja-item--salir:hover { background:rgba(255,96,99,.10); color:var(--alert); }
 
 /* Skip link: primer tabulable de la página, visible solo con teclado. */
 .skip-link {

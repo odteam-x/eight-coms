@@ -16,7 +16,9 @@
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
   padding:10px 16px;
   margin-bottom:16px;
-  position:sticky; top:calc(var(--topbar-h) + 8px); z-index:90;
+  /* La topbar desapareció en la fase 6: `--topbar-h` dejaba 58px de
+     hueco muerto encima de la barra. */
+  position:sticky; top:var(--sp-2); z-index:var(--z-sticky);
   background:var(--surface-2);
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
   border:1px solid var(--border);
@@ -24,7 +26,10 @@
   box-shadow:var(--shadow-sm);
 }
 .admin-pe-lbl { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); }
-.ptitle { font-family:var(--font-display); font-size:1.8rem; letter-spacing:3px; margin-bottom:20px; padding-top:32px; }
+.ptitle {
+  font-family:var(--font-display); font-size:var(--fs-xl);
+  letter-spacing:3px; margin-bottom:var(--sp-5); padding-top:var(--sp-6);
+}
 
 /* ── STAT CARDS ── */
 .stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, 180px), 1fr)); gap:12px; margin-bottom:24px; }
@@ -176,7 +181,7 @@
 .debug-mono { padding:14px 16px; background:var(--s1); border-radius:var(--r-md); font-size:.8rem; color:#5A6080; font-family:'Courier New',monospace; line-height:1.8; margin-top:1rem; }
 
 @media (max-width:960px) { .two-col-grid{grid-template-columns:1fr} }
-@media (max-width:600px) {
+@media (max-width:767px) {
   .amain{padding:0 max(14px, env(safe-area-inset-right)) 60px max(14px, env(safe-area-inset-left))}
   .stat-cards{grid-template-columns:1fr 1fr}
   .crit-detail-grid{grid-template-columns:1fr}
@@ -272,7 +277,7 @@
 @media (max-width: 900px) {
   .admin-dist-expand-grid { grid-template-columns: 1fr; }
 }
-@media (max-width: 600px) {
+@media (max-width:767px) {
   .admin-dist-head { gap: 8px; padding: 12px 14px; }
   .admin-dist-body { padding: 14px; }
 }
@@ -479,7 +484,7 @@
   color: var(--muted);
 }
 
-@media (max-width:600px) {
+@media (max-width:767px) {
   .cal-ev-head { gap: 6px; }
   .cal-inp--title { min-width: 100px; }
   .cal-ev-dates { grid-template-columns: 1fr 1fr; }
@@ -545,7 +550,7 @@
   text-align: right; white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+@media (max-width:767px) {
   .ov-top5-row {
     grid-template-columns: 28px 1fr 44px 80px;
     gap: 6px;
@@ -796,7 +801,7 @@ option {
   color: var(--muted);
 }
 
-@media (max-width: 600px) {
+@media (max-width:767px) {
   .cfg-crit-card   { gap: 8px; }
   .cfg-inp--abbr, .cfg-inp--key { width: auto; flex: 1; }
   .cfg-rubrica-levels { grid-template-columns: 1fr; }
@@ -1293,7 +1298,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 .modal-err { margin-top:8px; font-size:.8rem; color:var(--accent); line-height:1.4; }
 @keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
-@media (max-width:500px) {
+@media (max-width:767px) {
   .modal-overlay { padding:16px 10px; align-items:flex-end; }
   .modal-box { padding:22px 18px; border-radius:var(--r-xl) var(--r-xl) var(--r-md) var(--r-md); margin:0 auto; }
   .modal-actions { flex-direction:column-reverse; }
@@ -1318,7 +1323,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   gap:12px; margin-bottom:20px;
 }
 @media (max-width:900px) { .ov-kpi-grid { grid-template-columns:repeat(3,1fr); } }
-@media (max-width:560px) { .ov-kpi-grid { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:767px) { .ov-kpi-grid { grid-template-columns:repeat(2,1fr); } }
 
 .kpi-card {
   background:var(--s1); border:1px solid var(--glass-border);
@@ -1737,4 +1742,25 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
     gap: var(--sp-2);
   }
   .modal-actions > * { width: 100%; }
+}
+
+/* ── Móvil: ajustes del panel ─────────────────────────────────────────
+   Los cortes de admin.css estaban en 600px mientras shared.css conmuta el
+   rail en 768 y las tablas en 767. Entre 601 y 767 el layout quedaba a
+   medio camino: tablas ya en tarjeta, paddings todavía de escritorio. */
+@media (max-width: 767px) {
+  /* Una barra pegajosa se come un tercio de una pantalla de 568px. */
+  .admin-pe-bar {
+    position: static;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .ptitle { padding-top: var(--sp-4); }
+
+  /* Nada de estas barras debe desbordar a 320px. */
+  .rpt-toolbar, .eval-pe-bar, .admin-pe-bar {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .rpt-toolbar > *, .eval-pe-bar > *, .admin-pe-bar > * { min-width: 0; }
 }

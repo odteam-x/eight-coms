@@ -29,13 +29,19 @@ let _railCfg = null;
  * @param {string} cfg.activo   tab inicial
  * @param {string} cfg.marca    texto de la marca
  * @param {string} [cfg.badge]  etiqueta de rol (ADMIN, SECRETARIO…)
+ * @param {object} [cfg.pie]    cabecera de cuenta de la hoja móvil:
+ *                              { nombre, badge }. Cada portal declara lo
+ *                              suyo en vez de hardcodearlo aquí.
  */
 function initNav(cfg) {
   _railCfg = cfg;
   document.body.classList.add('con-rail');
   renderRail();
   renderBottomBar();
-  aplicarColapso(localStorage.getItem(RAIL_COLAPSO_KEY) === '1');
+  let colapsado = false;
+  try { colapsado = localStorage.getItem(RAIL_COLAPSO_KEY) === '1'; }
+  catch { /* localStorage bloqueado (modo privado / cookies off) */ }
+  aplicarColapso(colapsado);
 }
 
 /** Todos los items en plano, respetando el orden de los grupos. */
@@ -143,45 +149,97 @@ function renderBottomBar() {
     host.appendChild(b);
   }
 
-  if (resto.length) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'bb-item';
-    b.dataset.act = 'masDestinos';
-    b.setAttribute('aria-haspopup', 'true');
-    b.innerHTML = '<i data-lucide="more-horizontal" class="bb-ico"></i><span class="bb-txt">Más</span>';
-    host.appendChild(b);
-    _montarHoja(resto);
-  }
+  // El botón de la hoja va SIEMPRE, aunque no sobre ningún destino: es lo
+  // único que da acceso a cerrar sesión y cambiar de gestión en móvil.
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'bb-item';
+  b.dataset.act = 'masDestinos';
+  b.setAttribute('aria-haspopup', 'dialog');
+  b.setAttribute('aria-label', resto.length ? 'Más destinos y cuenta' : 'Cuenta');
+  b.innerHTML = `<i data-lucide="${resto.length ? 'more-horizontal' : 'user'}" class="bb-ico"></i>` +
+                `<span class="bb-txt">${resto.length ? 'Más' : 'Cuenta'}</span>`;
+  host.appendChild(b);
+  _montarHoja(resto);
+
   renderIconos(host);
   marcarActivo(_railCfg.activo);
 }
 
-/** Hoja inferior con los destinos que no caben en la barra. */
+/**
+ * Hoja inferior. Tres zonas: cuenta, destinos sobrantes y acciones.
+ *
+ * Antes solo llevaba los destinos que no cabían en la barra. Cerrar sesión,
+ * cambiar de tema y el selector de gestión viven en `.rail-pie`, y `.rail`
+ * es display:none por debajo de 768px — así que en un teléfono NO HABÍA
+ * FORMA de salir ni de cambiar de gestión. En el portal de miembro, con
+ * solo tres destinos, ni siquiera aparecía el botón "Más".
+ *
+ * Por eso ahora se monta siempre, aunque no sobre ningún destino.
+ */
 function _montarHoja(items) {
   let hoja = document.getElementById('bb-hoja');
   if (hoja) hoja.remove();
+
+  const pie = _railCfg?.pie || {};
   hoja = document.createElement('div');
   hoja.id = 'bb-hoja';
   hoja.className = 'bb-hoja';
-  hoja.setAttribute('role', 'dialog');
-  hoja.setAttribute('aria-modal', 'true');
-  hoja.setAttribute('aria-label', 'Más destinos');
+  hoja.setAttribute('aria-label', 'Cuenta y más destinos');
+
+  const destinos = items.map(it =>
+    `<button class="bb-hoja-item" data-act="tabDesdeHoja" data-arg="${escHtml(it.tab)}">
+       <i data-lucide="${escHtml(it.icono)}" class="rail-ico"></i>${escHtml(it.etiqueta)}
+     </button>`).join('');
+
   hoja.innerHTML =
     '<div class="bb-hoja-panel">' +
-    '<div class="bb-hoja-tirador" aria-hidden="true"></div>' +
-    items.map(it =>
-      `<button class="bb-hoja-item" data-act="tabDesdeHoja" data-arg="${escHtml(it.tab)}">
-         <i data-lucide="${escHtml(it.icono)}" class="rail-ico"></i>${escHtml(it.etiqueta)}
-       </button>`).join('') +
+      '<div class="bb-hoja-tirador" aria-hidden="true"></div>' +
+
+      // ── Cuenta ──
+      '<div class="bb-hoja-cuenta">' +
+        '<div class="avatar" id="av-hoja">?</div>' +
+        '<div class="bb-hoja-quien">' +
+          `<div class="bb-hoja-nombre" id="uname-hoja">${escHtml(pie.nombre || '—')}</div>` +
+          (pie.badge ? `<div class="bb-hoja-badge">${escHtml(pie.badge)}</div>` : '') +
+        '</div>' +
+      '</div>' +
+
+      // ── Destinos sobrantes ──
+      (destinos ? `<div class="bb-hoja-grupo">${destinos}</div>` : '') +
+
+      // ── Acciones de cuenta: siempre presentes ──
+      '<div class="bb-hoja-sep" role="separator"></div>' +
+      '<div class="bb-hoja-grupo">' +
+        '<span id="gestion-switch-movil" class="bb-hoja-gestion" hidden></span>' +
+        '<button class="bb-hoja-item" data-act="fn" data-arg="toggleTheme">' +
+          '<i data-lucide="sun-moon" class="rail-ico"></i>Cambiar tema</button>' +
+        '<button class="bb-hoja-item bb-hoja-item--salir" data-act="salir">' +
+          '<i data-lucide="log-out" class="rail-ico"></i>Cerrar sesión</button>' +
+      '</div>' +
     '</div>';
+
+  // Clic en el fondo cierra; el resto (Escape, trampa de Tab, devolución
+  // del foco) lo aporta openModal/closeModal de core/render.js.
   hoja.addEventListener('click', e => { if (e.target === hoja) cerrarHoja(); });
   document.body.appendChild(hoja);
   renderIconos(hoja);
 }
 
-function abrirHoja()  { document.getElementById('bb-hoja')?.classList.add('open'); }
-function cerrarHoja() { document.getElementById('bb-hoja')?.classList.remove('open'); }
+/* openModal/closeModal en vez de classList: la hoja contiene ahora una
+   acción destructiva, así que necesita trampa de Tab, Escape y devolución
+   del foco al botón "Más". No se reimplementa nada de eso aquí. */
+function abrirHoja() {
+  const h = document.getElementById('bb-hoja');
+  if (!h) return;
+  // El avatar del rail no existe en móvil: se pinta el de la hoja.
+  const av = document.getElementById('av-hoja');
+  const src = document.getElementById('av-desktop');
+  if (av && src) av.innerHTML = src.innerHTML;
+  openModal('bb-hoja');
+}
+
+function cerrarHoja() { closeModal('bb-hoja'); }
 
 /* ══ ESTADO ════════════════════════════════════════════════════════════ */
 
@@ -201,7 +259,8 @@ function marcarActivo(tab) {
 
 function aplicarColapso(colapsado) {
   document.body.classList.toggle('rail-colapsado', !!colapsado);
-  localStorage.setItem(RAIL_COLAPSO_KEY, colapsado ? '1' : '0');
+  try { localStorage.setItem(RAIL_COLAPSO_KEY, colapsado ? '1' : '0'); }
+  catch { /* modo privado: el colapso no persiste, pero funciona */ }
   const t = document.querySelector('.rail-toggle');
   if (t) t.setAttribute('aria-expanded', String(!colapsado));
 }
