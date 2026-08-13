@@ -928,7 +928,8 @@ function renderCalendario() {
   el.innerHTML = `<div class="cal-grid">` +
     list.map(p => {
       const c    = (p.color || 'rojo').toLowerCase();
-      const rows = [['Inicio',p.inicio],['Fin trabajo',p.fin_trabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v]) => v);
+      const rows = [['Inicio',p.fecha_inicio],['Fin trabajo',p.fecha_fin_trabajo],
+                    ['Entrega',p.fecha_entrega],['Jornada',p.fecha_jornada]].filter(([,v]) => v);
       return `
         <div class="cal-card">
           <div class="cal-acc ${cAcc[c] || cAcc.rojo}"></div>
@@ -951,10 +952,10 @@ function showCalModal(id) {
   document.getElementById('mcal-num').value     = p?.numero || '';
   document.getElementById('mcal-titulo').value  = p?.titulo || '';
   document.getElementById('mcal-color').value   = p?.color || 'rojo';
-  document.getElementById('mcal-inicio').value  = p?.inicio || '';
-  document.getElementById('mcal-fin').value     = p?.fin_trabajo || '';
-  document.getElementById('mcal-entrega').value = p?.entrega || '';
-  document.getElementById('mcal-jornada').value = p?.jornada || '';
+  document.getElementById('mcal-inicio').value  = p?.fecha_inicio || '';
+  document.getElementById('mcal-fin').value     = p?.fecha_fin_trabajo || '';
+  document.getElementById('mcal-entrega').value = p?.fecha_entrega || '';
+  document.getElementById('mcal-jornada').value = p?.fecha_jornada || '';
   document.getElementById('mcal-estado').value  = p?.estado || 'pendiente';
   setEl('modal-cal-title', id ? 'Editar actividad' : 'Nueva actividad');
   document.getElementById('mcal-err').textContent = '';
@@ -969,10 +970,13 @@ async function saveCal() {
     numero:      Number(document.getElementById('mcal-num').value) || 1,
     titulo:      document.getElementById('mcal-titulo').value.trim(),
     color:       document.getElementById('mcal-color').value,
-    inicio:      document.getElementById('mcal-inicio').value.trim()   || null,
-    fin_trabajo: document.getElementById('mcal-fin').value.trim()      || null,
-    entrega:     document.getElementById('mcal-entrega').value.trim()  || null,
-    jornada:     document.getElementById('mcal-jornada').value.trim()  || null,
+    // Columnas `date`, no las de texto: getContexto() sirve estas a los
+    // portales, asi que escribir en las de texto dejaba el calendario del
+    // miembro en blanco mientras el admin veia las fechas.
+    fecha_inicio:      document.getElementById('mcal-inicio').value.trim()   || null,
+    fecha_fin_trabajo: document.getElementById('mcal-fin').value.trim()      || null,
+    fecha_entrega:     document.getElementById('mcal-entrega').value.trim()  || null,
+    fecha_jornada:     document.getElementById('mcal-jornada').value.trim()  || null,
     estado:      document.getElementById('mcal-estado').value,
   };
   if (!ev.titulo) { err.textContent = 'Escribe un título.'; return; }
