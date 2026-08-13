@@ -2,8 +2,9 @@
 #
 # El plan gratuito pausa un proyecto tras ~7 días sin actividad. Una consulta
 # real a Postgres cuenta como actividad, así que este workflow hace un SELECT
-# trivial contra la tabla `roles` (la única con policy de lectura para `anon`,
-# ver `roles_anon_read`).
+# trivial contra la tabla `roles`. Desde la migración 0009 ninguna tabla es
+# legible sin sesión, así que la respuesta es 200 con `[]`: basta, porque lo
+# que se comprueba es el código HTTP, no que haya filas.
 #
 # La clave usada es la publishable/anon key, que ya es pública: viaja en
 # config.js a todos los navegadores. Sin sesión de usuario el rol es `anon` y

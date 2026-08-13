@@ -236,6 +236,32 @@ Rules that follow from this:
 - **RLS is the only security boundary.** The client must not re-filter by district "just in case" — that habit is what hides leaks when someone edits a policy months later.
 - Both phases return `{ ok, ... }`. On `ok: false` render a visible error with a retry, never an empty state. A legitimate empty state should say *when* the data will arrive — `renderVacio()` takes `{ periodo, calendario }` for that.
 
+### The admin guard was inverted (migration 0008)
+
+`set_periodo_activo` and `abrir_gestion` shipped with this guard:
+
+```sql
+IF auth.uid() IS NOT NULL AND NOT public.is_admin() THEN RAISE EXCEPTION ...
+```
+
+The `auth.uid() IS NOT NULL AND` prefix **inverts the check**: with no session the whole condition is false and the function proceeds. It blocked the signed-in non-admin and let the anonymous caller through. Verified against the database — with role `anon` and no claims, `set_periodo_activo(null)` executed without error. With only the public anon key, anyone could leave the gestión with no active period, or call `abrir_gestion` and archive the live one.
+
+**Never write `auth.uid() IS NOT NULL AND NOT is_admin()`. The guard is `IF NOT public.is_admin() THEN`** — nothing more. There is no need for a migration escape hatch, and a `current_user` check cannot provide one anyway: inside a `SECURITY DEFINER` function `current_user` is the function's **owner**, so any such test is always true.
+
+### Function EXECUTE grants
+
+Revoking from `anon` and `authenticated` is not enough. PostgreSQL grants EXECUTE to `PUBLIC` on `CREATE FUNCTION`, and `anon` inherits it. The ACL shows it as a leading `=X/postgres` entry with no role before the `=`. Trigger functions need `REVOKE ... FROM PUBLIC` (migration 0010); revoking does not disable them, because a trigger runs without checking the DML user's EXECUTE.
+
+**Five SECURITY DEFINER functions stay callable by `anon` on purpose** — `is_admin`, `is_secretario`, `get_my_distrito`, `get_district_member_ids`, `gestion_escribible`. 34 policies invoke them and a policy is evaluated with the querying role's privileges, so revoking breaks ordinary reads. `is_admin` alone appears in 27, some targeting `public`, which includes anon. To an anonymous caller they return `false` / `null` / `[]`. The Supabase linter will keep flagging them; that is expected.
+
+**No table is readable without a session.** Verified from outside with the public anon key: all 13 tables return `[]`.
+
+### Two sets of date columns (migration 0007)
+
+`calendario` carried `fecha_inicio` / `fecha_fin_trabajo` / `fecha_entrega` / `fecha_jornada` as `date`, **and** `inicio` / `fin_trabajo` / `entrega` / `jornada` as `text`. The admin CRUD read and wrote the text ones; `API.getContexto()` serves the portals the `date` ones, which were all NULL. The admin saw every period's dates and the member's calendar tab was blank. The text columns are gone; `admin.js` uses the typed ones.
+
+`periodos_evaluacion` had its four date columns NULL. PE1–PE3 were backfilled from the calendar row with the same number, which also matches on description. **PE4 was left alone**: there are two calendar rows numbered 4 and neither is named "UN SOLO LATIDO", so the correspondence is not derivable from the data.
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order. `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
