@@ -12,7 +12,7 @@ let CU = null, D = null;
    del mismo valor del Store, no tres estados independientes. Antes elegir
    "PE2" en Mi Score dejaba el ranking en PE1. */
 let mPE=null, rPE=null, dPE=null;
-let _lastUpdated=null, _menuOpen=false, _peInited=false;
+let _lastUpdated=null, _peInited=false;
 
 /* CRITERIOS_DEFAULT eliminado — ver core/render.js. */
 const isSecretario = () => CU?.rol === 'secretario';
@@ -45,6 +45,11 @@ function getMyDistrito() {
 function getDistritoRows() {
   return _contenido?.scores || [];
 }
+
+/* toggleMenu / closeMenu vivían aquí, apuntando a #hamburger y
+   #mobile-menu. Ninguno de los dos existe en el marcado desde que el
+   rail sustituyó a la topbar en la fase 6, junto con sus dos listeners
+   globales de clic y resize. */
 
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -220,8 +225,11 @@ function initUI() {
     if (rolMob) rolMob.textContent = sec ? 'Secretario de Comunicaciones' : 'Creator';
 
     const name = CU.name || CU.user, ini = initials(name);
-    setEl('av-desktop',ini); setEl('av-mobile',ini);
-    setEl('uname-desktop',name); setEl('uname-mobile',name);
+    // 'av-mobile' y 'uname-mobile' no existen en ningún HTML: eran ids
+    // de la topbar que el rail sustituyó en la fase 6.
+    // montarAvatar() de core/render.js: pinta la foto si la hay, las
+    // iniciales si no, y engancha el selector de archivo.
+    montarAvatar(CU);
     setEl('hero-name',name);
     setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER 08' : 'CREATOR · CELIDER 08');
 
@@ -720,22 +728,6 @@ function switchTab(tab, btn) {
 function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
-function toggleMenu() {
-  _menuOpen=!_menuOpen;
-  document.getElementById('hamburger')?.classList.toggle('open',_menuOpen);
-  document.getElementById('mobile-menu')?.classList.toggle('open',_menuOpen);
-  document.getElementById('hamburger')?.setAttribute('aria-expanded',_menuOpen);
-  document.body.style.overflow=_menuOpen?'hidden':'';
-}
-function closeMenu() {
-  _menuOpen=false;
-  document.getElementById('hamburger')?.classList.remove('open');
-  document.getElementById('mobile-menu')?.classList.remove('open');
-  document.getElementById('hamburger')?.setAttribute('aria-expanded','false');
-  document.body.style.overflow='';
-}
-document.addEventListener('click',e=>{const menu=document.getElementById('mobile-menu'),ham=document.getElementById('hamburger');if(menu?.classList.contains('open')&&!menu.contains(e.target)&&!ham?.contains(e.target))closeMenu();});
-window.addEventListener('resize',()=>{if(window.innerWidth>720)closeMenu();});
 function logout(){Auth.logout();}
 
 /* updateTimestamp, showToast, initScrollEffects → core/render.js */

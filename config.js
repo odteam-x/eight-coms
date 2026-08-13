@@ -60,7 +60,7 @@ function debug(...args) {
  * `data-arg` viene del HTML, así que no puede ser un nombre arbitrario.
  */
 const _ACCIONES_SIMPLES = new Set([
-  'toggleTheme', 'toggleMenu', 'logout', 'printAdminReport',
+  'toggleTheme', 'logout', 'printAdminReport',
   'saveCal', 'saveRol', 'savePeriodo', 'saveCriterioEntry', 'saveRubricaEntry',
   'showCalModal', 'showRolModal', 'showPeriodoModal', 'showCriterioModal',
   'showRubricaModal', 'showAbrirGestionModal', 'confirmarAbrirGestion',
@@ -69,6 +69,9 @@ const _ACCIONES_SIMPLES = new Set([
   'renderEvalUserList', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
   'renderCriterios', 'renderRubrica', 'renderCalendario',
   'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
+  // selectores de la tabla de usuarios (llevaban onchange= inline)
+  'onCambioDistritoUsuario', 'onCambioTipoUsuario',
+  'onCambioRolUsuario', 'onCambioAdminUsuario',
 ]);
 
 const ACCIONES = {

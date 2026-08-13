@@ -23,11 +23,8 @@ let _rptPE              = null;
 let _rptEvals           = {};
 let _rankingTab         = 'users';
 let _inactivosPE        = new Set();
-let _menuOpen       = false;
 let _evalPECache    = [];
 let _selectedEvalUser = null;
-
-const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
 /* parseJSON → core/render.js */
 
@@ -51,25 +48,15 @@ const distScoreColor = s => s>=24?'var(--sex)':s>=17?'var(--sbu)':s>=10?'var(--s
 const distScoreLabel = s => s>=24?'Excelente':s>=17?'Bueno':s>=10?'En Proceso':'Bajo';
 const distScoreClass = s => s>=24?'sex':s>=17?'sbu':s>=10?'spr':'sba';
 
+/* toggleMenu / closeMenu vivían aquí, apuntando a #hamburger y
+   #mobile-menu. Ninguno de los dos existe en el marcado desde que el
+   rail sustituyó a la topbar en la fase 6, junto con sus dos listeners
+   globales de clic y resize. */
+
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAuth(true); // true → solo admins
   if (!CU) return;
-
-  const name = CU.nombre || CU.email;
-  const avContent = CU.avatar_url
-    ? `<img src="${escHtml(CU.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-    : _USER_ICON;
-  ['av-desktop','av-mobile'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.innerHTML = avContent;
-      el.style.cursor = 'pointer';
-      el.title = 'Cambiar foto de perfil';
-      el.onclick = () => document.getElementById('avatar-file-input')?.click();
-    }
-  });
-  setEl('uname-desktop', name); setEl('uname-mobile', name);
 
   initNav({
     marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview',
@@ -90,6 +77,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       ]},
     ],
   });
+
+  // El avatar se monta DESPUÉS de initNav(). #av-desktop y #uname-desktop
+  // los crea renderRail() de core/rail.js; antes de eso getElementById
+  // devolvía null, el `if (el)` no entraba nunca y el <input type="file">
+  // no llegaba a abrirse jamás.
+  // 'av-mobile' y 'uname-mobile' no existen en ningún HTML del proyecto:
+  // eran ids de la topbar que el rail sustituyó.
+  montarAvatar(CU);
 
   // La gestión debe fijarse ANTES de cargar: los getters filtran por ella.
   const gid = new URLSearchParams(location.search).get('gestion');
@@ -146,13 +141,22 @@ async function loadAllData() {
   if (defPE && !_activePEDist) _activePEDist = defPE;
 }
 
+/**
+ * Filtros de distrito. Salen del CATÁLOGO (_distritos), no de los distritos
+ * ya asignados: derivarlos de _users dejaba fuera cualquier distrito sin
+ * nadie dentro. El valor iba además sin escHtml, a diferencia del resto de
+ * la tabla.
+ */
 function populateDistritoFilters() {
-  const distritos = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
   const opts = '<option value="">Todos los distritos</option>' +
-    distritos.map(d => `<option value="${d}">${d}</option>`).join('');
+    _distritos.map(d => `<option value="${escHtml(d.id)}">${escHtml(d.nombre)}</option>`).join('') +
+    '<option value="__none__">Sin asignar</option>';
   ['filter-distrito-usuarios', 'eval-distrito-filter'].forEach(id => {
     const sel = document.getElementById(id);
-    if (sel) sel.innerHTML = opts;
+    if (!sel) return;
+    const previo = sel.value;
+    sel.innerHTML = opts;
+    if (previo) sel.value = previo;      // no perder el filtro al repintar
   });
 }
 
@@ -420,14 +424,20 @@ function renderUsuarios() {
   const distFilter = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
   const list = _users.filter(u =>
     (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.distrito||'').toLowerCase().includes(q)) &&
-    (!distFilter || u.distrito === distFilter)
+    (!distFilter
+      || (distFilter === '__none__' ? !u.distrito : u.distrito === distFilter))
   );
   if (!list.length) {
     el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter ? 'Sin resultados.' : 'Sin usuarios.'}</div></div>`;
+    renderIconos(el);
     return;
   }
   const showPECol = !!_activePEUsers;
-  const distOpts = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
+  // Las opciones salen del CATÁLOGO, no de los distritos ya asignados.
+  // Con `new Set(_users.map(...))` un distrito sin nadie dentro no aparecía
+  // nunca, así que no había forma de asignar el primero: 08-02 y 08-03
+  // estaban en la base y eran inalcanzables desde el panel.
+  const distOpts = _distritos;
   const filaCls = 'tbl--usuarios' + (showPECol ? ' tbl--usuarios-pe' : '');
   el.innerHTML = `
     <div class="tbl">
@@ -452,21 +462,24 @@ function renderUsuarios() {
             <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>
             <div class="tbl-cell">
               <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.78rem"
-                onchange="updateUserField('${u.id}','distrito',this.value)">
+                aria-label="Distrito de ${escHtml(u.nombre || u.email)}"
+                data-change="onCambioDistritoUsuario" data-arg="${u.id}">
                 <option value="">—</option>
-                ${distOpts.map(d => `<option value="${escHtml(d)}"${d===u.distrito?' selected':''}>${escHtml(d)}</option>`).join('')}
+                ${distOpts.map(d => `<option value="${escHtml(d.id)}"${d.id===u.distrito?' selected':''}>${escHtml(d.nombre)}</option>`).join('')}
               </select>
             </div>
             <div class="tbl-cell">
               <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.78rem"
-                onchange="updateUserField('${u.id}','tipo_miembro',this.value)">
+                aria-label="Tipo de miembro de ${escHtml(u.nombre || u.email)}"
+                data-change="onCambioTipoUsuario" data-arg="${u.id}">
                 <option value="miembro"${'miembro'===u.tipo_miembro?' selected':''}>Miembro</option>
                 <option value="secretario"${'secretario'===u.tipo_miembro?' selected':''}>Secretario</option>
               </select>
             </div>
             <div class="tbl-cell">
               <select class="cfg-inp cfg-select" style="padding:4px 8px;font-size:.8rem"
-                onchange="updateUserRol('${u.id}',this.value)">
+                aria-label="Rol de ${escHtml(u.nombre || u.email)}"
+                data-change="onCambioRolUsuario" data-arg="${u.id}">
                 ${_roles.map(r => `<option value="${r.id}"${r.id===u.rol_id?' selected':''}>${escHtml(r.nombre)}</option>`).join('')}
               </select>
             </div>
@@ -479,7 +492,9 @@ function renderUsuarios() {
             </div>
             <div class="tbl-cell">
               <label class="toggle-switch" title="${u.es_admin?'Quitar admin':'Hacer admin'}">
-                <input type="checkbox" ${u.es_admin?'checked':''} onchange="updateUserAdmin('${u.id}',this.checked)">
+                <input type="checkbox" ${u.es_admin?'checked':''}
+                  aria-label="${u.es_admin?'Quitar':'Dar'} permisos de admin a ${escHtml(u.nombre || u.email)}"
+                  data-change="onCambioAdminUsuario" data-arg="${u.id}">
                 <span class="toggle-slider"></span>
               </label>
             </div>
@@ -498,7 +513,21 @@ function renderUsuarios() {
         }).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
+
+/* ── Cambios en la tabla de usuarios ──────────────────────────────────
+ * Cuatro `onchange=` inline vivían dentro de este template literal.
+ * Sobrevivieron a los dos barridos anteriores porque uno buscaba `onclick`
+ * y el otro solo miraba admin.html. Con script-src 'self' no se ejecutan:
+ * cambiar distrito, tipo, rol o el toggle de admin no hacía NADA en
+ * producción. Ahora van por el despachador delegado de config.js, que
+ * llama f(elemento, evento).
+ */
+function onCambioDistritoUsuario(el) { updateUserField(el.dataset.arg, 'distrito', el.value); }
+function onCambioTipoUsuario(el)     { updateUserField(el.dataset.arg, 'tipo_miembro', el.value); }
+function onCambioRolUsuario(el)      { updateUserRol(el.dataset.arg, el.value); }
+function onCambioAdminUsuario(el)    { updateUserAdmin(el.dataset.arg, el.checked); }
 
 async function toggleParticipante(userId, eraInactivo) {
   if (!_activePEUsers) return;
@@ -582,6 +611,7 @@ function renderRoles() {
   const list = _roles.filter(r => !q || (r.nombre||'').toLowerCase().includes(q));
   if (!list.length) {
     el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin roles.'}</div></div>`;
+    renderIconos(el);
     return;
   }
   el.innerHTML = `
@@ -601,6 +631,7 @@ function renderRoles() {
           </div>`).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
 
 /** Busca el rol por id en vez de recibir nombre y activo por argumento:
@@ -650,6 +681,7 @@ function renderPeriodos() {
     (p.descripcion||'').toLowerCase().includes(q));
   if (!list.length) {
     el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin períodos.'}</div></div>`;
+    renderIconos(el);
     return;
   }
   el.innerHTML = `
@@ -670,6 +702,7 @@ function renderPeriodos() {
           </div>`).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
 
 function showPeriodoModal(id) {
@@ -768,6 +801,7 @@ function renderCriterios() {
           </div>`).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
 
 function showCriterioModal(id) {
@@ -830,6 +864,7 @@ function renderRubrica() {
     (r.criterios?.abbr||'').toLowerCase().includes(q));
   if (!rubList.length) {
     el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
+    renderIconos(el);
     return;
   }
   const levels = [
@@ -860,6 +895,7 @@ function renderRubrica() {
         </div>
       </div>`;
   }).join('');
+  renderIconos(el);
 }
 
 function showRubricaModal(id) {
@@ -921,6 +957,7 @@ function renderCalendario() {
     String(p.numero||'').includes(q));
   if (!list.length) {
     el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
+    renderIconos(el);
     return;
   }
   const cAcc = { rojo:'cal-acc--rojo', verde:'cal-acc--verde', azul:'cal-acc--azul', amarillo:'cal-acc--amarillo' };
@@ -944,6 +981,7 @@ function renderCalendario() {
           </div>
         </div>`;
     }).join('') + `</div>`;
+  renderIconos(el);
 }
 
 function showCalModal(id) {
@@ -1057,6 +1095,7 @@ async function renderDistritoRanking(periodoId) {
 
   if (!ranked.length) {
     el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
+    renderIconos(el);
     return;
   }
 
@@ -1080,6 +1119,7 @@ async function renderDistritoRanking(periodoId) {
           </div>`).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
 
 async function loadDistEval(distId) {
@@ -1229,24 +1269,6 @@ async function saveDistEval(estado, distId) {
   showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   await loadDistEval(distId);
   renderDistritoRanking(_activePEDist.id);
-}
-
-/* ── AVATAR UPLOAD ── */
-/* El despachador de config.js llama (elemento, evento): el archivo se lee
- * del propio <input>, no de e.target, que con delegación no siempre es él. */
-async function handleAvatarUpload(el) {
-  const file = el.files?.[0]; if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { showToast('Imagen demasiado grande (máx. 2 MB)', 'error'); return; }
-  showToast('Subiendo foto...', 'info');
-  const res = await API.uploadAvatar(CU.id, file);
-  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
-  CU.avatar_url = res.url;
-  const img = `<img src="${res.url}?t=${Date.now()}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  ['av-desktop','av-mobile'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.innerHTML = img;
-  });
-  showToast('Foto actualizada', 'ok');
-  e.target.value = '';
 }
 
 /* Score helpers y modales → core/render.js.
@@ -1480,6 +1502,7 @@ function renderOverview() {
       </div>
     </div>
   `;
+  renderIconos(el);
 }
 
 function switchRankTab(tab) {
@@ -1539,6 +1562,7 @@ async function renderGestiones() {
           </div>`).join('')}
       </div>
     </div>`;
+  renderIconos(el);
 }
 
 function showAbrirGestionModal() {
@@ -1814,25 +1838,6 @@ function printAdminReport() {
 }
 
 /* ── MENÚ ── */
-function toggleMenu() {
-  _menuOpen = !_menuOpen;
-  document.getElementById('hamburger')?.classList.toggle('open', _menuOpen);
-  document.getElementById('mobile-menu')?.classList.toggle('open', _menuOpen);
-  document.getElementById('hamburger')?.setAttribute('aria-expanded', _menuOpen);
-  document.body.style.overflow = _menuOpen ? 'hidden' : '';
-}
-function closeMenu() {
-  _menuOpen = false;
-  document.getElementById('hamburger')?.classList.remove('open');
-  document.getElementById('mobile-menu')?.classList.remove('open');
-  document.getElementById('hamburger')?.setAttribute('aria-expanded', 'false');
-  document.body.style.overflow = '';
-}
-document.addEventListener('click', e => {
-  const menu = document.getElementById('mobile-menu'), ham = document.getElementById('hamburger');
-  if (menu?.classList.contains('open') && !menu.contains(e.target) && !ham?.contains(e.target)) closeMenu();
-});
-window.addEventListener('resize', () => { if (window.innerWidth > 720) closeMenu(); });
 
 /* initials, setEl, showToast, initScrollEffects → core/render.js.
    El admin no tiene #back-top; initScrollEffects lo comprueba con ?. */

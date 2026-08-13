@@ -342,7 +342,6 @@ function switchTabMobileCore(tab, btn, switchFn) {
   switchFn(tab, null);
   document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b => b.classList.remove('active'));
   btn?.classList.add('active');
-  if (typeof closeMenu === 'function') closeMenu();
 }
 
 /** Salta a una pestaña buscando su botón visible en el nav de escritorio. */
@@ -512,3 +511,103 @@ new MutationObserver(muts => {
 }).observe(document.documentElement, { childList: true, subtree: true });
 
 document.addEventListener('DOMContentLoaded', () => etiquetarFilas(document.body));
+
+/* ══ AVATAR ════════════════════════════════════════════════════════════
+ * Compartido: hasta ahora solo admin.html tenía el <input type="file">, así
+ * que ningún miembro podía ponerse foto. Y el bucket `avatars` ni siquiera
+ * existía en Storage (migración 0012), de modo que tampoco funcionaba para
+ * el admin.
+ *
+ * `#av-desktop` lo crea renderRail(), así que esto se llama SIEMPRE después
+ * de initNav().
+ */
+const _ICONO_USUARIO =
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
+/** Perfil en curso, para que handleAvatarUpload sepa a quién pertenece. */
+let _perfilAvatar = null;
+
+/**
+ * Pinta el avatar del rail y lo deja abriendo el selector de archivo.
+ * Si no hay foto muestra las iniciales, que es lo que ya hacían los
+ * portales de miembro y secretario.
+ */
+function montarAvatar(perfil) {
+  if (perfil) _perfilAvatar = perfil;
+  const p = _perfilAvatar;
+  if (!p) return;
+
+  const nombre = p.nombre || p.name || p.email || p.user || '';
+  setEl('uname-desktop', nombre);
+
+  const el = document.getElementById('av-desktop');
+  if (!el) return;
+
+  el.innerHTML = p.avatar_url
+    ? `<img src="${escHtml(p.avatar_url)}?t=${Date.now()}" alt=""
+            style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    : (initials(nombre) || _ICONO_USUARIO);
+
+  if (!document.getElementById('avatar-file-input')) return;
+  el.style.cursor = 'pointer';
+  el.title = 'Cambiar foto de perfil';
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', 'Cambiar foto de perfil');
+  const abrir = () => document.getElementById('avatar-file-input')?.click();
+  el.onclick = abrir;
+  el.onkeydown = e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); }
+  };
+}
+
+/**
+ * Sube la foto. La llama el despachador de config.js como f(elemento, evento),
+ * así que el archivo se lee del propio <input>, nunca de e.target.
+ */
+async function handleAvatarUpload(el) {
+  const p = _perfilAvatar;
+  const file = el.files?.[0];
+  if (!file || !p) return;
+
+  // El diálogo respeta accept="image/*", pero un arrastre o un archivo
+  // renombrado se lo saltan. El bucket también lo valida (migración 0012):
+  // esto es solo para dar un mensaje decente antes de la subida.
+  if (!/^image\//.test(file.type)) {
+    showToast('Elige un archivo de imagen.', 'error');
+    el.value = '';
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Imagen demasiado grande (máx. 2 MB).', 'error');
+    el.value = '';
+    return;
+  }
+
+  const av = document.getElementById('av-desktop');
+  const previo = av?.innerHTML;
+  const urlPrevia = p.avatar_url;
+  av?.setAttribute('aria-busy', 'true');
+  showToast('Subiendo foto…', 'info');
+
+  const res = await API.uploadAvatar(p.id, file);
+
+  av?.removeAttribute('aria-busy');
+  // Se limpia SIEMPRE: si no, volver a elegir el mismo archivo no dispara
+  // `change` y parece que la subida no hace nada.
+  el.value = '';
+
+  if (!res.ok) {
+    p.avatar_url = urlPrevia;
+    if (av && previo != null) av.innerHTML = previo;
+    console.error('[avatar]', res.error);
+    showToast('No se pudo subir la foto. Inténtalo de nuevo.', 'error');
+    return;
+  }
+
+  p.avatar_url = res.url;
+  montarAvatar();
+  showToast('Foto actualizada.', 'ok');
+}

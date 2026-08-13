@@ -1569,8 +1569,14 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   body > *:not(.amain) { display:none !important; }
   /* Inside .amain, hide everything except #tab-reportes */
   .amain > *:not(#tab-reportes) { display:none !important; }
-  /* Also hide any stray UI elements */
-  .scroll-progress, .back-top,
+  /* La coma final unía este selector con `.amain`, así que la barra de
+     progreso y el botón de volver arriba recibían el padding del
+     contenedor en vez de ocultarse. Sin efecto visible porque la regla
+     `body > *:not(.amain)` de arriba ya los tapa, pero el selector estaba
+     roto y decía hacer algo que no hacía. */
+  .scroll-progress, .back-top, .rail, .bottom-bar, .bb-hoja {
+    display: none !important;
+  }
 
   .amain {
     padding:0 !important; margin:0 !important; max-width:none !important;

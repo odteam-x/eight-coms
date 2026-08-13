@@ -769,9 +769,6 @@ body.gestion-archivada .toggle-switch { display:none !important; }
    padre o abría el menú según el navegador, de forma impredecible.
    Con puntero grueso el submenú se muestra desplegado bajo su grupo en
    vez de depender de un estado que no puede ocurrir. */
-@media (pointer: coarse) {
-}
-
 /* ═══════════════════════════════════════════════════════════════════════
    NAVEGACIÓN — rail lateral (escritorio) y barra inferior (móvil)
    Sustituye a .topbar / .tb-nav / .mobile-menu.
@@ -1299,4 +1296,26 @@ option { background: var(--surface-1); color: var(--txt); }
   color: var(--txt-muted);
   text-align: left;
   overflow-wrap: anywhere;
+}
+
+/* ── Autocompletado de Chrome ─────────────────────────────────────────
+   Chrome pinta el campo autocompletado a #E8F0FE e ignora
+   background:var(--surface-1). En tema oscuro el input aparece como un
+   bloque blanco dentro de la interfaz, y con --txt encima el contraste
+   sería 1.04:1 — texto ilegible.
+
+   La sombra interior de 1000px es el truco estándar: `background` no se
+   puede sobrescribir en este pseudo-estado, pero un box-shadow sí lo tapa.
+   La transición de 9999s evita que Chrome vuelva a pintar su amarillo
+   durante la animación de relleno. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--txt);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-1) inset;
+          box-shadow: 0 0 0 1000px var(--surface-1) inset;
+  caret-color: var(--txt);
+  transition: background-color 9999s ease-out 0s;
 }
