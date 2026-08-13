@@ -29,27 +29,20 @@ let _selectedEvalUser = null;
 
 const _USER_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
-function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
+/* parseJSON → core/render.js */
 
-const CRITERIOS_DEFAULT = [
-  { key:'pla', label:'Planificación',      abbr:'PLA', color:'#E05A6A' },
-  { key:'rev', label:'Revisión',           abbr:'REV', color:'#38BDF8' },
-  { key:'edi', label:'Edición Creativa',   abbr:'EDI', color:'#2ECC71' },
-  { key:'dis', label:'Diseño Creativo',    abbr:'DIS', color:'#5B7FFF' },
-  { key:'flu', label:'Fluidez Oral',       abbr:'FLU', color:'#C084FC' },
-  { key:'nar', label:'Narrativa / Guión',  abbr:'NAR', color:'#F0C040' },
-  { key:'eje', label:'Ejecución en Redes', abbr:'EJE', color:'#FB923C' },
-];
-const getCriterios = () => _criterios.length ? _criterios : CRITERIOS_DEFAULT;
+/* CRITERIOS_DEFAULT eliminado — getCriterios() vive en core/render.js y lee
+   Store. Si la consulta falla, la vista debe mostrar un error, no criterios
+   inventados que el admin podría acabar puntuando. */
 
 const DIST_CRITERIOS = [
-  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7,
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7,
     desc:'Evalúa la estética y organización del feed: coherencia visual, uso de portadas, colores e identidad. Feed visualmente equilibrado, atractivo y bien distribuido.' },
-  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7,
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'var(--criterio)', max:7,
     desc:'Evalúa la creatividad e innovación del contenido: diseño impactante y edición profesional adaptada a formatos de Instagram.' },
-  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7,
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'var(--criterio)', max:7,
     desc:'Evalúa la claridad y estrategia del mensaje: captions bien estructurados, narrativa coherente e intención comunicativa alineada con los objetivos del distrito.' },
-  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7,
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7,
     desc:'Evalúa la constancia y estrategia de publicación: uso óptimo de reels, stories y posts, con evidencia de alto rendimiento e interacción.' },
 ];
 const MAX_DIST       = 28;
@@ -65,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const name = CU.nombre || CU.email;
   const avContent = CU.avatar_url
-    ? `<img src="${CU.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    ? `<img src="${escHtml(CU.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
     : _USER_ICON;
   ['av-desktop','av-mobile'].forEach(id => {
     const el = document.getElementById(id);
@@ -77,6 +70,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   setEl('uname-desktop', name); setEl('uname-mobile', name);
+
+  initNav({
+    marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview',
+    grupos: [
+      { items: [
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Overview' },
+        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
+        { tab:'usuarios', icono:'users',            etiqueta:'Usuarios' },
+        { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
+      ]},
+      { titulo:'Configuración', items: [
+        { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
+        { tab:'calendario', icono:'calendar-days', etiqueta:'Calendario' },
+        { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
+        { tab:'roles',      icono:'tag',           etiqueta:'Roles'      },
+        { tab:'distritos',  icono:'map-pin',       etiqueta:'Distritos'  },
+        { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
+      ]},
+    ],
+  });
+
+  // La gestión debe fijarse ANTES de cargar: los getters filtran por ella.
+  const gid = new URLSearchParams(location.search).get('gestion');
+  if (gid) API.setGestion(gid);
 
   await loadAllData();
   renderOvPEBar();
@@ -113,6 +130,17 @@ async function loadAllData() {
   _calendario = cal;
   _distritos  = dists;
 
+  // getCriterios() de core/render.js lee del Store, no de _criterios.
+  Store.set({ profile: CU, periodos: _periodos, criterios: _criterios, lastUpdated: new Date() });
+
+  // Gestión elegida por URL (?gestion=). Si está archivada, solo lectura.
+  const gs = await API.getGestiones();
+  const gActual = gs.find(g => String(g.id) === String(new URLSearchParams(location.search).get('gestion')))
+               || gs.find(g => g.activa) || null;
+  renderBannerSoloLectura(gActual);
+  renderSelectorGestion('gestion-switch', gs, gActual?.id,
+    id => location.assign('admin.html?gestion=' + encodeURIComponent(id)));
+
   const defPE = _periodos.find(p => p.activo) || _periodos[0];
   if (defPE && !_activePE) _activePE = defPE;
   if (defPE && !_activePEDist) _activePEDist = defPE;
@@ -138,7 +166,7 @@ function renderEvalPEBar() {
   if (!_activePE) _activePE = _periodos.find(p => p.activo) || _periodos[0];
 
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" onclick="selectEvalPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" data-act="peEval" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 
   loadEvalPEData();
@@ -181,7 +209,7 @@ function renderEvalUserList() {
 
   const sorted = nonAdmins.map(u => {
     const ev = evalMap[u.id];
-    const score = ev ? calcScore(ev.puntajes, ev.bono_ext) : -1;
+    const score = ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1;
     const estado = ev?.estado || 'pendiente';
     return { ...u, ev, score, estado };
   }).sort((a, b) => {
@@ -199,7 +227,7 @@ function renderEvalUserList() {
       if (u.estado === 'publicado') rank++;
       const medal = u.estado === 'publicado' ? (rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${rank}</span>`) : '';
       const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
-      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" onclick="selectEvalUser('${u.id}')">
+      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" data-act="evaluarUsuario" data-arg="${u.id}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
@@ -239,13 +267,13 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const rows = criterios.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
-        <div class="eval-crit-label">${c.label}</div>
+        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
+        <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
+            data-act="puntaje" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
@@ -256,7 +284,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const trabajosHTML = trabajos && trabajos.length ? `
     <details class="eval-trabajos-section" open>
       <summary class="eval-extra-label" style="cursor:pointer;user-select:none">
-        Trabajos entregados — ${_activePE?.nombre || ''} <span style="font-weight:400;color:var(--muted)">(${trabajos.length})</span>
+        Trabajos entregados — ${escHtml(_activePE?.nombre || '')} <span style="font-weight:400;color:var(--muted)">(${trabajos.length})</span>
       </summary>
       <div class="eval-trabajos-list">
         ${trabajos.map(t => `<div class="eval-trabajo-item">
@@ -267,7 +295,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       </div>
     </details>` : `
     <div class="eval-extras" style="opacity:.5">
-      <div class="eval-extra-label">Trabajos entregados — ${_activePE?.nombre || ''}</div>
+      <div class="eval-extra-label">Trabajos entregados — ${escHtml(_activePE?.nombre || '')}</div>
       <div style="font-size:.78rem;color:var(--muted)">Este miembro no ha entregado trabajos en este período.</div>
     </div>`;
 
@@ -289,7 +317,7 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
         <label class="eval-extra-label">Bono de excelencia (0–2)</label>
         <div style="display:flex;align-items:center;gap:8px">
           ${[0,1,2].map(v => `<button class="score-btn${bono===v?' active':''}"
-            onclick="setBono(${v},this)" style="--sc:var(--sex)">${v}</button>`).join('')}
+            data-act="bono" data-arg="${v}" style="--sc:var(--sex)">${v}</button>`).join('')}
           <input type="hidden" id="sc-bono" value="${bono}">
         </div>
       </div>
@@ -306,12 +334,12 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
              Evaluación publicada — visible para el miembro
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveEvaluacion('publicado','${evaluadoId}')">Confirmar cambios</button>
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
+             <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveEvaluacion('borrador','${evaluadoId}')">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveEvaluacion('publicado','${evaluadoId}')">Publicar evaluación</button>
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Guardar borrador</button>
+             <button class="btn-save btn-publish" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Publicar evaluación</button>
            </div>`
       }
     </div>`;
@@ -372,7 +400,7 @@ function renderUsuariosPEBar() {
   }
   if (!_activePEUsers) _activePEUsers = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" onclick="selectUsersPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEUsers?.id ? ' active' : ''}" data-act="peUsers" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -400,20 +428,25 @@ function renderUsuarios() {
   }
   const showPECol = !!_activePEUsers;
   const distOpts = [...new Set(_users.map(u => u.distrito).filter(Boolean))].sort();
+  const filaCls = 'tbl--usuarios' + (showPECol ? ' tbl--usuarios-pe' : '');
   el.innerHTML = `
     <div class="tbl">
-      <div class="tbl-head">
-        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Tipo</div><div>Rol</div><div>Admin</div>
+      <div class="tbl-head ${filaCls}">
+        <div>Nombre</div><div>Email</div><div>Distrito</div><div>Tipo</div><div>Rol</div><div>Acceso</div><div>Admin</div>
         ${showPECol ? '<div>Estado PE</div>' : ''}
         <div></div>
       </div>
       <div class="tbl-body">
         ${list.map(u => {
           const inactivo = _inactivosPE.has(u.id);
+          // `aprobado !== false` → si la migración 0001 aún no se aplicó el
+          // campo es undefined y se muestra como aprobado, igual que el gate
+          // de auth.js. Así el panel no miente antes de correr el SQL.
+          const aprobado = u.aprobado !== false;
           return `
-          <div class="tbl-row">
+          <div class="tbl-row ${filaCls}">
             <div class="tbl-cell">
-              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${initials(u.nombre||u.email)}</div>
+              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${escHtml(initials(u.nombre||u.email))}</div>
               <span>${escHtml(u.nombre || '—')}</span>
             </div>
             <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>
@@ -438,6 +471,13 @@ function renderUsuarios() {
               </select>
             </div>
             <div class="tbl-cell">
+              <button class="pe-toggle ${aprobado ? 'pe-toggle--on' : 'pe-toggle--off'}"
+                data-act="aprobarUser" data-arg="${u.id}" data-arg2="${!aprobado}"
+                title="${aprobado ? 'Revocar el acceso al portal' : 'Aprobar el acceso al portal'}">
+                ${aprobado ? 'Aprobado' : 'Pendiente'}
+              </button>
+            </div>
+            <div class="tbl-cell">
               <label class="toggle-switch" title="${u.es_admin?'Quitar admin':'Hacer admin'}">
                 <input type="checkbox" ${u.es_admin?'checked':''} onchange="updateUserAdmin('${u.id}',this.checked)">
                 <span class="toggle-slider"></span>
@@ -446,13 +486,13 @@ function renderUsuarios() {
             ${showPECol ? `
             <div class="tbl-cell">
               <button class="pe-toggle ${inactivo ? 'pe-toggle--off' : 'pe-toggle--on'}"
-                onclick="toggleParticipante('${u.id}',${inactivo})"
+                data-act="participante" data-arg="${u.id}" data-arg2="${inactivo}"
                 title="${inactivo ? 'Activar en este PE' : 'Desactivar en este PE'}">
                 ${inactivo ? 'Inactivo' : 'Activo'}
               </button>
             </div>` : ''}
             <div class="tbl-cell">
-              <button class="btn-icon btn-icon--danger" onclick="confirmDeleteUser('${u.id}')" title="Eliminar usuario">${ICONS.trash}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarUsuario" data-arg="${u.id}" title="Eliminar usuario">${ICONS.trash}</button>
             </div>
           </div>`;
         }).join('')}
@@ -520,6 +560,14 @@ async function updateUserRol(userId, rolId) {
   _users = _users.map(u => u.id === userId ? { ...u, rol_id: Number(rolId) } : u);
 }
 
+async function updateUserAprobado(userId, aprobado) {
+  const res = await API.updateUserAprobado(userId, aprobado);
+  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
+  showToast(aprobado ? 'Acceso aprobado' : 'Acceso revocado', 'ok');
+  _users = _users.map(u => u.id === userId ? { ...u, aprobado } : u);
+  renderUsuarios();
+}
+
 async function updateUserAdmin(userId, esAdmin) {
   const res = await API.updateUserAdmin(userId, esAdmin);
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
@@ -533,7 +581,7 @@ function renderRoles() {
   const q = (document.getElementById('search-roles')?.value || '').toLowerCase().trim();
   const list = _roles.filter(r => !q || (r.nombre||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin roles.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin roles.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -547,19 +595,22 @@ function renderRoles() {
               <span class="estado-pill ${r.activo?'pill--ok':'pill--off'}">${r.activo?'Activo':'Inactivo'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showRolModal(${r.id},${escHtml(JSON.stringify(r.nombre))},${r.activo})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteRol(${r.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalRol" data-arg="${r.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarRol" data-arg="${r.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
     </div>`;
 }
 
-function showRolModal(id, nombre, activo) {
-  document.getElementById('mrol-id').value     = id || '';
-  document.getElementById('mrol-nombre').value = nombre || '';
-  document.getElementById('mrol-activo').checked = activo !== false;
-  setEl('modal-rol-title', id ? 'Editar rol' : 'Nuevo rol');
+/** Busca el rol por id en vez de recibir nombre y activo por argumento:
+    así el botón solo necesita data-arg con el id. */
+function showRolModal(id) {
+  const r = _roles.find(x => String(x.id) === String(id)) || {};
+  document.getElementById('mrol-id').value     = r.id || '';
+  document.getElementById('mrol-nombre').value = r.nombre || '';
+  document.getElementById('mrol-activo').checked = r.activo !== false;
+  setEl('modal-rol-title', r.id ? 'Editar rol' : 'Nuevo rol');
   document.getElementById('mrol-err').textContent = '';
   openModal('modal-rol');
 }
@@ -598,7 +649,7 @@ function renderPeriodos() {
     (p.nombre||'').toLowerCase().includes(q) ||
     (p.descripcion||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin períodos.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin períodos.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -613,20 +664,25 @@ function renderPeriodos() {
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
             </div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showPeriodoModal('${p.id}',${escHtml(JSON.stringify(p.nombre||''))},${escHtml(JSON.stringify(p.descripcion||''))},${p.activo})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deletePeriodo('${p.id}')" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalPeriodo" data-arg="${p.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarPeriodo" data-arg="${p.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
     </div>`;
 }
 
-function showPeriodoModal(id, nombre, desc, activo) {
-  document.getElementById('mpe-id').value     = id || '';
-  document.getElementById('mpe-nombre').value = nombre || '';
-  document.getElementById('mpe-desc').value   = desc || '';
-  document.getElementById('mpe-activo').checked = !!activo;
-  setEl('modal-periodo-title', id ? 'Editar período' : 'Nuevo período');
+function showPeriodoModal(id) {
+  const p = _periodos.find(x => String(x.id) === String(id)) || {};
+  document.getElementById('mpe-id').value         = p.id || '';
+  document.getElementById('mpe-nombre').value     = p.nombre || '';
+  document.getElementById('mpe-desc').value       = p.descripcion || '';
+  document.getElementById('mpe-inicio').value     = p.fecha_inicio || '';
+  document.getElementById('mpe-fintrabajo').value = p.fecha_fin_trabajo || '';
+  document.getElementById('mpe-entrega').value    = p.fecha_entrega || '';
+  document.getElementById('mpe-jornada').value    = p.fecha_jornada || '';
+  document.getElementById('mpe-activo').checked   = !!p.activo;
+  setEl('modal-periodo-title', p.id ? 'Editar período' : 'Nuevo período');
   document.getElementById('mpe-err').textContent = '';
   openModal('modal-periodo');
 }
@@ -639,23 +695,26 @@ async function savePeriodo() {
   const err    = document.getElementById('mpe-err');
   if (!nombre) { err.textContent = 'Escribe un nombre.'; return; }
 
-  // Si se marca como activo, desactivar los demás primero
-  if (activo) {
-    const others = _periodos.filter(p => p.activo && String(p.id) !== String(id));
-    for (const o of others) {
-      await API.savePeriodo({ id: o.id, nombre: o.nombre, descripcion: o.descripcion || '', activo: false });
-    }
-  }
+  const fechas = {
+    inicio:     document.getElementById('mpe-inicio').value     || null,
+    finTrabajo: document.getElementById('mpe-fintrabajo').value || null,
+    entrega:    document.getElementById('mpe-entrega').value    || null,
+    jornada:    document.getElementById('mpe-jornada').value    || null,
+  };
 
-  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, activo });
+  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, fechas });
   if (!res.ok) { err.textContent = res.error; return; }
 
-  // Sincronizar config.periodo_activo para que miembros y secretarios lo detecten
+  // El flag `activo` NO va en el update: lo cambia el RPC set_periodo_activo,
+  // que desactiva el anterior y activa este en una sola operación. El bucle
+  // JS anterior hacía N updates sueltos y podía dejar dos activos.
+  const eraActivo = _periodos.find(p => String(p.id) === String(id))?.activo;
   if (activo) {
-    await API.saveConfig('periodo_activo', nombre);
-  } else if (_periodos.find(p => String(p.id) === String(id))?.activo) {
-    // Se desactivó el período que estaba activo — limpiar config
-    await API.saveConfig('periodo_activo', '');
+    const r = await API.setPeriodoActivo(res.id);
+    if (!r.ok) { err.textContent = r.error; return; }
+  } else if (eraActivo) {
+    const r = await API.setPeriodoActivo(null);
+    if (!r.ok) { err.textContent = r.error; return; }
   }
 
   showToast(id ? 'Período actualizado' : 'Período creado', 'ok');
@@ -687,7 +746,7 @@ function renderCriterios() {
     (c.key||'').toLowerCase().includes(q) ||
     (c.abbr||'').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin criterios. Agrega el primero.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin criterios. Agrega el primero.'}</div></div>`;
     return;
   }
   el.innerHTML = `
@@ -696,15 +755,15 @@ function renderCriterios() {
       <div class="tbl-body">
         ${list.map(c => `
           <div class="tbl-row">
-            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};flex-shrink:0"></span></div>
-            <div class="tbl-cell"><strong>${c.label}</strong></div>
-            <div class="tbl-cell"><span class="cbar-tag" style="color:${c.color}">${c.abbr}</span></div>
+            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${colorSeguro(c.color)};flex-shrink:0"></span></div>
+            <div class="tbl-cell"><strong>${escHtml(c.label)}</strong></div>
+            <div class="tbl-cell"><span class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</span></div>
             <div class="tbl-cell tbl-muted">${c.key}</div>
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
             <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" onclick="showCriterioModal(${c.id})" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteCriterioEntry(${c.id})" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalCriterio" data-arg="${c.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarCriterio" data-arg="${c.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>`).join('')}
       </div>
@@ -744,6 +803,7 @@ async function saveCriterioEntry() {
   showToast(id ? 'Criterio actualizado' : 'Criterio creado', 'ok');
   closeModal('modal-criterio');
   _criterios = await API.getCriterios();
+  Store.set({ criterios: _criterios });
   renderCriterios();
   renderRubrica();
 }
@@ -754,6 +814,7 @@ async function deleteCriterioEntry(id) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast('Criterio eliminado', 'ok');
   _criterios = await API.getCriterios();
+  Store.set({ criterios: _criterios });
   _rubrica   = await API.getRubrica();
   renderCriterios();
   renderRubrica();
@@ -768,7 +829,7 @@ function renderRubrica() {
     (r.criterios?.label||'').toLowerCase().includes(q) ||
     (r.criterios?.abbr||'').toLowerCase().includes(q));
   if (!rubList.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.ruler}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin entradas de rúbrica. Agrega la primera.'}</div></div>`;
     return;
   }
   const levels = [
@@ -780,21 +841,21 @@ function renderRubrica() {
   const lk = { 4:'nivel4', 3:'nivel3', 2:'nivel2', 1:'nivel1' };
   el.innerHTML = rubList.map((r, i) => {
     const c     = r.criterios || {};
-    const color = c.color || '#888';
+    const color = 'var(--criterio)';
     return `
       <div class="rubrica-card" id="rca-${i}">
-        <div class="rubrica-card-head" onclick="document.getElementById('rca-${i}').classList.toggle('open')">
+        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}">
           <div class="rubrica-dot" style="background:${color}"></div>
-          <div class="rubrica-title" style="color:${color}">${r.criterio || c.label || '—'}</div>
+          <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio || c.label || '—')}</div>
           <span class="rubrica-chev"></span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
-            ${levels.map(l => `<div class="rlevel"><div class="rlevel-badge" style="color:${l.color}">${l.n}</div><div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]] || '—'}</div></div>`).join('')}
+            ${levels.map(l => `<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]] || '—'}</div></div>`).join('')}
           </div>
           <div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--faint)">
-            <button class="btn-icon" onclick="showRubricaModal(${r.id})" title="Editar entrada">${ICONS.edit}</button>
-            <button class="btn-icon btn-icon--danger" onclick="deleteRubricaEntry(${r.id})" title="Eliminar">${ICONS.trash}</button>
+            <button class="btn-icon" data-act="modalRubrica" data-arg="${r.id}" title="Editar entrada">${ICONS.edit}</button>
+            <button class="btn-icon btn-icon--danger" data-act="borrarRubrica" data-arg="${r.id}" title="Eliminar">${ICONS.trash}</button>
           </div>
         </div>
       </div>`;
@@ -806,7 +867,7 @@ function showRubricaModal(id) {
   const critSel = document.getElementById('mrub-criterio');
   const allCrits = _criterios.length ? _criterios : getCriterios();
   critSel.innerHTML = '<option value="">Seleccionar criterio...</option>' +
-    allCrits.map(c => `<option value="${c.id}" ${r?.criterio_id === c.id ? 'selected' : ''}>${c.label}</option>`).join('');
+    allCrits.map(c => `<option value="${c.id}" ${r?.criterio_id === c.id ? 'selected' : ''}>${escHtml(c.label)}</option>`).join('');
 
   document.getElementById('mrub-id').value    = r?.id || '';
   document.getElementById('mrub-n4').value    = r?.nivel4 || '';
@@ -859,7 +920,7 @@ function renderCalendario() {
     (p.titulo||'').toLowerCase().includes(q) ||
     String(p.numero||'').includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'No hay eventos. Agrega el primero.'}</div></div>`;
     return;
   }
   const cAcc = { rojo:'cal-acc--rojo', verde:'cal-acc--verde', azul:'cal-acc--azul', amarillo:'cal-acc--amarillo' };
@@ -873,11 +934,11 @@ function renderCalendario() {
           <div class="cal-acc ${cAcc[c] || cAcc.rojo}"></div>
           <div class="cal-body">
             <div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div>
-            <div class="cal-t ${cT[c] || cT.rojo}">${p.titulo}</div>
+            <div class="cal-t ${cT[c] || cT.rojo}">${escHtml(p.titulo)}</div>
             ${rows.map(([l,v]) => `<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
             <div style="display:flex;gap:6px;margin-top:10px">
-              <button class="btn-icon" onclick="showCalModal('${p.id}')" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" onclick="deleteCal('${p.id}')" title="Eliminar">${ICONS.trash}</button>
+              <button class="btn-icon" data-act="modalCal" data-arg="${p.id}" title="Editar">${ICONS.edit}</button>
+              <button class="btn-icon btn-icon--danger" data-act="borrarCal" data-arg="${p.id}" title="Eliminar">${ICONS.trash}</button>
             </div>
           </div>
         </div>`;
@@ -943,7 +1004,7 @@ function renderDistPEBar() {
   }
   if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" onclick="selectDistPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" data-act="peDist" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
   renderDistritoSelect();
   renderDistritoRanking(_activePEDist?.id);
@@ -960,8 +1021,11 @@ async function selectDistPE(periodoId, btn) {
 function renderDistritoSelect() {
   const sel = document.getElementById('dist-eval-select'); if (!sel) return;
   sel.innerHTML = '<option value="">Seleccionar distrito...</option>' +
-    _distritos.map(d => `<option value="${d.id}">${d.nombre}</option>`).join('');
+    _distritos.map(d => `<option value="${d.id}">${escHtml(d.nombre)}</option>`).join('');
 }
+
+/** Buscador de distritos: repinta el ranking del PE seleccionado. */
+function buscarDistritos() { renderDistritoRanking(_activePEDist?.id); }
 
 function onDistSelectChange() {
   const sel = document.getElementById('dist-eval-select'); if (!sel?.value) return;
@@ -988,7 +1052,7 @@ async function renderDistritoRanking(periodoId) {
     .sort((a, b) => b.score - a.score);
 
   if (!ranked.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+q+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
     return;
   }
 
@@ -1001,7 +1065,7 @@ async function renderDistritoRanking(periodoId) {
       <div class="tbl-body">
         ${ranked.map((d, i) => `
           <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
-               onclick="document.getElementById('dist-eval-select').value='${d.distrito_id}';onDistSelectChange()">
+               data-act="elegirDistrito" data-arg="${escHtml(d.distrito_id)}">
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
             <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
@@ -1051,10 +1115,10 @@ function renderDistEvalForm(ev, distId, historial = []) {
       ${prevHistory.map(h => {
         const s = calcDistScore(h.puntajes);
         return `<div class="dist-hist-card">
-          <div class="dist-hist-pe">${h.periodos_evaluacion?.nombre || '—'}</div>
+          <div class="dist-hist-pe">${escHtml(h.periodos_evaluacion?.nombre || '—')}</div>
           ${DIST_CRITERIOS.map(c => `
             <div class="dist-hist-crit">
-              <span class="dist-hist-abbr" style="color:${c.color}">${c.abbr}</span>
+              <span class="dist-hist-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
               <span class="dist-hist-val">${h.puntajes?.[c.key] ?? '—'}</span>
             </div>`).join('')}
           <div class="dist-hist-total" style="color:${distScoreColor(s)}">${s}<span style="font-size:.6rem;color:var(--muted);font-weight:400">/${MAX_DIST}</span></div>
@@ -1066,13 +1130,13 @@ function renderDistEvalForm(ev, distId, historial = []) {
   const rows = DIST_CRITERIOS.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:${c.color}">${c.abbr}</div>
-        <div class="eval-crit-label">${c.label}</div>
+        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
+        <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
         <div class="score-btns">
           ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            onclick="setDistScore('${c.key}',${v},this)" style="--sc:${c.color}">${v}</button>`).join('')}
+            data-act="puntajeDist" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
@@ -1096,9 +1160,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
       <div class="ig-stats-grid">
         ${_IG_FIELDS.map(f => `
           <div class="ig-stat-field">
-            <label class="ig-stat-lbl">${f.label}</label>
+            <label class="ig-stat-lbl">${escHtml(f.label)}</label>
             <input class="ig-stat-inp" type="text" id="ig-${f.key}"
-              placeholder="${f.placeholder}" value="${igStats[f.key] || ''}">
+              placeholder="${escHtml(f.placeholder)}" value="${escHtml(igStats[f.key] || '')}">
           </div>`).join('')}
       </div>
 
@@ -1117,12 +1181,12 @@ function renderDistEvalForm(ev, distId, historial = []) {
              Evaluación publicada — visible en el ranking de distritos
            </div>
            <div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Volver a borrador</button>
-             <button class="btn-save btn-confirm" onclick="saveDistEval('publicado','${distId}')">Confirmar cambios</button>
+             <button class="btn-draft" data-act="guardarDist" data-arg="borrador" data-arg2="${distId}">Volver a borrador</button>
+             <button class="btn-save btn-confirm" data-act="guardarDist" data-arg="publicado" data-arg2="${distId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
-             <button class="btn-draft" onclick="saveDistEval('borrador','${distId}')">Guardar borrador</button>
-             <button class="btn-save btn-publish" onclick="saveDistEval('publicado','${distId}')">Publicar</button>
+             <button class="btn-draft" data-act="guardarDist" data-arg="borrador" data-arg2="${distId}">Guardar borrador</button>
+             <button class="btn-save btn-publish" data-act="guardarDist" data-arg="publicado" data-arg2="${distId}">Publicar</button>
            </div>`
       }
     </div>`;
@@ -1164,8 +1228,10 @@ async function saveDistEval(estado, distId) {
 }
 
 /* ── AVATAR UPLOAD ── */
-async function handleAvatarUpload(e) {
-  const file = e.target.files?.[0]; if (!file) return;
+/* El despachador de config.js llama (elemento, evento): el archivo se lee
+ * del propio <input>, no de e.target, que con delegación no siempre es él. */
+async function handleAvatarUpload(el) {
+  const file = el.files?.[0]; if (!file) return;
   if (file.size > 2 * 1024 * 1024) { showToast('Imagen demasiado grande (máx. 2 MB)', 'error'); return; }
   showToast('Subiendo foto...', 'info');
   const res = await API.uploadAvatar(CU.id, file);
@@ -1179,21 +1245,8 @@ async function handleAvatarUpload(e) {
   e.target.value = '';
 }
 
-/* ── SCORE HELPERS ── */
-const calcScore  = (p, b) => Object.values(parseJSON(p)).reduce((s,v)=>s+(Number(v)||0),0)+(Number(b)||0);
-const scoreColor = s => s >= 26 ? 'var(--sex)' : s >= 20 ? 'var(--sbu)' : s >= 11 ? 'var(--spr)' : 'var(--sba)';
-const scoreLabel = s => s >= 26 ? 'Excelente' : s >= 20 ? 'Bueno' : s >= 11 ? 'En Proceso' : 'Bajo';
-const scoreClass = s => s >= 24 ? 'sex' : s >= 18 ? 'sbu' : s >= 10 ? 'spr' : 'sba';
-
-/* ── MODALES ── */
-function openModal(id)  {
-  const m = document.getElementById(id);
-  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-}
-function closeModal(id) {
-  const m = document.getElementById(id);
-  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
-}
+/* Score helpers y modales → core/render.js.
+   El admin usa calcScorePuntajes(puntajes, bono); los portales, calcScore(fila). */
 
 /* ══════════════════════════════════════════════════
    TAB: OVERVIEW
@@ -1203,7 +1256,7 @@ function renderOvPEBar() {
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   if (!_activePEOv) _activePEOv = _periodos.find(p => p.activo) || _periodos[0];
   bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" onclick="selectOvPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="pb${p.id === _activePEOv?.id ? ' active' : ''}" data-act="peOv" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -1226,7 +1279,7 @@ async function loadOverview() {
     API.getEvalDistritosByPE(_activePEOv.id),
     API.getParticipantes(_activePEOv.id),
   ]);
-  console.log('[Overview] PE:', _activePEOv.nombre, '| evals:', evals.length, '| publicadas:', evals.filter(e=>e.estado==='publicado').length, '| distEvals:', distEvals.length, '| participantes:', participantes.length, '| inactivos:', participantes.filter(r=>!r.activo).length);
+  debug('[Overview] PE:', _activePEOv.nombre, '| evals:', evals.length, '| publicadas:', evals.filter(e=>e.estado==='publicado').length, '| distEvals:', distEvals.length, '| participantes:', participantes.length, '| inactivos:', participantes.filter(r=>!r.activo).length);
   _overviewEvals     = evals;
   _overviewDistEvals = distEvals;
   _ovInactivosPE     = new Set(participantes.filter(r => !r.activo).map(r => r.user_id));
@@ -1242,7 +1295,7 @@ function renderOverview() {
 
   const scored = pub.map(e => ({
     ...e,
-    score: calcScore(e.puntajes, e.bono_ext),
+    score: calcScorePuntajes(e.puntajes, e.bono_ext),
     user:  _users.find(u => u.id === e.evaluado_id),
   })).filter(e => e.user).sort((a, b) => b.score - a.score);
 
@@ -1303,21 +1356,21 @@ function renderOverview() {
     </div>
 
     <div class="ov-actions">
-      <button class="ov-action-btn" onclick="switchTab('evaluar')">${ICONS.zap} Evaluar</button>
-      <button class="ov-action-btn" onclick="switchTab('usuarios')">${ICONS.users} Usuarios</button>
-      <button class="ov-action-btn" onclick="switchTab('distritos')">${ICONS.map} Distritos</button>
-      <button class="ov-action-btn" onclick="switchTab('periodos')">${ICONS.calendar} Períodos</button>
-      <button class="ov-action-btn" onclick="switchTab('calendario')">${ICONS.calendar} Calendario</button>
-      <button class="ov-action-btn" onclick="switchTab('rubrica')">${ICONS.ruler} Rúbrica</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="evaluar">${ICONS.zap} Evaluar</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="usuarios">${ICONS.users} Usuarios</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="distritos">${ICONS.map} Distritos</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="periodos">${ICONS.calendar} Períodos</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="calendario">${ICONS.calendar} Calendario</button>
+      <button class="ov-action-btn" data-act="tabSinBtn" data-arg="rubrica">${ICONS.ruler} Rúbrica</button>
     </div>
 
     <div class="ov-cols">
       <div class="ov-panel">
         <div class="rank-panel-header">
-          <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${_activePEOv?.nombre || ''}</div>
+          <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${escHtml(_activePEOv?.nombre || '')}</div>
           <div class="rank-tabs">
-            <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" onclick="switchRankTab('users')">Usuarios</button>
-            <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" onclick="switchRankTab('dist')">Distritos</button>
+            <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" data-act="rankTab" data-arg="users">Usuarios</button>
+            <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" data-act="rankTab" data-arg="dist">Distritos</button>
           </div>
         </div>
 
@@ -1381,8 +1434,8 @@ function renderOverview() {
             const n   = dist[l.key]||0;
             const pct = scored.length ? Math.round(n/scored.length*100) : 0;
             return `<div class="level-dist-row">
-              <div class="level-dist-lbl" style="color:${l.color}">${l.lbl}</div>
-              <div class="level-dist-bar"><div class="level-dist-fill" style="width:${pct}%;background:${l.color}"></div></div>
+              <div class="level-dist-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
+              <div class="level-dist-bar"><div class="level-dist-fill" style="width:${pct}%;background:${escHtml(l.color)}"></div></div>
               <div class="level-dist-num">${n}</div>
             </div>`;
           }).join('')}
@@ -1393,7 +1446,7 @@ function renderOverview() {
           ${recent.length ? recent.map(e => {
             const user = _users.find(u=>u.id===e.evaluado_id);
             const evtr = _users.find(u=>u.id===e.evaluador_id);
-            const sc   = calcScore(e.puntajes, e.bono_ext);
+            const sc   = calcScorePuntajes(e.puntajes, e.bono_ext);
             const d    = e.updated_at||e.created_at;
             return `<div class="activity-item">
               <div class="activity-dot" style="background:${scoreColor(sc)}"></div>
@@ -1413,10 +1466,10 @@ function renderOverview() {
       <div class="crit-bars-grid">
         ${critAvg.map(c => `
           <div class="crit-bar-row">
-            <div class="crit-bar-tag" style="color:${c.color}">${c.abbr}</div>
+            <div class="crit-bar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
             <div style="flex:1;min-width:0">
-              <div class="crit-bar-name">${c.label}</div>
-              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${c.avg/4*100}%;background:${c.color}"></div></div>
+              <div class="crit-bar-name">${escHtml(c.label)}</div>
+              <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${pctBarra(c.avg, c)}%;background:var(--criterio)"></div></div>
             </div>
             <div class="crit-bar-val">${c.avg?c.avg.toFixed(1):'—'}<span style="font-size:.6rem;color:var(--muted)"> /4</span></div>
           </div>`).join('')}
@@ -1438,39 +1491,94 @@ function switchRankTab(tab) {
 }
 
 /* ── TABS ── */
+/* Operación suelta; todo lo de configuración cuelga del engranaje, cuyo
+   botón padre es `periodos`. */
 const _tabParentMap = {
-  overview:'overview', evaluar:'evaluar', usuarios:'evaluar', roles:'evaluar',
-  distritos:'distritos', periodos:'periodos', calendario:'periodos', rubrica:'periodos',
-  reportes:'reportes',
+  overview:'overview', evaluar:'evaluar', usuarios:'usuarios', reportes:'reportes',
+  periodos:'periodos', calendario:'periodos', rubrica:'periodos',
+  roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
 
-function switchTab(tab, btn) {
-  document.querySelectorAll('.atab-content').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
+/* ── TAB: GESTIONES ──────────────────────────────────────────────────
+ * Cada gestión es un contenedor estanco: sus períodos, criterios, rúbrica
+ * y calendario le pertenecen. Lo pasado se lee siempre, se escribe nunca —
+ * lo garantiza gestion_escribible() en el WITH CHECK de las policies.
+ */
+let _gestiones = [];
 
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
-  if (btn) { btn.classList.add('active'); }
-  else {
-    const parent = _tabParentMap[tab] || tab;
-    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      const oc = b.getAttribute('onclick') || '';
-      if (oc.includes(`'${parent}'`)) b.classList.add('active');
-    });
+async function renderGestiones() {
+  const el = document.getElementById('gestiones-list'); if (!el) return;
+  _gestiones = await API.getGestiones();
+
+  if (!_gestiones.length) {
+    renderVacio(el, 'No hay gestiones configuradas.');
+    return;
   }
 
-  if (tab === 'overview' && !_overviewEvals.length) loadOverview();
+  el.innerHTML = `
+    <div class="tbl">
+      <div class="tbl-head"><div>Gestión</div><div>Estado</div><div>Períodos</div><div></div></div>
+      <div class="tbl-body">
+        ${_gestiones.map(g => `
+          <div class="tbl-row">
+            <div class="tbl-cell"><strong>${escHtml(g.nombre)}</strong></div>
+            <div class="tbl-cell">
+              <span class="estado-pill ${g.activa ? 'pill--ok' : 'pill--off'}">
+                ${g.activa ? 'Activa' : g.archivada ? 'Archivada' : 'Inactiva'}
+              </span>
+            </div>
+            <div class="tbl-cell tbl-muted">${g.activa ? 'en curso' : 'solo lectura'}</div>
+            <div class="tbl-cell tbl-actions">
+              <a class="btn-icon" href="admin.html?gestion=${encodeURIComponent(g.id)}"
+                 title="Ver esta gestión">${ICONS.search}</a>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function showAbrirGestionModal() {
+  document.getElementById('mg-nombre').value = '';
+  document.getElementById('mg-err').textContent = '';
+  openModal('modal-gestion');
+}
+
+async function confirmarAbrirGestion() {
+  const nombre = document.getElementById('mg-nombre').value.trim();
+  const err    = document.getElementById('mg-err');
+  if (!nombre) { err.textContent = 'Escribe el nombre de la gestión.'; return; }
+
+  const actual = _gestiones.find(g => g.activa);
+  if (!confirm(
+    `Se archivará "${actual?.nombre ?? 'la gestión actual'}" y se abrirá "${nombre}".\n\n` +
+    'La gestión archivada seguirá siendo consultable, pero no se podrá modificar. ¿Continuar?'
+  )) return;
+
+  const res = await API.abrirGestion(nombre);
+  if (!res.ok) { err.textContent = res.error; return; }
+
+  closeModal('modal-gestion');
+  showToast('Gestión abierta', 'ok');
+  location.assign('admin.html');
+}
+
+function switchTabAdminHooks(tab) {
+  if (tab === 'gestiones') renderGestiones();
+  if (tab === 'overview' && Store.necesitaCarga('overview')) {
+    Store.marcarCargado('overview'); loadOverview();
+  }
   if (tab === 'reportes' && !_rptPE && _periodos.length) {
     const def = _periodos.find(p => p.activo) || _periodos[0];
     if (def) selectRptPE(def.id, document.querySelector('#rpt-pe-btns .rpt-pe-btn'));
   }
 }
 
-function switchTabMobile(tab, btn) {
-  switchTab(tab, null);
-  document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b => b.classList.remove('active'));
-  btn?.classList.add('active');
-  closeMenu();
+function switchTab(tab, btn) {
+  switchTabCore(tab, btn, { contentSelector: '.atab-content', parentMap: _tabParentMap });
+  switchTabAdminHooks(tab);
 }
+
+function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) {
   header.classList.toggle('open');
@@ -1481,7 +1589,7 @@ function renderRptPEBar() {
   const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   bar.innerHTML = _periodos.map(p =>
-    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" onclick="selectRptPE('${p.id}',this)">${p.nombre}</button>`
+    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" data-act="peRpt" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
@@ -1507,7 +1615,7 @@ function renderAdminReport() {
 
   const scored = pub.map(e => ({
     ...e,
-    score: calcScore(e.puntajes, e.bono_ext),
+    score: calcScorePuntajes(e.puntajes, e.bono_ext),
     user:  _users.find(u => u.id === e.evaluado_id),
   })).filter(e => e.user).sort((a, b) => b.score - a.score);
 
@@ -1551,8 +1659,8 @@ function renderAdminReport() {
         ${criterios.map(c => {
           const val = Number(punt[c.key]) || 0;
           return `<div class="rpt-ind-bar-row">
-            <div class="rpt-ind-bar-lbl" title="${c.label}" style="color:${c.color}">${c.abbr}</div>
-            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:${c.color}"></div></div>
+            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
+            <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:var(--criterio)"></div></div>
             <div class="rpt-ind-bar-val">${val}/4</div>
           </div>`;
         }).join('')}
@@ -1563,13 +1671,13 @@ function renderAdminReport() {
         </div>
       </div>
       ${strongCrit || weakCrit ? `<div class="rpt-ind-highlights">
-        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${strongCrit.label} (${maxCrit}/4)</div>` : ''}
-        ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${weakCrit.label} (${minCrit}/4)</div>` : ''}
+        ${strongCrit ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(76,175,80,.12);color:#4caf50">Fortaleza</span> ${escHtml(strongCrit.label)} (${maxCrit}/4)</div>` : ''}
+        ${weakCrit && weakCrit.key !== strongCrit?.key ? `<div class="rpt-ind-hl"><span class="rpt-ind-hl-tag" style="background:rgba(255,96,100,.10);color:var(--accent)">Área de mejora</span> ${escHtml(weakCrit.label)} (${minCrit}/4)</div>` : ''}
       </div>` : ''}
       ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
         ${comKeys.map(k => {
           const c = criterios.find(cr => cr.key === k);
-          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${c?.color||'var(--txt)'}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
+          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${escHtml(c?.color||'var(--txt)')}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
         }).join('')}
         ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${escHtml(comentarios.general)}</div>` : ''}
       </div>` : ''}
@@ -1584,7 +1692,7 @@ function renderAdminReport() {
       <div>
         <div class="rpt-org">EIGHT CREATORS LABs</div>
         <div class="rpt-title-big">REPORTE DE EVALUACIONES</div>
-        <div class="rpt-period-lbl">${_rptPE.nombre}${_rptPE.descripcion ? ' · ' + _rptPE.descripcion : ''}</div>
+        <div class="rpt-period-lbl">${escHtml(_rptPE.nombre)}${escHtml(_rptPE.descripcion ? ' · ' + _rptPE.descripcion : '')}</div>
       </div>
       <div class="rpt-date-wrap">
         <div class="rpt-date-lbl">Generado el</div>
@@ -1595,7 +1703,7 @@ function renderAdminReport() {
     <div class="rpt-kpi-row">
       <div class="rpt-kpi"><div class="rpt-kpi-val">${nonAdmins.length}</div><div class="rpt-kpi-lbl">Miembros</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${evaluated}</div><div class="rpt-kpi-lbl">Evaluados</div></div>
-      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--accent2)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--data)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${topScore}</div><div class="rpt-kpi-lbl">Puntaje más alto</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sba)">${unevaluated}</div><div class="rpt-kpi-lbl">Sin evaluar</div></div>
     </div>
@@ -1609,7 +1717,7 @@ function renderAdminReport() {
             <th class="rpt-th rpt-th-num">#</th>
             <th class="rpt-th">Nombre</th>
             <th class="rpt-th">Rol</th>
-            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${c.label}">${c.abbr}</th>`).join('')}
+            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${escHtml(c.label)}">${escHtml(c.abbr)}</th>`).join('')}
             <th class="rpt-th">Bono</th>
             <th class="rpt-th">Total</th>
             <th class="rpt-th">Nivel</th>
@@ -1655,9 +1763,9 @@ function renderAdminReport() {
             const cnt = dist[n.key] || 0;
             const pct = evaluated ? Math.round(cnt / evaluated * 100) : 0;
             return `<div class="rpt-dist-item">
-              <div class="rpt-dist-bar-track"><div class="rpt-dist-bar-fill" style="height:${pct}%;background:${n.color}"></div></div>
-              <div class="rpt-dist-count" style="color:${n.color}">${cnt}</div>
-              <div class="rpt-dist-nlbl">${n.label}</div>
+              <div class="rpt-dist-bar-track"><div class="rpt-dist-bar-fill" style="height:${pct}%;background:${escHtml(n.color)}"></div></div>
+              <div class="rpt-dist-count" style="color:${escHtml(n.color)}">${cnt}</div>
+              <div class="rpt-dist-nlbl">${escHtml(n.label)}</div>
               <div class="rpt-dist-pct">${pct}%</div>
             </div>`;
           }).join('')}
@@ -1667,11 +1775,11 @@ function renderAdminReport() {
       <div class="rpt-section rpt-section-crit">
         <div class="rpt-section-lbl">Promedio por criterio</div>
         ${critAvg.map(c => {
-          const pct = (c.avg / 4) * 100;
+          const pct = pctBarra(c.avg, c);
           return `<div class="rpt-crit-row">
-            <div class="rpt-crit-lbl" title="${c.label}">${c.abbr}</div>
+            <div class="rpt-crit-lbl" title="${escHtml(c.label)}">${escHtml(c.abbr)}</div>
             <div class="rpt-crit-bar-track">
-              <div class="rpt-crit-bar-fill" style="width:${pct}%;background:${c.color||'var(--accent2)'}"></div>
+              <div class="rpt-crit-bar-fill" style="width:${pct}%"></div>
             </div>
             <div class="rpt-crit-val">${c.avg ? c.avg.toFixed(1) : '—'}</div>
           </div>`;
@@ -1692,7 +1800,7 @@ function renderAdminReport() {
     </div>` : ''}
     `}
 
-    <div class="rpt-footer">EIGHT CREATORS LABs · ${_rptPE.nombre} · Generado el ${today}</div>
+    <div class="rpt-footer">EIGHT CREATORS LABs · ${escHtml(_rptPE.nombre)} · Generado el ${today}</div>
   </div>`;
 }
 
@@ -1722,19 +1830,5 @@ document.addEventListener('click', e => {
 });
 window.addEventListener('resize', () => { if (window.innerWidth > 720) closeMenu(); });
 
-/* ── HELPERS ── */
-const initials = n => (n || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
-const setEl    = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast'); if (!t) return;
-  t.textContent = msg; t.className = `toast${type ? ' toast--' + type : ''} show`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function initScrollEffects() {
-  const topbar = document.getElementById('topbar');
-  window.addEventListener('scroll', () => {
-    topbar?.classList.toggle('scrolled', window.scrollY > 10);
-  }, { passive: true });
-}
+/* initials, setEl, showToast, initScrollEffects → core/render.js.
+   El admin no tiene #back-top; initScrollEffects lo comprueba con ?. */

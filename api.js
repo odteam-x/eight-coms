@@ -7,6 +7,28 @@
  * engancharía la llamada a Resend/Edge Function. Busca el comentario
  * "// HOOK_NOTIFICACION" más abajo para ver el punto exacto.
  */
+/** Total de perfiles devuelto por la última getAllUsers() (para paginar). */
+let _totalUsuarios = 0;
+
+/**
+ * Gestión sobre la que se está trabajando. Se fija en getContexto().
+ * Todo lo que se escriba (períodos, criterios, rúbrica, calendario, config)
+ * pertenece a esta gestión: sus tablas ya no tienen unicidad global.
+ */
+let _gestionActual = null;
+
+/**
+ * Id de la gestión en curso, resolviéndolo si hace falta.
+ * admin.js llama a getPeriodos()/getCriterios() directamente en el arranque,
+ * sin pasar por getContexto(), así que no puede asumirse que ya esté fijado.
+ */
+async function _gid() {
+  if (_gestionActual != null) return _gestionActual;
+  const { data } = await SB.from('gestiones').select('id').eq('activa', true).maybeSingle();
+  _gestionActual = data?.id ?? null;
+  return _gestionActual;
+}
+
 const API = {
 
   // ── AUTH ────────────────────────────────────────────────────────
@@ -16,28 +38,25 @@ const API = {
     return { ok: true };
   },
 
-  async register({ email, password, nombre, rol_id, distrito, tipo_miembro }) {
-    const { data, error } = await SB.auth.signUp({
+  /**
+   * Alta de cuenta. SOLO acepta email, contraseña y nombre.
+   *
+   * SEGURIDAD: no escribe en `profiles`. La fila la crea el trigger
+   * on_auth_user_created (migración 0001) con valores fijos del servidor:
+   * tipo_miembro='miembro', es_admin=false, distrito=NULL, rol_id=NULL,
+   * aprobado=false. El cliente no puede influir en ninguno.
+   *
+   * Antes se hacía un upsert desde aquí con los valores del formulario, que
+   * incluía un <select> con la opción "Secretario". Además, con "Confirm
+   * email" activo aún no hay sesión en signUp, así que auth.uid() es NULL y
+   * el upsert fallaba en silencio dejando usuarios sin perfil.
+   */
+  async register({ email, password, nombre }) {
+    const { error } = await SB.auth.signUp({
       email, password,
-      options: { data: { nombre } },
+      options: { data: { nombre } },   // solo se usa para el nombre a mostrar
     });
     if (error) return { ok: false, error: error.message };
-    if (data.user) {
-      // Upsert perfil
-      const { error: pe } = await SB.from('profiles').upsert({
-        id:           data.user.id,
-        email:        email,
-        nombre:       nombre || email.split('@')[0],
-        rol_id:       rol_id   ? Number(rol_id) : null,
-        distrito:     distrito  || null,
-        tipo_miembro: tipo_miembro || 'miembro',
-      }, { onConflict: 'id' });
-      if (pe) console.warn('[register] profiles upsert:', pe.message);
-
-      // SECURITY: La tabla credenciales almacenaba contraseñas en texto plano.
-      // Supabase Auth ya hashea las contraseñas con bcrypt — no es necesario
-      // (ni seguro) guardar una copia en texto plano en otra tabla.
-    }
     return { ok: true };
   },
 
@@ -49,23 +68,36 @@ const API = {
     return data ?? [];
   },
 
+  /**
+   * Períodos. LANZA si la query falla, en vez de devolver [].
+   * Un [] silencioso hacía que el portal cayera al fallback duro
+   * ['PE1','PE2','PE3'] y el usuario veía PE1 sin ningún error visible.
+   */
   async getPeriodos() {
-    const { data } = await SB.from('periodos_evaluacion').select('*').order('created_at');
+    const g = await _gid();
+    let q = SB.from('periodos_evaluacion').select('*').order('created_at');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
+    if (error) throw new Error('No se pudieron cargar los períodos: ' + error.message);
     return data ?? [];
   },
 
+  /** Criterios. LANZA si falla: sin ellos no se puede puntuar nada. */
   async getCriterios(onlyActive = false) {
+    const g = await _gid();
     let q = SB.from('criterios').select('*');
+    if (g != null) q = q.eq('gestion_id', g);
     if (onlyActive) q = q.eq('activo', true);
-    const { data } = await q.order('orden');
+    const { data, error } = await q.order('orden');
+    if (error) throw new Error('No se pudieron cargar los criterios: ' + error.message);
     return data ?? [];
   },
 
   async getRubrica() {
-    const { data } = await SB
-      .from('rubrica')
-      .select('*, criterios(key, label, abbr, color)')
-      .order('orden');
+    const g = await _gid();
+    let q = SB.from('rubrica').select('*, criterios(key, label, abbr, color)').order('orden');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data } = await q;
     return data ?? [];
   },
 
@@ -73,7 +105,7 @@ const API = {
     const p = { key: key.trim().toLowerCase(), label: label.trim(), abbr: abbr.trim().toUpperCase(), color, orden: Number(orden) || 99, activo };
     const { error } = id
       ? await SB.from('criterios').update(p).eq('id', id)
-      : await SB.from('criterios').insert(p);
+      : await SB.from('criterios').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -86,7 +118,7 @@ const API = {
     const p = { criterio_id: Number(criterio_id), criterio, nivel4, nivel3, nivel2, nivel1, orden: Number(orden) || 99 };
     const { error } = id
       ? await SB.from('rubrica').update(p).eq('id', id)
-      : await SB.from('rubrica').insert(p);
+      : await SB.from('rubrica').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -96,20 +128,28 @@ const API = {
   },
 
   async getCalendario() {
-    const { data } = await SB.from('calendario').select('*').order('numero');
+    const g = await _gid();
+    let q = SB.from('calendario').select('*').order('numero');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data } = await q;
     return data ?? [];
   },
 
   async getConfig() {
-    const { data } = await SB.from('config').select('*');
+    const g = await _gid();
+    let qc = SB.from('config').select('*');
+    if (g != null) qc = qc.eq('gestion_id', g);
+    const { data } = await qc;
     const cfg = {};
     (data ?? []).forEach(r => { cfg[r.clave] = r.valor; });
     return cfg;
   },
 
   async saveConfig(clave, valor) {
+    // La PK de config pasó a ser (gestion_id, clave) en la migración 0005:
+    // la misma clave puede existir en gestiones distintas.
     const { error } = await SB.from('config')
-      .upsert({ clave, valor }, { onConflict: 'clave' });
+      .upsert({ gestion_id: await _gid(), clave, valor }, { onConflict: 'gestion_id,clave' });
     return { ok: !error, error: error?.message };
   },
 
@@ -128,13 +168,28 @@ const API = {
   },
 
   // ── ADMIN: usuarios ──────────────────────────────────────────────
-  async getAllUsers() {
-    const { data } = await SB
+  /**
+   * Usuarios, paginado (3.4). Antes traía los ~200 perfiles completos de
+   * una vez, aunque la tabla solo muestre una página.
+   *
+   * `*` en vez de lista explícita a propósito: si se nombra `aprobado` y la
+   * migración 0001 aún no se ha aplicado, PostgREST devuelve error 42703 y
+   * la lista del admin queda vacía. Con `*` funciona en ambos casos.
+   */
+  async getAllUsers({ pagina = 0, porPagina = 100 } = {}) {
+    const desde = pagina * porPagina;
+    const { data, error, count } = await SB
       .from('profiles')
-      .select('id, nombre, email, es_admin, rol_id, roles(id, nombre), distrito, tipo_miembro, avatar_url, created_at')
-      .order('nombre');
+      .select('*, roles(id, nombre)', { count: 'exact' })
+      .order('nombre')
+      .range(desde, desde + porPagina - 1);
+    if (error) { console.warn('[API.getAllUsers]', error.message); return []; }
+    _totalUsuarios = count ?? (data?.length ?? 0);
     return data ?? [];
   },
+
+  /** Total de perfiles según la última llamada a getAllUsers(). */
+  totalUsuarios() { return _totalUsuarios; },
 
   async updateUserRol(user_id, rol_id) {
     const { error } = await SB.from('profiles').update({ rol_id }).eq('id', user_id);
@@ -143,6 +198,12 @@ const API = {
 
   async updateUserAdmin(user_id, es_admin) {
     const { error } = await SB.from('profiles').update({ es_admin }).eq('id', user_id);
+    return { ok: !error, error: error?.message };
+  },
+
+  /** Aprueba o revoca el acceso al portal. Solo admin (lo garantiza RLS). */
+  async updateUserAprobado(user_id, aprobado) {
+    const { error } = await SB.from('profiles').update({ aprobado }).eq('id', user_id);
     return { ok: !error, error: error?.message };
   },
 
@@ -176,11 +237,35 @@ const API = {
   },
 
   // ── ADMIN: períodos ──────────────────────────────────────────────
-  async savePeriodo({ id, nombre, descripcion = '', activo = false }) {
-    const p = { nombre: nombre.trim(), descripcion: descripcion.trim(), activo };
-    const { error } = id
-      ? await SB.from('periodos_evaluacion').update(p).eq('id', id)
-      : await SB.from('periodos_evaluacion').insert(p);
+  /**
+   * Crea o actualiza un período. NO toca `activo`: eso va por
+   * setPeriodoActivo(), que es atómico y respeta el índice único.
+   */
+  async savePeriodo({ id, nombre, descripcion = '', fechas = {} }) {
+    const p = {
+      nombre:            nombre.trim(),
+      descripcion:       descripcion.trim(),
+      fecha_inicio:      fechas.inicio     || null,
+      fecha_fin_trabajo: fechas.finTrabajo || null,
+      fecha_entrega:     fechas.entrega    || null,
+      fecha_jornada:     fechas.jornada    || null,
+    };
+    const { data, error } = id
+      ? await SB.from('periodos_evaluacion').update(p).eq('id', id).select('id').maybeSingle()
+      : await SB.from('periodos_evaluacion').insert({ ...p, gestion_id: await _gid() }).select('id').maybeSingle();
+    return { ok: !error, error: error?.message, id: data?.id ?? id ?? null };
+  },
+
+  /**
+   * Cambia el período activo de forma atómica vía RPC (migración 0003).
+   * Pasar null deja la gestión sin período en curso.
+   *
+   * El bucle JS anterior hacía N updates secuenciales: si uno fallaba
+   * quedaban dos períodos activos y find(p => p.activo) tomaba el primero
+   * por created_at. Ahora la base garantiza que solo haya uno.
+   */
+  async setPeriodoActivo(id) {
+    const { error } = await SB.rpc('set_periodo_activo', { p_id: id ?? null });
     return { ok: !error, error: error?.message };
   },
 
@@ -197,7 +282,7 @@ const API = {
       .eq('periodo_id', periodo_id)
       .order('created_at');
     if (error) console.error('[API] getEvaluacionesByPE ERROR:', error, 'status:', status);
-    console.log('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
+    debug('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
     return (data ?? []).map(e => ({
       ...e,
       evaluado_id:  e.evaluado_id  ?? e.evaluado?.id,
@@ -244,7 +329,7 @@ const API = {
     const { id, ...p } = ev;
     const { error } = id
       ? await SB.from('calendario').update(p).eq('id', id)
-      : await SB.from('calendario').insert(p);
+      : await SB.from('calendario').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
 
@@ -291,8 +376,13 @@ const API = {
   },
 
   async getEvalDistritoByNombreAndPE(distNombre, peNombre) {
-    const { data: pe } = await SB
-      .from('periodos_evaluacion').select('id').eq('nombre', peNombre).maybeSingle();
+    // Acotado a la gestión en curso: los nombres de PE se repiten entre
+    // gestiones, así que sin este filtro maybeSingle() encontraría varias
+    // filas y devolvería null.
+    const g = await _gid();
+    let qp = SB.from('periodos_evaluacion').select('id').eq('nombre', peNombre);
+    if (g != null) qp = qp.eq('gestion_id', g);
+    const { data: pe } = await qp.maybeSingle();
     if (!pe) return null;
     const { data } = await SB
       .from('evaluaciones_distrito')
@@ -329,17 +419,25 @@ const API = {
   },
 
   // ── TRABAJOS ENTREGADOS ──────────────────────────────────────────────
-  async getTrabajosEntregados(userId, periodoNombre) {
+  /**
+   * Trabajos del usuario en un período. Indexado por periodo_id (UUID).
+   *
+   * Antes se guardaba `periodo_nombre` TEXT. Con multi-gestión los nombres
+   * de PE se repiten entre gestiones, así que "PE3" dejaría de identificar
+   * un período. La migración 0005 hizo el backfill y eliminó la columna.
+   */
+  async getTrabajosEntregados(userId, periodoId) {
+    if (!periodoId) return [];
     const { data } = await SB.from('trabajos_entregados')
       .select('*')
       .eq('user_id', userId)
-      .eq('periodo_nombre', periodoNombre)
+      .eq('periodo_id', periodoId)
       .order('created_at', { ascending: false });
     return data ?? [];
   },
 
-  async upsertTrabajo({ id, user_id, periodo_nombre, titulo, descripcion }) {
-    const payload = { user_id, periodo_nombre, titulo: titulo || '', descripcion,
+  async upsertTrabajo({ id, user_id, periodo_id, titulo, descripcion }) {
+    const payload = { user_id, periodo_id, titulo: titulo || '', descripcion,
       updated_at: new Date().toISOString() };
     if (id) payload.id = id;
     const { data, error } = await SB.from('trabajos_entregados').upsert(payload).select().single();
@@ -353,168 +451,246 @@ const API = {
   },
 
   /**
-   * Carga consolidada de datos para user.html y secretario.html.
-   * Devuelve { criterios, rubrica, calendario, periodos, scores, feedback, config }.
-   * Para secretarios también incluye los scores de todos los miembros de su distrito.
+   * FASE 1 — CONTEXTO. Todo lo que no depende del período elegido.
+   * Cuatro consultas en paralelo: un solo round-trip. Con esto ya se pinta
+   * el hero y la barra de períodos.
+   *
+   * Antes getData() encadenaba 6 saltos secuenciales; getConfig(), la
+   * consulta de miembros del distrito y evaluaciones_distrito iban en serie
+   * sin depender de nada anterior.
+   *
+   * Devuelve SIEMPRE { ok, ... } — nunca un [] silencioso.
    */
-  async getData() {
+  async getContexto(gestionId = null) {
     const { data: { session } } = await SB.auth.getSession();
-    if (!session) return { ok: false };
+    if (!session) return { ok: false, error: 'Tu sesión no es válida. Vuelve a iniciar sesión.' };
 
     const profile = await Auth.getProfile();
-    if (!profile) return { ok: false };
+    if (!profile) return { ok: false, error: 'No se pudo leer tu perfil.' };
 
-    const [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
-      this.getCriterios(true),
-      this.getRubrica(),
-      this.getCalendario(),
-      this.getPeriodos(),
-    ]);
+    // Sin argumento se usa la gestión activa.
+    const gestiones = await this.getGestiones();
+    const gestion = gestionId
+      ? gestiones.find(g => String(g.id) === String(gestionId))
+      : gestiones.find(g => g.activa);
+    if (!gestion) return { ok: false, error: 'No hay ninguna gestión configurada.' };
+    _gestionActual = gestion.id;
 
-    const config = await this.getConfig();
-
-    // Criterios normalizados (columna DB es max_valor)
-    const criterios = criteriosRaw.map(c => ({
-      key: c.key, label: c.label, abbr: c.abbr, color: c.color, max: c.max_valor ?? c.max ?? 4,
-    }));
-
-    // Períodos normalizados
-    const periodos = periodosRaw.map(p => ({
-      pe:         p.nombre,
-      id:         p.id,
-      nombre:     p.descripcion || p.nombre,
-      estado:     p.activo ? 'Activo' : 'Cerrado',
-      inicio:     p.fecha_inicio     || p.inicio     || null,
-      finTrabajo: p.fecha_fin_trabajo || p.fin_trabajo|| null,
-      entrega:    p.fecha_entrega     || p.entrega    || null,
-      jornada:    p.fecha_jornada     || p.jornada    || null,
-    }));
-
-    // Inicializar scores y feedback por período
-    const scores   = {};
-    const feedback = {};
-    periodos.forEach(p => { scores[p.pe] = []; feedback[p.pe] = []; });
-    if (!scores.PE1) { ['PE1','PE2','PE3'].forEach(k => { scores[k]=[]; feedback[k]=[]; }); }
-
-    // Construir lista de user IDs a consultar
-    let targetIds = [session.user.id];
-    let districtMembers = [];
-
-    if (profile.tipo_miembro === 'secretario' && profile.distrito) {
-      // Secretario: incluir todos los miembros de su distrito (con datos completos)
-      const { data: distMembers } = await SB.from('profiles')
-        .select('id, nombre, email, distrito, tipo_miembro, roles:rol_id(nombre)')
-        .eq('distrito', profile.distrito);
-      if (distMembers?.length) {
-        districtMembers = distMembers;
-        targetIds = distMembers.map(m => m.id);
-      }
-    }
-
-    // Fetch evaluaciones publicadas para los IDs relevantes
-    let evsRaw = null;
+    let criteriosRaw, rubricaRaw, calRaw, periodosRaw;
     try {
-      const res = await SB.from('evaluaciones')
-        .select('*, periodos_evaluacion(id, nombre), evaluado:evaluado_id(id, nombre, email, distrito)')
-        .in('evaluado_id', targetIds)
-        .eq('estado', 'publicado');
-      evsRaw = res.data;
-      if (res.error) console.warn('[API.getData] evaluaciones query error:', res.error.code, res.error.message);
+      [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
+        this.getCriterios(true),
+        this.getRubrica(),
+        this.getCalendario(),
+        this.getPeriodos(),
+      ]);
     } catch (e) {
-      console.warn('[API.getData] evaluaciones query threw:', e);
+      return { ok: false, error: e.message || String(e) };
     }
 
-    // Fallback: si la query con joins falló o devolvió vacío, intentar sin joins
-    if ((!evsRaw || !evsRaw.length) && targetIds.length) {
-      try {
-        const res2 = await SB.from('evaluaciones')
-          .select('*')
-          .in('evaluado_id', targetIds)
-          .eq('estado', 'publicado');
-        if (res2.data?.length) {
-          evsRaw = res2.data;
-          console.info('[API.getData] fallback query returned', evsRaw.length, 'evaluaciones');
-        }
-      } catch (e2) {
-        console.warn('[API.getData] fallback query threw:', e2);
-      }
-    }
+    // La columna real es `max`. `max_valor` no existe en la base: el
+    // fallback `?? c.max` era lo único que mantenía esto en pie.
+    const criterios = criteriosRaw.map(c => ({
+      key: c.key, label: c.label, abbr: c.abbr, color: c.color,
+      max: Number(c.max) > 0 ? Number(c.max) : 4,
+    }));
 
-    // Lookups para resolver datos cuando los joins retornan null
-    const _profileLookup = {};
-    _profileLookup[session.user.id] = { email: profile.email, nombre: profile.nombre, distrito: profile.distrito };
-    for (const m of districtMembers) {
-      _profileLookup[m.id] = { email: m.email, nombre: m.nombre, distrito: m.distrito };
-    }
-    const _periodoLookup = {};
-    for (const p of periodosRaw) { _periodoLookup[p.id] = p.nombre; }
+    // Períodos: SOLO datos. `activo` es booleano y las fechas van crudas.
+    // La etiqueta de estado (Pendiente/En curso/Cerrado) la decide la UI
+    // con estadoPeriodo() de core/render.js — antes esta capa devolvía el
+    // string 'Activo'/'Cerrado' en español y el frontend lo comparaba.
+    const periodos = periodosRaw.map(p => ({
+      id:         p.id,
+      pe:         p.nombre,
+      nombre:     p.descripcion || p.nombre,
+      activo:     !!p.activo,
+      inicio:     p.fecha_inicio      || null,
+      finTrabajo: p.fecha_fin_trabajo || null,
+      entrega:    p.fecha_entrega     || null,
+      jornada:    p.fecha_jornada     || null,
+    }));
 
-    // Formatear evaluaciones → scores[pe] y feedback[pe]
-    for (const ev of evsRaw ?? []) {
-      const peName = ev.periodos_evaluacion?.nombre || _periodoLookup[ev.periodo_id] || null;
-      if (!peName || !scores[peName]) continue;
-      const puntajes = (typeof ev.puntajes === 'string') ? (() => { try { return JSON.parse(ev.puntajes); } catch { return {}; } })() : (ev.puntajes || {});
-      const fb = _profileLookup[ev.evaluado_id] || {};
-      const row = {
-        evaluado_id: ev.evaluado_id,
-        usuario:  ev.evaluado?.email   || fb.email   || '',
-        nombre:   ev.evaluado?.nombre  || fb.nombre  || '',
-        distrito: ev.evaluado?.distrito || fb.distrito || '',
-        ext:      ev.bono_ext || 0,
-        ...puntajes,
-      };
-      scores[peName].push(row);
-      if (ev.comentarios) {
-        const coms = (typeof ev.comentarios === 'string') ? (() => { try { return JSON.parse(ev.comentarios); } catch { return {}; } })() : ev.comentarios;
-        feedback[peName].push({ evaluado_id: ev.evaluado_id, usuario: row.usuario, nombre: row.nombre, fb: coms, perCriterio: coms });
-      }
-    }
-
-    // Rúbrica normalizada
     const rubrica = rubricaRaw.map(r => ({
       criterio: r.criterio || r.criterios?.label || '',
       nivel4: r.nivel4 || '', nivel3: r.nivel3 || '',
       nivel2: r.nivel2 || '', nivel1: r.nivel1 || '',
     }));
 
-    // Calendario normalizado
     const calendario = calRaw.map(c => ({
       numero:     c.numero,
       titulo:     c.titulo || c.descripcion || '',
       color:      c.color  || 'rojo',
-      inicio:     c.fecha_inicio      || c.inicio      || '',
-      finTrabajo: c.fecha_fin_trabajo  || c.fin_trabajo || '',
-      entrega:    c.fecha_entrega      || c.entrega     || '',
-      jornada:    c.fecha_jornada      || c.jornada     || '',
-      estado:     c.estado || 'Pendiente',
+      inicio:     c.fecha_inicio     || '',
+      finTrabajo: c.fecha_fin_trabajo || '',
+      entrega:    c.fecha_entrega    || '',
+      jornada:    c.fecha_jornada    || '',
     }));
 
-    // Evaluaciones de distrito publicadas → districtScores[pe]
-    const { data: distEvalsRaw } = await SB.from('evaluaciones_distrito')
-      .select('*, periodos_evaluacion(nombre)')
-      .eq('estado', 'publicado');
+    // null es legítimo: la gestión puede no tener período en curso.
+    const periodoActivo = periodos.find(p => p.activo) ?? null;
 
-    const districtScores = {};
-    periodos.forEach(p => { districtScores[p.pe] = []; });
-    for (const de of distEvalsRaw ?? []) {
-      const peName = de.periodos_evaluacion?.nombre;
-      if (!peName || districtScores[peName] === undefined) continue;
-      const p = de.puntajes || {};
-      districtScores[peName].push({
-        distrito: de.distrito_id,
-        total: (Number(p.cgo)||0) + (Number(p.cct)||0) + (Number(p.com)||0) + (Number(p.cee)||0),
-        cgo: Number(p.cgo)||0, cct: Number(p.cct)||0,
-        com: Number(p.com)||0, cee: Number(p.cee)||0,
-      });
-    }
-    Object.keys(districtScores).forEach(pe => {
-      districtScores[pe].sort((a, b) => b.total - a.total);
+    return { ok: true, profile, criterios, periodos, rubrica, calendario,
+             periodoActivo, periodoActivoId: periodoActivo?.id ?? null,
+             gestion, gestiones,
+             // Una gestión archivada se lee siempre, se escribe nunca.
+             soloLectura: !!gestion.archivada };
+  },
+
+  // ── GESTIONES ────────────────────────────────────────────────────────
+  async getGestiones() {
+    const { data, error } = await SB.from('gestiones')
+      .select('id, nombre, inicio, fin, activa, archivada')
+      .order('created_at', { ascending: false });
+    if (error) { console.warn('[API.getGestiones]', error.message); return []; }
+    return data ?? [];
+  },
+
+  /** Id de la gestión sobre la que se está trabajando. */
+  gestionActual() { return _gestionActual; },
+
+  /**
+   * Fija la gestión de trabajo. admin.js no pasa por getContexto(), así que
+   * necesita fijarla explícitamente antes de cargar nada; si no, los getters
+   * resolverían siempre la gestión activa e ignorarían ?gestion= de la URL.
+   */
+  setGestion(id) { _gestionActual = id == null ? null : id; },
+
+  /**
+   * Abre una gestión nueva: archiva la activa, clona criterios, rúbrica,
+   * calendario y los PE base como plantilla editable, y arranca con cero
+   * evaluaciones y cero miembros.
+   */
+  async abrirGestion(nombre, clonarDe = null) {
+    const { data, error } = await SB.rpc('abrir_gestion', {
+      p_nombre: nombre, p_clonar_de: clonarDe,
     });
+    return { ok: !error, error: error?.message, id: data ?? null };
+  },
 
-    const periodoActivo = config.periodo_activo ||
-      periodosRaw.find(p => p.activo)?.nombre || 'PE1';
+  async saveGestion({ id, nombre, inicio, fin }) {
+    const p = { nombre: (nombre || '').trim(), inicio: inicio || null, fin: fin || null };
+    const { error } = id
+      ? await SB.from('gestiones').update(p).eq('id', id)
+      : await SB.from('gestiones').insert(p);
+    return { ok: !error, error: error?.message };
+  },
 
-    return { criterios, rubrica, calendario, periodos, scores, feedback, config: { periodoActivo }, districtScores, districtMembers };
+  /**
+   * FASE 2 — CONTENIDO del período seleccionado. Se indexa por periodo_id
+   * (UUID), nunca por nombre: el admin escribe por periodo_id y el portal
+   * leía por nombre, y esa costura era el origen del bug del período.
+   *
+   * Cancelable con AbortController: cambiar de período rápido disparaba N
+   * peticiones sin cancelar que podían llegar desordenadas y pintar el
+   * período equivocado.
+   */
+  async getContenido(periodoId, { signal } = {}) {
+    if (!periodoId) return { ok: true, scores: [], feedback: [], districtScores: [], districtMembers: [] };
+
+    const profile = await Auth.getProfile();
+    if (!profile) return { ok: false, error: 'No se pudo leer tu perfil.' };
+
+    const esSecretario = profile.tipo_miembro === 'secretario' && !!profile.distrito;
+
+    try {
+      // Miembros del distrito y evaluaciones del período van en paralelo.
+      const pMiembros = esSecretario
+        ? SB.from('profiles')
+            .select('id, nombre, email, distrito, tipo_miembro, roles:rol_id(nombre)')
+            .eq('distrito', profile.distrito)
+            .abortSignal(signal)
+        : Promise.resolve({ data: [], error: null });
+
+      // Ranking de distritos: filtrado por período. Antes traía TODOS los
+      // distritos de TODO el historial para pintar una sola tabla.
+      const pDist = SB.from('evaluaciones_distrito')
+        .select('distrito_id, puntajes')
+        .eq('estado', 'publicado')
+        .eq('periodo_id', periodoId)
+        .abortSignal(signal);
+
+      const [rMiembros, rDist] = await Promise.all([pMiembros, pDist]);
+      if (rMiembros.error) throw new Error(rMiembros.error.message);
+      if (rDist.error)     throw new Error(rDist.error.message);
+
+      const districtMembers = rMiembros.data ?? [];
+      const targetIds = esSecretario && districtMembers.length
+        ? districtMembers.map(m => m.id)
+        : [profile.id];
+
+      // Evaluaciones: filtradas por período Y por los IDs que la vista
+      // muestra. Sin fallback "sin joins": la identidad es evaluado_id.
+      const { data: evsRaw, error: evErr } = await SB.from('evaluaciones')
+        .select('evaluado_id, puntajes, comentarios, bono_ext, evaluado:evaluado_id(id, nombre, email, distrito)')
+        .eq('estado', 'publicado')
+        .eq('periodo_id', periodoId)
+        .in('evaluado_id', targetIds)
+        .abortSignal(signal);
+      if (evErr) throw new Error(evErr.message);
+
+      const lookup = { [profile.id]: { email: profile.email, nombre: profile.nombre, distrito: profile.distrito } };
+      for (const m of districtMembers) lookup[m.id] = { email: m.email, nombre: m.nombre, distrito: m.distrito };
+
+      const scores = [], feedback = [];
+      for (const ev of evsRaw ?? []) {
+        const info = lookup[ev.evaluado_id] || {};
+        // Puntajes ANIDADOS, no esparcidos al nivel de la fila: si un
+        // criterio se llamara `nombre`, `distrito` o `ext` sobrescribiría
+        // en silencio el dato del usuario, y los criterios los crea el
+        // admin desde un formulario libre.
+        scores.push({
+          evaluado_id: ev.evaluado_id,
+          nombre:   ev.evaluado?.nombre   || info.nombre   || '',
+          usuario:  ev.evaluado?.email    || info.email    || '',
+          distrito: ev.evaluado?.distrito || info.distrito || '',
+          ext:      Number(ev.bono_ext) || 0,
+          puntajes: parseJSON(ev.puntajes),
+        });
+        if (ev.comentarios) {
+          const coms = parseJSON(ev.comentarios);
+          feedback.push({ evaluado_id: ev.evaluado_id, fb: coms, perCriterio: coms });
+        }
+      }
+
+      const districtScores = (rDist.data ?? []).map(de => {
+        const p = de.puntajes || {};
+        const n = k => Number(p[k]) || 0;
+        return {
+          distrito: de.distrito_id,
+          cgo: n('cgo'), cct: n('cct'), com: n('com'), cee: n('cee'),
+          total: n('cgo') + n('cct') + n('com') + n('cee'),
+        };
+      }).sort((a, b) => b.total - a.total);
+
+      return { ok: true, scores, feedback, districtScores, districtMembers };
+    } catch (e) {
+      if (e?.name === 'AbortError') return { ok: false, aborted: true };
+      return { ok: false, error: e.message || String(e) };
+    }
+  },
+
+  /**
+   * Mis evaluaciones publicadas en TODOS los períodos. Solo para las vistas
+   * de historial/tendencia; es una consulta pequeña (una fila por período).
+   */
+  async getMiHistorial() {
+    const profile = await Auth.getProfile();
+    if (!profile) return { ok: false, error: 'No se pudo leer tu perfil.' };
+
+    const { data, error } = await SB.from('evaluaciones')
+      .select('periodo_id, puntajes, bono_ext')
+      .eq('estado', 'publicado')
+      .eq('evaluado_id', profile.id);
+    if (error) return { ok: false, error: error.message };
+
+    const porPeriodo = {};
+    for (const ev of data ?? []) {
+      porPeriodo[ev.periodo_id] = {
+        ext: Number(ev.bono_ext) || 0,
+        puntajes: parseJSON(ev.puntajes),
+      };
+    }
+    return { ok: true, porPeriodo };
   },
 
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────

@@ -1,0 +1,45 @@
+# Evita que Supabase pause el proyecto por inactividad.
+#
+# El plan gratuito pausa un proyecto tras ~7 días sin actividad. Una consulta
+# real a Postgres cuenta como actividad, así que este workflow hace un SELECT
+# trivial contra la tabla `roles` (la única con policy de lectura para `anon`,
+# ver `roles_anon_read`).
+#
+# La clave usada es la publishable/anon key, que ya es pública: viaja en
+# config.js a todos los navegadores. Sin sesión de usuario el rol es `anon` y
+# las RLS bloquean todo lo demás, así que no hay nada que proteger aquí.
+#
+# OJO: GitHub deshabilita los workflows programados tras 60 días sin commits
+# en el repo. Si el repo queda inactivo, revisa que este siga activo.
+
+name: Keepalive Supabase
+
+on:
+  schedule:
+    - cron: '17 6 * * *'   # diario, 06:17 UTC
+  workflow_dispatch:        # permite lanzarlo a mano desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consulta trivial a Supabase
+        run: |
+          set -euo pipefail
+          URL="https://owfmorjlymoxqrzhadnf.supabase.co/rest/v1/roles?select=id&limit=1"
+          KEY="sb_publishable_l6zMSRSW85gASQRgPd_rmw_p3oKJhsP"
+
+          code=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
+                   -H "apikey: $KEY" \
+                   -H "Authorization: Bearer $KEY" \
+                   --max-time 30 --retry 3 --retry-delay 10 \
+                   "$URL")
+
+          echo "HTTP $code"
+          cat /tmp/resp.json
+
+          if [ "$code" != "200" ]; then
+            echo "::error::El ping devolvio HTTP $code — el proyecto puede estar pausado o la clave rotada."
+            exit 1
+          fi

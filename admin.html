@@ -15,98 +15,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <script src="core/theme.js"></script>
   <link rel="stylesheet" href="shared.css">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-<div class="bg-canvas" aria-hidden="true">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-</div>
 <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
-<!-- TOPBAR -->
-<header class="topbar" id="topbar">
-  <div class="tb-brand">
-    <img src="logo.png" alt="" class="tb-logo" onerror="this.style.display='none'">
-    <span class="tb-title">EIGHT<em> CREATORS</em></span>
-    <span class="admin-badge">ADMIN</span>
-  </div>
-  <nav class="tb-nav" id="desktop-nav">
-    <button class="tnav active" onclick="switchTab('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i> Overview</button>
-    <div class="tnav-group">
-      <button class="tnav" onclick="switchTab('evaluar',this)"><i data-lucide="users" class="nav-icon"></i> Usuarios <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
-      <div class="tnav-drop">
-        <button class="tnav-drop-item" onclick="switchTab('evaluar')"><i data-lucide="clipboard-list" class="nav-icon"></i> Evaluar</button>
-        <button class="tnav-drop-item" onclick="switchTab('usuarios')"><i data-lucide="user-cog" class="nav-icon"></i> Gestión</button>
-        <button class="tnav-drop-item" onclick="switchTab('roles')"><i data-lucide="tag" class="nav-icon"></i> Roles</button>
-      </div>
-    </div>
-    <button class="tnav" onclick="switchTab('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i> Distritos</button>
-    <div class="tnav-group">
-      <button class="tnav" onclick="switchTab('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i> Períodos <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:2px;opacity:.5"></i></button>
-      <div class="tnav-drop">
-        <button class="tnav-drop-item" onclick="switchTab('calendario')"><i data-lucide="calendar-days" class="nav-icon"></i> Calendario</button>
-        <button class="tnav-drop-item" onclick="switchTab('rubrica')"><i data-lucide="ruler" class="nav-icon"></i> Rúbrica</button>
-      </div>
-    </div>
-    <button class="tnav" onclick="switchTab('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i> Reportes</button>
-  </nav>
-  <div class="tb-user">
-    <span class="last-updated-badge" id="ts-badge"></span>
-    <div class="avatar admin-av" id="av-desktop">A</div>
-    <span class="uname" id="uname-desktop">Admin</span>
-    <button class="btn-out" onclick="Auth.logout()">Salir</button>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
-  </div>
-  <button class="hamburger" id="hamburger" aria-label="Menú" aria-expanded="false" onclick="toggleMenu()">
-    <span></span><span></span><span></span>
-  </button>
-</header>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobile-menu">
-  <div class="mobile-nav-links">
-    <button class="mobile-nav-btn active" onclick="switchTabMobile('overview',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i>Overview</button>
-    <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="users" class="nav-icon"></i>Usuarios <i data-lucide="chevron-down" class="mob-chev"></i></button>
-      <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" onclick="switchTabMobile('evaluar',this)"><i data-lucide="clipboard-list" class="nav-icon"></i>Evaluar</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('usuarios',this)"><i data-lucide="user-cog" class="nav-icon"></i>Gestión</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('roles',this)"><i data-lucide="tag" class="nav-icon"></i>Roles</button>
-      </div>
-    </div>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('distritos',this)"><i data-lucide="map-pin" class="nav-icon"></i>Distritos</button>
-    <div class="mob-nav-group">
-      <button class="mobile-nav-btn mob-nav-header" onclick="toggleMobGroup(this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos <i data-lucide="chevron-down" class="mob-chev"></i></button>
-      <div class="mob-nav-sub">
-        <button class="mobile-nav-btn" onclick="switchTabMobile('periodos',this)"><i data-lucide="calendar" class="nav-icon"></i>Períodos</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('calendario',this)"><i data-lucide="calendar-days" class="nav-icon"></i>Calendario</button>
-        <button class="mobile-nav-btn" onclick="switchTabMobile('rubrica',this)"><i data-lucide="ruler" class="nav-icon"></i>Rúbrica</button>
-      </div>
-    </div>
-    <button class="mobile-nav-btn" onclick="switchTabMobile('reportes',this)"><i data-lucide="file-bar-chart" class="nav-icon"></i>Reportes</button>
-    <div class="mobile-theme-row">
-      <span class="mobile-theme-lbl">Tema</span>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
-    </div>
-  </div>
-  <div class="mobile-user-section">
-    <div class="avatar admin-av" id="av-mobile">A</div>
-    <div class="mobile-uinfo">
-      <div class="mobile-uname" id="uname-mobile">Administrador</div>
-      <div class="mobile-urole">Panel de control</div>
-      <div class="last-updated-badge" id="ts-badge-mob"></div>
-    </div>
-    <button class="btn-out-mobile" onclick="Auth.logout()">Salir</button>
-  </div>
-</div>
-
+<!-- Navegación: rail (escritorio) y barra inferior (móvil).
+     El marcado lo genera initNav() de core/rail.js desde datos. -->
+<aside class="rail" id="rail"></aside>
+<nav class="bottom-bar" id="bottom-bar"></nav>
+<a href="#contenido" class="skip-link">Saltar al contenido</a>
 <!-- CONTENIDO ADMIN -->
-<div class="amain">
+<main class="amain" id="contenido">
 
   <!-- ── TAB: OVERVIEW ── -->
   <div id="tab-overview" class="atab-content active">
@@ -134,10 +58,10 @@
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
-      <input class="search-inp" id="search-eval-users" type="text" placeholder="Buscar miembro…" oninput="renderEvalUserList()">
+      <input class="search-inp" id="search-eval-users" aria-label="Buscar miembro" type="text" placeholder="Buscar miembro…" data-input="renderEvalUserList">
       <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
         <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-        <select class="cfg-inp cfg-select" id="eval-distrito-filter" onchange="renderEvalUserList()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" aria-label="Filtrar por distrito" data-change="renderEvalUserList" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
           <option value="">Todos los distritos</option>
         </select>
       </div>
@@ -156,10 +80,10 @@
     <div class="cfg-toolbar">
       <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input class="search-inp" id="search-usuarios" type="text" placeholder="Buscar por nombre o email…" oninput="renderUsuarios()">
+        <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
         <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
           <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" onchange="renderUsuarios()" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
+          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
             <option value="">Todos los distritos</option>
           </select>
         </div>
@@ -177,8 +101,8 @@
     <div class="ptitle">ROLES</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
-      <input class="search-inp" id="search-roles" type="text" placeholder="Buscar rol…" oninput="renderRoles()">
-      <button class="btn-cfg-add" onclick="showRolModal()">+ Nuevo rol</button>
+      <input class="search-inp" id="search-roles" aria-label="Buscar rol" type="text" placeholder="Buscar rol…" data-input="renderRoles">
+      <button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button>
     </div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -188,8 +112,8 @@
     <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
-      <input class="search-inp" id="search-periodos" type="text" placeholder="Buscar período…" oninput="renderPeriodos()">
-      <button class="btn-cfg-add" onclick="showPeriodoModal()">+ Nuevo período</button>
+      <input class="search-inp" id="search-periodos" aria-label="Buscar período" type="text" placeholder="Buscar período…" data-input="renderPeriodos">
+      <button class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal">+ Nuevo período</button>
     </div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -201,16 +125,16 @@
     <div class="section-label">Criterios de evaluación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
-      <input class="search-inp" id="search-criterios" type="text" placeholder="Buscar criterio…" oninput="renderCriterios()">
-      <button class="btn-cfg-add" onclick="showCriterioModal()">+ Nuevo criterio</button>
+      <input class="search-inp" id="search-criterios" aria-label="Buscar criterio" type="text" placeholder="Buscar criterio…" data-input="renderCriterios">
+      <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
     </div>
     <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
 
     <div class="section-label" style="margin-top:32px">Tabla de puntuación</div>
     <div class="cfg-toolbar">
       <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
-      <input class="search-inp" id="search-rubrica" type="text" placeholder="Buscar en rúbrica…" oninput="renderRubrica()">
-      <button class="btn-cfg-add" onclick="showRubricaModal()">+ Nueva entrada</button>
+      <input class="search-inp" id="search-rubrica" aria-label="Buscar en la rúbrica" type="text" placeholder="Buscar en rúbrica…" data-input="renderRubrica">
+      <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
     </div>
     <div class="rubrica-wrap" style="max-width:900px">
       <div class="rubrica-grid" id="rubrica-admin-grid"></div>
@@ -221,8 +145,8 @@
   <div id="tab-calendario" class="atab-content">
     <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
     <div class="cal-editor-toolbar">
-      <input class="search-inp" id="search-calendario" type="text" placeholder="Buscar actividad…" oninput="renderCalendario()">
-      <button class="btn-add-evento" onclick="showCalModal()">+ Agregar actividad</button>
+      <input class="search-inp" id="search-calendario" aria-label="Buscar actividad del calendario" type="text" placeholder="Buscar actividad…" data-input="renderCalendario">
+      <button class="btn-add-evento" data-act="fn" data-arg="showCalModal">+ Agregar actividad</button>
     </div>
     <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
@@ -240,7 +164,7 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
       <span class="section-label" style="margin-bottom:0">Ranking de distritos</span>
-      <input class="search-inp" id="search-distritos" type="text" placeholder="Buscar distrito…" oninput="renderDistritoRanking(_activePEDist?.id)" style="font-size:.75rem;padding:5px 12px;width:180px">
+      <input class="search-inp" id="search-distritos" aria-label="Buscar distrito" type="text" placeholder="Buscar distrito…" data-input="buscarDistritos" style="font-size:.8rem;padding:5px 12px;width:180px">
     </div>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
@@ -248,7 +172,7 @@
 
     <div style="margin:24px auto 10px;max-width:700px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eval-pe-lbl">Evaluar distrito:</span>
-      <select class="cfg-inp cfg-select" id="dist-eval-select" onchange="onDistSelectChange()" style="max-width:240px">
+      <select class="cfg-inp cfg-select" id="dist-eval-select" aria-label="Distrito a evaluar" data-change="onDistSelectChange" style="max-width:240px">
         <option value="">Seleccionar distrito...</option>
       </select>
     </div>
@@ -268,7 +192,7 @@
         <span class="eval-pe-lbl">Período:</span>
         <div id="rpt-pe-btns"></div>
       </div>
-      <button class="btn-save btn-print-rpt" onclick="printAdminReport()">
+      <button class="btn-save btn-print-rpt" data-act="fn" data-arg="printAdminReport">
         <i data-lucide="printer" style="width:15px;height:15px"></i>
         Descargar PDF
       </button>
@@ -280,53 +204,97 @@
     </div>
   </div>
 
-</div>
+  <!-- ── TAB: GESTIONES ── -->
+  <div id="tab-gestiones" class="atab-content">
+    <div class="ptitle">GESTIONES</div>
+    <p class="rubrica-intro" style="max-width:70ch">
+      Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario.
+      Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.
+    </p>
+    <div style="display:flex;gap:10px;margin:18px 0">
+      <button class="btn-cfg-add" data-act="fn" data-arg="showAbrirGestionModal">+ Abrir gestión nueva</button>
+    </div>
+    <div id="gestiones-list"><div class="loading-box"><span class="spin"></span></div></div>
+  </div>
+
+</main>
 
 <!-- MODAL: ROL -->
-<div class="modal-overlay" id="modal-rol" style="display:none" onclick="if(event.target===this)closeModal('modal-rol')">
+<div class="modal-overlay" id="modal-rol" style="display:none" data-act="cerrarModalFondo" data-arg="modal-rol">
   <div class="modal-box">
     <div class="modal-title" id="modal-rol-title">Nuevo rol</div>
     <input type="hidden" id="mrol-id">
-    <div class="field"><label>Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
+    <div class="field"><label for="mrol-nombre">Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo</label>
+      <label style="margin:0" for="mrol-activo">Activo</label>
       <input type="checkbox" id="mrol-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveRol()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-rol')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveRol">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-rol">Cancelar</button>
     </div>
     <div class="modal-err" id="mrol-err"></div>
   </div>
 </div>
 
+<!-- MODAL: ABRIR GESTIÓN -->
+<div class="modal-overlay" id="modal-gestion" style="display:none" data-act="cerrarModalFondo" data-arg="modal-gestion">
+  <div class="modal-box">
+    <div class="modal-title">Abrir gestión nueva</div>
+    <div class="field"><label for="mg-nombre">Nombre (ej: 2027-2028)</label>
+      <input class="cfg-inp" type="text" id="mg-nombre" placeholder="2027-2028"></div>
+    <div class="modal-hint" style="font-size:.8rem;color:var(--muted);line-height:1.5">
+      Se archivará la gestión actual y se clonarán criterios, rúbrica, calendario
+      y los períodos base como plantilla editable. La gestión nueva arranca sin
+      ninguna evaluación y sin ningún período activo.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" data-act="fn" data-arg="confirmarAbrirGestion">Abrir gestión</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-gestion">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mg-err"></div>
+  </div>
+</div>
+
 <!-- MODAL: PERÍODO -->
-<div class="modal-overlay" id="modal-periodo" style="display:none" onclick="if(event.target===this)closeModal('modal-periodo')">
+<div class="modal-overlay" id="modal-periodo" style="display:none" data-act="cerrarModalFondo" data-arg="modal-periodo">
   <div class="modal-box">
     <div class="modal-title" id="modal-periodo-title">Nuevo período</div>
     <input type="hidden" id="mpe-id">
-    <div class="field"><label>Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
-    <div class="field"><label>Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field"><label for="mpe-nombre">Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
+    <div class="field"><label for="mpe-desc">Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field-row" style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label for="mpe-inicio">Inicio</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
+      <div class="field" style="flex:1"><label for="mpe-fintrabajo">Fin de trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
+    </div>
+    <div class="field-row" style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label for="mpe-entrega">Entrega</label><input class="cfg-inp" type="date" id="mpe-entrega"></div>
+      <div class="field" style="flex:1"><label for="mpe-jornada">Jornada</label><input class="cfg-inp" type="date" id="mpe-jornada"></div>
+    </div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo (período actual)</label>
+      <label style="margin:0" for="mpe-activo">Activo (período actual)</label>
       <input type="checkbox" id="mpe-activo" style="width:auto">
     </div>
+    <div class="modal-hint" style="font-size:.8rem;color:var(--muted);line-height:1.5">
+      Solo puede haber un período activo. Al marcarlo aquí, el anterior se
+      desactiva automáticamente y todos los portales pasan a mostrarlo.
+    </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="savePeriodo()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-periodo')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="savePeriodo">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-periodo">Cancelar</button>
     </div>
     <div class="modal-err" id="mpe-err"></div>
   </div>
 </div>
 
 <!-- MODAL: CALENDARIO -->
-<div class="modal-overlay" id="modal-cal" style="display:none" onclick="if(event.target===this)closeModal('modal-cal')">
+<div class="modal-overlay" id="modal-cal" style="display:none" data-act="cerrarModalFondo" data-arg="modal-cal">
   <div class="modal-box">
     <div class="modal-title" id="modal-cal-title">Nueva actividad</div>
     <input type="hidden" id="mcal-id">
-    <div class="field"><label>Número</label><input class="cfg-inp" type="number" id="mcal-num" min="1" placeholder="1"></div>
-    <div class="field"><label>Título</label><input class="cfg-inp" type="text" id="mcal-titulo" placeholder="Período de Evaluación 1"></div>
-    <div class="field"><label>Color</label>
+    <div class="field"><label for="mcal-num">Número</label><input class="cfg-inp" type="number" id="mcal-num" min="1" placeholder="1"></div>
+    <div class="field"><label for="mcal-titulo">Título</label><input class="cfg-inp" type="text" id="mcal-titulo" placeholder="Período de Evaluación 1"></div>
+    <div class="field"><label for="mcal-color">Color</label>
       <select class="cfg-inp cfg-select" id="mcal-color">
         <option value="rojo">Rojo</option>
         <option value="azul">Azul</option>
@@ -334,11 +302,11 @@
         <option value="amarillo">Amarillo</option>
       </select>
     </div>
-    <div class="field"><label>Inicio</label><input class="cfg-inp" type="text" id="mcal-inicio" placeholder="01 Mar 2026"></div>
-    <div class="field"><label>Fin de trabajo</label><input class="cfg-inp" type="text" id="mcal-fin" placeholder="14 Mar 2026"></div>
-    <div class="field"><label>Entrega scores</label><input class="cfg-inp" type="text" id="mcal-entrega" placeholder="16 Mar 2026"></div>
-    <div class="field"><label>Jornada</label><input class="cfg-inp" type="text" id="mcal-jornada" placeholder="20 Mar 2026"></div>
-    <div class="field"><label>Estado</label>
+    <div class="field"><label for="mcal-inicio">Inicio</label><input class="cfg-inp" type="text" id="mcal-inicio" placeholder="01 Mar 2026"></div>
+    <div class="field"><label for="mcal-fin">Fin de trabajo</label><input class="cfg-inp" type="text" id="mcal-fin" placeholder="14 Mar 2026"></div>
+    <div class="field"><label for="mcal-entrega">Entrega scores</label><input class="cfg-inp" type="text" id="mcal-entrega" placeholder="16 Mar 2026"></div>
+    <div class="field"><label for="mcal-jornada">Jornada</label><input class="cfg-inp" type="text" id="mcal-jornada" placeholder="20 Mar 2026"></div>
+    <div class="field"><label for="mcal-estado">Estado</label>
       <select class="cfg-inp cfg-select" id="mcal-estado">
         <option value="pendiente">Pendiente</option>
         <option value="en curso">En curso</option>
@@ -347,100 +315,88 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveCal()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-cal')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveCal">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-cal">Cancelar</button>
     </div>
     <div class="modal-err" id="mcal-err"></div>
   </div>
 </div>
 
 <!-- MODAL: CRITERIO -->
-<div class="modal-overlay" id="modal-criterio" style="display:none" onclick="if(event.target===this)closeModal('modal-criterio')">
+<div class="modal-overlay" id="modal-criterio" style="display:none" data-act="cerrarModalFondo" data-arg="modal-criterio">
   <div class="modal-box">
     <div class="modal-title" id="modal-criterio-title">Nuevo criterio</div>
     <input type="hidden" id="mcrit-id">
-    <div class="field"><label>Nombre completo</label><input class="cfg-inp" type="text" id="mcrit-label" placeholder="Ej: Planificación"></div>
-    <div class="field"><label>Clave interna (key)</label><input class="cfg-inp" type="text" id="mcrit-key" placeholder="pla" maxlength="10"></div>
-    <div class="field"><label>Abreviación (badge)</label><input class="cfg-inp" type="text" id="mcrit-abbr" placeholder="PLA" maxlength="5"></div>
-    <div class="field"><label>Color</label><input class="cfg-inp" type="color" id="mcrit-color" value="#888888" style="height:42px;padding:4px 8px;cursor:pointer"></div>
-    <div class="field"><label>Orden</label><input class="cfg-inp" type="number" id="mcrit-orden" min="1" value="99"></div>
+    <div class="field"><label for="mcrit-label">Nombre completo</label><input class="cfg-inp" type="text" id="mcrit-label" placeholder="Ej: Planificación"></div>
+    <div class="field"><label for="mcrit-key">Clave interna (key)</label><input class="cfg-inp" type="text" id="mcrit-key" placeholder="pla" maxlength="10"></div>
+    <div class="field"><label for="mcrit-abbr">Abreviación (badge)</label><input class="cfg-inp" type="text" id="mcrit-abbr" placeholder="PLA" maxlength="5"></div>
+    <div class="field"><label for="mcrit-color">Color</label><input class="cfg-inp" type="color" id="mcrit-color" value="#888888" style="height:42px;padding:4px 8px;cursor:pointer"></div>
+    <div class="field"><label for="mcrit-orden">Orden</label><input class="cfg-inp" type="number" id="mcrit-orden" min="1" value="99"></div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0">Activo</label>
+      <label style="margin:0" for="mcrit-activo">Activo</label>
       <input type="checkbox" id="mcrit-activo" checked style="width:auto">
     </div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveCriterioEntry()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-criterio')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveCriterioEntry">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-criterio">Cancelar</button>
     </div>
     <div class="modal-err" id="mcrit-err"></div>
   </div>
 </div>
 
 <!-- MODAL: RUBRICA ROW -->
-<div class="modal-overlay" id="modal-rubrica" style="display:none" onclick="if(event.target===this)closeModal('modal-rubrica')">
+<div class="modal-overlay" id="modal-rubrica" style="display:none" data-act="cerrarModalFondo" data-arg="modal-rubrica">
   <div class="modal-box" style="max-width:540px">
     <div class="modal-title" id="modal-rubrica-title">Nueva entrada de rúbrica</div>
     <input type="hidden" id="mrub-id">
     <div class="field">
-      <label>Criterio</label>
+      <label for="mrub-criterio">Criterio</label>
       <select class="cfg-inp cfg-select" id="mrub-criterio">
         <option value="">Seleccionar criterio...</option>
       </select>
     </div>
-    <div class="field"><label>Nivel 4 — Excelente</label><textarea class="cfg-inp cfg-textarea" id="mrub-n4" rows="2" placeholder="Descripción del nivel excelente..."></textarea></div>
-    <div class="field"><label>Nivel 3 — Bueno</label><textarea class="cfg-inp cfg-textarea" id="mrub-n3" rows="2" placeholder="Descripción del nivel bueno..."></textarea></div>
-    <div class="field"><label>Nivel 2 — En Proceso</label><textarea class="cfg-inp cfg-textarea" id="mrub-n2" rows="2" placeholder="Descripción del nivel en proceso..."></textarea></div>
-    <div class="field"><label>Nivel 1 — Bajo</label><textarea class="cfg-inp cfg-textarea" id="mrub-n1" rows="2" placeholder="Descripción del nivel bajo..."></textarea></div>
-    <div class="field"><label>Orden</label><input class="cfg-inp" type="number" id="mrub-orden" min="1" value="99"></div>
+    <div class="field"><label for="mrub-n4">Nivel 4 — Excelente</label><textarea class="cfg-inp cfg-textarea" id="mrub-n4" rows="2" placeholder="Descripción del nivel excelente..."></textarea></div>
+    <div class="field"><label for="mrub-n3">Nivel 3 — Bueno</label><textarea class="cfg-inp cfg-textarea" id="mrub-n3" rows="2" placeholder="Descripción del nivel bueno..."></textarea></div>
+    <div class="field"><label for="mrub-n2">Nivel 2 — En Proceso</label><textarea class="cfg-inp cfg-textarea" id="mrub-n2" rows="2" placeholder="Descripción del nivel en proceso..."></textarea></div>
+    <div class="field"><label for="mrub-n1">Nivel 1 — Bajo</label><textarea class="cfg-inp cfg-textarea" id="mrub-n1" rows="2" placeholder="Descripción del nivel bajo..."></textarea></div>
+    <div class="field"><label for="mrub-orden">Orden</label><input class="cfg-inp" type="number" id="mrub-orden" min="1" value="99"></div>
     <div class="modal-actions">
-      <button class="btn-save" onclick="saveRubricaEntry()">Guardar</button>
-      <button class="btn-out" onclick="closeModal('modal-rubrica')">Cancelar</button>
+      <button class="btn-save" data-act="fn" data-arg="saveRubricaEntry">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-rubrica">Cancelar</button>
     </div>
     <div class="modal-err" id="mrub-err"></div>
   </div>
 </div>
 
 <!-- MODAL: ELIMINAR USUARIO -->
-<div class="modal-overlay" id="modal-del-user" style="display:none" onclick="if(event.target===this)closeModal('modal-del-user')">
+<div class="modal-overlay" id="modal-del-user" style="display:none" data-act="cerrarModalFondo" data-arg="modal-del-user">
   <div class="modal-box" style="max-width:400px;text-align:center">
     <div style="margin-bottom:16px"><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--accent)"></i></div>
     <div class="modal-title" style="margin-bottom:8px">Eliminar usuario</div>
     <p style="font-size:.9rem;color:var(--muted);margin-bottom:4px">¿Estás seguro de que deseas eliminar a:</p>
     <p style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:2px" id="modal-del-user-name"></p>
     <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px" id="modal-del-user-email"></p>
-    <p style="font-size:.78rem;color:var(--accent);margin-bottom:20px">Esta acción eliminará su perfil y no se puede deshacer.</p>
+    <p style="font-size:.8rem;color:var(--accent);margin-bottom:20px">Esta acción eliminará su perfil y no se puede deshacer.</p>
     <div class="modal-actions" style="justify-content:center">
-      <button class="btn-save btn-confirm" onclick="executeDeleteUser()">Eliminar</button>
-      <button class="btn-out" onclick="closeModal('modal-del-user')">Cancelar</button>
+      <button class="btn-save btn-confirm" data-act="fn" data-arg="executeDeleteUser">Eliminar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-del-user">Cancelar</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<input type="file" id="avatar-file-input" aria-label="Seleccionar foto de perfil" accept="image/*" style="display:none" data-change="handleAvatarUpload">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="core/store.js"></script>
+<script src="core/render.js"></script>
+<script src="core/rail.js"></script>
+<script src="core/charts.js"></script>
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
 <script src="api.js"></script>
 <script src="admin.js"></script>
-<script>
-(function(){
-  var R=document.documentElement,K='ec-theme';
-  function apply(t){ R.dataset.theme=t; }
-  window.toggleTheme=function(){ var n=R.dataset.theme==='light'?'dark':'light'; localStorage.setItem(K,n); apply(n); };
-  var s=localStorage.getItem(K);
-  if(s){apply(s);}else if(window.matchMedia('(prefers-color-scheme:light)').matches){apply('light');}
-})();
-</script>
-<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
-<script>
-if(typeof lucide!=='undefined')lucide.createIcons();
-
-window.addEventListener('scroll', function() {
-  var p = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-  document.getElementById('scroll-progress').style.width = p + '%';
-}, { passive: true });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>

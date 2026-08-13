@@ -40,21 +40,32 @@ const Auth = (() => {
       console.warn('[Auth] profiles query threw:', e);
     }
 
-    // Fallback: construir perfil mínimo desde metadatos de sesión.
-    // Permite que el login funcione aunque RLS bloquee o no exista la fila.
+    // Fallback: perfil mínimo cuando no hay fila en `profiles` (o RLS la oculta).
+    //
+    // SEGURIDAD: NO se lee ningún campo privilegiado de user_metadata.
+    // `user_metadata` lo controla el propio usuario — cualquiera puede hacer
+    //   SB.auth.updateUser({ data: { es_admin: true } })
+    // desde la consola del navegador. La versión anterior leía es_admin,
+    // tipo_miembro y distrito de ahí, así que un usuario sin fila en profiles
+    // podía autoproclamarse admin y entrar a admin.html.
+    //
+    // Solo se toma `nombre`, que es cosmético. Todo lo privilegiado se fija
+    // en su valor mínimo: sin rol, sin distrito, sin admin, sin aprobar.
+    // Las RLS son la frontera real; esto solo evita una UI engañosa.
     if (!profile) {
       const meta = session.user.user_metadata || {};
       profile = {
         id:           session.user.id,
         email:        session.user.email,
         nombre:       meta.nombre || session.user.email?.split('@')[0] || 'Usuario',
-        tipo_miembro: meta.tipo_miembro || 'miembro',
-        es_admin:     meta.es_admin === true || false,
+        tipo_miembro: 'miembro',
+        es_admin:     false,
         rol_id:       null,
-        distrito:     meta.distrito || null,
+        distrito:     null,
+        aprobado:     false,
         _isFallback:  true,
       };
-      console.warn('[Auth] usando perfil de sesión (fallback). Ejecuta el SQL de RLS en Supabase para leer profiles correctamente.');
+      console.warn('[Auth] sin fila en profiles: usando perfil mínimo sin privilegios.');
     }
 
     // Normalizar alias para compatibilidad con user.js y secretario.js
@@ -73,9 +84,28 @@ const Auth = (() => {
    * adminOnly = false → redirige a admin.html si es admin
    * adminOnly = null  → solo comprueba que hay sesión
    */
+  /**
+   * Cierra la sesión y manda a index.html con el aviso de cuenta pendiente.
+   * Devuelve true si bloqueó (el llamante debe abortar).
+   *
+   * Solo bloquea con `aprobado === false` explícito: si la columna todavía no
+   * existe (migración 0001 sin aplicar) el valor es undefined y NO se bloquea,
+   * para no tumbar producción entre el despliegue del front y el SQL.
+   */
+  async function _bloquearSiPendiente(profile) {
+    if (profile.es_admin) return false;
+    if (profile.aprobado !== false) return false;
+    _profileCache = null;
+    _dataCache    = null;
+    try { await SB.auth.signOut(); } catch (e) { /* da igual: igual redirigimos */ }
+    window.location.replace('index.html?pendiente=1');
+    return true;
+  }
+
   async function requireAuth(adminOnly = null) {
     const profile = await getProfile();
     if (!profile) { window.location.replace('index.html'); return null; }
+    if (await _bloquearSiPendiente(profile)) return null;
     if (adminOnly === true  && !profile.es_admin) { window.location.replace(_portalFor(profile)); return null; }
     if (adminOnly === false &&  profile.es_admin) { window.location.replace('admin.html');          return null; }
     return profile;
@@ -88,6 +118,7 @@ const Auth = (() => {
   async function requireRole(role) {
     const profile = await getProfile();
     if (!profile) { window.location.replace('index.html'); return null; }
+    if (await _bloquearSiPendiente(profile)) return null;
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
     if (profile.tipo_miembro !== role) {
       window.location.replace(_portalFor(profile));
@@ -103,6 +134,7 @@ const Auth = (() => {
   async function requireAnyRole(roles) {
     const profile = await getProfile();
     if (!profile) { window.location.replace('index.html'); return null; }
+    if (await _bloquearSiPendiente(profile)) return null;
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
     if (!roles.includes(profile.tipo_miembro)) {
       window.location.replace(_portalFor(profile));

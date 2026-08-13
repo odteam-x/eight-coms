@@ -6,30 +6,22 @@
 'use strict';
 
 let CU = null, D = null;
-function parseJSON(v) { if (!v) return {}; if (typeof v === 'string') { try { return JSON.parse(v); } catch { return {}; } } return v; }
-let mPE='PE1', rPE='PE1', dPE='PE1';
-let _arTimer=null, _lastUpdated=null, _menuOpen=false, _peInited=false;
+/* parseJSON → core/render.js */
 
-const CRITERIOS_DEFAULT = [
-  { key:'pla', label:'Planificación',       abbr:'PLA', color:'#E05A6A' },
-  { key:'rev', label:'Revisión',            abbr:'REV', color:'#38BDF8' },
-  { key:'edi', label:'Edición Creativa',    abbr:'EDI', color:'#2ECC71' },
-  { key:'dis', label:'Diseño Creativo',     abbr:'DIS', color:'#5B7FFF' },
-  { key:'flu', label:'Fluidez Oral',        abbr:'FLU', color:'#C084FC' },
-  { key:'nar', label:'Narrativa / Guión',   abbr:'NAR', color:'#F0C040' },
-  { key:'eje', label:'Ejecución en Redes',  abbr:'EJE', color:'#FB923C' },
-];
+/* Un solo período gobierna toda la página: mPE, rPE y dPE son ahora vistas
+   del mismo valor del Store, no tres estados independientes. Antes elegir
+   "PE2" en Mi Score dejaba el ranking en PE1. */
+let mPE=null, rPE=null, dPE=null;
+let _lastUpdated=null, _menuOpen=false, _peInited=false;
 
-const getCriterios = () => D?.criterios?.length ? D.criterios : CRITERIOS_DEFAULT;
-const getMaxScore  = () => getCriterios().length * 4;
-const MAX_TOTAL    = () => getMaxScore() + 2;
+/* CRITERIOS_DEFAULT eliminado — ver core/render.js. */
 const isSecretario = () => CU?.rol === 'secretario';
 
 const DIST_CRITERIOS = [
-  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'#0087F2', max:7 },
-  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'#2ECC71', max:7 },
-  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'#C084FC', max:7 },
-  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'#FB923C', max:7 },
+  { key:'cgo', label:'Competencia en Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7 },
+  { key:'cct', label:'Competencia Creativa y Técnica',        abbr:'CCT', color:'var(--criterio)', max:7 },
+  { key:'com', label:'Competencia Comunicativa',              abbr:'COM', color:'var(--criterio)', max:7 },
+  { key:'cee', label:'Competencia de Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7 },
 ];
 const MAX_DIST_SEC   = 28;
 const calcDistScore  = p => { const o = parseJSON(p); return DIST_CRITERIOS.reduce((s,c) => s+(Number(o[c.key])||0), 0); };
@@ -42,13 +34,16 @@ function getMyDistrito() {
   return (CU.distrito || '').trim();
 }
 
-function getDistritoRows(pe) {
-  const all = D?.scores?.[pe] || [];
-  // Para secretario getData() ya cargó solo los miembros del distrito, sin re-filtrar
-  if (isSecretario()) return all;
-  const myD = getMyDistrito();
-  if (!myD) return all;
-  return all.filter(r => String(r.distrito||'').trim().toLowerCase() === myD.toLowerCase());
+/**
+ * Filas del distrito para el período actual.
+ *
+ * NO vuelve a filtrar por distrito (3.10): RLS es la única frontera. El
+ * filtro en JS asumía que llegaban más filas de las que el usuario debe
+ * ver, y ese es exactamente el sitio donde se cuelan las fugas cuando
+ * alguien toca una policy meses después.
+ */
+function getDistritoRows() {
+  return _contenido?.scores || [];
 }
 
 /* ── BOOT ── */
@@ -56,89 +51,210 @@ document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAnyRole(['secretario','miembro']);
   if (!CU) return;
 
-  const cached = Auth.getCachedData();
-  if (cached) {
-    D = cached;
-    if (!_peInited) {
-      const activoName = cached.config?.periodoActivo
-        || cached.periodos?.find(p => p.estado === 'Activo')?.pe;
-      if (activoName) {
-        mPE = rPE = dPE = activoName;
-        _trabajosPE = mPE;
-        _peInited = true;
-      }
-    }
-    syncAllPEButtons();
+  if (await loadContexto()) {
     initUI();
+    if (await loadContenido()) renderPeriodoActual();
   }
-  await loadData();
-  initUI();
+  initRevalidacion();
 });
 
-async function loadData() {
-  try {
-    const data = await API.getData();
-    if (data.ok !== false) {
-      D = data;
-      if (!_peInited) {
-        const activoName = data.config?.periodoActivo
-          || data.periodos?.find(p => p.estado === 'Activo')?.pe;
-        if (activoName) {
-          mPE = rPE = dPE = activoName;
-          _trabajosPE = mPE;
-          _peInited = true;
-          syncAllPEButtons();
-        }
-      }
-      Auth.setCachedData(data);
-      _lastUpdated = new Date();
+/* ── REVALIDACIÓN AL VOLVER A LA PESTAÑA ── */
+const REVALIDAR_MS = 60000;
+
+function initRevalidacion() {
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) return;
+    if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
+
+    const idAnterior = Store.periodoActivo()?.id ?? null;
+    if (!(await loadContexto())) return;
+
+    // Un solo período gobierna todas las secciones: si el admin lo cambió,
+    // Mi Score, Ranking, Mi Distrito y Trabajos lo siguen a la vez.
+    const nuevo = Store.periodoActivo();
+    if (nuevo && String(nuevo.id) !== String(idAnterior)) {
+      Store.setPeriodo(nuevo.id);
+      mPE = rPE = dPE = _trabajosPE = nuevo.pe;
     }
-  } catch(e) { console.error('[Portal]', e); }
+    await loadContenido();
+    initUI();
+    if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
+  });
 }
 
-function syncAllPEButtons() {
-  document.querySelectorAll('.pe-row').forEach(row => {
-    row.querySelectorAll('.pb').forEach(b => {
-      const oc = b.getAttribute('onclick') || '';
-      const pe = oc.match(/'(PE\d)'/)?.[1];
-      const target = oc.includes('selectPERankDist') ? dPE
-                   : oc.includes('selectPERank')     ? rPE
-                   : oc.includes('selectTrabajoPE')  ? _trabajosPE
-                   : mPE;
-      b.classList.toggle('active', pe === target);
+/* ── FASE 1: CONTEXTO ── */
+async function loadContexto() {
+  try {
+    const ctx = await API.getContexto(gestionDeURL());
+    if (!ctx.ok) { mostrarErrorCarga(ctx.error); return false; }
+
+    _lastUpdated = new Date();
+    Store.set({
+      profile:     CU,
+      periodos:    ctx.periodos  || [],
+      criterios:   ctx.criterios || [],
+      lastUpdated: _lastUpdated,
     });
-  });
+    D = { ...(D || {}), criterios: ctx.criterios, periodos: ctx.periodos,
+          rubrica: ctx.rubrica, calendario: ctx.calendario,
+          gestion: ctx.gestion, gestiones: ctx.gestiones, soloLectura: ctx.soloLectura };
+
+    // Lo pasado se lee siempre, se escribe nunca.
+    renderBannerSoloLectura(ctx.gestion);
+    renderSelectorGestion('gestion-switch', ctx.gestiones, ctx.gestion?.id, cambiarGestion);
+
+    if (!_peInited) {
+      const inicial = ctx.periodoActivo || ctx.periodos?.[0] || null;
+      if (inicial) {
+        Store.setPeriodo(inicial.id);
+        mPE = rPE = dPE = _trabajosPE = inicial.pe;
+      }
+      _peInited = true;
+    }
+    return true;
+  } catch(e) {
+    console.error('[Portal]', e);
+    mostrarErrorCarga(e.message || String(e));
+    return false;
+  }
+}
+
+/**
+ * Cambia de gestión. Recarga la página con ?gestion=<id>: reconstruir el
+ * estado a mano (períodos, contenido, historial, caché de pestañas) es más
+ * frágil que empezar limpio, y cambiar de gestión es una acción rara.
+ */
+function cambiarGestion(gestionId) {
+  const u = new URL(location.href);
+  u.searchParams.set('gestion', gestionId);
+  location.assign(u.toString());
+}
+
+/** Gestión pedida por URL, si la hay. */
+function gestionDeURL() {
+  return new URLSearchParams(location.search).get('gestion') || null;
+}
+
+/* ── FASE 2: CONTENIDO del período elegido (lazy, cancelable) ── */
+let _abortContenido = null;
+let _contenido = null;
+
+async function loadContenido() {
+  const pid = Store.periodoId();
+  if (!pid) { _contenido = null; return true; }
+
+  _abortContenido?.abort();
+  _abortContenido = new AbortController();
+
+  const res = await API.getContenido(pid, { signal: _abortContenido.signal });
+  if (res.aborted) return false;
+  if (!res.ok) { mostrarErrorCarga(res.error); return false; }
+
+  _contenido   = res;
+  _lastUpdated = new Date();
+  Store.set({ lastUpdated: _lastUpdated });
+  return true;
+}
+
+/** Identidad SIEMPRE por UUID (3.6), nunca por email. */
+const miFila     = () => (_contenido?.scores   || []).find(r => r.evaluado_id === CU?.id) || null;
+const miFeedback = () => (_contenido?.feedback || []).find(r => r.evaluado_id === CU?.id) || null;
+
+/** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
+function mostrarErrorCarga(msg) {
+  const cont = document.getElementById('score-body');
+  if (!cont) return;
+  cont.replaceChildren();
+  const box = document.createElement('div');
+  box.className = 'no-data-msg';
+  box.setAttribute('role', 'alert');
+  const t = document.createElement('div');
+  t.className = 'no-data-txt';
+  t.textContent = 'No se pudieron cargar los datos. ' + (msg || '');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pb';
+  btn.style.marginTop = '12px';
+  btn.textContent = 'Reintentar';
+  btn.addEventListener('click', () => location.reload());
+  box.append(t, btn);
+  cont.appendChild(box);
+}
+
+/* Las cuatro barras se generan desde los datos. */
+function buildPEBars() {
+  const pes = D?.periodos || [];
+  renderPEBar(document.getElementById('pe-row-miscore'),  pes, mPE,         selectPE);
+  renderPEBar(document.getElementById('pe-row-rankdist'), pes, dPE,         selectPERankDist);
+  renderPEBar(document.getElementById('pe-row-rank'),     pes, rPE,         selectPERank);
+  renderPEBar(document.getElementById('trabajos-pe-row'), pes, _trabajosPE, selectTrabajoPE);
   setEl('hero-pe', mPE);
 }
 
+function syncAllPEButtons() {
+  syncPEBar(document.getElementById('pe-row-miscore'),  mPE);
+  syncPEBar(document.getElementById('pe-row-rankdist'), dPE);
+  syncPEBar(document.getElementById('pe-row-rank'),     rPE);
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
+  setEl('hero-pe', mPE);
+}
+
+/* Render quirúrgico (3.9): lo estático se monta una vez. */
+let _uiMontada = false;
+
 function initUI() {
-  if (!CU || !D) return;
-  syncAllPEButtons();
+  if (!CU) return;
+  buildPEBars();
 
-  // Mostrar/ocultar elementos exclusivos del secretario
-  const sec = isSecretario();
-  document.querySelectorAll('.sec-only').forEach(el => { el.style.display = sec ? '' : 'none'; });
-  document.querySelectorAll('.mem-only').forEach(el => { el.style.display = sec ? 'none' : ''; });
-  document.getElementById('dist-calificacion')?.style && (document.getElementById('dist-calificacion').style.display = sec ? 'block' : 'none');
+  if (!_uiMontada) {
+    const sec = isSecretario();
+    initNav({
+      marca: 'EIGHT CREATORS',
+      badge: sec ? 'SECRETARIO' : 'CREATOR',
+      activo: 'miscore',
+      grupos: [{ items: [
+        { tab:'miscore',   icono:'bar-chart-2', etiqueta:'Mi Score' },
+        ...(sec ? [
+        { tab:'ranking',   icono:'trophy',      etiqueta:'Ranking' },
+        { tab:'distrito',  icono:'map',         etiqueta:'Mi Distrito' }] : []),
+        { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas' },
+        { tab:'historial', icono:'history',     etiqueta:'Historial' },
+      ]}],
+    });
+    // Mostrar/ocultar elementos exclusivos del secretario
+    document.querySelectorAll('.sec-only').forEach(el => { el.style.display = sec ? '' : 'none'; });
+    document.querySelectorAll('.mem-only').forEach(el => { el.style.display = sec ? 'none' : ''; });
+    const dc = document.getElementById('dist-calificacion');
+    if (dc) dc.style.display = sec ? 'block' : 'none';
 
-  // Badge de rol
-  const badge = document.getElementById('role-badge');
-  if (badge) { badge.textContent = sec ? 'SECRETARIO' : 'CREATOR'; badge.className = sec ? 'secretario-badge' : 'portal-badge'; }
-  const rolMob = document.getElementById('role-label-mob');
-  if (rolMob) rolMob.textContent = sec ? 'Secretario de Comunicaciones' : 'Creator';
+    const badge = document.getElementById('role-badge');
+    if (badge) { badge.textContent = sec ? 'SECRETARIO' : 'CREATOR'; badge.className = sec ? 'secretario-badge' : 'portal-badge'; }
+    const rolMob = document.getElementById('role-label-mob');
+    if (rolMob) rolMob.textContent = sec ? 'Secretario de Comunicaciones' : 'Creator';
 
-  // Datos de usuario en UI
-  const name = CU.name || CU.user, ini = initials(name);
-  setEl('av-desktop',ini); setEl('av-mobile',ini);
-  setEl('uname-desktop',name); setEl('uname-mobile',name);
-  setEl('hero-name',name);
-  setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER 08' : 'CREATOR · CELIDER 08');
+    const name = CU.name || CU.user, ini = initials(name);
+    setEl('av-desktop',ini); setEl('av-mobile',ini);
+    setEl('uname-desktop',name); setEl('uname-mobile',name);
+    setEl('hero-name',name);
+    setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER 08' : 'CREATOR · CELIDER 08');
 
-  renderDistritoHeader();
-  renderMyScore(mPE); renderPEDates(mPE,'tab-miscore');
-  renderRankingDistritos(dPE); renderDistrito(rPE);
-  renderRubrica(); renderTablaEvaluacion(); renderCalendario(); renderQuickLinks(); updateTimestamp();
-  initScrollEffects();
+    renderDistritoHeader();
+    renderQuickLinks();      // estáticas: una sola vez
+    initScrollEffects();
+    _uiMontada = true;
+  }
+
+  renderRubrica(); renderTablaEvaluacion(); renderCalendario();
+  renderPeriodoActual();
+  updateTimestamp();
+}
+
+/** Repinta solo lo que depende del período seleccionado. */
+function renderPeriodoActual() {
+  renderMyScore(mPE);
+  renderPEDates(mPE, 'tab-miscore');
+  renderRankingDistritos(dPE);
+  renderDistrito(rPE);
 }
 
 /* ── HEADER DISTRITO ── */
@@ -149,7 +265,7 @@ function renderDistritoHeader() {
     el.innerHTML = `<div style="padding:14px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:4px">⚠ Sin distrito asignado</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="distrito-title-block"><div class="distrito-label">TU DISTRITO</div><div class="distrito-nombre">${nombre}</div></div>`;
+  el.innerHTML = `<div class="distrito-title-block"><div class="distrito-label">TU DISTRITO</div><div class="distrito-nombre">${escHtml(nombre)}</div></div>`;
 }
 
 /* ── PE DATES ── */
@@ -168,24 +284,49 @@ function renderPEDates(pe, tabId) {
   if (!p) { el.innerHTML = ''; return; }
   const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
   const estadoCls = (p.estado||'').toLowerCase().replace(/\s+/g,'-');
-  el.innerHTML = `<span class="pe-dates-nombre">${p.nombre||p.pe}</span>` +
+  el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
     items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${v}</span>`).join('') +
     (p.estado?`<span class="pe-dates-estado pe-estado--${estadoCls}">${p.estado}</span>`:'');
 }
 
 /* ── MI SCORE ── */
-function selectPE(pe, btn) {
-  mPE = pe;
-  document.querySelectorAll('#tab-miscore .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); setEl('hero-pe',pe); renderPEDates(pe,'tab-miscore'); renderMyScore(pe);
+/* Un solo período para toda la página (3.8): cambiarlo en cualquier barra
+   repinta Mi Score, Ranking, Mi Distrito y Trabajos a la vez. */
+async function cambiarPeriodo(pe, btn) {
+  if (!pe) return;
+  mPE = rPE = dPE = _trabajosPE = pe;
+  Store.setPeriodo(pe);
+  if (btn) syncPEBar(btn.closest('.pe-row'), pe);
+  syncAllPEButtons();
+  setEl('hero-pe', pe);
+  renderPEDates(pe, 'tab-miscore');
+  renderCargando(document.getElementById('score-body'));
+
+  // Solo la fase 2, cancelando la petición anterior.
+  if (!(await loadContenido())) return;
+
+  renderMyScore(pe);
+  renderRankingDistritos(pe);
+  renderDistrito(pe);
+  if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
 }
+
+function selectPE(pe, btn)         { cambiarPeriodo(pe, btn); }
 
 function renderMyScore(pe) {
   const container = document.getElementById('score-body'); if (!container) return;
-  if (!D) { container.innerHTML='<div class="loading-box"><span class="spin"></span></div>'; return; }
-  const criterios=getCriterios(), scores=D.scores?.[pe]||[], fbs=D.feedback?.[pe]||[];
-  const _matchMe=r=>r.usuario===CU.user||r.evaluado_id===CU.id;
-  const myScore=scores.find(_matchMe), myFb=fbs.find(_matchMe);
+  if (!hayCriterios()) {
+    renderError(container, 'No se pudieron cargar los criterios de evaluación.', () => location.reload());
+    return;
+  }
+  if (!_contenido) { renderCargando(container); return; }
+
+  // El historial (tendencia) se carga una vez y repinta al llegar.
+  if (!_historial) ensureHistorial().then(() => renderMyScore(mPE));
+
+  const criterios = getCriterios();
+  const myScore = miFila();               // identidad por UUID (3.6)
+  const myFb    = miFeedback()?.fb || null;
 
   if (myScore) {
     const total=calcScore(myScore), el=document.getElementById('hero-score');
@@ -198,17 +339,18 @@ function renderMyScore(pe) {
   setEl('hero-max', MAX_TOTAL());
 
   if (!myScore) {
-    container.innerHTML=`<div class="no-data-msg"><div class="no-data-icon">${ICONS.score}</div><div class="no-data-txt">Aún no hay evaluación para <strong>${pe}</strong>.</div></div>`;
+    renderVacio(container, `Aún no hay evaluación para ${pe}.`,
+                { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
 
   const total=calcScore(myScore), ext=myScore.ext||0;
   const bars=criterios.map((c,i)=>{
-    const val=myScore[c.key]??0, critFb=myFb?.[c.key]||'';
+    const val=puntajeDe(myScore,c.key), critFb=myFb?.[c.key]||'';
     return `<div class="cbar" style="animation-delay:${i*40}ms">
-      <div class="cbar-top"><div><div class="cbar-tag" style="color:${c.color}">${c.abbr}</div><div class="cbar-name">${c.label}</div></div>
-      <div class="cbar-val" style="color:${c.color}">${val}<span>/4</span></div></div>
-      <div class="cbar-track"><div class="cbar-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div>
+      <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
+      <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div></div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div>
       ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
     </div>`;
   }).join('');
@@ -217,8 +359,8 @@ function renderMyScore(pe) {
     <div class="score-summary-card">
       <div class="sse-left">
         <div class="sse-label">Puntaje total — ${pe}</div>
-        <div class="sse-name">${CU.name||CU.user}</div>
-        <div class="sse-role">${isSecretario()?'Secretario':'Creator'} · ${getMyDistrito()||'Sin distrito'}</div>
+        <div class="sse-name">${escHtml(CU.name||CU.user)}</div>
+        <div class="sse-role">${isSecretario()?'Secretario':'Creator'} · ${escHtml(getMyDistrito()||'Sin distrito')}</div>
         ${ext>0?`<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono +${ext}</span></div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -233,12 +375,23 @@ function renderMyScore(pe) {
     ${renderTendenciaInline()}`;
 }
 
+/* La tendencia cruza TODOS los períodos, así que no puede salir de la fase 2
+   (filtrada a uno). Usa el historial propio, que es una consulta pequeña. */
+let _historial = null;   // { [periodo_id]: { ext, puntajes } }
+
+async function ensureHistorial() {
+  if (_historial) return _historial;
+  const res = await API.getMiHistorial();
+  _historial = res.ok ? res.porPeriodo : {};
+  return _historial;
+}
+
 function renderTendenciaInline() {
-  if (!D) return '';
-  const peNames = D.periodos?.map(p => p.pe) || ['PE1','PE2','PE3'];
-  const cards=peNames.map(pe=>{
-    const row=D.scores?.[pe]?.find(r=>r.usuario===CU.user||r.evaluado_id===CU.id);
-    return {pe, s:row?calcScore(row):null, isCur:pe===mPE};
+  if (!_historial) return '';   // se pinta en la segunda pasada
+  const cards = (Store.periodos() || []).map(p => {
+    const h = _historial[p.id];
+    const row = h ? { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes } : null;
+    return { pe: p.pe, s: row ? calcScore(row) : null, isCur: p.pe === mPE };
   });
   const wd=cards.filter(c=>c.s!==null);
   let arrow='';
@@ -257,23 +410,20 @@ function renderTendenciaInline() {
 }
 
 /* ── RANKING DE DISTRITOS (solo secretario) ── */
-function selectPERankDist(pe, btn) {
-  dPE = pe;
-  document.querySelectorAll('#tab-ranking .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderRankingDistritos(pe);
-}
+function selectPERankDist(pe, btn) { cambiarPeriodo(pe, btn); }
 
 function renderRankingDistritos(pe) {
   const el = document.getElementById('ranking-dist-body');
   if (!el) return;
-  if (!D) { el.innerHTML='<div class="loading-box"><span class="spin"></span></div>'; return; }
+  if (!_contenido) { renderCargando(el); return; }
 
-  // Usar datos de distritos directamente del sheet (filas 23+)
-  const districts = D.districtScores?.[pe] || [];
+  // Ya viene filtrado por período desde la consulta (3.4).
+  const districts  = _contenido.districtScores || [];
   const myDistrito = getMyDistrito();
 
   if (!districts.length) {
-    el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.trophy}</div><div class="empty-txt">Sin datos de ranking para ${pe}.</div></div>`;
+    renderVacio(el, `Sin datos de ranking para ${pe}.`,
+                { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
 
@@ -281,10 +431,10 @@ function renderRankingDistritos(pe) {
   const myPos  = myIdx + 1;
   const myDist = myIdx >= 0 ? districts[myIdx] : null;
   const COMP = D?.distCompetencias || [
-    { key:'cgo', label:'Gestión y Organización', abbr:'CGO', color:'#38BDF8', max:7 },
-    { key:'cct', label:'Creativa y Técnica',     abbr:'CCT', color:'#2ECC71', max:7 },
-    { key:'com', label:'Comunicativa',           abbr:'COM', color:'#C084FC', max:7 },
-    { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'#F0C040', max:7 },
+    { key:'cgo', label:'Gestión y Organización', abbr:'CGO', color:'var(--criterio)', max:7 },
+    { key:'cct', label:'Creativa y Técnica',     abbr:'CCT', color:'var(--criterio)', max:7 },
+    { key:'com', label:'Comunicativa',           abbr:'COM', color:'var(--criterio)', max:7 },
+    { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7 },
   ];
   const maxTotal  = Math.max(...districts.map(d=>d.total), 1);
 
@@ -310,9 +460,9 @@ function renderRankingDistritos(pe) {
       const critBars = COMP.map(c => {
         const val = d[c.key] ?? 0;
         return `<div class="dm-crit-row">
-          <span class="dm-crit-abbr" style="color:${c.color}">${c.abbr}</span>
-          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:${c.color}"></div></div>
-          <span class="dm-crit-val" style="color:${c.color}">${val}</span>
+          <span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+          <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:var(--criterio)"></div></div>
+          <span class="dm-crit-val" style="color:var(--criterio)">${val}</span>
         </div>`;
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
@@ -350,11 +500,7 @@ function renderRankingDistritos(pe) {
 }
 
 /* ── MI DISTRITO ── */
-function selectPERank(pe, btn) {
-  rPE=pe;
-  document.querySelectorAll('#tab-distrito .pe-row .pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderDistrito(pe);
-}
+function selectPERank(pe, btn) { cambiarPeriodo(pe, btn); }
 
 function renderDistrito(pe) {
   renderCalificacionDistrito(pe);
@@ -381,9 +527,9 @@ function renderCalificacionDistrito(pe) {
     const critBars = DIST_CRITERIOS.map(c => {
       const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:${c.color}">${c.abbr}</span>
-        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:${c.color}"></div></div>
-        <span class="dist-cal-val" style="color:${c.color}">${val}</span>
+        <span class="dist-cal-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:var(--criterio)"></div></div>
+        <span class="dist-cal-val" style="color:var(--criterio)">${val}</span>
       </div>`;
     }).join('');
     el.innerHTML = `<div class="dist-cal-card">
@@ -400,23 +546,23 @@ function renderCalificacionDistrito(pe) {
 }
 
 function getDistrictMembersList() {
-  return D?.districtMembers || [];
+  return _contenido?.districtMembers || [];
 }
 
 function renderDistStats(pe) {
   const el=document.getElementById('dist-stats'); if(!el) return;
   const members=getDistrictMembersList(), myD=getMyDistrito();
-  const rows=getDistritoRows(pe);
+  const rows=getDistritoRows();
   const totalMembers=members.length;
   if (!totalMembers) {
-    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${myD||'tu distrito'}</strong>.</div>`;
+    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${escHtml(myD||'tu distrito')}</strong>.</div>`;
     return;
   }
   const evaluated=rows.length;
   const scores=rows.map(calcScore);
   const avg=evaluated?(scores.reduce((a,b)=>a+b,0)/evaluated).toFixed(1):'—';
-  const myRow=rows.find(r=>r.usuario===CU.user||r.evaluado_id===CU.id), myS=myRow?calcScore(myRow):null;
-  const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.usuario===CU.user||r.evaluado_id===CU.id)+1:null;
+  const myRow=rows.find(r=>r.evaluado_id===CU.id), myS=myRow?calcScore(myRow):null;
+  const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.evaluado_id===CU.id)+1:null;
   const maxS=scores.length?Math.max(...scores):0, topR=scores.length?rows.find(r=>calcScore(r)===maxS):null;
   el.innerHTML=[
     {lbl:'Miembros en el distrito', val:totalMembers,          sub:`${evaluated} evaluados · ${myD||pe}`, col:''},
@@ -428,13 +574,13 @@ function renderDistStats(pe) {
 
 function renderMiembrosDistrito(pe) {
   const el=document.getElementById('distrito-members'); if(!el) return;
-  const members=getDistrictMembersList(), scoreRows=getDistritoRows(pe), fbs=D?.feedback?.[pe]||[], criterios=getCriterios();
+  const members=getDistrictMembersList(), scoreRows=getDistritoRows(), fbs=_contenido?.feedback||[], criterios=getCriterios();
   if (!members.length) {
     el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.users}</div><div class="empty-txt">No hay miembros registrados en tu distrito.</div></div>`;
     return;
   }
   const merged=members.map(m=>{
-    const scoreRow=scoreRows.find(r=>r.usuario===m.email||r.evaluado_id===m.id);
+    const scoreRow=scoreRows.find(r=>r.evaluado_id===m.id);
     return { ...m, usuario:m.email, score:scoreRow?calcScore(scoreRow):null, scoreRow, ext:scoreRow?.ext||0 };
   });
   const withScores=merged.filter(m=>m.score!==null).sort((a,b)=>b.score-a.score);
@@ -442,19 +588,19 @@ function renderMiembrosDistrito(pe) {
   const sorted=[...withScores,...withoutScores];
   el.innerHTML=`<div class="distrito-members-grid">${sorted.map((r,i)=>{
     const hasEval=r.score!==null;
-    const s=r.score||0, isMe=r.email===CU.user||r.id===CU.id, myFb=fbs.find(f=>f.usuario===r.email||f.evaluado_id===r.id);
+    const s=r.score||0, isMe=r.id===CU.id, myFb=(fbs.find(f=>f.evaluado_id===r.id)||{}).fb||null;
     const pos=hasEval?withScores.indexOf(r)+1:null;
     const rc=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
     const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
     const critBars=hasEval?criterios.map(c=>{
-      const val=r.scoreRow[c.key]||0;
-      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:${c.color}">${c.abbr}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/4)*100}%;background:${c.color}"></div></div><span class="dm-crit-val" style="color:${c.color}">${val}</span></div>`;
+      const val=puntajeDe(r.scoreRow,c.key);
+      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div><span class="dm-crit-val" style="color:var(--criterio)">${val}</span></div>`;
     }).join(''):'';
     const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
     return `<div class="dm-card${isMe?' dm-card--me':''}">
       <div class="dm-card-head">
         <div class="dm-rank ${rc}">${pos?'#'+pos:'—'}</div>
-        <div class="dm-avatar">${initials(r.nombre||r.email)}</div>
+        <div class="dm-avatar">${escHtml(initials(r.nombre||r.email))}</div>
         <div class="dm-info">
           <div class="dm-name">${escHtml(r.nombre||r.email)}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
           <div class="dm-role">${escHtml(rolName)}</div>
@@ -469,7 +615,7 @@ function renderMiembrosDistrito(pe) {
         </div>
       </div>
       ${critBars?`<div class="dm-crit-bars">${critBars}</div>`:''}
-      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:${c.color};font-weight:700;font-size:.65rem;letter-spacing:1px">${c.abbr}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
+      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:var(--criterio);font-weight:700;font-size:.65rem;letter-spacing:1px">${escHtml(c.abbr)}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -481,7 +627,7 @@ function renderRubrica() {
   if (!rubrica.length) { el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color=c.color||'#888';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" onclick="document.getElementById('rc-${i}').classList.toggle('open')"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${r.criterio}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${l.color}">${l.n}</div><div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
+  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color='var(--criterio)';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
 }
 
 /* ── TABLA DE EVALUACIÓN (solo secretario) ── */
@@ -499,7 +645,7 @@ function renderTablaEvaluacion() {
   if (!isSecretario()) return;
   _renderRubricaGrid('eval-rubrica-creators-grid',  D?.rubrica || [], getCriterios());
   _renderRubricaGrid('eval-rubrica-distritos-grid',  D?.rubricaDistritos || [], D?.distCompetencias || [
-    {color:'#38BDF8'},{color:'#2ECC71'},{color:'#C084FC'},{color:'#F0C040'}
+    {color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'}
   ]);
 }
 
@@ -512,19 +658,19 @@ function _renderRubricaGrid(elId, rubrica, criterios) {
   const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
   const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
   el.innerHTML=rubrica.map((r,i)=>{
-    const c=criterios[i]||{}, color=c.color||'#888', uid=`${elId}-${i}`;
+    const c=criterios[i]||{}, color = 'var(--criterio)', uid=`${elId}-${i}`;
     return `<div class="rubrica-card" id="${uid}">
-      <div class="rubrica-card-head" onclick="document.getElementById('${uid}').classList.toggle('open')">
+      <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="${uid}">
         <div class="rubrica-dot" style="background:${color}"></div>
-        <div class="rubrica-title" style="color:${color}">${r.criterio}</div>
+        <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
         <span class="rubrica-chev">▾</span>
       </div>
       <div class="rubrica-body">
         <div class="rubrica-levels">
           ${levels.map(l=>`<div class="rlevel">
-            <div class="rlevel-badge" style="color:${l.color}">${l.n}</div>
-            <div class="rlevel-lbl" style="color:${l.color}">${l.lbl}</div>
-            <div class="rlevel-desc">${r[lk[l.n]]||'—'}</div>
+            <div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div>
+            <div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
+            <div class="rlevel-desc">${escHtml(r[lk[l.n]]||'—')}</div>
           </div>`).join('')}
         </div>
       </div>
@@ -540,7 +686,7 @@ function renderCalendario() {
   const cAcc={rojo:'cal-acc--rojo',verde:'cal-acc--verde',azul:'cal-acc--azul',amarillo:'cal-acc--amarillo'};
   const cT={rojo:'cal-t--rojo',verde:'cal-t--verde',azul:'cal-t--azul',amarillo:'cal-t--amarillo'};
   const emap={'en curso':{cls:'sa',dot:true,txt:'En curso'},'próximo':{cls:'sp',dot:true,txt:'Próximo'},'proximo':{cls:'sp',dot:true,txt:'Próximo'},'pendiente':{cls:'spe',dot:false,txt:'Pendiente'},'completado':{cls:'spe',dot:false,txt:'Completado'}};
-  el.innerHTML=cal.map(p=>{const c=(p.color||'rojo').toLowerCase(),es=emap[(p.estado||'pendiente').toLowerCase()]||emap.pendiente,rows=[['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body"><div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${p.titulo}</div>${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}<div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;}).join('');
+  el.innerHTML=cal.map(p=>{const c=(p.color||'rojo').toLowerCase(),es=emap[(p.estado||'pendiente').toLowerCase()]||emap.pendiente,rows=[['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body"><div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}<div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;}).join('');
 }
 
 /* ── REFRESH ── */
@@ -555,44 +701,36 @@ async function handleRefresh() {
   showToast('Datos actualizados ✓','ok');
 }
 
-/* ── HELPERS ── */
-const calcScore  = row => getCriterios().reduce((s,c)=>s+(row[c.key]||0),0)+(row.ext||0);
-const scoreColor = s => s>=26?'var(--sex)':s>=20?'var(--sbu)':s>=11?'var(--spr)':'var(--sba)';
-const scoreLabel = s => s>=26?'Excelente':s>=20?'Bueno':s>=11?'En Proceso':'Bajo';
-const scoreClass = s => s>=26?'sex':s>=20?'sbu':s>=11?'spr':'sba';
-const initials   = n => String(n||'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?';
-const setEl      = (id,txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
-const pad        = n => String(n).padStart(2,'0');
+/* Los helpers viven ahora en core/render.js. */
 
 /* ── TABS ── */
+/* Se aceptan los nombres viejos por si queda algun enlace guardado. */
+const _ALIAS_TAB = { periodos:'historial', cal:'historial', reportes:'historial' };
 const _secTabParent = {
   miscore:'miscore', ranking:'ranking', distrito:'ranking',
-  periodos:'periodos', cal:'periodos', trabajos:'trabajos',
-  evaluacion:'evaluacion', rubrica:'rubrica', reportes:'reportes',
+  trabajos:'trabajos', historial:'historial',
+  evaluacion:'evaluacion', rubrica:'rubrica',
 };
 
 function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`)?.classList.add('active');
-  document.querySelectorAll('#desktop-nav .tnav').forEach(b=>b.classList.remove('active'));
-  if (btn) { btn.classList.add('active'); }
-  else {
-    const parent = _secTabParent[tab] || tab;
-    document.querySelectorAll('#desktop-nav .tnav-group > .tnav, #desktop-nav > .tnav').forEach(b => {
-      if ((b.getAttribute('onclick')||'').includes(`'${parent}'`)) b.classList.add('active');
-    });
+  tab = _ALIAS_TAB[tab] || tab;
+  switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
+
+  // Entregas reúne trabajos, fechas del período y calendario: es la
+  // pestaña de "qué debo entregar y cuándo".
+  if (tab === 'trabajos') renderPeriodosTab();
+  if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
+    Store.marcarCargado('trabajos');
+    _trabajosPE = Store.periodoNombre();
+    syncTrabajoPEBtns();
+    renderTrabajosTab();
   }
-  if (tab === 'periodos') renderPeriodosTab();
-  if (tab === 'trabajos' && !_trabajosLoaded) { _trabajosLoaded = true; _trabajosPE = mPE; syncTrabajoPEBtns(); renderTrabajosTab(); }
-  if (tab === 'reportes' && !_rptUserLoaded) renderUserReport();
+  if (tab === 'historial' && Store.necesitaCarga('reportes')) {
+    Store.marcarCargado('reportes'); renderUserReport();
+  }
 }
 
-function switchTabMobile(tab, btn) {
-  switchTab(tab, null);
-  document.querySelectorAll('.mobile-menu .mobile-nav-btn').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active');
-  closeMenu();
-}
+function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
 function toggleMenu() {
@@ -611,28 +749,10 @@ function closeMenu() {
 }
 document.addEventListener('click',e=>{const menu=document.getElementById('mobile-menu'),ham=document.getElementById('hamburger');if(menu?.classList.contains('open')&&!menu.contains(e.target)&&!ham?.contains(e.target))closeMenu();});
 window.addEventListener('resize',()=>{if(window.innerWidth>720)closeMenu();});
-function updateTimestamp() {
-  if(!_lastUpdated)return;
-  const t=_lastUpdated,txt=`✓ ${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-  ['ts-badge','ts-badge-mob'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.textContent=txt;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1000);});
-}
-function showToast(msg,type='') {
-  const t=document.getElementById('toast');if(!t)return;
-  t.textContent=msg;t.className=`toast${type?' toast--'+type:''} show`;
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-function logout(){if(_arTimer)clearInterval(_arTimer);Auth.logout();}
-function initScrollEffects(){
-  const topbar=document.getElementById('topbar'),backTop=document.getElementById('back-top');let ticking=false;
-  window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const y=window.scrollY;topbar?.classList.toggle('scrolled',y>10);backTop?.classList.toggle('visible',y>300);ticking=false;});ticking=true;}},{passive:true});
-}
+function logout(){Auth.logout();}
 
-/* ── NAVEGACIÓN DIRECTA ── */
-function goTab(tab) {
-  const btn = [...document.querySelectorAll('#desktop-nav .tnav')]
-    .find(b => b.getAttribute('onclick')?.includes(`'${tab}'`) && b.style.display !== 'none');
-  switchTab(tab, btn);
-}
+/* updateTimestamp, showToast, initScrollEffects → core/render.js */
+function goTab(tab) { goTabCore(tab, switchTab); }
 
 /* ── ATAJOS RÁPIDOS ── */
 function renderQuickLinks() {
@@ -649,13 +769,13 @@ function renderQuickLinks() {
     { tab:'reportes',  icon:'bar-chart-2',    title:'Mis Estadísticas', desc:'Historial y evolución de tu desempeño' },
   ];
   el.innerHTML = links.map(l =>
-    `<button class="ql-card" onclick="goTab('${l.tab}')" aria-label="Ir a ${l.title}">
+    `<button class="ql-card" data-act="irTab" data-arg="${l.tab}" aria-label="Ir a ${l.title}">
        <i data-lucide="${l.icon}" class="ql-icon"></i>
        <div class="ql-text"><div class="ql-title">${l.title}</div><div class="ql-desc">${l.desc}</div></div>
        <i data-lucide="chevron-right" class="ql-arrow"></i>
      </button>`
   ).join('');
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 /* ── TAB: PERÍODOS ── */
@@ -673,8 +793,8 @@ function renderPeriodosTab() {
     const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
     return `<div class="pe-card${active?' pe-card--active':''}">
       <div class="pe-card-head">
-        <div class="pe-card-code">${p.pe}</div>
-        <div class="pe-card-nombre">${p.nombre||p.pe}</div>
+        <div class="pe-card-code">${escHtml(p.pe)}</div>
+        <div class="pe-card-nombre">${escHtml(p.nombre||p.pe)}</div>
         ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
         ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
       </div>
@@ -684,26 +804,21 @@ function renderPeriodosTab() {
 }
 
 /* ── TAB: TRABAJOS ── */
-let _trabajosPE = 'PE1', _trabajosLoaded = false;
+// null hasta que loadData() resuelva el período activo real.
+let _trabajosPE = null, _trabajosLoaded = false;
 
 function syncTrabajoPEBtns() {
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => {
-    const pe = b.getAttribute('onclick')?.match(/'(PE\d)'/)?.[1];
-    b.classList.toggle('active', pe === _trabajosPE);
-  });
+  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
 }
 
-function selectTrabajoPE(pe, btn) {
-  _trabajosPE = pe;
-  document.querySelectorAll('#trabajos-pe-row .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTrabajosTab();
-}
+function selectTrabajoPE(pe, btn) { cambiarPeriodo(pe, btn); }
 
 async function renderTrabajosTab() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
   el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  const data = await API.getTrabajosEntregados(CU.id, _trabajosPE);
+  // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
+  const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
+  const data = await API.getTrabajosEntregados(CU.id, pidTrab);
   renderTrabajosBody(data);
 }
 
@@ -718,7 +833,7 @@ function renderTrabajosBody(trabajos) {
       </div>
       <input class="cfg-inp" id="tj-titulo" type="text" placeholder="Título del trabajo" style="width:100%;margin-bottom:8px">
       <textarea class="cfg-inp" id="tj-desc" placeholder="Describe la actividad realizada..." rows="3" style="width:100%;resize:vertical"></textarea>
-      <button class="btn-save" style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px" onclick="saveTrabajo()">
+      <button class="btn-save" style="margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px" data-act="guardarTrabajo">
         <i data-lucide="send" style="width:14px;height:14px"></i> Agregar trabajo
       </button>
     </div>
@@ -731,7 +846,7 @@ function renderTrabajosBody(trabajos) {
           <div class="trabajo-item">
             <div class="trabajo-item-head">
               <div class="trabajo-titulo">${t.titulo?escHtml(t.titulo):'<span class="tj-notitle">Sin título</span>'}</div>
-              <button class="btn-icon-del" onclick="deleteTrabajo('${t.id}')" title="Eliminar" aria-label="Eliminar">
+              <button class="btn-icon-del" data-act="borrarTrabajo" data-arg="${t.id}" title="Eliminar" aria-label="Eliminar">
                 <i data-lucide="trash-2" style="width:13px;height:13px"></i>
               </button>
             </div>
@@ -746,14 +861,16 @@ function renderTrabajosBody(trabajos) {
            <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
            <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
          </div>`}`;
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderIconos(el);
 }
 
 async function saveTrabajo() {
   const tEl = document.getElementById('tj-titulo'), dEl = document.getElementById('tj-desc');
   const titulo = tEl?.value.trim()||'', desc = dEl?.value.trim()||'';
   if (!desc) { showToast('Describe el trabajo antes de agregar.','error'); dEl?.focus(); return; }
-  const res = await API.upsertTrabajo({ user_id:CU.id, periodo_nombre:_trabajosPE, titulo, descripcion:desc });
+  const pidNuevo = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
+  if (!pidNuevo) { showToast('No se pudo identificar el período.', 'error'); return; }
+  const res = await API.upsertTrabajo({ user_id:CU.id, periodo_id:pidNuevo, titulo, descripcion:desc });
   if (!res.ok) { showToast('Error: '+res.error,'error'); return; }
   if (tEl) tEl.value=''; if (dEl) dEl.value='';
   showToast('✓ Trabajo registrado','ok');
@@ -769,28 +886,32 @@ async function deleteTrabajo(id) {
 }
 
 /* ── TAB: REPORTES (secretario/miembro) ── */
-let _rptUserLoaded = false;
-function renderUserReport() {
-  _rptUserLoaded = true;
+async function renderUserReport() {
   const el = document.getElementById('rpt-user-body'); if (!el) return;
-  if (!D) { el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>'; return; }
+  renderCargando(el);
+
+  const hist = await ensureHistorial();
   const criterios = getCriterios();
-  const pes = ['PE1','PE2','PE3'];
-  const data = pes.map(pe => {
-    const all = D.scores?.[pe] || [];
-    const row = all.find(r => r.usuario === CU.user || r.evaluado_id === CU.id);
-    return row ? { pe, row, total: calcScore(row) } : null;
+  const data = (Store.periodos() || []).map(p => {
+    const h = hist[p.id];
+    if (!h) return null;
+    const row = { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes };
+    return { pe: p.pe, row, total: calcScore(row) };
   }).filter(Boolean);
+
   if (!data.length) {
-    el.innerHTML = '<div class="empty-box"><div class="empty-txt">Sin evaluaciones registradas aún.</div></div>';
+    renderVacio(el, 'Sin evaluaciones registradas aún.',
+                { periodo: Store.periodo(), calendario: D?.calendario });
     return;
   }
+  borrarGrafico('rpt-evolucion');
+
   const scores = data.map(d => d.total);
   const best = Math.max(...scores), avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
   const maxT = MAX_TOTAL();
   el.innerHTML = `
     <div class="urpt-header">
-      <div class="urpt-name">${CU.name||CU.user}</div>
+      <div class="urpt-name">${escHtml(CU.name||CU.user)}</div>
       <div class="urpt-meta">Historial de desempeño · ${data.length} período${data.length!==1?'s':''} evaluado${data.length!==1?'s':''}</div>
     </div>
     <div class="urpt-kpi-row">
@@ -799,26 +920,25 @@ function renderUserReport() {
       <div class="urpt-kpi"><div class="urpt-kpi-val">${maxT}</div><div class="urpt-kpi-lbl">Puntaje máximo</div></div>
       <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:var(--sex);font-size:1rem">${scoreLabel(best)}</div><div class="urpt-kpi-lbl">Mejor nivel</div></div>
     </div>
-    <div class="urpt-section-lbl">Evolución por período</div>
-    <div class="urpt-history">${data.map(d=>`
-      <div class="urpt-hist-card">
-        <div class="urpt-hist-pe">${d.pe}</div>
-        <div class="urpt-hist-bar-track"><div class="urpt-hist-bar-fill" style="width:${Math.round(d.total/maxT*100)}%;background:${scoreColor(d.total)}"></div></div>
-        <div class="urpt-hist-score" style="color:${scoreColor(d.total)}">${d.total}</div>
-        <div style="font-size:.6rem;color:var(--muted)">${scoreLabel(d.total)}</div>
-      </div>`).join('')}
+    <div class="urpt-section-lbl" id="rpt-evol-lbl">Evolución entre períodos</div>
+    <div class="chart-wrap">
+      <canvas id="rpt-evolucion" role="img"
+              aria-labelledby="rpt-evol-lbl" aria-describedby="rpt-evol-alt"></canvas>
     </div>
+    <p class="chart-alt" id="rpt-evol-alt">${escHtml(
+      data.map(d => `${d.pe}: ${d.total} de ${maxT} (${scoreLabel(d.total)})`).join('. ')
+    )}.</p>
     <div class="urpt-section-lbl" style="margin-top:16px">Detalle por criterio</div>
     <div class="urpt-section">
       <div class="urpt-table-wrap"><table class="urpt-table">
         <thead><tr>
           <th class="urpt-th">Criterio</th>
-          ${data.map(d=>`<th class="urpt-th">${d.pe}</th>`).join('')}
+          ${data.map(d=>`<th class="urpt-th">${escHtml(d.pe)}</th>`).join('')}
         </tr></thead>
         <tbody>
           ${criterios.map(c=>`<tr>
-            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${c.abbr||c.label}</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:${c.color}">${d.row[c.key]||0}</td>`).join('')}
+            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${escHtml(c.abbr||c.label)}</td>
+            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:var(--criterio)">${puntajeDe(d.row,c.key)}</td>`).join('')}
           </tr>`).join('')}
           <tr>
             <td class="urpt-td urpt-td-pe">TOTAL</td>
@@ -827,4 +947,7 @@ function renderUserReport() {
         </tbody>
       </table></div>
     </div>`;
+
+  // Después del innerHTML: antes el <canvas> todavía no existe.
+  graficoEvolucion('rpt-evolucion', data, maxT);
 }
