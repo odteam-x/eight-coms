@@ -162,14 +162,9 @@
 .fb-lbl  { font-family: var(--font-body); font-size:.8rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
 .fb-txt  { font-size: .82rem; color: var(--fb-txt); line-height: 1.75; }
 
-.no-data-msg {
-  border: 1px dashed var(--faint);
-  border-radius: var(--r-md); padding: 40px 20px; text-align: center;
-}
-.no-data-icon { margin-bottom: 8px; opacity: .4; display: flex; justify-content: center; }
-.no-data-txt  { font-size: .82rem; color: var(--muted); line-height: 1.6; }
-/* Subtexto del estado vacío: cuándo estará disponible el dato. */
-.no-data-sub  { margin-top: 8px; font-size: .8rem; color: var(--cyan); line-height: 1.5; }
+/* .no-data-* se movieron a shared.css: los pinta renderError/renderVacio
+   de core/render.js, que cargan los tres portales, y admin.html no carga
+   esta hoja. */
 
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {

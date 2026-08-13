@@ -161,24 +161,11 @@ const miFila     = () => (_contenido?.scores   || []).find(r => r.evaluado_id ==
 const miFeedback = () => (_contenido?.feedback || []).find(r => r.evaluado_id === CU?.id) || null;
 
 /** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
+/** Estado de error del bloque de score. Delega en renderError() de
+    core/render.js: el mensaje al usuario y la ocultacion del detalle
+    tecnico se deciden en un solo sitio. */
 function mostrarErrorCarga(msg) {
-  const cont = document.getElementById('score-body');
-  if (!cont) return;
-  cont.replaceChildren();
-  const box = document.createElement('div');
-  box.className = 'no-data-msg';
-  box.setAttribute('role', 'alert');
-  const t = document.createElement('div');
-  t.className = 'no-data-txt';
-  t.textContent = 'No se pudieron cargar los datos. ' + (msg || '');
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'pb';
-  btn.style.marginTop = '12px';
-  btn.textContent = 'Reintentar';
-  btn.addEventListener('click', () => location.reload());
-  box.append(t, btn);
-  cont.appendChild(box);
+  renderError(document.getElementById('score-body'), msg, () => location.reload());
 }
 
 /* Las cuatro barras se generan desde los datos. */

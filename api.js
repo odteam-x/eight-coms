@@ -153,19 +153,12 @@ const API = {
     return { ok: !error, error: error?.message };
   },
 
-  // ── EVALUACIONES — usuario normal ────────────────────────────────
-  /** Devuelve las evaluaciones publicadas del usuario en sesión. */
-  async getMisEvaluaciones() {
-    const { data: { session } } = await SB.auth.getSession();
-    if (!session) return [];
-    const { data } = await SB
-      .from('evaluaciones')
-      .select(`*, periodos_evaluacion(id, nombre, descripcion), evaluador:evaluador_id(nombre)`)
-      .eq('evaluado_id', session.user.id)
-      .eq('estado', 'publicado')
-      .order('created_at', { ascending: false });
-    return data ?? [];
-  },
+  /* getMisEvaluaciones() vivía aquí y no la llamaba nadie: cero referencias
+     en todo el repositorio. Llevaba el mismo embed que tumbó los portales
+     (`evaluador:evaluador_id(nombre)`, sobre una FK que apunta a auth.users),
+     así que era una bomba esperando a que alguien la usara. Los portales van
+     por getContenido() y getMiHistorial(). Si algún día hace falta, se
+     reescribe sin embed. */
 
   // ── ADMIN: usuarios ──────────────────────────────────────────────
   /**
@@ -283,11 +276,10 @@ const API = {
       .order('created_at');
     if (error) console.error('[API] getEvaluacionesByPE ERROR:', error, 'status:', status);
     debug('[API] getEvaluacionesByPE periodo_id:', periodo_id, '→', data?.length ?? 0, 'rows', data?.length ? data[0] : '(empty)');
-    return (data ?? []).map(e => ({
-      ...e,
-      evaluado_id:  e.evaluado_id  ?? e.evaluado?.id,
-      evaluador_id: e.evaluador_id ?? e.evaluador?.id,
-    }));
+    // El .map() de aquí resolvía `e.evaluado?.id` como respaldo, resto de
+    // una versión con joins. Con select('*') esas propiedades no llegan
+    // nunca, así que el respaldo era siempre undefined.
+    return data ?? [];
   },
 
   /** Carga una evaluación específica por (periodo, evaluado). */
@@ -620,8 +612,19 @@ const API = {
 
       // Evaluaciones: filtradas por período Y por los IDs que la vista
       // muestra. Sin fallback "sin joins": la identidad es evaluado_id.
+      //
+      // SIN EMBED, a propósito. Llevaba `evaluado:evaluado_id(...)` y eso
+      // tumbó los dos portales en producción con "Could not find a
+      // relationship between 'evaluaciones' and 'evaluado_id'". La clave
+      // foránea existe, pero apunta a auth.users(id), no a profiles(id), y
+      // el esquema auth no está expuesto: PostgREST no puede atravesarla.
+      //
+      // Tampoco hace falta. `lookup`, unas líneas más abajo, ya trae nombre,
+      // email y distrito del perfil propio y de districtMembers, que son
+      // exactamente los mismos ids que targetIds. Un join por fila para
+      // repetir un dato que ya está en memoria.
       const { data: evsRaw, error: evErr } = await SB.from('evaluaciones')
-        .select('evaluado_id, puntajes, comentarios, bono_ext, evaluado:evaluado_id(id, nombre, email, distrito)')
+        .select('evaluado_id, puntajes, comentarios, bono_ext')
         .eq('estado', 'publicado')
         .eq('periodo_id', periodoId)
         .in('evaluado_id', targetIds)
@@ -640,9 +643,9 @@ const API = {
         // admin desde un formulario libre.
         scores.push({
           evaluado_id: ev.evaluado_id,
-          nombre:   ev.evaluado?.nombre   || info.nombre   || '',
-          usuario:  ev.evaluado?.email    || info.email    || '',
-          distrito: ev.evaluado?.distrito || info.distrito || '',
+          nombre:   info.nombre   || '',
+          usuario:  info.email    || '',
+          distrito: info.distrito || '',
           ext:      Number(ev.bono_ext) || 0,
           puntajes: parseJSON(ev.puntajes),
         });

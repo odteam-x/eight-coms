@@ -1,0 +1,97 @@
+-- ══════════════════════════════════════════════════════════════════════
+--  0011 — evaluaciones: por qué NO se crea una FK hacia profiles
+--         ⚠ MIGRACIÓN DOCUMENTAL. No hay nada que ejecutar.
+-- ══════════════════════════════════════════════════════════════════════
+--
+--  QUÉ PASÓ
+--  Los portales de miembro y secretario cayeron con:
+--
+--    Could not find a relationship between 'evaluaciones' and
+--    'evaluado_id' in the schema cache
+--
+--  El origen era un embed de PostgREST en API.getContenido():
+--
+--    .select('… , evaluado:evaluado_id(id, nombre, email, distrito)')
+--
+--  LA FK NO FALTABA
+--  El diagnóstico inicial fue que la clave foránea se había perdido. No es
+--  así. Verificado contra pg_constraint:
+--
+--    evaluaciones_evaluado_id_fkey   FOREIGN KEY (evaluado_id)
+--                                    REFERENCES auth.users(id) ON DELETE CASCADE
+--    evaluaciones_evaluador_id_fkey  FOREIGN KEY (evaluador_id)
+--                                    REFERENCES auth.users(id) ON DELETE SET NULL
+--
+--  Apuntan a `auth.users`, no a `profiles`. El esquema `auth` no está
+--  expuesto en la API, así que PostgREST no puede atravesar esa relación
+--  para traer `nombre`, `email` y `distrito`, que viven en `profiles`.
+--  El mismo patrón está en evaluaciones_distrito.evaluador_id,
+--  trabajos_entregados.user_id y periodo_participantes.user_id.
+--
+--  Las otras dos FK que el diagnóstico pedía revisar SÍ existen:
+--    evaluaciones_distrito_distrito_id_fkey  → distritos(id)   ON DELETE CASCADE
+--    trabajos_periodo_fk                     → periodos_evaluacion(id) ON DELETE CASCADE
+--
+--  POR QUÉ NO SE AÑADE evaluado_id → profiles(id)
+--  1. Habría DOS claves foráneas saliendo de la misma columna. PostgREST
+--     dejaría de poder resolver `evaluado:evaluado_id(...)` sin ambigüedad
+--     y respondería "more than one relationship found": cambiaríamos una
+--     caída por otra, la próxima vez que alguien escriba un embed.
+--  2. Es redundante. `profiles.id` ya es FK a `auth.users(id)` y contiene
+--     el mismo valor, así que la integridad referencial ya está garantizada
+--     por la cadena existente.
+--  3. No tendría consumidor. El embed no se reintroduce: la identidad es
+--     `evaluado_id` y el objeto `lookup` de getContenido() ya resuelve
+--     nombre, email y distrito en memoria, sin un join por fila.
+--
+--  SI ALGÚN DÍA SE QUIERE EL EMBED
+--  Habría que repuntar la FK existente, no añadir una segunda:
+--    ALTER TABLE evaluaciones DROP CONSTRAINT evaluaciones_evaluado_id_fkey;
+--    ALTER TABLE evaluaciones ADD  CONSTRAINT evaluaciones_evaluado_id_fkey
+--      FOREIGN KEY (evaluado_id) REFERENCES profiles(id) ON DELETE CASCADE;
+--  Y antes hay que comprobar que no queden filas huérfanas (el SELECT de
+--  más abajo), porque la creación falla si las hay. Ojo: el borrado en
+--  cascada pasaría a depender de que exista la fila de `profiles`, no la de
+--  `auth.users`.
+--
+-- ══════════════════════════════════════════════════════════════════════
+--  VERIFICACIÓN — ejecutar a mano en el SQL Editor
+-- ══════════════════════════════════════════════════════════════════════
+--
+-- -- Restricciones actuales de evaluaciones:
+-- SELECT conname, pg_get_constraintdef(oid)
+--   FROM pg_constraint
+--  WHERE conrelid = 'public.evaluaciones'::regclass;
+--
+-- -- Tipos reales de las columnas (supabase-schema.sql ha derivado: declara
+-- -- periodo_id BIGINT mientras gestion_escribible() lo trata como UUID):
+-- SELECT column_name, data_type
+--   FROM information_schema.columns
+--  WHERE table_schema = 'public' AND table_name = 'evaluaciones'
+--  ORDER BY ordinal_position;
+--
+-- -- Filas huérfanas. Si devuelve algo, NO se borra automáticamente:
+-- -- lo decide una persona.
+-- SELECT 'evaluado_id'  AS columna, e.id, e.evaluado_id  AS valor
+--   FROM evaluaciones e
+--   LEFT JOIN profiles p ON p.id = e.evaluado_id
+--  WHERE e.evaluado_id IS NOT NULL AND p.id IS NULL
+-- UNION ALL
+-- SELECT 'evaluador_id', e.id, e.evaluador_id
+--   FROM evaluaciones e
+--   LEFT JOIN profiles p ON p.id = e.evaluador_id
+--  WHERE e.evaluador_id IS NOT NULL AND p.id IS NULL;
+--
+-- -- Lo mismo para las otras dos tablas:
+-- SELECT 'evaluaciones_distrito.evaluador_id' AS columna, d.id
+--   FROM evaluaciones_distrito d
+--   LEFT JOIN profiles p ON p.id = d.evaluador_id
+--  WHERE d.evaluador_id IS NOT NULL AND p.id IS NULL;
+--
+-- SELECT 'trabajos_entregados.user_id' AS columna, t.id
+--   FROM trabajos_entregados t
+--   LEFT JOIN profiles p ON p.id = t.user_id
+--  WHERE t.user_id IS NOT NULL AND p.id IS NULL;
+--
+-- -- Si alguna vez se toca el esquema, PostgREST necesita recargar su caché:
+-- NOTIFY pgrst, 'reload schema';

@@ -1274,3 +1274,29 @@ option { background: var(--surface-1); color: var(--txt); }
 @media (min-width: 1600px) {
   .m-content, .amain { max-width: 1440px; }
 }
+
+/* ── Estados de vista: error y vacío ──────────────────────────────────
+   Los pinta core/render.js, que cargan los tres portales; definidos en
+   admin.css o user.css se quedaban fuera de alguna página. */
+.no-data-msg {
+  border: 1px dashed var(--border-hi);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-5);
+  text-align: center;
+}
+.no-data-icon { margin-bottom: var(--sp-2); opacity: .4; display: flex; justify-content: center; }
+.no-data-txt  { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; }
+/* Subtexto del estado vacío: cuándo estará disponible el dato. */
+.no-data-sub  { margin-top: var(--sp-2); font-family: var(--font-body); font-size: var(--fs-xs); color: var(--data); line-height: 1.5; }
+/* Detalle técnico del error. Solo con localStorage 'ec-debug' = '1'. */
+.no-data-detalle {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-family: ui-monospace, monospace;
+  font-size: var(--fs-xs);
+  color: var(--txt-muted);
+  text-align: left;
+  overflow-wrap: anywhere;
+}

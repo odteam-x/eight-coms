@@ -402,7 +402,20 @@ function renderCargando(cont) {
   cont.appendChild(box);
 }
 
+/**
+ * Estado de error visible.
+ *
+ * `msg` es el mensaje CRUDO de PostgREST, y a un miembro no le sirve de
+ * nada: "Could not find a relationship between 'evaluaciones' and
+ * 'evaluado_id' in the schema cache" no le dice qué hacer. Se registra
+ * siempre en consola y solo se muestra en pantalla con el modo depuración
+ * activo (localStorage 'ec-debug').
+ */
+const _TXT_ERROR = 'No se pudieron cargar tus datos. Vuelve a intentarlo; '
+                 + 'si sigue fallando, avisa a la coordinación.';
+
 function renderError(cont, msg, onRetry) {
+  if (msg) console.error('[render]', msg);
   if (!cont) return;
   cont.replaceChildren();
   const box = document.createElement('div');
@@ -411,8 +424,19 @@ function renderError(cont, msg, onRetry) {
 
   const t = document.createElement('div');
   t.className = 'no-data-txt';
-  t.textContent = msg || 'No se pudieron cargar los datos.';
+  t.textContent = _TXT_ERROR;
   box.appendChild(t);
+
+  let verDetalle = false;
+  try { verDetalle = localStorage.getItem('ec-debug') === '1'; }
+  catch { /* localStorage bloqueado (modo privado / cookies off) */ }
+
+  if (verDetalle && msg) {
+    const d = document.createElement('p');
+    d.className = 'no-data-detalle';
+    d.textContent = msg;
+    box.appendChild(d);
+  }
 
   if (onRetry) {
     const b = document.createElement('button');
