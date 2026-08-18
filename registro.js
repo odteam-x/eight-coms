@@ -136,3 +136,34 @@ async function doRegister() {
 }
 
 if(typeof lucide!=='undefined') lucide.createIcons();
+
+/* ── ¿Hay gestión abierta? ─────────────────────────────────────────────
+ * Hasta ahora el registro funcionaba aunque no hubiera ninguna gestión
+ * activa, y creaba perfiles huérfanos que nadie podía asignar a nada.
+ *
+ * OJO CON EL ALCANCE: esto NO es "registrarse en una gestión". `profiles`
+ * no tiene gestion_id; la pertenencia por gestión está diseñada en la
+ * migración 0006, sin aplicar. Esto solo cierra la puerta cuando no hay
+ * ninguna gestión abierta.
+ */
+(async function comprobarGestionAbierta() {
+  const form = document.getElementById('register-form');
+  const btn  = document.getElementById('btn-reg');
+  const err  = document.getElementById('r-err');
+  if (!form || !btn) return;
+
+  // RPC, no select: esta página se visita sin sesión y `gestiones` no es
+  // legible para anon, así que un select devolvería [] y cerraría el
+  // registro para todo el mundo. null = no se pudo saber; ante la duda no
+  // se bloquea, porque dejar fuera a alguien es peor que un perfil suelto.
+  const abierta = await API.hayGestionAbierta();
+  if (abierta === null || abierta) return;
+
+  for (const c of form.querySelectorAll('input, button, select, textarea')) {
+    c.disabled = true;
+    c.setAttribute('aria-disabled', 'true');
+  }
+  err.textContent = 'El registro está cerrado en este momento. '
+                  + 'No hay ninguna gestión abierta; escribe a la coordinación.';
+  err.classList.add('visible');
+})();

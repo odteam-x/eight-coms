@@ -271,6 +271,49 @@ Revoking from `anon` and `authenticated` is not enough. PostgreSQL grants EXECUT
 
 `periodos_evaluacion` had its four date columns NULL. PE1–PE3 were backfilled from the calendar row with the same number, which also matches on description. **PE4 was left alone**: there are two calendar rows numbered 4 and neither is named "UN SOLO LATIDO", so the correspondence is not derivable from the data.
 
+### Entering the admin panel (Phase 11)
+
+A modal asks which gestión and which period **before** any data is painted.
+The preference lives in `localStorage` under `ec-admin-entrada`
+(`{omitir, gestionId, periodoId}`), every access wrapped in `try/catch` —
+`config.js` already documents that it can be blocked in private mode. If the
+saved gestión or period no longer exists it falls back to the active one and
+says why with a toast. `?gestion=` in the URL overrides the preference: it is
+an explicit link. Configuración has a button to clear the key, without which
+"do not show again" would be a door with no handle.
+
+### Writing to an archived gestión (migration 0013)
+
+`API._gid()` returns whatever `setGestion()` took from `?gestion=`. If that
+gestión is archived, `savePeriodo`, `saveCriterio`, `saveRubricaRow`,
+`saveCalEvento` and `saveConfig` used to insert **into the archived gestión** —
+`gestion_escribible()` only covered `evaluaciones`, `evaluaciones_distrito`
+and `trabajos_entregados`.
+
+Each of those five tables carried **two** write policies: the current one and
+a legacy `*_write` granted to `public` with a **NULL `WITH CHECK`**, so it
+reused its `USING` clause. Permissive policies OR together, so adding the
+condition to just one would have changed nothing — the legacy one still
+authorised the insert. They are dropped in 0013; `gestion_id_escribible()`
+now gates the rest.
+
+On the client, `bloquearEscritura()` in `core/render.js` really disables the
+controls. Note that with `data-act="fn"` the action name travels in
+`data-arg`, not `data-act` — reading only `data-act` left "Guardar rol" and
+"+ Nuevo período" enabled.
+
+**Registration closes when there is no open gestión**, via the
+`hay_gestion_abierta()` RPC (migration 0014) — *not* a select. `registro.html`
+is visited **without a session** and `gestiones` is not readable by `anon`, so
+`getGestiones()` returns `[]` and the naive check would have closed
+registration for everyone. The RPC exposes one boolean and nothing else.
+
+⚠️ This is **not** "registering into a gestión". `profiles` has no
+`gestion_id`; per-gestión membership is designed in
+`0006_gestion_miembros.PENDIENTE.sql`, still unapplied. Applying it rewrites 5
+SECURITY DEFINER functions and 5 policies and needs frontend changes in the
+same deploy.
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order. `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.

@@ -72,6 +72,9 @@ const _ACCIONES_SIMPLES = new Set([
   // selectores de la tabla de usuarios (llevaban onchange= inline)
   'onCambioDistritoUsuario', 'onCambioTipoUsuario',
   'onCambioRolUsuario', 'onCambioAdminUsuario',
+  // selector de entrada del admin
+  'entrarConSeleccion', 'entrarConPeriodoActivo', 'restablecerEntrada',
+  'onCambioGestionEntrada',
 ]);
 
 const ACCIONES = {

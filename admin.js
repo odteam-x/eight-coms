@@ -11,6 +11,8 @@ let _criterios   = [];
 let _rubrica     = [];
 let _calendario  = [];
 let _distritos    = [];
+/** Período elegido en el selector de entrada, si lo hubo. */
+let _periodoEntrada = null;
 let _activePE       = null;
 let _activePEDist   = null;
 let _activePEOv     = null;
@@ -90,8 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   montarAvatar(CU);
 
   // La gestión debe fijarse ANTES de cargar: los getters filtran por ella.
-  const gid = new URLSearchParams(location.search).get('gestion');
-  if (gid) API.setGestion(gid);
+  const entrada = await resolverEntrada();
+  if (entrada?.gestionId) API.setGestion(entrada.gestionId);
+  _periodoEntrada = entrada?.periodoId || null;
 
   await loadAllData();
   renderOvPEBar();
@@ -139,7 +142,15 @@ async function loadAllData() {
   renderSelectorGestion('gestion-switch', gs, gActual?.id,
     id => location.assign('admin.html?gestion=' + encodeURIComponent(id)));
 
-  const defPE = _periodos.find(p => p.activo) || _periodos[0];
+  // El período elegido en el selector de entrada manda sobre el activo.
+  // Si ya no existe, se cae al activo y se avisa: es peor mirar datos de
+  // otro período sin saberlo que perder la preferencia.
+  let defPE = null;
+  if (_periodoEntrada) {
+    defPE = _periodos.find(p => String(p.id) === String(_periodoEntrada));
+    if (!defPE) showToast('El período guardado ya no existe. Se abrió el activo.', 'info');
+  }
+  defPE = defPE || _periodos.find(p => p.activo) || _periodos[0];
   if (defPE && !_activePE) _activePE = defPE;
   if (defPE && !_activePEDist) _activePEDist = defPE;
 }
@@ -605,6 +616,111 @@ async function updateUserAdmin(userId, esAdmin) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(esAdmin ? 'Usuario promovido a admin' : 'Permisos de admin retirados', 'ok');
   _users = _users.map(u => u.id === userId ? { ...u, es_admin: esAdmin } : u);
+}
+
+/* ══ SELECTOR DE ENTRADA ═══════════════════════════════════════════════
+ * Al abrir el panel, el admin elige gestión y período antes de que se
+ * pinte nada. Antes se entraba siempre a la gestión activa y al período
+ * activo, y para mirar otra cosa había que editar la URL a mano.
+ *
+ * La preferencia vive en localStorage bajo 'ec-admin-entrada', con forma
+ * { omitir, gestionId, periodoId }. TODO acceso va en try/catch: config.js
+ * ya documenta que puede estar bloqueado en modo privado.
+ */
+const ENTRADA_KEY = 'ec-admin-entrada';
+
+function _leerEntrada() {
+  try { return JSON.parse(localStorage.getItem(ENTRADA_KEY) || '{}') || {}; }
+  catch { return {}; }        // bloqueado o JSON corrupto: se pregunta
+}
+
+function _guardarEntrada(v) {
+  try { localStorage.setItem(ENTRADA_KEY, JSON.stringify(v)); }
+  catch { /* modo privado: no persiste, pero la sesión funciona igual */ }
+}
+
+/** Borra la preferencia para que el selector vuelva a aparecer. */
+function restablecerEntrada() {
+  try { localStorage.removeItem(ENTRADA_KEY); } catch { /* modo privado */ }
+  showToast('El selector volverá a aparecer la próxima vez que entres.', 'ok');
+}
+
+let _gestionesEntrada = [];
+
+/**
+ * Decide gestión y período ANTES de cargar datos.
+ * Devuelve { gestionId, periodoId } o null si no hay nada que elegir.
+ */
+async function resolverEntrada() {
+  // ?gestion= en la URL manda sobre todo lo demás: es un enlace explícito.
+  const porUrl = new URLSearchParams(location.search).get('gestion');
+  if (porUrl) return { gestionId: porUrl, periodoId: null };
+
+  _gestionesEntrada = await API.getGestiones();
+  if (!_gestionesEntrada.length) return null;
+
+  const pref = _leerEntrada();
+  if (pref.omitir) {
+    const g = _gestionesEntrada.find(x => String(x.id) === String(pref.gestionId));
+    if (g) return { gestionId: g.id, periodoId: pref.periodoId || null };
+    // La gestión guardada ya no existe: se cae a la activa y se avisa, en
+    // vez de dejar al admin mirando datos de otra sin saber por qué.
+    showToast('La gestión guardada ya no existe. Se abrió la activa.', 'info');
+    return null;
+  }
+  return await _preguntarEntrada();
+}
+
+/** Muestra el modal y espera. Resuelve con la elección. */
+function _preguntarEntrada() {
+  return new Promise(resolver => {
+    _resolverEntrada = resolver;
+    const sel = document.getElementById('ent-gestion');
+    sel.innerHTML = _gestionesEntrada.map(g =>
+      `<option value="${escHtml(String(g.id))}"${g.activa ? ' selected' : ''}>` +
+      `${escHtml(g.nombre)}${g.activa ? ' (actual)' : g.archivada ? ' (solo lectura)' : ''}` +
+      `</option>`).join('');
+    onCambioGestionEntrada(sel);
+    openModal('modal-entrada');
+  });
+}
+
+let _resolverEntrada = null;
+
+/** Al cambiar de gestión se recargan sus períodos. */
+async function onCambioGestionEntrada(el) {
+  const selP = document.getElementById('ent-periodo');
+  selP.innerHTML = '<option>Cargando…</option>';
+  selP.disabled = true;
+  API.setGestion(el.value);
+  let periodos = [];
+  try { periodos = await API.getPeriodos(); }
+  catch (e) { console.error('[entrada] periodos:', e); }
+  selP.disabled = false;
+  selP.innerHTML = periodos.length
+    ? periodos.map(p =>
+        `<option value="${escHtml(p.id)}"${p.activo ? ' selected' : ''}>` +
+        `${escHtml(p.nombre)}${p.activo ? ' (activo)' : ''}</option>`).join('')
+    : '<option value="">Esta gestión no tiene períodos</option>';
+}
+
+function _cerrarEntrada(eleccion) {
+  const omitir = document.getElementById('ent-omitir')?.checked;
+  _guardarEntrada({ omitir: !!omitir, ...eleccion });
+  closeModal('modal-entrada');
+  _resolverEntrada?.(eleccion);
+  _resolverEntrada = null;
+}
+
+function entrarConSeleccion() {
+  _cerrarEntrada({
+    gestionId: document.getElementById('ent-gestion').value,
+    periodoId: document.getElementById('ent-periodo').value || null,
+  });
+}
+
+function entrarConPeriodoActivo() {
+  _cerrarEntrada({ gestionId: document.getElementById('ent-gestion').value, periodoId: null });
 }
 
 /* ── TAB: ROLES ── */

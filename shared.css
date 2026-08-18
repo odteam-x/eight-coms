@@ -371,11 +371,18 @@ img { display:block; max-width:100%; }
   border-bottom:1px solid rgba(0,0,0,.18);
 }
 /* Con una gestión archivada no debe poder escribirse nada desde la UI. */
+/* Ocultar no es deshabilitar: el despachador delegado sigue vivo aunque el
+   botón no se vea. bloquearEscritura() de core/render.js pone `disabled` de
+   verdad; esto es solo la señal visual. */
 body.gestion-archivada .btn-save,
 body.gestion-archivada .btn-cfg-add,
 body.gestion-archivada .btn-icon--danger,
 body.gestion-archivada .pe-toggle,
 body.gestion-archivada .toggle-switch { display:none !important; }
+
+body.gestion-archivada [aria-disabled="true"] {
+  opacity:.5; cursor:not-allowed; pointer-events:none;
+}
 
 .gestion-select {
   background:var(--surface-2); color:var(--txt);
@@ -1462,3 +1469,13 @@ select:-webkit-autofill {
 }
 .bb-hoja-logo, .modal-logo { width: 19px; height: 28px; object-fit: contain; flex: 0 0 auto; }
 .modal-marca { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
+
+/* Casilla del selector de entrada. */
+.ent-omitir {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  min-height: 44px;
+  font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2);
+  cursor: pointer;
+}
+.ent-omitir input { width: 18px; height: 18px; accent-color: var(--action); flex: 0 0 auto; }

@@ -537,6 +537,17 @@ const API = {
     return data ?? [];
   },
 
+  /**
+   * ¿Hay alguna gestión abierta? Vía RPC porque registro.html se visita SIN
+   * sesión y `gestiones` no es legible para anon: un select directo
+   * devuelve [] y parecería que no hay ninguna. Devuelve solo el booleano.
+   */
+  async hayGestionAbierta() {
+    const { data, error } = await SB.rpc('hay_gestion_abierta');
+    if (error) { console.error('[API.hayGestionAbierta]', error.message); return null; }
+    return !!data;
+  },
+
   /** Id de la gestión sobre la que se está trabajando. */
   gestionActual() { return _gestionActual; },
 

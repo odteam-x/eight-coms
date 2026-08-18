@@ -123,6 +123,7 @@ function renderBannerSoloLectura(gestion) {
   }
 
   document.body.classList.add('gestion-archivada');
+  bloquearEscritura();
   const b = document.createElement('div');
   b.id = 'banner-solo-lectura';
   b.className = 'banner-readonly';
@@ -130,6 +131,55 @@ function renderBannerSoloLectura(gestion) {
   b.textContent = `Estás viendo la gestión ${gestion.nombre}, archivada. Solo lectura: no se puede modificar nada.`;
   document.body.insertBefore(b, document.body.firstChild);
 }
+
+/* Acciones del despachador que ESCRIBEN. Deshabilitar por clase no basta:
+   `display:none` oculta el botón pero el despachador sigue vivo. */
+const _ACCIONES_ESCRITURA = new Set([
+  'saveCal','saveRol','savePeriodo','saveCriterioEntry','saveRubricaEntry',
+  'showCalModal','showRolModal','showPeriodoModal','showCriterioModal',
+  'showRubricaModal','showAbrirGestionModal','confirmarAbrirGestion',
+  'executeDeleteUser','guardarTrabajo','borrarUsuario','borrarCal',
+  'borrarCriterio','borrarPeriodo','borrarRol','borrarRubrica','borrarTrabajo',
+  'modalCal','modalCriterio','modalPeriodo','modalRol','modalRubrica',
+  'bono','puntaje','puntajeDist','guardarEval','guardarDist',
+  'participante','aprobarUser',
+  'onCambioDistritoUsuario','onCambioTipoUsuario','onCambioRolUsuario',
+  'onCambioAdminUsuario','handleAvatarUpload',
+]);
+
+/**
+ * Deshabilita de verdad todo control de escritura en una gestión archivada.
+ *
+ * Lo pasado se lee siempre, se escribe nunca. RLS lo rechaza igual desde la
+ * migración 0013 — esto es ergonomía, para que el admin no descubra que no
+ * puede guardar después de rellenar un formulario entero.
+ *
+ * Se vuelve a pasar tras cada repintado: las tablas nacen de innerHTML.
+ */
+function bloquearEscritura(raiz = document) {
+  if (!document.body.classList.contains('gestion-archivada')) return;
+  const sel = '[data-act], [data-change], [data-input]';
+  for (const el of raiz.querySelectorAll(sel)) {
+    // Con data-act="fn" el nombre real de la acción viaja en data-arg; leer
+    // solo data-act dejaba habilitados "Guardar rol" y "+ Nuevo período".
+    const accion = el.dataset.act === 'fn'
+      ? el.dataset.arg
+      : (el.dataset.act || el.dataset.change || el.dataset.input);
+    if (!_ACCIONES_ESCRITURA.has(accion)) continue;
+    el.disabled = true;
+    el.setAttribute('aria-disabled', 'true');
+    el.title = 'Esta gestión está archivada: solo lectura.';
+  }
+}
+
+/* Las filas y los formularios nacen de innerHTML mucho después del banner,
+   así que hay que volver a pasar sobre lo que se añade. */
+new MutationObserver(muts => {
+  if (!document.body.classList.contains('gestion-archivada')) return;
+  for (const m of muts)
+    for (const n of m.addedNodes)
+      if (n.nodeType === 1) bloquearEscritura(n);
+}).observe(document.documentElement, { childList: true, subtree: true });
 
 /**
  * Selector de gestión en el topbar. Solo aparece si hay más de una: con una
