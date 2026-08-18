@@ -1720,10 +1720,16 @@ function renderAdminReport() {
   el.innerHTML = `
   <div class="rpt-page" id="rpt-print-area">
     <div class="rpt-header">
-      <div>
+      <div class="rpt-marca">
+        <picture>
+          <source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">
+          <img src="logo.png" alt="" class="rpt-logo" width="33" height="48">
+        </picture>
+        <div>
         <div class="rpt-org">EIGHT CREATORS LABs</div>
         <div class="rpt-title-big">REPORTE DE EVALUACIONES</div>
         <div class="rpt-period-lbl">${escHtml(_rptPE.nombre)}${escHtml(_rptPE.descripcion ? ' · ' + _rptPE.descripcion : '')}</div>
+        </div>
       </div>
       <div class="rpt-date-wrap">
         <div class="rpt-date-lbl">Generado el</div>
@@ -1831,7 +1837,13 @@ function renderAdminReport() {
     </div>` : ''}
     `}
 
-    <div class="rpt-footer">EIGHT CREATORS LABs · ${escHtml(_rptPE.nombre)} · Generado el ${today}</div>
+    <div class="rpt-footer">
+      <picture>
+        <source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">
+        <img src="logo.png" alt="" class="rpt-logo-pie" width="14" height="20">
+      </picture>
+      <span>EIGHT CREATORS LABs · ${escHtml(_rptPE.nombre)} · Generado el ${today}</span>
+    </div>
   </div>`;
 }
 

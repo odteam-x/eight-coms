@@ -99,6 +99,7 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 - **Touch**: `.tnav-drop` menus opened on `:hover` only, which does not exist on touch. Under `@media (pointer: coarse)` the submenu renders inline instead.
 - `prefers-reduced-motion` is now honoured in all four stylesheets (`admin.css` and `secretario.css` ignored it).
 - **The logo is `logo.webp` (16 KB) via `<picture>`**, with `logo.png` (39 KB) as fallback. It was a 749×1093 PNG of 279 KB rendered at 44px. Regenerate both if the source changes; keep `width`/`height` on the `<img>` to avoid layout shift.
+- **The logo is 219×320 — never square.** Every placement keeps that ratio: 33×48 in the report header, 22×32 in the mobile header, 19×28 in the sheet and the gestión modal, 14×20 in the report footer. `favicon.ico` and `icono-192/512.png` are generated from it by padding to a square canvas, not by stretching. `icono.ico` is gone: 22 KB and not derived from the logo.
 - The member score is rendered **once**, in the hero. Quick links are mobile-only — on desktop they duplicated the topbar.
 
 ### No executable code in the markup (Phase 7)

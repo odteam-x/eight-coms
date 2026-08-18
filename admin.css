@@ -1774,3 +1774,21 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
   }
   .rpt-toolbar > *, .eval-pe-bar > *, .admin-pe-bar > * { min-width: 0; }
 }
+
+/* ── Logo del reporte ─────────────────────────────────────────────────
+   El reporte no tenía ninguna imagen: cabecera y pie eran texto plano.
+   Proporción real del logo, 219x320, sin estirar. */
+.rpt-marca { display: flex; align-items: flex-start; gap: var(--sp-3); min-width: 0; }
+.rpt-logo     { width: 33px;  height: 48px; object-fit: contain; flex: 0 0 auto; }
+.rpt-logo-pie { width: 14px;  height: 20px; object-fit: contain; flex: 0 0 auto; }
+.rpt-footer   { display: flex; align-items: center; gap: var(--sp-2); }
+
+@media print {
+  /* Sin esto el navegador descarta las imágenes al imprimir en ahorro de
+     tinta, y la cabecera del PDF vuelve a quedarse sin marca. */
+  .rpt-logo, .rpt-logo-pie {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    display: block !important;
+  }
+}

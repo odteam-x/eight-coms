@@ -10,8 +10,10 @@
   <meta property="og:description" content="Panel de administración del sistema de evaluación de desempeño de CELIDER 08 Santiago.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" type="image/x-icon" href="icono.ico">
-  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="icono-192.png">
+  <link rel="apple-touch-icon" href="icono-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -240,6 +242,10 @@
 <!-- MODAL: ABRIR GESTIÓN -->
 <div class="modal-overlay" id="modal-gestion" style="display:none" data-act="cerrarModalFondo" data-arg="modal-gestion">
   <div class="modal-box">
+    <div class="modal-marca">
+      <picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">
+        <img src="logo.png" alt="" class="modal-logo" width="19" height="28"></picture>
+    </div>
     <div class="modal-title">Abrir gestión nueva</div>
     <div class="field"><label for="mg-nombre">Nombre (ej: 2027-2028)</label>
       <input class="cfg-inp" type="text" id="mg-nombre" placeholder="2027-2028"></div>

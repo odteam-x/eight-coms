@@ -37,6 +37,7 @@ function initNav(cfg) {
   _railCfg = cfg;
   document.body.classList.add('con-rail');
   renderRail();
+  renderCabeceraMovil();
   renderBottomBar();
   let colapsado = false;
   try { colapsado = localStorage.getItem(RAIL_COLAPSO_KEY) === '1'; }
@@ -125,6 +126,31 @@ function _botonRail(it) {
   return b;
 }
 
+/* ══ CABECERA MÓVIL ════════════════════════════════════════════════════
+ * Por debajo de 768px el rail desaparece y con él la marca: los tres
+ * portales se quedaban sin ninguna identidad en pantalla. Barra compacta
+ * de 48px con el logo y el nombre de la sección en curso.
+ */
+function renderCabeceraMovil() {
+  let cab = document.getElementById('cab-movil');
+  if (cab) cab.remove();
+  if (!_railCfg) return;
+
+  cab = document.createElement('header');
+  cab.id = 'cab-movil';
+  cab.className = 'cab-movil';
+  cab.innerHTML =
+    '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
+    '<img src="logo.png" alt="" class="cab-movil-logo" width="22" height="32"></picture>' +
+    `<span class="cab-movil-seccion" id="cab-movil-seccion">${escHtml(_railCfg.marca || '')}</span>`;
+  document.body.insertBefore(cab, document.body.firstChild);
+}
+
+/** Nombre de la sección en curso, para la cabecera móvil. */
+function _tituloDe(tab) {
+  return _items().find(i => i.tab === tab)?.etiqueta || _railCfg?.marca || '';
+}
+
 /* ══ BARRA INFERIOR (móvil) ════════════════════════════════════════════ */
 function renderBottomBar() {
   const host = document.getElementById('bottom-bar');
@@ -197,6 +223,11 @@ function _montarHoja(items) {
       '<div class="bb-hoja-tirador" aria-hidden="true"></div>' +
 
       // ── Cuenta ──
+      '<div class="bb-hoja-marca">' +
+        '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
+        '<img src="logo.png" alt="" class="bb-hoja-logo" width="19" height="28"></picture>' +
+        `<span>${escHtml(_railCfg?.marca || '')}</span>` +
+      '</div>' +
       '<div class="bb-hoja-cuenta">' +
         '<div class="avatar" id="av-hoja">?</div>' +
         '<div class="bb-hoja-quien">' +
@@ -249,6 +280,9 @@ function marcarActivo(tab) {
   if (_railCfg) _railCfg.activo = tab;
   // Solo los destinos: data-act="tab". El botón de tema también lleva
   // data-arg y no debe poder quedar marcado como activo.
+  const seccion = document.getElementById('cab-movil-seccion');
+  if (seccion) seccion.textContent = _tituloDe(tab);
+
   document.querySelectorAll('.rail-item[data-act="tab"], .bb-item[data-act="tab"]').forEach(b => {
     const on = b.dataset.arg === tab;
     b.classList.toggle('active', on);
