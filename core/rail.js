@@ -87,12 +87,19 @@ function renderRail() {
 
   for (const g of _railCfg.grupos) {
     if (g.titulo) {
-      const sep = document.createElement('div');
-      sep.className = 'rail-sep';
-      sep.innerHTML = `<span>${escHtml(g.titulo)}</span>`;
-      nav.appendChild(sep);
+      // Un grupo con título es un desplegable nativo (sin JS): lo de configuración
+      // no alarga el menú; se abre solo si el destino activo está dentro.
+      const det = document.createElement('details');
+      det.className = 'rail-grupo';
+      const sum = document.createElement('summary');
+      sum.className = 'rail-sep';
+      sum.innerHTML = `<span>${escHtml(g.titulo)}</span><i data-lucide="chevron-down" class="rail-ico rail-chev"></i>`;
+      det.appendChild(sum);
+      for (const it of g.items) det.appendChild(_botonRail(it));
+      nav.appendChild(det);
+    } else {
+      for (const it of g.items) nav.appendChild(_botonRail(it));
     }
-    for (const it of g.items) nav.appendChild(_botonRail(it));
   }
   host.appendChild(nav);
 
@@ -102,13 +109,13 @@ function renderRail() {
   pie.innerHTML = `
     <span id="gestion-switch" hidden></span>
     <div class="rail-prox" id="rail-prox" hidden></div>
-    <div class="rail-user">
+    <button type="button" class="rail-user rail-item" data-act="tab" data-arg="cuenta" data-tip="Mi cuenta" aria-label="Mi cuenta">
       <div class="avatar" id="av-desktop">?</div>
       <div class="rail-user-info">
         <div class="rail-uname" id="uname-desktop">—</div>
         <div class="rail-ts" id="ts-badge"></div>
       </div>
-    </div>
+    </button>
     <div class="rail-acciones">
       <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema" data-tip="Cambiar tema">
         <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
@@ -319,6 +326,7 @@ function marcarActivo(tab) {
     b.classList.toggle('active', on);
     if (on) b.setAttribute('aria-current', 'page');
     else    b.removeAttribute('aria-current');
+    if (on) b.closest('details.rail-grupo')?.setAttribute('open', '');
   });
 }
 

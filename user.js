@@ -258,7 +258,7 @@ function renderCalendario() {
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
 const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario' };
-const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos' };
+const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -270,6 +270,7 @@ function switchTab(tab, btn) {
     Perfil.tab('evolucion', document.getElementById('perfil-host'));
   }
 
+  if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });

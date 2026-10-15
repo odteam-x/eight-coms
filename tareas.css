@@ -28,7 +28,7 @@
 .tk-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
 .tk-titulo { margin: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--txt); overflow-wrap: anywhere; }
 .tk-pill {
-  flex: none; padding: 1px var(--sp-3); border: 1.5px solid currentColor; border-radius: 0; text-transform: uppercase; letter-spacing: .04em;
+  flex: none; padding: 1px var(--sp-3); border: 1.5px solid currentColor; border-radius: 0; letter-spacing: .04em;
   font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; color: var(--txt-2);
 }
 .tk-pill--en-curso  { color: var(--spr-txt); }

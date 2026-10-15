@@ -72,7 +72,7 @@
 .perfil-resumen .anillo circle { stroke-width: 13; }
 .perfil-resumen .anillo-num { font-size: calc(var(--tam) * .42); }
 .perfil-resumen-txt { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
-.perfil-leyenda { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-brand-2); }
+.perfil-leyenda { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .01em; color: var(--on-brand-2); }
 
 /* ── Cuerpo ─────────────────────────────────────────────────────────── */
 .perfil-pagina { padding-top: var(--sp-5); }
@@ -110,7 +110,7 @@
 }
 .pf-kpis > :nth-child(1) { --i: 0; } .pf-kpis > :nth-child(2) { --i: 1; }
 .pf-kpis > :nth-child(3) { --i: 2; } .pf-kpis > :nth-child(4) { --i: 3; }
-.pf-kpi-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.pf-kpi-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .01em; }
 .pf-kpi-val { font-family: var(--font-display); font-weight: 700; font-size: clamp(3.4rem, 5.4vw, 5.2rem); line-height: .9; margin: var(--sp-3) 0 var(--sp-2); font-variant-numeric: tabular-nums; }
 .pf-kpi-val small { font-size: var(--fs-md); font-weight: 600; margin-left: 2px; }
 .pf-kpi-sub { font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.35; min-height: 1.6em; }
@@ -135,12 +135,12 @@
 .pf-h::after { display: none; }
 .pf-card .pf-h, .pf-card-cab .pf-h { margin-top: 0; }
 .pf-h small { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--txt-muted); margin-left: var(--sp-2); }
-.pf-sub { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--txt-2); margin-bottom: var(--sp-2); }
+.pf-sub { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em; color: var(--txt-2); margin-bottom: var(--sp-2); }
 .pf-vacio { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; }
 .pf-nota { margin-top: var(--sp-4); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; max-width: 70ch; }
 .pf-enlace {
   display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 44px;
-  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em;
   color: var(--txt); border-bottom: 2px solid var(--marca);
 }
 .pf-enlace:hover { color: var(--data-txt); }
@@ -165,7 +165,7 @@
 .pf-tks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--sp-3); }
 .pf-tk { background: var(--surface-2); border: 2px solid transparent; padding: var(--sp-3) var(--sp-4); }
 .pf-tk-val { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1; }
-.pf-tk-lbl { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--txt-2); }
+.pf-tk-lbl { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; color: var(--txt-2); }
 .pf-tk--aviso { border-color: var(--alert); }
 .pf-tk--aviso .pf-tk-val { color: var(--alert); }
 .pf-tareas { list-style: none; display: flex; flex-direction: column; margin-top: var(--sp-4); background: var(--surface-2); border-radius: var(--r-card); overflow: hidden; }
@@ -216,7 +216,7 @@
 .pcard-av img { width: 100%; height: 100%; object-fit: cover; }
 .pcard-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pcard-nombre { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere; }
-.pcard-yo { margin-left: var(--sp-1); padding: 1px var(--sp-2); background: var(--coral); color: var(--navy-900); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; vertical-align: 2px; }
+.pcard-yo { margin-left: var(--sp-1); padding: 1px var(--sp-2); background: var(--coral); color: var(--navy-900); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .01em; vertical-align: 2px; }
 .pcard-rol { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
 .pcard-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); margin-top: var(--sp-1); }
 .pcard-chip { border-radius: var(--r-full); display: inline-flex; align-items: center; gap: 4px; padding: 1px var(--sp-2); border: 1.5px solid var(--trazo); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em; color: var(--txt); }
@@ -239,7 +239,7 @@
 
 /* ── Admin: Personas y Panel (admin-personas.js) ────────────────────── */
 .gp-campo { display: flex; flex-direction: column; gap: var(--sp-1); margin-bottom: var(--sp-3); }
-.gp-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--txt-2); }
+.gp-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .04em; color: var(--txt-2); }
 .gp-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-top: 2px solid var(--border); }
 .gp-fila:first-of-type { border-top: 0; }
 .gp-t { font-family: var(--font-ui); font-size: var(--fs-md); font-weight: 600; }
@@ -296,7 +296,7 @@
 .cal2-hoy-pe { margin-left: auto; font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
 .cal2-hoy-pe strong { color: var(--txt); }
 .cal2-sem { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
-.cal2-sem span { text-align: center; font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-muted); }
+.cal2-sem span { text-align: center; font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .01em; color: var(--txt-muted); }
 .cal2-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .cal2-dia {
   position: relative; min-height: 76px; padding: 8px; text-align: left; border-radius: 14px;

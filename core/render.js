@@ -620,17 +620,7 @@ function montarAvatar(perfil) {
   // El perfil abierto en pantalla repinta su cabecera con la foto nueva.
   if (typeof Perfil !== 'undefined') Perfil.refrescarAvatar(p);
 
-  if (!document.getElementById('avatar-file-input')) return;
-  el.style.cursor = 'pointer';
-  el.title = 'Cambiar foto de perfil';
-  el.setAttribute('role', 'button');
-  el.setAttribute('tabindex', '0');
-  el.setAttribute('aria-label', 'Cambiar foto de perfil');
-  const abrir = () => document.getElementById('avatar-file-input')?.click();
-  el.onclick = abrir;
-  el.onkeydown = e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); }
-  };
+  if (typeof Cuenta !== 'undefined') Cuenta.refrescarFoto(p);
 }
 
 /**

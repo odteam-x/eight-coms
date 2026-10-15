@@ -49,8 +49,7 @@
   font-family: var(--font-ui);
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: .01em;
   color: var(--cyan-400);
   margin-bottom: var(--sp-4);
 }
@@ -81,8 +80,7 @@
   font-family: var(--font-ui);
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: .01em;
   /* --cyan-200, NO --txt-2: el panel de marca es --navy-900 en LOS DOS
      temas, y --txt-2 en claro es gris oscuro — daría 1.77:1 sobre él.
      Los tokens de marca no cambian con el tema, y este da 11.58:1. */
@@ -195,7 +193,6 @@
   font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 1px;
-  text-transform: uppercase;
   /* 8.32 en oscuro, 5.45 en claro — ver --action-fill en shared.css */
   color: var(--action-on);
   cursor: pointer;

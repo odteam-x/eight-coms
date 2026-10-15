@@ -2131,6 +2131,7 @@ function montarTareas() {
 /* Operación suelta; todo lo de configuración cuelga del engranaje, cuyo
    botón padre es `periodos`. */
 const _tabParentMap = {
+  cuenta:'cuenta',
   agenda: 'agenda',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
@@ -2202,6 +2203,7 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'agenda' && Store.necesitaCarga('agenda')) {
     Store.marcarCargado('agenda');
     Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });

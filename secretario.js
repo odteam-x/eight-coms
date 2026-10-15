@@ -673,7 +673,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario',
 };
-const _secTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -689,6 +689,7 @@ function switchTab(tab, btn) {
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
+  if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: isSecretario() ? 'secretario' : 'miembro', personas: personasDelDistrito() });

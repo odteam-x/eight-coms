@@ -88,6 +88,9 @@ const ACCIONES = {
     const f = window[arg];
     if (typeof f === 'function') f();
   },
+  cuentaFoto:       ()            => Cuenta.elegirFoto(),
+  cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
+  cuentaCambiarPass:   (a, el) => Cuenta.cambiarPass(el),
   salir:            ()            => (typeof logout === 'function' ? logout() : Auth.logout()),
   tab:              (arg, el)     => switchTab(arg, el),
   tabSinBtn:        (arg)         => switchTab(arg, null),

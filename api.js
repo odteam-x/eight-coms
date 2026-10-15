@@ -848,6 +848,12 @@ const API = {
   },
 
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────
+  /** La persona cambia SU nombre. RLS decide; rol, distrito y tipo no se tocan aquí. */
+  async updateMiNombre(userId, nombre) {
+    const { error } = await SB.from('profiles').update({ nombre }).eq('id', userId);
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+
   async uploadAvatar(userId, file) {
     const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const path = `${userId}/avatar.${ext}`;

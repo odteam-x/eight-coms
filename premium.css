@@ -1,0 +1,307 @@
+/* EIGHT CREATORS LABs — capa premium. Se carga LA ÚLTIMA en cada página para que el sistema gane a las hojas de página. */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SISTEMA PREMIUM — app oscura de producto, no plantilla de tarjetas
+   ═══════════════════════════════════════════════════════════════════════
+   Sin colores nuevos: todo sale de los tokens de arriba (opacidades y
+   color-mix sobre ellos). Esta capa va AL FINAL de shared.css a propósito:
+   fija el sistema y deja sin efecto lo decorativo que se acumuló.
+
+   SUPERFICIES (de fondo a primer plano; cada capa es una elevación real)
+     --bg         lienzo. Lleva la luz ambiental (.luz).
+     --surface-1  contenedor: una lista, un panel, la tarjeta de un portal.
+     --surface-2  fila o campo dentro de un contenedor.
+     --surface-3  estado: activo, hover, seleccionado.
+     --navy-900   superficie de MARCA, una sola por pantalla (hero, login).
+   El borde (--trazo) solo se dibuja donde separa dos cosas del mismo nivel.
+
+   RADIOS (la jerarquía es información)
+     --r-control  píldora: botones, chips, segmentados, buscador.
+     --r-fila     12px: campo, fila suelta.
+     --r-card     20px: tarjeta independiente.
+     --r-cont     28px: contenedor de lista, panel, calendario.
+     --r-modal    32px: ventana emergente y buscador.
+     --r-hero     40px en la esquina inferior del bloque de marca.
+
+   TIPOGRAFÍA (rol · familia · peso · interlínea · tracking)
+     display  --font-display 700 1.02 -.02em   titulares de pantalla y hero
+     titulo   --font-display 700 1.05 -.01em   cabecera de contenedor
+     fila     --font-ui      600 1.25 0        título de una fila
+     cuerpo   --font-body    400 1.5  0        descripción, texto corrido
+     etiqueta --font-ui      600 1.2  .02em    chips, controles
+     micro    --font-body    400 1.4  0        aclaraciones, --txt-muted
+   Una palabra clave por titular puede ir en --data-txt (.acento), sin gradiente.
+
+   RITMO VERTICAL (varía con la importancia; no es un gap único)
+     --sec-hero   entre el bloque de marca y lo siguiente
+     --sec-main   entre secciones principales
+     --sec-sub    dentro de una sección
+*/
+:root {
+  --r-control: var(--r-full); --r-fila: 12px; --r-card: 20px; --r-cont: 28px; --r-modal: 32px; --r-hero: 40px;
+  --sec-hero: var(--sp-6); --sec-main: var(--sp-7); --sec-sub: var(--sp-3);
+  --tr-display: -.02em; --tr-titulo: -.01em; --lh-display: 1.02; --lh-titulo: 1.05;
+  /* Todo lo que antes era brillo, cristal y sombra de color queda plano; --brillo
+     es solo el relleno del CTA principal (un protagonista por vista). */
+  --sombra-dura: none; --sombra-dura-hover: none;
+  --vidrio: linear-gradient(transparent, transparent);
+  --brillo: linear-gradient(180deg, color-mix(in srgb, var(--action-fill) 84%, var(--cyan-200)), var(--action-fill));
+}
+[data-theme="light"] {
+  --sombra-dura: none; --sombra-dura-hover: none;
+  --vidrio: linear-gradient(transparent, transparent);
+  --brillo: linear-gradient(180deg, color-mix(in srgb, var(--action-fill) 90%, var(--cyan-400)), var(--action-fill));
+}
+
+/* ── Luz ambiental: componente reutilizable ────────────────────────────
+   Dos manchas difusas y asimétricas (una arriba a la derecha, otra en el
+   borde izquierdo) que se funden con --bg. Se configura por variables:
+   --luz-a/--luz-b color, --luz-op intensidad, --luz-ax/ay y --luz-bx/by
+   posición del centro, --luz-size diámetro. En claro es la misma luz, más tenue. */
+.luz, .con-rail #contenido, .amain {
+  position: relative; isolation: isolate; overflow-x: clip;
+  --luz-a: var(--blue-500); --luz-b: var(--cyan-400); --luz-op: .26; --luz-size: 760px;
+  --luz-ax: 88%; --luz-ay: -4%; --luz-bx: -8%; --luz-by: 46%;
+}
+[data-theme="light"] .luz, [data-theme="light"] #contenido, [data-theme="light"] .amain { --luz-op: .14; }
+.luz::before, .luz::after, .con-rail #contenido::before, .con-rail #contenido::after, .amain::before, .amain::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none; border-radius: 50%;
+  width: var(--luz-size); height: var(--luz-size); transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, var(--luz-a), transparent);
+  opacity: var(--luz-op); left: var(--luz-ax); top: var(--luz-ay); inset-inline-end: auto; bottom: auto; mask-image: none; -webkit-mask-image: none;
+}
+.luz::after, .con-rail #contenido::after, .amain::after {
+  background: radial-gradient(closest-side, var(--luz-b), transparent);
+  width: calc(var(--luz-size) * .62); height: calc(var(--luz-size) * .62);
+  opacity: calc(var(--luz-op) * .7); left: var(--luz-bx); top: var(--luz-by);
+}
+.con-rail #contenido::before, .amain::before { height: var(--luz-size); }
+@media (max-width: 767px) { .luz, .con-rail #contenido, .amain { --luz-size: 480px; } }
+@media print { .luz::before, .luz::after, #contenido::before, #contenido::after, .amain::before, .amain::after { display: none; } }
+
+/* ── Titulares: display compacto, tracking negativo, una palabra clave ─ */
+.ptitle, .perfil-nombre, .inicio-h, .cal2-titulo, .win h3, .tk-box .modal-title {
+  letter-spacing: var(--tr-display); line-height: var(--lh-display); text-transform: none;
+}
+.ptitle { font-size: var(--fs-xl); border-bottom: 0; padding-bottom: 0; }
+.ptitle::after { display: none; }
+.acento { color: var(--data-txt); }
+.sup-marca .acento { color: var(--cyan-200); }
+
+/* ── Botones: primario, secundario, ghost, destructivo ─────────────────
+   Estados completos: hover, active, focus-visible, disabled, loading. */
+.btn-save, .tk-btn--main {
+  min-height: 48px; padding-inline: var(--sp-6); border-radius: var(--r-control);
+  background: var(--brillo); color: var(--action-on); border: 0; box-shadow: none;
+  font-family: var(--font-ui); font-weight: 600;
+  transition: filter .18s var(--ease), transform .18s var(--ease), opacity .18s var(--ease);
+}
+.btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.07); }
+.btn-save:active:not(:disabled), .tk-btn--main:active:not(:disabled) { transform: scale(.985); filter: none; }
+.btn-save:focus-visible, .tk-btn--main:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.btn-save:disabled, .tk-btn--main:disabled { opacity: .4; cursor: not-allowed; }
+.btn-save.is-loading, .tk-btn.is-loading { pointer-events: none; opacity: .75; }
+.btn-ghost, .tk-btn:not(.tk-btn--main), .cal2-btn, .eval-chip, .cal2-chip {
+  background: transparent; border: 1px solid var(--trazo); color: var(--txt);
+  transition: background .18s var(--ease), border-color .18s var(--ease);
+}
+.btn-ghost:hover, .tk-btn:not(.tk-btn--main):hover, .cal2-btn:hover { background: var(--surface-2); border-color: var(--data); }
+.btn-ghost:active { background: var(--surface-3); }
+.btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+/* Secundaria en texto, como en las pantallas de referencia. */
+.btn-texto { color: var(--txt-2); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); min-height: 44px; padding: 0 var(--sp-3); }
+.btn-texto:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
+.btn-danger:hover:not(:disabled) { filter: none; background: color-mix(in srgb, var(--alert) 16%, transparent); }
+.btn-danger:active:not(:disabled) { background: color-mix(in srgb, var(--alert) 26%, transparent); }
+
+/* ── Períodos: barra fina activa + puntos, sin píldoras de color ─────── */
+.pe-row { gap: var(--sp-1) var(--sp-3); }
+.pb {
+  position: relative; background: none; border: 0; border-radius: 0; box-shadow: none;
+  min-height: 44px; padding: 8px 6px 18px; color: var(--txt-2); transition: color .18s var(--ease);
+}
+.pb::after {
+  content: ''; position: absolute; left: 50%; bottom: 6px; width: 6px; height: 6px; border-radius: 99px;
+  background: var(--txt-muted); transform: translateX(-50%); transition: width .22s var(--ease), background .22s var(--ease);
+}
+.pb:hover { color: var(--txt); border-color: transparent; }
+.pb:hover::after { background: var(--txt-2); }
+.pb.active { color: var(--txt); background: none; }
+.pb.active::after { width: 100%; height: 3px; bottom: 7px; background: var(--data); }
+.pb--hoy::before { content: ''; position: absolute; top: 9px; right: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--marca); }
+.pb--hoy::after { right: auto; top: auto; }
+
+/* ── Listas tipo ajustes: filas con divisores, no tarjetas sueltas ─────
+   .lista-aj es el contenedor; .fila-aj cada fila: título + descripción a la
+   izquierda, indicador a la derecha (check, candado, chevron, puntaje). */
+.lista-aj { background: var(--surface-1); border-radius: var(--r-cont); overflow: hidden; }
+.fila-aj { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); min-height: 64px; width: 100%; text-align: left; color: inherit; }
+.fila-aj + .fila-aj { border-top: 1px solid var(--trazo); }
+a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
+.fila-aj-txt { flex: 1; min-width: 0; }
+.fila-aj-t { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; overflow-wrap: anywhere; }
+.fila-aj-d { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); margin-top: 2px; }
+.fila-aj-ind { flex: none; font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); color: var(--txt); }
+
+/* ── Estados: vacío, carga y error, cada uno distinto ─────────────────── */
+.empty-box, .no-data-msg { align-items: flex-start; text-align: left; }
+.no-data-msg { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-5); border: 1px dashed var(--trazo); border-radius: var(--r-card); max-width: 60ch; }
+.no-data-msg[role="alert"] { border: 0; background: var(--surface-2); padding-left: var(--sp-6); position: relative; }
+.no-data-msg[role="alert"]::before { content: '!'; position: absolute; left: var(--sp-4); top: var(--sp-5); width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--alert); color: var(--alert-on); font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-xs); line-height: 1; }
+.no-data-msg[role="alert"] .no-data-txt { color: var(--txt); font-weight: 600; }
+.skel { border-radius: var(--r-fila); animation-duration: 1.8s; }
+.skel--caja { border-radius: var(--r-card); }
+
+/* ── Superficies: contenedores con elevación y radio propios ─────────── */
+.section-panel, .rubrica-card, .cal-card, .kpi-card, .scard { border-radius: var(--r-card); }
+.scard::before, .stat-cards .scard::before { display: none; }
+.panel, .cal2-mes, .cal2-agenda, .eval-resumen { border-radius: var(--r-cont); background: var(--surface-1); border-color: transparent; }
+.tk-box, .modal-box, .bus-box { border-radius: var(--r-modal); background: var(--surface-1); border-color: var(--trazo); box-shadow: none; }
+.tk-box::before, .modal-box::before, .bus-box::before, .win::before { display: none; }
+.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay { background: color-mix(in srgb, var(--navy-900) 70%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.rail-item.active { background: color-mix(in srgb, var(--data) 14%, transparent); box-shadow: none; }
+.rail-prox-btn { background: color-mix(in srgb, var(--on-brand) 6%, transparent); }
+.rail-prox-btn:hover { background: color-mix(in srgb, var(--on-brand) 10%, transparent); transform: none; }
+.cal2-dia { border-color: transparent; background: var(--surface-2); }
+.cal2-dia:hover { background: var(--surface-3); }
+.cal2-ev, .eval-ucard, .row { border-color: transparent; }
+.cal2-filtros .cal2-chip.on, .eval-chip.on { background: var(--surface-3); border-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+
+/* ── Rail: la persona y sus acciones ──────────────────────────────────
+   La tarjeta con borde desaparece: un renglón limpio con avatar y punto de
+   presencia. Tema, salir y contraer comparten una sola fila de iconos. */
+.rail-user { border: 0; background: none; padding: var(--sp-2) var(--sp-2); gap: var(--sp-3); border-radius: var(--r-card); margin-block: var(--sp-1); }
+.rail-user .avatar { position: relative; width: 40px; height: 40px; flex: none; }
+.rail-user .avatar::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--cyan-400); border: 2px solid var(--navy-900); }
+.rail-uname { font-size: var(--fs-md); line-height: 1.2; }
+.rail-ts { color: var(--txt-2); }
+.rail-acciones { display: flex; gap: var(--sp-1); padding-top: var(--sp-2); border-top: 1px solid var(--trazo); }
+.rail-acciones > * { flex: 1; min-width: 0; justify-content: center; padding-inline: 0; }
+.rail-acciones .rail-txt { display: none; }
+.rail-colapsado .rail-acciones { flex-direction: column; }
+
+/* Sin filos de color en las tarjetas: ni barra lateral ni barra superior. */
+.ov-top5-panel::before, .dist-scard::before, .dist-rank-banner::before, .dist-cal-card::before { display: none; }
+
+/* ── Acento de marca: el coral es el protagonista (10 % de la guía) ─────
+   CTA principal, indicador de período y etiqueta de estado. Texto navy
+   sobre coral (5.6, medido en contraste.js); nunca blanco sobre coral. */
+:root, [data-theme="light"] { --brillo: linear-gradient(180deg, color-mix(in srgb, var(--coral) 86%, var(--cyan-200)), var(--coral)); }
+.btn-save, .tk-btn--main, .btn-login { color: var(--navy-900); }
+.btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled), .btn-login:hover:not(:disabled) { filter: brightness(1.05); }
+.pb.active::after { background: var(--marca); }
+.pb--hoy::before { background: var(--marca); }
+.tag-marca, .sup-marca .tag { background: var(--coral); color: var(--navy-900); }
+
+/* ── Degradados de la paleta ──────────────────────────────────────────
+   Permitidos mientras no salgan de los tonos de la marca: azules profundos
+   hacia cianes para datos y relieve de superficies; el coral queda para el CTA. */
+.barra-fill, .eval-resumen-bar i, .cal2-pe { background: linear-gradient(90deg, var(--blue-500), var(--data)); }
+.pf-card, .cal2-mes, .cal2-agenda, .panel, .eval-resumen { background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 55%); }
+.rail { background: linear-gradient(180deg, var(--navy-900) 0%, color-mix(in srgb, var(--navy-900) 70%, var(--blue-700)) 100%); }
+.tk-box, .modal-box, .bus-box { background: linear-gradient(180deg, var(--surface-2), var(--surface-1) 60%); }
+
+
+/* ── Barra lateral rehecha ─────────────────────────────────────────────
+   Una columna tranquila: marca pequeña, buscador, destinos de 44px donde el
+   activo es un tinte suave (sin bloque azul ni filo), configuración plegable,
+   y abajo la persona con su fila de iconos. Sin versales ni cajas de color. */
+.rail { padding: var(--sp-4) var(--sp-3) var(--sp-3); gap: 0; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--on-brand) 22%, transparent) transparent; }
+.rail::-webkit-scrollbar { width: 6px; }
+.rail::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--on-brand) 22%, transparent); border-radius: 6px; }
+.rail-marca { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-1) var(--sp-2) var(--sp-4); min-height: 56px; }
+.rail-logo { width: 28px; height: 41px; object-fit: contain; flex: none; }
+.rail-marca-txt { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: -.01em; line-height: 1; text-align: left; }
+.rail-badge { margin-left: auto; padding: 0; background: none; color: var(--on-brand-2); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; }
+.rail-buscar { margin-bottom: var(--sp-3); background: color-mix(in srgb, var(--on-brand) 8%, transparent); border: 0; border-radius: var(--r-control); min-height: 44px; }
+.rail-nav { display: flex; flex-direction: column; gap: 2px; }
+.rail-item { min-height: 44px; padding: 0 var(--sp-3); border-radius: var(--r-fila); gap: var(--sp-3); font-size: var(--fs-md); font-weight: 500; color: var(--on-brand-2); box-shadow: none; }
+.rail-item .rail-ico { width: 20px; height: 20px; flex: none; opacity: .85; }
+.rail-item:hover { background: color-mix(in srgb, var(--on-brand) 8%, transparent); color: var(--on-brand); }
+.rail-item.active { background: color-mix(in srgb, var(--on-brand) 14%, transparent); color: var(--on-brand); font-weight: 600; box-shadow: none; }
+.rail-item.active .rail-ico { opacity: 1; color: var(--cyan-200); }
+.rail-item.active::before, .rail-item.active::after { display: none; }
+.rail-grupo { margin-top: var(--sp-3); border-top: 1px solid color-mix(in srgb, var(--on-brand) 14%, transparent); padding-top: var(--sp-2); }
+.rail-sep { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 0 var(--sp-3); margin: 0; border: 0; cursor: pointer; list-style: none; border-radius: var(--r-fila); color: var(--on-brand-2); }
+.rail-sep::-webkit-details-marker { display: none; }
+.rail-sep span { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0; text-transform: none; color: inherit; }
+.rail-sep:hover { color: var(--on-brand); }
+.rail-chev { width: 16px; height: 16px; transition: transform .18s var(--ease); }
+details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
+.rail-pie { margin-top: auto; padding-top: var(--sp-3); gap: var(--sp-1); }
+.rail-colapsado .rail-sep span, .rail-colapsado .rail-chev { display: none; }
+.rail-colapsado .rail-grupo { padding-top: var(--sp-2); }
+.rail-colapsado .rail-grupo:not([open]) > .rail-item { display: none; }
+
+
+/* ── Acceso y registro rehechos ────────────────────────────────────────
+   Lado de marca: navy con patrón real, titular compacto a la izquierda y tres
+   puntos como lista de ajustes. Lado del formulario: lienzo con luz, selector
+   Entrar / Crear cuenta arriba y un único CTA coral. */
+.login-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+.login-panel-brand { position: relative; isolation: isolate; overflow: hidden; justify-content: flex-start; gap: var(--sp-7); padding: var(--sp-7) var(--sp-7);
+  background: radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--cyan-400) 30%, transparent), transparent 70%), var(--navy-900); }
+.login-panel-brand::before { content: ''; position: absolute; inset: 0; z-index: -1; background: url("img/patrones/patron-6.webp") 0 0 / 260px 260px repeat; opacity: .16; -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 70%); mask-image: linear-gradient(to bottom, black 0%, transparent 70%); }
+.login-brand-center { justify-content: flex-start; flex: 0 0 auto; gap: var(--sp-4); }
+.login-hero-tag { color: var(--cyan-200); letter-spacing: .01em; text-transform: none; font-size: var(--fs-sm); margin-bottom: 0; }
+.login-hero-h1 { font-size: clamp(2.6rem, 1.8rem + 2.6vw, 4.4rem); line-height: .98; letter-spacing: -.025em; margin-bottom: 0; text-align: left; }
+.login-hero-h1 em { color: var(--cyan-200); display: block; }
+.login-hero-h1 .login-hero-labs { display: block; color: var(--on-brand); }
+.login-hero-desc { color: var(--on-brand-2); max-width: 34ch; margin: 0; }
+.login-puntos { list-style: none; margin: var(--sp-5) 0 0; padding: 0; max-width: 46ch; border-radius: var(--r-cont); background: color-mix(in srgb, var(--on-brand) 7%, transparent); overflow: hidden; }
+.login-puntos li { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-4) var(--sp-5); }
+.login-puntos li + li { border-top: 1px solid color-mix(in srgb, var(--on-brand) 14%, transparent); }
+.login-puntos strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--on-brand); }
+.login-puntos span { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--on-brand-2); }
+.login-brand-foot { margin-top: auto; color: var(--on-brand-2); font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; }
+
+.login-panel-form { flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-6); padding: var(--sp-7) var(--sp-5); }
+.login-seg { display: inline-flex; padding: 4px; gap: 2px; border-radius: var(--r-control); background: var(--surface-1); align-self: center; }
+.login-seg a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 var(--sp-5); border-radius: var(--r-control); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); text-decoration: none; transition: background .18s var(--ease), color .18s var(--ease); }
+.login-seg a:hover { color: var(--txt); }
+.login-seg a[aria-current="page"] { background: var(--surface-3); color: var(--txt); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cyan-200) 22%, transparent); }
+.login-form-inner { max-width: 420px; }
+.login-form-title { font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem); line-height: 1.02; letter-spacing: -.02em; text-transform: none; text-align: left; }
+.login-form-sub { color: var(--txt-2); font-size: var(--fs-md); text-align: left; }
+.field label { font-size: var(--fs-sm); color: var(--txt-2); letter-spacing: 0; text-transform: none; }
+.field input { min-height: 52px; border-radius: var(--r-control); background: var(--surface-1); border: 1px solid transparent; }
+.field input:focus { border-color: var(--action); background: var(--surface-2); }
+.btn-login { min-height: 54px; width: 100%; }
+@media (max-width: 860px) {
+  .login-layout { grid-template-columns: minmax(0, 1fr); }
+  .login-panel-brand { padding: var(--sp-6) var(--sp-5); gap: var(--sp-5); }
+  .login-puntos { display: none; }
+  .login-hero-h1 { font-size: clamp(2.4rem, 12vw, 3.4rem); }
+  .login-brand-foot { display: none; }
+}
+
+/* ── Mi cuenta ─────────────────────────────────────────────────────────
+   Cabecera con la foto grande y dos columnas de listas tipo ajustes:
+   a la izquierda lo que eres, a la derecha lo que puedes cambiar. */
+.rail-user { width: 100%; text-align: left; }
+.rail-user .avatar { width: 40px; height: 40px; }
+.cuenta-cab { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sec-main); flex-wrap: wrap; }
+.cuenta-foto { width: 112px; height: 112px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); color: var(--txt); font-family: var(--font-display); font-weight: 700; font-size: 2.8rem; outline: 3px solid var(--data); outline-offset: 4px; }
+.cuenta-foto img { width: 100%; height: 100%; object-fit: cover; }
+.cuenta-id { min-width: 0; }
+.cuenta-nombre { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem); line-height: 1.02; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.cuenta-mail { color: var(--txt-2); font-size: var(--fs-md); overflow-wrap: anywhere; }
+.cuenta-cab-acc { margin-top: var(--sp-3); }
+.cuenta-btn { min-height: 44px; padding: 0 var(--sp-5); border-radius: var(--r-control); display: inline-flex; align-items: center; gap: var(--sp-2); font-family: var(--font-ui); font-weight: 600; }
+.cuenta-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sec-main) var(--sp-6); align-items: start; }
+.cuenta-t { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: -.01em; margin: 0 0 var(--sp-3); }
+.cuenta-cols section > .lista-aj + .cuenta-t { margin-top: var(--sec-main); }
+.cuenta-cols .lista-aj + .lista-aj { margin-top: var(--sp-4); }
+.cuenta-val { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); text-align: right; overflow-wrap: anywhere; max-width: 22ch; }
+.cuenta-form, .cuenta-campo { flex-wrap: wrap; }
+.cuenta-form .fila-aj-txt, .cuenta-campo .fila-aj-txt { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 200px; }
+.cuenta-form .btn-save, .cuenta-acc .btn-save { min-height: 48px; }
+.cuenta-acc { gap: var(--sp-4); flex-wrap: wrap; }
+.cuenta-msg { font-size: var(--fs-sm); color: var(--txt-2); }
+.cuenta-msg--error { color: var(--alert); }
+.cuenta-salir { margin-top: var(--sp-4); }
+.cuenta-salir .fila-aj-ind svg, .cuenta-cols .fila-aj-ind svg { width: 22px; height: 22px; }
+@media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { width: 84px; height: 84px; font-size: 2.1rem; } }
