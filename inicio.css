@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EIGHT CREATORS LABs — Inicio y línea de tiempo (core/inicio.js, core/ui.js)
+   Lo cargan miembro y secretario. Solo tokens: ningún hex fuera de :root.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero de Inicio ─────────────────────────────────────────────────── */
+.inicio-hero {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  gap: var(--sp-5) var(--sp-6);
+  padding: var(--sp-7) max(var(--sp-5), env(safe-area-inset-right)) calc(var(--sp-7) + 4px) max(var(--sp-5), env(safe-area-inset-left));
+}
+
+.inicio-titulo {
+  margin-top: var(--sp-3);
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2.6rem, 7vw, 5rem); letter-spacing: .01em; line-height: .9;
+  overflow-wrap: anywhere; text-wrap: balance;
+}
+.inicio-sub { margin-top: var(--sp-3); font-family: var(--font-body); font-size: var(--fs-md); color: var(--on-brand-2); max-width: 46ch; }
+
+.inicio-cuenta { display: flex; align-items: center; gap: var(--sp-4); }
+.inicio-dias {
+  font-family: var(--font-display); font-weight: 700; line-height: .82;
+  font-size: clamp(4.4rem, 11vw, 7.5rem); color: var(--cyan-200);
+  font-variant-numeric: tabular-nums;
+}
+.inicio-dias-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); line-height: 1.35; color: var(--on-brand-2); max-width: 16ch; }
+.inicio-dias-lbl strong { color: var(--on-brand); font-weight: 600; }
+.inicio-dias-pe { display: block; margin-top: var(--sp-1); font-size: var(--fs-xs); }
+
+/* ── Cuerpo ─────────────────────────────────────────────────────────── */
+.inicio-cuerpo { padding-top: var(--sp-5); }
+.inicio-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.inicio-extra { grid-column: 1 / -1; min-width: 0; }
+.inicio-eval { display: flex; align-items: center; gap: var(--sp-4); margin-top: var(--sp-4); }
+.inicio-eval .anillo { --tam: 96px; }
+.inicio-eval-txt { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); min-width: 0; }
+.pf-tareas--compacta { margin-top: var(--sp-3); }
+
+.inicio-fechas { list-style: none; display: flex; flex-direction: column; margin-top: var(--sp-3); }
+.inicio-fecha {
+  display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3);
+  padding: var(--sp-3) 0; border-top: 1px solid var(--border);
+}
+.inicio-fecha:first-child { border-top: 0; }
+.inicio-fecha-dia { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; text-transform: uppercase; color: var(--txt); }
+.inicio-fecha-txt { font-family: var(--font-body); font-size: var(--fs-md); }
+.inicio-fecha-txt small { color: var(--txt-muted); margin-left: var(--sp-2); }
+.inicio-fecha-rel { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); white-space: nowrap; }
+
+/* ── Línea de tiempo (Entregas) ─────────────────────────────────────── */
+.lt { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--sp-4); }
+.lt-periodo { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); min-width: 0; }
+.lt-periodo--actual { border-color: var(--data); }
+.lt-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); }
+.lt-pe { font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; line-height: 1; letter-spacing: .02em; }
+.lt-nombre { flex: 1 1 8ch; min-width: 0; font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
+.lt-sin { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-muted); }
+
+/* El eje: una línea a la izquierda y un punto por hito. */
+.lt-hitos { list-style: none; position: relative; display: flex; flex-direction: column; gap: var(--sp-4); padding-left: var(--sp-5); }
+.lt-hitos::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--border-hi); }
+.lt-hito { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--sp-3); align-items: baseline; }
+.lt-punto { position: absolute; left: calc(var(--sp-5) * -1); top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--data); }
+.lt-hito--pasado .lt-punto { background: var(--surface-3); border-color: var(--surface-3); }
+.lt-hito--hoy .lt-punto { background: var(--marca); border-color: var(--marca); box-shadow: 0 0 0 4px color-mix(in srgb, var(--marca) 25%, transparent); }
+.lt-etq { font-family: var(--font-body); font-size: var(--fs-md); }
+.lt-hito--pasado .lt-etq { color: var(--txt-2); }
+.lt-hito--hoy .lt-etq { font-weight: 600; }
+.lt-fecha { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; text-transform: uppercase; }
+.lt-rel { grid-column: 1 / -1; font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); }
+
+.entregas-cal { margin-top: var(--sp-5); }
+
+@media (max-width: 900px) { .inicio-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767px) {
+  .inicio-hero { grid-template-columns: minmax(0, 1fr); padding-block: var(--sp-6) calc(var(--sp-6) + 4px); }
+  .inicio-fecha { grid-template-columns: 64px minmax(0, 1fr); }
+  .inicio-fecha-rel { grid-column: 2; }
+}

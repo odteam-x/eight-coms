@@ -151,14 +151,14 @@
 .field input:focus-visible {
   outline: none;
   border-color: var(--action);
-  box-shadow: 0 0 0 3px rgba(0,135,241,.28);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 28%, transparent);
 }
 
 /* El campo en error se marca además del mensaje: el color por sí solo no
    es un indicador accesible. */
 .field input[aria-invalid="true"] {
   border-color: var(--alert);
-  box-shadow: 0 0 0 3px rgba(255,96,99,.22);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marca) 22%, transparent);
 }
 
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
@@ -232,8 +232,8 @@
 }
 .login-err.visible, .login-ok.visible { display: block; }
 
-.login-err { color: var(--alert); background: rgba(255,96,99,.10); border-color: rgba(255,96,99,.32); }
-.login-ok  { color: var(--data);  background: rgba(0,203,255,.10); border-color: rgba(0,203,255,.32); }
+.login-err { color: var(--alert); background: color-mix(in srgb, var(--marca) 10%, transparent); border-color: color-mix(in srgb, var(--marca) 32%, transparent); }
+.login-ok  { color: var(--data);  background: color-mix(in srgb, var(--data) 10%, transparent); border-color: color-mix(in srgb, var(--data) 32%, transparent); }
 
 /* Sustituido por el spinner dentro del botón. El nodo se conserva por si
    algún script todavía lo referencia. */

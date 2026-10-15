@@ -210,3 +210,36 @@ function graficoEvolucion(idCanvas, puntos, max) {
     };
   });
 }
+
+/**
+ * Evolución con la rúbrica por roles: dos líneas sobre la misma escala 0–100.
+ * Individual lleva el color de dato; General, el segundo peldaño (--cyan-200),
+ * y la diferencia se distingue además por el trazo, no solo por el color.
+ *
+ * @param {Array} puntos [{ pe, individual, general }] (null = sin dato)
+ */
+function graficoEvolucionV2(idCanvas, puntos) {
+  return pintarGrafico(idCanvas, () => {
+    const c1 = colorDato(0), c2 = colorDato(1);
+    const base = (label, data, color, extra = {}) => ({
+      label, data, borderColor: color, backgroundColor: color,
+      pointBackgroundColor: color, pointBorderColor: token('--bg', '#061326'),
+      pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7,
+      borderWidth: 2, tension: .3, spanGaps: true, ...extra,
+    });
+    return {
+      type: 'line',
+      data: {
+        labels: puntos.map(p => p.pe),
+        datasets: [
+          base('Individual', puntos.map(p => p.individual), c1, { fill: true, backgroundColor: conAlfa(c1, .12) }),
+          base('General',    puntos.map(p => p.general),    c2, { borderDash: [6, 4], pointStyle: 'rectRot' }),
+        ],
+      },
+      options: {
+        plugins: { legend: { display: true } },
+        scales: { y: { min: 0, max: 100, ticks: { stepSize: 25 } } },
+      },
+    };
+  });
+}

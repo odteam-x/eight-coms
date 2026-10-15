@@ -59,7 +59,13 @@ Two things it taught us while being written: a regex that reads token declaratio
 - **`--marca` is brand ornament, never interactive and never a surface.** Rule, underline, 3px bar, dot. It does not count against the three-colours-per-view budget. It is theme-aware because plain coral scores **2.73** on the light background — below even the 3:1 an ornament needs: `--coral` in dark (6.48 / 4.79), `#D93A3E` in light (4.19 / 3.69).
 - **`--sba` stopped being `var(--coral)`** so "Bajo" is not confused with the brand: `#E8484E` in dark, `#A81F23` in light.
 
-`--bg` is `#0E0F12`, a near-black neutral. `--navy-900` is **not** a page background — it is a brand surface, one solid high-contrast piece per screen (hero, login panel). As a page background it distorted every colour in front of it.
+**The dark base is the brand's navy family** (UI/UX redesign): `--bg` `#061326`, `--surface-1/2/3` `#0A1D38` / `#10264A` / `#132D56`, borders tinted with `--cyan-200`. It used to be a neutral near-black (`#0E0F12`) and the site did not look like the brand. The light theme gets a `--cyan-200` veil (`--bg` `#EEF7FC`). `--cyan-200` is now the guide's `#A7E8FF`. **Pure `--navy-900` is still not a page background** — it is the brand surface, one piece per screen (profile header, Inicio hero, rail, login panel); the page behind it is its shadow. The brand's 70 / 30 / 10 split (deep blues / cyans / coral) is the target: coral stays an accent (role chip, active bar, `.tag-marca`), never a surface for body text.
+
+**Brand surfaces redefine their own text tokens.** `.sup-marca`, `.rail`, `.bottom-bar` and `.cab-movil` always sit on navy in both themes, so inside them `--txt`, `--txt-2`, `--txt-muted` (and in `.sup-marca` the level ramp `--sex…--sba`) are re-declared to the measured `--on-brand` / `--on-brand-2` pairs. Without that, a light-theme level colour (dark, made for white) vanishes on the navy. `tools/contraste.js` measures those pairs and the label pairs on coral / cyan: navy on coral is 5.6, **white on coral is 2.9 — never use it**, even though the printed guide does.
+
+**Brand patterns are images, not code.** The seven geometric patterns from the brand go in `img/patrones/patron-1.webp … patron-7.webp` and are only painted behind a brand surface (`.sup-marca::before`, 30 % opacity) and as a 10 % strip that fades out under each portal's header (`#contenido::before`, `.amain::before`). They scroll with the page (never `background-attachment: fixed`). Each person gets one (`pat-N`, picked from their id). Do not redraw them in CSS: the brand supplied them. If a file is missing the request 404s and the surface is simply flat navy.
+
+**`--franja` is the six-band palette strip** (navy → coral) from the guide: ornament on the rail, hero edges and section titles, never information.
 
 **Minimum font size is `--fs-xs` (`.8rem`).** Type is a fluid `clamp()` scale (`--fs-xs` … `--fs-hero`); do not write raw `rem` sizes.
 
@@ -188,17 +194,28 @@ Charts carry `role="img"` with `aria-labelledby` (the section title) and `aria-d
 
 ### Navigation
 
-**Member (`user.html`): three destinations.** Mi Score · Entregas · Historial.
+Redesigned around the person. **Mi perfil** answers "how am I doing"; **Inicio** answers "what do I need to do now".
 
-- **Entregas** holds **my tasks** (`core/tareas.js`; before migration 0016, the old "registrar trabajo" form), the period dates and the calendar. All three answer one question — *what do I owe and when* — and "Períodos" and "Calendario" were the same data (the dates of each PE) split across two tabs.
-- **Historial** holds only the evolution across periods, which is a different question.
-- The rubric is no longer a tab: it is a `<details>` under the score bars, where "how is this graded?" actually arises.
+**Member (`user.html`): three destinations.** Inicio · Mi perfil · Entregas.
 
-**Secretary (`secretario.html`): five.** Same consolidation, keeping Ranking (with Mi Distrito) which is secretary-specific, plus **Tareas** (assign to and review the members of *their own district*; their own tasks live in Entregas — they do not approve themselves).
+- **Inicio** (`core/inicio.js`): hero with a countdown to the next date, my evaluation for the current period (ring + level), tasks that need attention (returned first, then by deadline) and the next dates. In a legacy period it says tasks do not apply and points to Entregas.
+- **Mi perfil** (`core/perfil.js`): header card (avatar, name, role / profile-version / district chips, ring with the score and the change vs the previous period) and four inner tabs — Resumen, Criterios, Tareas, Evolución. It replaces the old *Mi Score* and *Historial* tabs.
+- **Entregas**: my tasks (or the old "registrar trabajo" form in legacy periods) and one **timeline** of the period dates with "today" marked. "Fechas del período" and "Calendario" were the same data; the raw calendar cards stay in a collapsed `<details>`.
+- The rubric is not a tab: v2 criteria carry their own "¿Cómo se puntúa?"; the legacy reference sits in a `<details>` inside Criterios.
 
-**Admin: operation vs configuration.** Overview, Evaluar, Tareas, Usuarios and Reportes stay at top level; Períodos, Calendario, Rúbrica, Perfiles, Roles, Distritos and Gestiones live behind the gear. Previously all nine competed at the same level, so "Evaluar" (daily) sat beside "Rúbrica" (twice a gestión).
+**Secretary (`secretario.html`): five, in two groups.** *Mi espacio*: Inicio · Mi perfil · Entregas (same as the member; Inicio adds a "Tu distrito" block). *Mi distrito*: **Distrito** · **Tareas**.
 
-`_ALIAS_TAB` in `user.js` and `secretario.js` maps the old tab names to the new ones so saved links keep working.
+- **Distrito** has two inner tabs: *Personas* (cards that open each person's profile in the side panel, in supervision mode) and *Ranking de distritos*. In v2 periods the cards carry "N por revisar" / "N vencidas".
+- **Tareas**: assign to and review the members of *their own district*; their own tasks live in Entregas — they do not approve themselves.
+
+**Admin: operation vs configuration.** Panel · Evaluar · Tareas · Personas · Reportes at top level; Períodos, Calendario, Rúbrica, Perfiles, Roles, Distritos and Gestiones live behind the gear. Previously all nine competed at the same level.
+
+- **Panel** (was *Overview*) opens with **Requiere atención** (`admin-personas.js`): accesses pending approval, people not evaluated, drafts not published, deliveries waiting for review, overdue tasks — each linking to where it is solved. Only facts; it never scores.
+- **Personas** (was *Usuarios*): cards by default, the old table as an alternative view. A card opens the profile in the side panel with an extra **Gestión** tab holding what each table row used to hold (role, district, type, access, admin, participation in the period, delete). Those controls still go through the same `onCambio*` / `updateUser*` handlers and API calls.
+
+`_ALIAS_TAB` in `user.js` and `secretario.js` maps the old tab names (`scores`, `historial`, `ranking`, `periodos`…) to the new ones so saved links keep working; `#perfil/criterios` opens a profile tab directly.
+
+**Both rubric models must keep working.** Every v2 branch starts with `esPeriodoV2(periodo)`. The profile shows a classic period on its own scale (22/30, level by 26/20/11, bonus, 7 criteria 1–4) and never mixes it with v2 in a chart or a "change vs previous"; its Tareas tab says the period does not use assignable tasks.
 
 ### Supabase Tables
 
@@ -214,7 +231,13 @@ Loaded by `user.html`, `secretario.html` and `admin.html`, right after `config.j
 - **`core/render.js`** — shared presentation helpers, defined as globals because the portals are classic scripts: the `NIVELES` table, `scoreColor/Label/Class`, `getCriterios`, `calcScore` (portal rows) vs `calcScorePuntajes` (admin `puntajes` + bonus), `parseJSON`, `initials`, `setEl`, `pad`, `timeAgo`, `showToast`, `openModal`/`closeModal`, `switchTabCore`, `initScrollEffects`, `updateTimestamp`, and the three view states `renderCargando` / `renderVacio` / `renderError`.
 
 - **`core/rubrica.js`** — presentation for the role-based rubric (v2): `NIVELES_V2`, `perfilVigenteDe`, `criteriosAplicables`, `resultadoV2HTML`, `rankingV2HTML`, `historialV2HTML`, `miScoreV2`. **No formulas** — see "Role-based rubric" below.
-- **`core/tareas.js`** — the `Tareas` module: one list/modal/flow for the three portals (`Tareas.montar`, `Tareas.evidenciaHTML`).
+- **`core/tareas.js`** — the `Tareas` module: one list/modal/flow for the three portals (`Tareas.montar`, `Tareas.evidenciaHTML`; also exports `ESTADOS` and `plazoHTML`).
+- **`core/ui.js`** — presentation primitives, no formulas: `anilloHTML` (SVG progress ring), `deltaHTML` (change between two already-calculated numbers, with icon + sign + screen-reader text — colour alone is never the signal), `segHTML` (segmented tabs, arrow keys), `esqueletoHTML` (skeletons instead of spinners), `animarEntrada` (ring fill + count-up; off under `prefers-reduced-motion`), `abrirPanel`/`cerrarPanel` (side panel / mobile sheet on top of `openModal`, so it keeps the focus trap and Escape), the date helpers and `lineaTiempoHTML`.
+- **`core/perfil.js`** — the `Perfil` component for all three portals (modes `propio` / `supervision` / `admin`; `Perfil.configurar` adds the admin's extra tab and actions). RLS decides what each caller receives. The only derived things are a subtraction between two calculated numbers and the ordering of already-given scores ("puntos más altos / donde hay más margen"): **no score is computed here**.
+- **`core/inicio.js`** — the Inicio screen (member and secretary; the secretary adds its block through the `extra` hook).
+- **`core/personas.js`** — `personaCardHTML` / `rosterHTML`: the person card shared by the secretary's district and the admin's Personas.
+- **`admin-personas.js`** — admin-only glue (Personas cards, the Gestión tab, Requiere atención). Kept out of `admin.js` on purpose; it shares its globals.
+- **`perfil.css`** and **`inicio.css`** — styles for the above. The shared primitives (`.anillo`, `.delta`, `.seg`, `.skel`, `.panel`, `.sup-marca`, `.franja`, `.tag-marca`) live in `shared.css`.
 
 Do not copy these back into the page scripts. They were duplicated across all three portals and had silently diverged.
 
@@ -345,7 +368,7 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 
 ### Tests (`tools/pruebas/`)
 
-`npm install && npm run todo` there runs 0015 and 0016 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers. `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it now also scans `rubrica.css` and `tareas.css`.
+`npm install && npm run todo` there runs 0015 and 0016 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
 
 ### Migrations
 

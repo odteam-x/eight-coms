@@ -74,10 +74,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
     grupos: [
       { items: [
-        { tab:'overview', icono:'layout-dashboard', etiqueta:'Overview' },
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel'    },
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
-        { tab:'usuarios', icono:'users',            etiqueta:'Usuarios' },
+        { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
       { titulo:'Configuración', items: [
@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderUsuariosPEBar();
   renderRptPEBar();
   renderUsuarios();
+  initPersonas();
   renderRoles();
   renderPeriodos();
   renderCriterios();
@@ -146,7 +147,15 @@ async function loadAllData() {
   _perfiles    = perf;
 
   // getCriterios() de core/render.js lee del Store, no de _criterios.
-  Store.set({ profile: CU, periodos: _periodos, criterios: _criterios,
+  // El Store lleva los períodos con la forma de los portales (pe, fechas en
+  // camelCase): core/perfil.js los lee así. Se conservan todos los campos crudos.
+  const periodosStore = _periodos.map(p => ({
+    ...p, pe: p.nombre, nombre: p.descripcion || p.nombre,
+    inicio: p.fecha_inicio || null, finTrabajo: p.fecha_fin_trabajo || null,
+    entrega: p.fecha_entrega || null, jornada: p.fecha_jornada || null,
+    v2Permitido: p.v2_permitido !== false,
+  }));
+  Store.set({ profile: CU, periodos: periodosStore, criterios: _criterios,
               criteriosV2: _criteriosV2, perfiles: _perfiles, lastUpdated: new Date() });
 
   // Gestión elegida por URL (?gestion=). Si está archivada, solo lectura.
@@ -663,12 +672,14 @@ async function selectUsersPE(periodoId, btn) {
   document.querySelectorAll('#users-pe-btns .pb').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   _inactivosPE = new Set();
+  invalidarPersonasRes();
   const rows = await API.getParticipantes(periodoId);
   rows.forEach(r => { if (!r.activo) _inactivosPE.add(r.user_id); });
   renderUsuarios();
 }
 
 function renderUsuarios() {
+  renderPersonasCards();
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
   const distFilter = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
@@ -830,6 +841,7 @@ async function updateUserField(userId, field, value) {
   showToast(field === 'distrito' ? 'Distrito actualizado' : 'Tipo actualizado', 'ok');
   _users = _users.map(u => u.id === userId ? { ...u, [field]: value || null } : u);
   if (field === 'distrito') populateDistritoFilters();
+  renderPersonasCards();
 }
 
 async function updateUserRol(userId, rolId) {
@@ -837,6 +849,7 @@ async function updateUserRol(userId, rolId) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast('Rol actualizado', 'ok');
   _users = _users.map(u => u.id === userId ? { ...u, rol_id: Number(rolId) } : u);
+  renderPersonasCards();
 }
 
 async function updateUserAprobado(userId, aprobado) {
@@ -852,6 +865,7 @@ async function updateUserAdmin(userId, esAdmin) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(esAdmin ? 'Usuario promovido a admin' : 'Permisos de admin retirados', 'ok');
   _users = _users.map(u => u.id === userId ? { ...u, es_admin: esAdmin } : u);
+  renderPersonasCards();
 }
 
 /* ══ SELECTOR DE ENTRADA ═══════════════════════════════════════════════
@@ -1666,6 +1680,7 @@ async function selectOvPE(periodoId, btn) {
 
 async function loadOverview() {
   const bodyEl = document.getElementById('ov-body'); if (!bodyEl) return;
+  renderAtencion();
   if (!_activePEOv) {
     bodyEl.innerHTML = `<div class="empty-box"><div class="empty-txt">No hay períodos. Crea uno en la pestaña Períodos.</div></div>`;
     return;

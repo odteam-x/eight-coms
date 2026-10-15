@@ -98,7 +98,6 @@ const ACCIONES = {
   /** Solo si el clic cae en el fondo del overlay, no en su contenido. */
   cerrarModalFondo: (arg, el, e)  => { if (e.target === el) closeModal(arg); },
   verPass:          (arg, el)     => togglePassField(el, arg),
-  modoRubrica:      (arg, el)     => setRubricaMode(arg, el),
   mostrarReset:     ()            => showResetForm(),
   volverLogin:      ()            => backToLogin(),
   resetPaso1:       ()            => resetStep1(),
@@ -107,6 +106,18 @@ const ACCIONES = {
   railColapso:   ()    => alternarColapso(),
   masDestinos:   ()    => abrirHoja(),
   tabDesdeHoja:  (arg) => { cerrarHoja(); switchTab(arg, null); },
+
+  /* ── Perfil de persona (core/perfil.js) ── */
+  perfilTab:     (a, el) => Perfil.tab(a, el),
+  perfilVer:     (a)     => Perfil.abrir(a),
+  cambiarAvatar: ()      => document.getElementById('avatar-file-input')?.click(),
+  distritoTab:   (a)     => seleccionarDistritoTab(a),
+  // Admin: Personas (admin-personas.js)
+  personasVista:       (a)     => personasVista(a),
+  evaluarDesdePerfil:  (a)     => evaluarDesdePerfil(a),
+  gestionAprobar:      (a, el) => gestionAprobar(a, el.dataset.arg2 === 'true'),
+  gestionParticipante: (a, el) => gestionParticipante(a, el.dataset.arg2 === 'true'),
+  borrarDesdePerfil:   (a)     => borrarDesdePerfil(a),
 
   /* ── Acciones del marcado generado por los portales ── */
   irTab:        (a)             => goTab(a),

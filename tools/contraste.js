@@ -26,7 +26,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
-const CSS  = ['shared.css', 'admin.css', 'user.css', 'secretario.css', 'login.css', 'rubrica.css', 'tareas.css'];
+const CSS  = ['shared.css', 'admin.css', 'user.css', 'secretario.css', 'login.css', 'rubrica.css', 'tareas.css', 'perfil.css', 'inicio.css'];
 
 /* ══ EXCEPCIONES DE HEX ════════════════════════════════════════════════
  * Cada una necesita motivo. Si añades una sin motivo, el siguiente que lea
@@ -167,6 +167,15 @@ const PARES_FIJOS = [
   ['--nivel-on',  '--sbu',         4.5, 'píldora Bueno'],
   ['--nivel-on',  '--spr',         4.5, 'píldora En Proceso'],
   ['--nivel-on',  '--sba',         4.5, 'píldora Bajo'],
+  // Superficie de marca (hero, paneles): el texto va en blanco o cian claro.
+  ['--on-brand',   '--navy-900',  4.5, 'texto sobre el navy de marca'],
+  ['--on-brand',   '--blue-700',  4.5, 'texto sobre el extremo azul del degradado'],
+  ['--on-brand-2', '--navy-900',  4.5, 'texto secundario sobre el navy de marca'],
+  ['--on-brand-2', '--blue-700',  4.5, 'texto secundario sobre el extremo azul del degradado'],
+  // Píldora coral de la guía: lleva navy, no blanco (blanco sobre coral da 2.9).
+  ['--navy-900',   '--coral',     4.5, 'etiqueta sobre píldora coral'],
+  ['--navy-900',   '--cyan-400',  4.5, 'etiqueta sobre píldora cian'],
+  ['--navy-900',   '--cyan-200',  4.5, 'etiqueta sobre bloque cian claro'],
 ];
 
 /** Rellenos y ornamentos: umbral 3:1 contra la página. */

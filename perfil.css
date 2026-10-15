@@ -1,0 +1,246 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EIGHT CREATORS LABs — Perfil de persona (core/perfil.js)
+   Lo cargan los tres portales. Solo tokens: ningún hex fuera de :root.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Cabecera ───────────────────────────────────────────────────────── */
+.perfil-cab {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  gap: var(--sp-5) var(--sp-6);
+  padding: var(--sp-6) max(var(--sp-5), env(safe-area-inset-right)) calc(var(--sp-6) + 4px) max(var(--sp-5), env(safe-area-inset-left));
+}
+.perfil-id { display: flex; align-items: center; gap: var(--sp-5); min-width: 0; }
+.perfil-id-txt { min-width: 0; }
+
+.perfil-av {
+  position: relative; flex: 0 0 auto;
+  width: 88px; height: 88px; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--blue-700); color: var(--on-brand);
+  border: 3px solid var(--cyan-400);
+  font-family: var(--font-display); font-weight: 700; font-size: 2rem; letter-spacing: .02em;
+}
+.perfil-av img { width: 100%; height: 100%; object-fit: cover; }
+.perfil-av--editable { cursor: pointer; padding: 0; }
+.perfil-av-cam {
+  position: absolute; right: 2px; bottom: 2px; width: 26px; height: 26px; padding: 5px;
+  border-radius: 50%; background: var(--navy-900); color: var(--on-brand);
+}
+.perfil-av--editable:hover .perfil-av-cam { background: var(--coral); color: var(--navy-900); }
+
+.perfil-nombre {
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2rem, 4.6vw, 3.4rem); letter-spacing: .01em; line-height: .92;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.perfil-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); list-style: none; margin-top: var(--sp-3); }
+.perfil-chips li {
+  padding: 3px var(--sp-3); border-radius: var(--r-full);
+  background: rgba(255,255,255,.12); color: var(--on-brand);
+  font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 500;
+}
+/* El primero es el rol: la etiqueta coral de la guía de marca. */
+.perfil-chips li:first-child { background: var(--coral); color: var(--navy-900); font-weight: 600; border-radius: var(--r-sm); }
+.perfil-email { margin-top: var(--sp-2); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--on-brand-2); overflow-wrap: anywhere; }
+
+.perfil-acciones { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.perfil-accion {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  min-height: 44px; padding: 0 var(--sp-4); border-radius: var(--r-md);
+  border: 1.5px solid rgba(255,255,255,.4); color: var(--on-brand);
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600;
+  transition: background .15s var(--ease), border-color .15s var(--ease);
+}
+.perfil-accion:hover { background: rgba(255,255,255,.12); border-color: var(--on-brand); }
+.perfil-accion i, .perfil-accion svg { width: 16px; height: 16px; }
+
+.perfil-resumen { display: flex; align-items: center; gap: var(--sp-4); }
+.perfil-resumen .anillo { --tam: 112px; }
+.perfil-resumen-txt { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+.perfil-leyenda { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--on-brand-2); }
+
+/* ── Cuerpo ─────────────────────────────────────────────────────────── */
+.perfil-pagina { padding-top: var(--sp-5); }
+.perfil-barra { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.perfil-barra .pe-row { margin-bottom: 0; }
+.perfil-cuerpo { min-height: 240px; }
+
+/* En el panel lateral la cabecera es una tarjeta, no una banda a sangre. */
+.perfil--panel .perfil-pagina { padding: var(--sp-4) 0 0; max-width: none; }
+.perfil--panel .perfil-cab {
+  clip-path: none; overflow: hidden; border-radius: var(--r-lg);
+  padding: var(--sp-5); margin-bottom: 0;
+}
+.perfil--panel .perfil-cab::after { inset: auto 0 0 0; }
+.perfil--panel .perfil-nombre { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.perfil--panel .perfil-barra { position: sticky; top: calc(var(--sp-5) * -1); z-index: var(--z-sticky); background: var(--bg); padding: var(--sp-2) 0; margin-bottom: var(--sp-3); }
+
+/* ── Indicadores ────────────────────────────────────────────────────── */
+.pf-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.pf-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pf-kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-4); min-width: 0; }
+.pf-kpi-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500; color: var(--txt-2); }
+.pf-kpi-val { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.2rem, 3.4vw, 3rem); line-height: 1; margin: var(--sp-2) 0; font-variant-numeric: tabular-nums; }
+.pf-kpi-val small { font-size: var(--fs-sm); font-weight: 500; color: var(--txt-muted); margin-left: 2px; }
+.pf-kpi-sub { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-muted); min-height: 1.6em; }
+
+/* ── Tarjetas ───────────────────────────────────────────────────────── */
+.pf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.pf-grid--1 { grid-template-columns: minmax(0, 1fr); }
+.pf-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-5); min-width: 0; }
+.pf-card--ancha { grid-column: 1 / -1; }
+.pf-card-cab { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); }
+.pf-h {
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: var(--fs-lg); letter-spacing: .02em; line-height: 1.05; margin: var(--sp-4) 0 var(--sp-3);
+}
+.pf-card .pf-h, .pf-card-cab .pf-h { margin-top: 0; }
+.pf-h small { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--txt-muted); margin-left: var(--sp-2); }
+.pf-sub { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); margin-bottom: var(--sp-2); }
+.pf-vacio { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; }
+.pf-nota { margin-top: var(--sp-4); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; max-width: 70ch; }
+.pf-enlace {
+  display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 44px;
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--action);
+}
+.pf-enlace:hover { color: var(--txt); }
+.pf-enlace svg, .pf-enlace i { width: 16px; height: 16px; }
+
+.pf-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); }
+.pf-lista { list-style: none; display: flex; flex-direction: column; gap: var(--sp-3); }
+.pf-crit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-1) var(--sp-3); align-items: baseline; }
+.pf-crit-n { font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.3; }
+.pf-crit-v { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: var(--criterio-txt); }
+.pf-crit-v small { font-size: var(--fs-xs); font-weight: 500; color: var(--txt-muted); }
+.pf-crit-barra { display: block; grid-column: 1 / -1; height: 6px; }
+.pf-crit-barra .barra-fill { display: block; }
+
+/* Posición dentro del rol: pista 0–100 con una marca coral. */
+.pf-pos { margin: var(--sp-3) 0 var(--sp-4); }
+.pf-pos-pista { position: relative; height: 10px; border-radius: var(--r-full); background: var(--surface-3); }
+.pf-pos-marca { position: absolute; top: -6px; width: 5px; height: 22px; margin-left: -2px; border-radius: 3px; background: var(--marca); }
+.pf-pos-esc { display: flex; justify-content: space-between; margin-top: var(--sp-2); font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); }
+
+/* ── Tareas ─────────────────────────────────────────────────────────── */
+.pf-tks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: var(--sp-3); }
+.pf-tk { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4); border: 1px solid transparent; }
+.pf-tk-val { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1; }
+.pf-tk-lbl { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-2); }
+.pf-tk--aviso { border-color: var(--alert); }
+.pf-tk--aviso .pf-tk-val { color: var(--alert); }
+.pf-tareas { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-4); }
+.pf-tarea { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-3) var(--sp-4); background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-md); }
+.pf-tarea-txt { min-width: 0; }
+.pf-tarea-t { font-family: var(--font-body); font-size: var(--fs-md); overflow-wrap: anywhere; }
+.pf-tarea-m { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-2); margin-top: 2px; }
+
+/* ── Criterios: marcador del período anterior ───────────────────────── */
+.pf-cbar .pf-track { position: relative; overflow: visible; }
+.pf-prev { position: absolute; top: -3px; width: 3px; height: 14px; margin-left: -1px; border-radius: 2px; background: var(--txt); }
+.pf-prev-txt { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-grid, .pf-dos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .perfil-cab { grid-template-columns: minmax(0, 1fr); padding-block: var(--sp-5) calc(var(--sp-5) + 4px); }
+  .perfil-av { width: 72px; height: 72px; font-size: 1.6rem; }
+  .perfil-resumen .anillo { --tam: 96px; }
+  /* Las pestañas y los períodos quedan fijos bajo la cabecera móvil. */
+  .perfil:not(.perfil--panel) .perfil-barra { position: sticky; top: 48px; z-index: var(--z-sticky); background: var(--bg); padding: var(--sp-2) 0; margin-bottom: var(--sp-3); }
+}
+@media (max-width: 480px) {
+  .perfil-id { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+  .pf-kpi { padding: var(--sp-3); }
+}
+
+/* Criterios en dos columnas cuando hay ancho: una barra por fila a 1200px
+   dejaba la longitud de la barra sin relación con el valor que representa. */
+@media (min-width: 1000px) {
+  .perfil:not(.perfil--panel) .perfil-cuerpo .v2-bars {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3);
+  }
+}
+
+/* Tablas de períodos: la primera columna es el período, a la izquierda
+   (la regla base de rubrica.css alinea a la izquierda la SEGUNDA, pensada
+   para el ranking, donde la primera es la posición). */
+.perfil .v2-tabla th:first-child { text-align: left; }
+.perfil .v2-tabla th:nth-child(2) { text-align: right; }
+
+/* ── Tarjeta de persona (core/personas.js) ──────────────────────────── */
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: var(--sp-3); }
+.pcard {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4);
+  width: 100%; min-height: 96px; padding: var(--sp-4); text-align: left;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg);
+  transition: border-color .15s var(--ease), transform .15s var(--ease), box-shadow .15s var(--ease);
+}
+.pcard:hover { border-color: var(--data); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.pcard:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.pcard--yo { border-color: var(--border-hi); background: var(--surface-2); }
+.pcard-av {
+  width: 52px; height: 52px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: var(--blue-700); color: var(--on-brand); border: 2px solid var(--cyan-400);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.2rem;
+}
+.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
+.pcard-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pcard-nombre { font-family: var(--font-ui); font-size: var(--fs-md); font-weight: 600; overflow-wrap: anywhere; }
+.pcard-yo { margin-left: var(--sp-1); padding: 0 var(--sp-2); border-radius: var(--r-full); background: var(--surface-3); font-size: var(--fs-xs); font-weight: 500; }
+.pcard-rol { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
+.pcard-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); margin-top: var(--sp-1); }
+.pcard-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px var(--sp-2); border-radius: var(--r-full); background: var(--surface-3); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 500; color: var(--txt); }
+.pcard-chip svg, .pcard-chip i { width: 12px; height: 12px; }
+.pcard-chip--aviso { background: color-mix(in srgb, var(--marca) 20%, var(--surface-1)); }
+.pcard-valor { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
+.pcard-valor .anillo { --tam: 60px; }
+.pcard-valor .anillo-num { font-size: 1.25rem; }
+.pcard-valor .nivel-badge { padding: 2px var(--sp-2); }
+.pcard-sin { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); max-width: 9ch; text-align: center; }
+@media (max-width: 400px) { .pcard { grid-template-columns: auto minmax(0, 1fr); } .pcard-valor { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; } }
+
+/* Calificación oficial del distrito (secretario). */
+.dist-cal-total { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1; margin-top: var(--sp-1); }
+.dist-cal-total small { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500; color: var(--txt-muted); }
+.distrito-seg { margin-bottom: var(--sp-5); }
+.entregas-cal .cal-grid { padding: 0 var(--sp-4) var(--sp-4); }
+.entregas-cal .rubrica-wrap { padding: 0 var(--sp-4) var(--sp-4); max-width: none; }
+
+/* En el panel lateral el ancho es corto: identidad arriba, anillo debajo. */
+.perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.perfil--panel .perfil-resumen .anillo { --tam: 96px; }
+
+/* ── Admin: Personas y Panel (admin-personas.js) ────────────────────── */
+.personas-seg { margin: var(--sp-4) 0; }
+.gp-campo { display: flex; flex-direction: column; gap: var(--sp-1); margin-bottom: var(--sp-3); }
+.gp-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); }
+.gp-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-top: 1px solid var(--border); }
+.gp-fila:first-of-type { border-top: 0; }
+.gp-t { font-family: var(--font-ui); font-size: var(--fs-md); font-weight: 600; }
+.gp-s { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); max-width: 46ch; }
+.pf-card--peligro { border-color: color-mix(in srgb, var(--alert) 55%, var(--border)); }
+@media (max-width: 480px) { .gp-fila { flex-direction: column; align-items: stretch; } }
+
+.atencion { margin-bottom: var(--sp-5); }
+.atencion-lista { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+.atencion-item {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.atencion-item--aviso { border-color: var(--alert); }
+.atencion-ico { width: 20px; height: 20px; color: var(--txt-2); }
+.atencion-item--aviso .atencion-ico { color: var(--alert); }
+.atencion-n { font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; line-height: 1; min-width: 1.4ch; text-align: right; }
+.atencion-txt { font-family: var(--font-body); font-size: var(--fs-md); min-width: 0; }
+.atencion-ok { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-md); font-family: var(--font-body); font-size: var(--fs-md); }
+.atencion-ok svg, .atencion-ok i { width: 20px; height: 20px; color: var(--sbu-txt); flex: 0 0 auto; }
+@media (max-width: 600px) { .atencion-item { grid-template-columns: auto minmax(0, 1fr); } .atencion-item .pf-enlace { grid-column: 1 / -1; justify-self: start; } .atencion-ico { display: none; } }
+
+/* La barra de períodos y de pestañas nunca ensancha la página: sus hijos se
+   encogen y las pestañas hacen scroll por dentro (.seg tiene overflow-x). */
+.perfil-barra { align-items: stretch; }
+.perfil-barra > * { min-width: 0; max-width: 100%; }
+.distrito-seg, .personas-seg { max-width: 100%; }

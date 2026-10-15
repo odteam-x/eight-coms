@@ -1,18 +1,27 @@
 /**
- * EIGHT CREATORS LABs — Portal (Secretario + Miembro)
- * Secretario ve: Mi Score, Ranking, Mi Distrito, Criterios, Rúbrica, Calendario
- * Miembro   ve: Mi Score,           Mi Distrito, Criterios, Rúbrica, Calendario
+ * EIGHT CREATORS LABs — Portal del secretario
+ *
+ * Cinco destinos en dos grupos:
+ *   Mi espacio  : Inicio · Mi perfil · Entregas          (lo mismo que el miembro)
+ *   Mi distrito : Distrito · Tareas                       (solo secretario)
+ *
+ *   · Inicio    → core/inicio.js, con el pulso del distrito como bloque propio.
+ *   · Mi perfil → core/perfil.js. Absorbe lo que eran «Mi Score» e «Historial».
+ *   · Distrito  → las personas del distrito (tarjetas que abren su perfil) y,
+ *                 en una subpestaña, el ranking de distritos.
+ *   · Tareas    → asigna y revisa a las personas de SU distrito.
+ *
+ * Quién ve qué lo decide RLS: el cliente no vuelve a filtrar por distrito.
  */
 'use strict';
 
 let CU = null, D = null;
 /* parseJSON → core/render.js */
 
-/* Un solo período gobierna toda la página: mPE, rPE y dPE son ahora vistas
-   del mismo valor del Store, no tres estados independientes. Antes elegir
-   "PE2" en Mi Score dejaba el ranking en PE1. */
-let mPE=null, rPE=null, dPE=null;
-let _lastUpdated=null, _peInited=false;
+/* Un solo período gobierna toda la página: cambiarlo en cualquier barra
+   repinta Inicio, Perfil, Distrito, Tareas y Entregas a la vez. */
+let mPE = null;
+let _lastUpdated = null, _peInited = false;
 
 /* CRITERIOS_DEFAULT eliminado — ver core/render.js. */
 const isSecretario = () => CU?.rol === 'secretario';
@@ -46,19 +55,14 @@ function getDistritoRows() {
   return _contenido?.scores || [];
 }
 
-/* toggleMenu / closeMenu vivían aquí, apuntando a #hamburger y
-   #mobile-menu. Ninguno de los dos existe en el marcado desde que el
-   rail sustituyó a la topbar en la fase 6, junto con sus dos listeners
-   globales de clic y resize. */
-
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireAnyRole(['secretario','miembro']);
   if (!CU) return;
 
   if (await loadContexto()) {
-    initUI();
-    if (await loadContenido()) renderPeriodoActual();
+    await initUI();
+    if (await loadContenido()) await renderPeriodoActual();
   }
   initRevalidacion();
 });
@@ -75,19 +79,20 @@ function initRevalidacion() {
     if (!(await loadContexto())) return;
 
     // Un solo período gobierna todas las secciones: si el admin lo cambió,
-    // Mi Score, Ranking, Mi Distrito y Trabajos lo siguen a la vez.
+    // todas lo siguen a la vez.
     const nuevo = Store.periodoActivo();
     if (nuevo && String(nuevo.id) !== String(idAnterior)) {
       Store.setPeriodo(nuevo.id);
-      mPE = rPE = dPE = _trabajosPE = nuevo.pe;
+      mPE = _trabajosPE = nuevo.pe;
     }
     await loadContenido();
-    initUI();
+    await initUI();
+    await renderPeriodoActual();
     if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
   });
 }
 
-/* ── FASE 1: CONTEXTO ── */
+/* ── CONTEXTO ── */
 async function loadContexto() {
   try {
     const ctx = await API.getContexto(gestionDeURL());
@@ -114,7 +119,7 @@ async function loadContexto() {
       const inicial = ctx.periodoActivo || ctx.periodos?.[0] || null;
       if (inicial) {
         Store.setPeriodo(inicial.id);
-        mPE = rPE = dPE = _trabajosPE = inicial.pe;
+        mPE = _trabajosPE = inicial.pe;
       }
       _peInited = true;
     }
@@ -142,7 +147,7 @@ function gestionDeURL() {
   return new URLSearchParams(location.search).get('gestion') || null;
 }
 
-/* ── FASE 2: CONTENIDO del período elegido (lazy, cancelable) ── */
+/* ── CONTENIDO del período elegido (lazy, cancelable) ── */
 let _abortContenido = null;
 let _contenido = null;
 
@@ -168,47 +173,37 @@ async function loadContenido() {
   }
 
   _contenido   = res;
+  _tareasDistrito = null;                 // las tareas se piden por período
   _lastUpdated = new Date();
   Store.set({ lastUpdated: _lastUpdated });
   return true;
 }
 
-/** Identidad SIEMPRE por UUID (3.6), nunca por email. */
-const miFila     = () => (_contenido?.scores   || []).find(r => r.evaluado_id === CU?.id) || null;
-const miFeedback = () => (_contenido?.feedback || []).find(r => r.evaluado_id === CU?.id) || null;
-
-/** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
-/** Estado de error del bloque de score. Delega en renderError() de
-    core/render.js: el mensaje al usuario y la ocultacion del detalle
-    tecnico se deciden en un solo sitio. */
+/** Estado de error visible. Delega en renderError() de core/render.js: el
+    mensaje al usuario y la ocultación del detalle técnico se deciden allí. */
 function mostrarErrorCarga(msg) {
-  renderError(document.getElementById('score-body'), msg, () => location.reload());
+  const host = document.getElementById('inicio-host') || document.getElementById('perfil-host');
+  renderError(host, msg, () => location.reload());
 }
 
-/* Las cuatro barras se generan desde los datos. */
+/* ── BARRAS DE PERÍODO (todas siguen al mismo valor) ── */
+const _BARRAS_PE = ['pe-row-rank', 'trabajos-pe-row', 'tareas-pe-row'];
+
 function buildPEBars() {
   const pes = D?.periodos || [];
-  renderPEBar(document.getElementById('pe-row-miscore'),  pes, mPE,         selectPE);
-  renderPEBar(document.getElementById('pe-row-rankdist'), pes, dPE,         selectPERankDist);
-  renderPEBar(document.getElementById('pe-row-rank'),     pes, rPE,         selectPERank);
-  renderPEBar(document.getElementById('trabajos-pe-row'), pes, _trabajosPE, selectTrabajoPE);
-  renderPEBar(document.getElementById('tareas-pe-row'),   pes, _trabajosPE, selectTrabajoPE);
-  setEl('hero-pe', mPE);
+  for (const id of _BARRAS_PE) renderPEBar(document.getElementById(id), pes, mPE, cambiarPeriodo);
 }
 
 function syncAllPEButtons() {
-  syncPEBar(document.getElementById('pe-row-miscore'),  mPE);
-  syncPEBar(document.getElementById('pe-row-rankdist'), dPE);
-  syncPEBar(document.getElementById('pe-row-rank'),     rPE);
-  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
-  syncPEBar(document.getElementById('tareas-pe-row'),   _trabajosPE);
-  setEl('hero-pe', mPE);
+  for (const id of _BARRAS_PE) syncPEBar(document.getElementById(id), mPE);
 }
 
-/* Render quirúrgico (3.9): lo estático se monta una vez. */
+/* ── UI ──────────────────────────────────────────────────────────────────
+   Lo estático se monta una vez; lo que depende del período se repinta aparte
+   con renderPeriodoActual(). */
 let _uiMontada = false;
 
-function initUI() {
+async function initUI() {
   if (!CU) return;
   buildPEBars();
 
@@ -217,57 +212,120 @@ function initUI() {
     initNav({
       marca: 'EIGHT CREATORS',
       badge: sec ? 'SECRETARIO' : 'CREATOR',
-      activo: 'miscore',
+      activo: 'inicio',
       pie: { nombre: CU.name || CU.user,
              badge: sec ? 'Secretario de Comunicaciones' : 'Creator' },
-      grupos: [{ items: [
-        { tab:'miscore',   icono:'bar-chart-2', etiqueta:'Mi Score' },
-        ...(sec ? [
-        { tab:'ranking',   icono:'trophy',      etiqueta:'Ranking' },
-        { tab:'distrito',  icono:'map',         etiqueta:'Mi Distrito' },
-        { tab:'tareas',    icono:'list-checks', etiqueta:'Tareas' }] : []),
-        { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas' },
-        { tab:'historial', icono:'history',     etiqueta:'Historial' },
-      ]}],
+      grupos: [
+        { titulo: sec ? 'Mi espacio' : '', items: [
+          { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
+          { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
+        ]},
+        ...(sec ? [{ titulo: 'Mi distrito', items: [
+          { tab:'distrito', icono:'map',         etiqueta:'Distrito'  },
+          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas'    },
+        ]}] : []),
+      ],
     });
-    // Mostrar/ocultar elementos exclusivos del secretario
-    document.querySelectorAll('.sec-only').forEach(el => { el.style.display = sec ? '' : 'none'; });
-    document.querySelectorAll('.mem-only').forEach(el => { el.style.display = sec ? 'none' : ''; });
-    const dc = document.getElementById('dist-calificacion');
-    if (dc) dc.style.display = sec ? 'block' : 'none';
-
-    const badge = document.getElementById('role-badge');
-    if (badge) { badge.textContent = sec ? 'SECRETARIO' : 'CREATOR'; badge.className = sec ? 'secretario-badge' : 'portal-badge'; }
-    const rolMob = document.getElementById('role-label-mob');
-    if (rolMob) rolMob.textContent = sec ? 'Secretario de Comunicaciones' : 'Creator';
-
-    const name = CU.name || CU.user, ini = initials(name);
-    // 'av-mobile' y 'uname-mobile' no existen en ningún HTML: eran ids
-    // de la topbar que el rail sustituyó en la fase 6.
-    // montarAvatar() de core/render.js: pinta la foto si la hay, las
-    // iniciales si no, y engancha el selector de archivo.
     montarAvatar(CU);
-    setEl('hero-name',name);
-    setEl('hero-tag', sec ? 'SECRETARIO DE COMUNICACIONES · CELIDER 08' : 'CREATOR · CELIDER 08');
-
     renderDistritoHeader();
-    renderQuickLinks();      // estáticas: una sola vez
     initScrollEffects();
+    Perfil.configurar({ modo: 'supervision', resolver: personaDeDistrito, calendario: () => D?.calendario });
     _uiMontada = true;
   }
 
-  renderRubrica(); renderTablaEvaluacion(); renderCalendario();
-  renderPeriodoActual();
+  renderCalendario();
+  renderLineaTiempo();
+  await montarPerfil();
   updateTimestamp();
+
+  // Enlace guardado a una pestaña interna del perfil: #perfil/criterios.
+  const m = /^#perfil\/(\w+)/.exec(location.hash);
+  if (m) { switchTab('perfil', null); Perfil.tab(m[1], document.getElementById('perfil-host')); }
+}
+
+/** Persona que ve el perfil propio: la sesión. */
+async function _personaPropia() {
+  let rol_nombre = '';
+  try { rol_nombre = (await API.getRoles(false)).find(r => String(r.id) === String(CU.rol_id))?.nombre || ''; }
+  catch { /* sin nombre de rol el perfil sigue: el v2 lo trae en su fila */ }
+  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url,
+           rol_nombre, distrito: CU.distrito, tipo_miembro: CU.tipo_miembro };
+}
+
+async function montarPerfil() {
+  const host = document.getElementById('perfil-host'); if (!host) return;
+  await Perfil.montar({
+    el: host, persona: await _personaPropia(), modo: 'propio', periodoId: Store.periodoId(),
+    onPeriodo: pe => cambiarPeriodo(pe, null, { desdePerfil: true }),
+  });
+}
+
+/** Resuelve a alguien del distrito para abrir su perfil en el panel lateral. */
+function personaDeDistrito(id) {
+  const m = (_contenido?.districtMembers || []).find(x => String(x.id) === String(id));
+  if (!m) return null;
+  return { id: m.id, nombre: m.nombre || m.email, email: m.email, avatar_url: m.avatar_url,
+           rol_nombre: m.roles?.nombre || '', distrito: m.distrito, tipo_miembro: m.tipo_miembro };
 }
 
 /** Repinta solo lo que depende del período seleccionado. */
-function renderPeriodoActual() {
-  renderRubrica();
-  renderMyScore(mPE);
-  renderPEDates(mPE, 'tab-miscore');
-  renderRankingDistritos(dPE);
-  renderDistrito(rPE);
+async function renderPeriodoActual() {
+  renderRankingDistritos();
+  await Promise.all([renderDistrito(), montarInicio()]);
+}
+
+/* ── INICIO: lo que toca ahora + pulso del distrito ─────────────────── */
+async function montarInicio() {
+  const host = document.getElementById('inicio-host'); if (!host) return;
+  await Inicio.montar({
+    el: host, persona: await _personaPropia(),
+    extra: isSecretario() ? pintarPulsoDistrito : null,
+  });
+}
+
+async function pintarPulsoDistrito(el) {
+  if (!el) return;
+  const miembros = _contenido?.districtMembers || [];
+  const v2 = esPeriodoV2(Store.periodo());
+  const evaluados = v2 ? (_contenido?.v2 || []).length : getDistritoRows().length;
+  const t = await datosTareasDistrito();
+  const porRevisar = t ? [...t.porRevisar.values()].reduce((a, b) => a + b, 0) : null;
+  const vencidas = t ? [...t.resumen.values()].reduce((a, r) => a + (r.vencidas_abiertas || 0), 0) : null;
+  const tile = (val, lbl, aviso) => `<div class="pf-tk${aviso ? ' pf-tk--aviso' : ''}"><div class="pf-tk-val">${escHtml(String(val))}</div><div class="pf-tk-lbl">${escHtml(lbl)}</div></div>`;
+  el.innerHTML = `
+    <section class="pf-card pf-card--ancha" aria-labelledby="pulso-h">
+      <div class="pf-card-cab"><h3 class="pf-h" id="pulso-h">Tu distrito${getMyDistrito() ? ` <small>${escHtml(getMyDistrito())}</small>` : ''}</h3>
+        <button type="button" class="pf-enlace" data-act="tab" data-arg="distrito">Ver personas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
+      <div class="pf-tks">
+        ${tile(miembros.length, 'Personas')}
+        ${tile(`${evaluados}/${miembros.length}`, 'Evaluadas este período')}
+        ${porRevisar == null ? '' : tile(porRevisar, 'Entregas por revisar', porRevisar > 0)}
+        ${vencidas == null ? '' : tile(vencidas, 'Tareas vencidas', vencidas > 0)}
+      </div>
+      ${t && (porRevisar > 0) ? `<p class="pf-nota"><button type="button" class="pf-enlace" data-act="tab" data-arg="tareas">Revisar las entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button></p>` : ''}
+    </section>`;
+  animarEntrada(el);
+}
+
+/* ── TAREAS DEL DISTRITO (resumen por persona) ───────────────────────────
+   Solo en períodos con la rúbrica por roles. Una consulta de resumen y una
+   de tareas, ambas filtradas por RLS al distrito. */
+let _tareasDistrito = null;
+
+async function datosTareasDistrito() {
+  const per = Store.periodo();
+  if (!per || !esPeriodoV2(per) || !isSecretario()) return null;
+  if (_tareasDistrito?.periodoId === per.id) return _tareasDistrito;
+  const [res, lista] = await Promise.all([API.getResumenTareas(per.id), API.getTareas({ periodoId: per.id })]);
+  if (!res.ok || !lista.ok) return null;
+  const porRevisar = new Map();
+  for (const t of lista.tareas) {
+    // Una persona no revisa lo suyo: no cuenta como «por revisar» para el secretario.
+    if (t.estado === 'entregada' && t.asignada_a !== CU.id) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
+  }
+  _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar };
+  return _tareasDistrito;
 }
 
 /* ── HEADER DISTRITO ── */
@@ -275,168 +333,38 @@ function renderDistritoHeader() {
   const el = document.getElementById('distrito-header'); if (!el) return;
   const nombre = getMyDistrito();
   if (!nombre) {
-    el.innerHTML = `<div style="padding:14px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:4px">⚠ Sin distrito asignado</div></div>`;
+    el.innerHTML = `<div class="no-data-msg" role="note"><div class="no-data-txt">No tienes un distrito asignado. Pídele a la coordinación que te asigne uno.</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="distrito-title-block"><div class="distrito-label">TU DISTRITO</div><div class="distrito-nombre">${escHtml(nombre)}</div></div>`;
+  el.innerHTML = `<h2 class="tab-title tab-title--mb">Distrito ${escHtml(nombre)}</h2>`;
 }
 
-/* ── PE DATES ── */
-function renderPEDates(pe, tabId) {
-  const p = D?.periodos?.find(x => x.pe === pe);
-  const infoId = `pe-dates-info${tabId?'-'+tabId:''}`;
-  let el = document.getElementById(infoId);
-  if (!el) {
-    const peRow = document.querySelector(`#${tabId||'tab-miscore'} .pe-row`);
-    if (!peRow) return;
-    el = document.createElement('div');
-    el.id = infoId;
-    el.className = 'pe-dates-info';
-    peRow.insertAdjacentElement('afterend', el);
-  }
-  if (!p) { el.innerHTML = ''; return; }
-  const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
-  const estadoCls = (p.estado||'').toLowerCase().replace(/\s+/g,'-');
-  el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
-    items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${v}</span>`).join('') +
-    (p.estado?`<span class="pe-dates-estado pe-estado--${estadoCls}">${p.estado}</span>`:'');
-}
-
-/* ── MI SCORE ── */
-/* Un solo período para toda la página (3.8): cambiarlo en cualquier barra
-   repinta Mi Score, Ranking, Mi Distrito y Trabajos a la vez. */
-async function cambiarPeriodo(pe, btn) {
+/* ── CAMBIO DE PERÍODO ─────────────────────────────────────────────────── */
+async function cambiarPeriodo(pe, btn, { desdePerfil = false } = {}) {
   if (!pe) return;
-  mPE = rPE = dPE = _trabajosPE = pe;
+  mPE = _trabajosPE = pe;
   Store.setPeriodo(pe);
   if (btn) syncPEBar(btn.closest('.pe-row'), pe);
   syncAllPEButtons();
-  setEl('hero-pe', pe);
-  renderPEDates(pe, 'tab-miscore');
-  renderCargando(document.getElementById('score-body'));
+  if (!desdePerfil) Perfil.sincronizar(pe);
+  renderLineaTiempo();
+
+  const cuerpo = document.getElementById('distrito-members');
+  if (cuerpo) cuerpo.innerHTML = esqueletoHTML();
 
   // Solo la fase 2, cancelando la petición anterior.
   if (!(await loadContenido())) return;
-
-  renderMyScore(pe);
-  renderRankingDistritos(pe);
-  renderDistrito(pe);
+  await renderPeriodoActual();
   if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
   if (!Store.necesitaCarga('tareas')) renderTareasDistrito();
 }
 
-function selectPE(pe, btn)         { cambiarPeriodo(pe, btn); }
-
-function renderMyScore(pe) {
-  const container = document.getElementById('score-body'); if (!container) return;
-  if (!hayCriterios()) {
-    renderError(container, 'No se pudieron cargar los criterios de evaluación.', () => location.reload());
-    return;
-  }
-  if (!_contenido) { renderCargando(container); return; }
-
-  if (esPeriodoV2(Store.periodo())) {
-    miScoreV2({ contenido: _contenido, miId: CU.id, pe, periodo: Store.periodo(),
-                calendario: D?.calendario, contenedor: container });
-    return;
-  }
-
-  // El historial (tendencia) se carga una vez y repinta al llegar.
-  if (!_historial) ensureHistorial().then(() => renderMyScore(mPE));
-
-  const criterios = getCriterios();
-  const myScore = miFila();               // identidad por UUID (3.6)
-  const myFb    = miFeedback()?.fb || null;
-
-  if (myScore) {
-    const total=calcScore(myScore), el=document.getElementById('hero-score');
-    if(el){el.textContent=total;el.style.color=scoreColor(total);}
-    setEl('hero-nivel',scoreLabel(total));
-  } else {
-    setEl('hero-score','—'); setEl('hero-nivel','—');
-    const el=document.getElementById('hero-score'); if(el) el.style.color='var(--muted)';
-  }
-  setEl('hero-max', MAX_TOTAL());
-
-  if (!myScore) {
-    renderVacio(container, `Aún no hay evaluación para ${pe}.`,
-                { periodo: Store.periodo(), calendario: D?.calendario });
-    return;
-  }
-
-  const total=calcScore(myScore), ext=myScore.ext||0;
-  const bars=criterios.map((c,i)=>{
-    const val=puntajeDe(myScore,c.key), critFb=myFb?.[c.key]||'';
-    return `<div class="cbar" style="animation-delay:${i*40}ms">
-      <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div><div class="cbar-name">${escHtml(c.label)}</div></div>
-      <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div></div>
-      <div class="cbar-track"><div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div>
-      ${critFb?`<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>`:''}
-    </div>`;
-  }).join('');
-
-  container.innerHTML=`
-    <div class="score-summary-card">
-      <div class="sse-left">
-        <div class="sse-label">Puntaje total — ${pe}</div>
-        <div class="sse-name">${escHtml(CU.name||CU.user)}</div>
-        <div class="sse-role">${isSecretario()?'Secretario':'Creator'} · ${escHtml(getMyDistrito()||'Sin distrito')}</div>
-        ${ext>0?`<div style="margin-top:8px"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono +${ext}</span></div>`:''}
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="nivel-badge ${scoreClass(total)}">${scoreLabel(total)}</span>
-        <div style="text-align:right">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:${scoreColorTxt(total)};line-height:1">${total}</div>
-          <div style="font-size:.65rem;color:var(--muted)">/ ${MAX_TOTAL()} pts</div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${bars}</div>
-    ${renderTendenciaInline()}`;
-}
-
-/* La tendencia cruza TODOS los períodos, así que no puede salir de la fase 2
-   (filtrada a uno). Usa el historial propio, que es una consulta pequeña. */
-let _historial = null;   // { [periodo_id]: { ext, puntajes } }
-
-async function ensureHistorial() {
-  if (_historial) return _historial;
-  const res = await API.getMiHistorial();
-  _historial = res.ok ? res.porPeriodo : {};
-  return _historial;
-}
-
-function renderTendenciaInline() {
-  if (!_historial) return '';   // se pinta en la segunda pasada
-  // Sin los v2: otra escala, otros criterios.
-  const cards = (Store.periodos() || []).filter(p => !esPeriodoV2(p)).map(p => {
-    const h = _historial[p.id];
-    const row = h ? { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes } : null;
-    return { pe: p.pe, s: row ? calcScore(row) : null, isCur: p.pe === mPE };
-  });
-  const wd=cards.filter(c=>c.s!==null);
-  let arrow='';
-  if (wd.length>=2) {
-    const diff=wd[wd.length-1].s-wd[wd.length-2].s;
-    if(diff>0) arrow=`<span class="trend-arrow up">▲ +${diff} vs período anterior</span>`;
-    else if(diff<0) arrow=`<span class="trend-arrow down">▼ ${diff} vs período anterior</span>`;
-    else arrow=`<span class="trend-arrow same">▬ Sin cambio</span>`;
-  }
-  return `<div class="trend-section"><div class="section-label">Tendencia de desempeño</div>
-    <div class="trend-grid">${cards.map(({pe,s,isCur})=>`<div class="trend-card ${isCur?'current':''}">
-      <div class="trend-card-pe">${pe}</div>
-      <div class="trend-card-score" style="color:${s!==null?scoreColor(s):'var(--muted)'}">${s!==null?s:'—'}</div>
-      <div class="trend-card-label">${s!==null?scoreLabel(s):'Sin datos'}</div></div>`).join('')}
-    </div>${arrow}</div>`;
-}
-
 /* ── RANKING DE DISTRITOS (solo secretario) ── */
-function selectPERankDist(pe, btn) { cambiarPeriodo(pe, btn); }
-
-function renderRankingDistritos(pe) {
+function renderRankingDistritos() {
   const el = document.getElementById('ranking-dist-body');
   if (!el) return;
   if (!_contenido) { renderCargando(el); return; }
+  const pe = mPE;
 
   // Ya viene filtrado por período desde la consulta (3.4).
   const districts  = _contenido.districtScores || [];
@@ -457,19 +385,18 @@ function renderRankingDistritos(pe) {
     { key:'com', label:'Comunicativa',           abbr:'COM', color:'var(--criterio)', max:7 },
     { key:'cee', label:'Ejecución Estratégica',  abbr:'CEE', color:'var(--criterio)', max:7 },
   ];
-  const maxTotal  = Math.max(...districts.map(d=>d.total), 1);
 
   // Banner de posición
   const rc = myPos===1?'gold':myPos===2?'silver':myPos===3?'bronze':'';
   const bannerHtml = myDist ? `
     <div class="dist-rank-banner">
-      <div class="dist-rank-banner-label">MI POSICIÓN EN EL RANKING — ${pe}</div>
+      <div class="dist-rank-banner-label">Mi posición en el ranking — ${escHtml(pe)}</div>
       <div class="dist-rank-banner-pos ${rc}">#${myPos}</div>
       <div class="dist-rank-banner-sub">de ${districts.length} distritos · ${myDist.total} pts</div>
     </div>` : `
     <div class="dist-rank-banner dist-rank-banner--warn">
-      <div class="dist-rank-banner-label">⚠ Sin distrito asignado</div>
-      <div class="dist-rank-banner-sub">Agrega el distrito en la hoja USUARIOS</div>
+      <div class="dist-rank-banner-label">Sin distrito asignado</div>
+      <div class="dist-rank-banner-sub">La coordinación debe asignarte un distrito.</div>
     </div>`;
 
   const rows = districts.map((d, i) => {
@@ -481,112 +408,125 @@ function renderRankingDistritos(pe) {
       const critBars = COMP.map(c => {
         const val = d[c.key] ?? 0;
         return `<div class="dm-crit-row">
-          <span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+          <span class="dm-crit-abbr" style="color:var(--criterio-txt)">${escHtml(c.abbr)}</span>
           <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:var(--criterio)"></div></div>
-          <span class="dm-crit-val" style="color:var(--criterio)">${val}</span>
+          <span class="dm-crit-val" style="color:var(--criterio-txt)">${val}</span>
         </div>`;
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
         <div class="dist-rk-head">
           <div class="dist-rk-pos ${posRc}">#${pos}</div>
           <div class="dist-rk-info">
-            <div class="dist-rk-name">${escHtml(d.distrito)} <span class="dm-you-tag">MI DISTRITO</span></div>
+            <div class="dist-rk-name">${escHtml(d.distrito)} <span class="dm-you-tag">Mi distrito</span></div>
             <div class="dist-rk-sub">Puntaje total del período</div>
           </div>
           <div class="dist-rk-score-block">
-            <div class="dist-rk-score" style="color:var(--blue)">${d.total}</div>
+            <div class="dist-rk-score" style="color:var(--criterio-txt)">${d.total}</div>
             <div class="dist-rk-max">pts</div>
           </div>
         </div>
         <div class="dm-crit-bars dist-rk-crit-section">${critBars}</div>
       </div>`;
-    } else {
-      return `<div class="dist-rk-card dist-rk-card--locked">
-        <div class="dist-rk-head">
-          <div class="dist-rk-pos ${posRc}">#${pos}</div>
-          <div class="dist-rk-info">
-            <div class="dist-rk-name dist-rk-blur">Distrito confidencial</div>
-            <div class="dist-rk-sub dist-rk-blur">·· pts</div>
-          </div>
-          <div class="dist-rk-score-block">
-            <div class="dist-rk-score dist-rk-blur">●●●</div>
-          </div>
-        </div>
-        <div class="dist-rk-lock-msg">${ICONS.lock} Información confidencial</div>
-      </div>`;
     }
+    return `<div class="dist-rk-card dist-rk-card--locked">
+      <div class="dist-rk-head">
+        <div class="dist-rk-pos ${posRc}">#${pos}</div>
+        <div class="dist-rk-info">
+          <div class="dist-rk-name dist-rk-blur">Distrito confidencial</div>
+          <div class="dist-rk-sub dist-rk-blur">·· pts</div>
+        </div>
+        <div class="dist-rk-score-block">
+          <div class="dist-rk-score dist-rk-blur">●●●</div>
+        </div>
+      </div>
+      <div class="dist-rk-lock-msg">${ICONS.lock} Información confidencial</div>
+    </div>`;
   }).join('');
 
   el.innerHTML = bannerHtml + `<div class="dist-rk-list">${rows}</div>`;
 }
 
-/* ── MI DISTRITO ── */
-function selectPERank(pe, btn) { cambiarPeriodo(pe, btn); }
+/* ── DISTRITO: SUBPESTAÑAS ────────────────────────────────────────────── */
+let _distritoTab = 'miembros';
 
-function renderDistrito(pe) {
-  renderCalificacionDistrito(pe);
-  if (esPeriodoV2(Store.periodo())) { renderDistritoV2(); return; }
-  renderDistStats(pe);
-  renderMiembrosDistrito(pe);
+function pintarSegDistrito() {
+  const host = document.getElementById('distrito-seg'); if (!host) return;
+  host.innerHTML = segHTML([
+    { k: 'miembros', etiqueta: 'Personas',               icono: 'users'  },
+    { k: 'ranking',  etiqueta: 'Ranking de distritos',   icono: 'trophy' },
+  ], _distritoTab, 'distritoTab', { etiqueta: 'Secciones del distrito', prefijo: 'dist' });
+  renderIconos(host);
+  document.getElementById('dist-panel-miembros').hidden = _distritoTab !== 'miembros';
+  document.getElementById('dist-panel-ranking').hidden  = _distritoTab !== 'ranking';
 }
 
-/* Mi Distrito con la rúbrica por roles. Las filas son las de resultados_periodo
-   que la base deja ver a un secretario (su distrito); el percentil se calcula
-   contra todos los pares del rol, también los de otros distritos. */
-function renderDistritoV2() {
+function seleccionarDistritoTab(k) {
+  _distritoTab = k === 'ranking' ? 'ranking' : 'miembros';
+  pintarSegDistrito();
+}
+
+/* ── DISTRITO: PERSONAS ──────────────────────────────────────────────── */
+async function renderDistrito() {
+  if (!isSecretario()) return;
+  pintarSegDistrito();
+  renderCalificacionDistrito();
+  const v2 = esPeriodoV2(Store.periodo());
+  if (v2) renderDistritoV2Stats(); else renderDistStats();
+  await renderRoster();
+}
+
+/* La rúbrica por roles trae las filas de resultados_periodo que la base deja
+   ver a un secretario (su distrito); el percentil se calcula contra todos los
+   pares del rol, también los de otros distritos. */
+function renderDistritoV2Stats() {
   const stats = document.getElementById('dist-stats');
-  const el    = document.getElementById('distrito-members');
   const rows  = _contenido?.v2 || [];
   const miembros = getDistrictMembersList();
-  const evaluados = new Set(rows.map(r => r.evaluado_id));
-  const sinEvaluar = miembros.filter(m => !evaluados.has(m.id));
   const prom = rows.length ? rows.reduce((a, r) => a + (r.individual || 0), 0) / rows.length : null;
   const orden = [...rows].sort((a, b) => (b.general ?? -1) - (a.general ?? -1));
   const miPos = orden.findIndex(r => r.evaluado_id === CU.id) + 1;
   const mejor = orden[0];
-  if (stats) {
-    stats.innerHTML = [
-      { lbl: 'Miembros en el distrito', val: miembros.length, sub: `${rows.length} evaluados`, col: '' },
-      { lbl: 'Promedio individual', val: prom == null ? '—' : fmtV2(prom), sub: 'sobre 100', col: prom == null ? '' : scoreColorTxtV2(prom) },
-      { lbl: 'Mi posición (general)', val: miPos ? '#' + miPos : '—', sub: rows.length ? `de ${rows.length} evaluados` : 'Sin evaluar', col: 'var(--action)' },
-      { lbl: 'General más alto', val: mejor ? fmtV2(mejor.general) : '—', sub: mejor?.nombre || '—', col: mejor ? scoreColorTxtV2(mejor.general) : '' },
-    ].map(c => `<div class="dist-scard"><div class="dist-scard-lbl">${c.lbl}</div><div class="dist-scard-val"${c.col ? ` style="color:${c.col}"` : ''}>${escHtml(String(c.val))}</div><div class="dist-scard-sub">${escHtml(String(c.sub))}</div></div>`).join('');
-  }
-  if (el) {
-    el.innerHTML = rankingV2HTML(rows, { resaltarId: CU.id }) +
-      (sinEvaluar.length ? `<p class="v2-pie">Sin evaluar todavía: ${escHtml(sinEvaluar.map(m => m.nombre || m.email).join(' · '))}.</p>` : '');
-  }
+  if (!stats) return;
+  stats.innerHTML = [
+    { lbl: 'Personas en el distrito', val: miembros.length, sub: `${rows.length} evaluadas`, col: '' },
+    { lbl: 'Promedio individual', val: prom == null ? '—' : fmtV2(prom), sub: 'sobre 100', col: prom == null ? '' : scoreColorTxtV2(prom) },
+    { lbl: 'Mi posición (general)', val: miPos ? '#' + miPos : '—', sub: rows.length ? `de ${rows.length} evaluadas` : 'Sin evaluar', col: 'var(--txt)' },
+    { lbl: 'General más alto', val: mejor ? fmtV2(mejor.general) : '—', sub: mejor?.nombre || '—', col: mejor ? scoreColorTxtV2(mejor.general) : '' },
+  ].map(c => `<div class="dist-scard"><div class="dist-scard-lbl">${escHtml(c.lbl)}</div><div class="dist-scard-val"${c.col ? ` style="color:${c.col}"` : ''}>${escHtml(String(c.val))}</div><div class="dist-scard-sub">${escHtml(String(c.sub))}</div></div>`).join('');
 }
 
 /* Calificación oficial del distrito desde CREATORS DISTRITOS - PEx */
-function renderCalificacionDistrito(pe) {
+function renderCalificacionDistrito() {
   const el = document.getElementById('dist-cal-body'); if (!el) return;
-  if (!isSecretario()) return;
+  const wrap = document.getElementById('dist-calificacion');
+  if (!isSecretario()) { if (wrap) wrap.hidden = true; return; }
+  if (wrap) wrap.hidden = false;
+  const pe = mPE;
   const myDist = getMyDistrito();
   if (!myDist) {
-    el.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px 0">Sin distrito asignado.</div>';
+    el.innerHTML = '<p class="pf-vacio">Sin distrito asignado.</p>';
     return;
   }
-  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  renderCargando(el);
   API.getEvalDistritoByNombreAndPE(myDist, pe).then(ev => {
     if (!ev) {
-      el.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px 0">Sin calificación oficial para este período.</div>';
+      el.innerHTML = '<p class="pf-vacio">Sin calificación oficial para este período.</p>';
       return;
     }
     const s = calcDistScore(ev.puntajes);
     const critBars = DIST_CRITERIOS.map(c => {
       const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+        <span class="dist-cal-abbr" style="color:var(--criterio-txt)">${escHtml(c.abbr)}</span>
         <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:var(--criterio)"></div></div>
-        <span class="dist-cal-val" style="color:var(--criterio)">${val}</span>
+        <span class="dist-cal-val" style="color:var(--criterio-txt)">${val}</span>
       </div>`;
     }).join('');
     el.innerHTML = `<div class="dist-cal-card">
       <div class="dist-cal-head">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Calificación oficial · Distrito ${myDist} · ${pe}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:${distScoreColor(s)};margin-top:4px">${s} <span style="font-size:.75rem;color:var(--muted)">/ ${MAX_DIST_SEC} pts</span></div>
+          <div class="pf-sub">Calificación oficial · Distrito ${escHtml(myDist)} · ${escHtml(pe)}</div>
+          <div class="dist-cal-total" style="color:${distScoreColor(s)}">${s} <small>/ ${MAX_DIST_SEC} pts</small></div>
         </div>
         <span class="nivel-badge ${distScoreClass(s)}">${distScoreLabel(s)}</span>
       </div>
@@ -599,186 +539,130 @@ function getDistrictMembersList() {
   return _contenido?.districtMembers || [];
 }
 
-function renderDistStats(pe) {
-  const el=document.getElementById('dist-stats'); if(!el) return;
-  const members=getDistrictMembersList(), myD=getMyDistrito();
-  const rows=getDistritoRows();
-  const totalMembers=members.length;
+function renderDistStats() {
+  const el = document.getElementById('dist-stats'); if (!el) return;
+  const members = getDistrictMembersList(), myD = getMyDistrito();
+  const rows = getDistritoRows();
+  const totalMembers = members.length;
   if (!totalMembers) {
-    el.innerHTML=`<div style="grid-column:1/-1;padding:12px 0;font-size:.8rem;color:var(--muted)">No hay miembros en <strong style="color:var(--txt)">${escHtml(myD||'tu distrito')}</strong>.</div>`;
+    el.innerHTML = `<div class="pf-vacio" style="grid-column:1/-1">No hay personas en <strong>${escHtml(myD || 'tu distrito')}</strong>.</div>`;
     return;
   }
-  const evaluated=rows.length;
-  const scores=rows.map(calcScore);
-  const avg=evaluated?(scores.reduce((a,b)=>a+b,0)/evaluated).toFixed(1):'—';
-  const myRow=rows.find(r=>r.evaluado_id===CU.id), myS=myRow?calcScore(myRow):null;
-  const myPos=myS!==null?[...rows].sort((a,b)=>calcScore(b)-calcScore(a)).findIndex(r=>r.evaluado_id===CU.id)+1:null;
-  const maxS=scores.length?Math.max(...scores):0, topR=scores.length?rows.find(r=>calcScore(r)===maxS):null;
-  el.innerHTML=[
-    {lbl:'Miembros en el distrito', val:totalMembers,          sub:`${evaluated} evaluados · ${myD||pe}`, col:''},
-    {lbl:'Promedio del distrito',   val:avg,                   sub:evaluated?`/ ${MAX_TOTAL()} pts`:'Sin evaluaciones', col:evaluated?scoreColor(parseFloat(avg)):''},
-    {lbl:'Mi posición',             val:myPos?`#${myPos}`:'—', sub:evaluated?`de ${evaluated} evaluados`:'Sin evaluar', col:'var(--blue)'},
-    {lbl:'Puntaje más alto',        val:scores.length?maxS:'—', sub:topR?.nombre||'—', col:scores.length?'var(--sex)':''},
-  ].map(s=>`<div class="dist-scard"><div class="dist-scard-lbl">${s.lbl}</div><div class="dist-scard-val"${s.col?` style="color:${s.col}"`:''}>${s.val}</div><div class="dist-scard-sub">${s.sub}</div></div>`).join('');
+  const evaluated = rows.length;
+  const scores = rows.map(calcScore);
+  const avg = evaluated ? (scores.reduce((a,b)=>a+b,0)/evaluated).toFixed(1) : '—';
+  const myRow = rows.find(r => r.evaluado_id === CU.id), myS = myRow ? calcScore(myRow) : null;
+  const myPos = myS !== null ? [...rows].sort((a,b) => calcScore(b)-calcScore(a)).findIndex(r => r.evaluado_id === CU.id)+1 : null;
+  const maxS = scores.length ? Math.max(...scores) : 0, topR = scores.length ? rows.find(r => calcScore(r) === maxS) : null;
+  el.innerHTML = [
+    { lbl:'Personas en el distrito', val:totalMembers,           sub:`${evaluated} evaluadas · ${myD || mPE}`, col:'' },
+    { lbl:'Promedio del distrito',   val:avg,                    sub:evaluated ? `/ ${MAX_TOTAL()} pts` : 'Sin evaluaciones', col:evaluated ? scoreColorTxt(parseFloat(avg)) : '' },
+    { lbl:'Mi posición',             val:myPos ? `#${myPos}` : '—', sub:evaluated ? `de ${evaluated} evaluadas` : 'Sin evaluar', col:'var(--txt)' },
+    { lbl:'Puntaje más alto',        val:scores.length ? maxS : '—', sub:topR?.nombre || '—', col:scores.length ? scoreColorTxt(maxS) : '' },
+  ].map(s => `<div class="dist-scard"><div class="dist-scard-lbl">${escHtml(s.lbl)}</div><div class="dist-scard-val"${s.col ? ` style="color:${s.col}"` : ''}>${escHtml(String(s.val))}</div><div class="dist-scard-sub">${escHtml(String(s.sub))}</div></div>`).join('');
 }
 
-function renderMiembrosDistrito(pe) {
-  const el=document.getElementById('distrito-members'); if(!el) return;
-  const members=getDistrictMembersList(), scoreRows=getDistritoRows(), fbs=_contenido?.feedback||[], criterios=getCriterios();
-  if (!members.length) {
-    el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.users}</div><div class="empty-txt">No hay miembros registrados en tu distrito.</div></div>`;
-    return;
-  }
-  const merged=members.map(m=>{
-    const scoreRow=scoreRows.find(r=>r.evaluado_id===m.id);
-    return { ...m, usuario:m.email, score:scoreRow?calcScore(scoreRow):null, scoreRow, ext:scoreRow?.ext||0 };
-  });
-  const withScores=merged.filter(m=>m.score!==null).sort((a,b)=>b.score-a.score);
-  const withoutScores=merged.filter(m=>m.score===null).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
-  const sorted=[...withScores,...withoutScores];
-  el.innerHTML=`<div class="distrito-members-grid">${sorted.map((r,i)=>{
-    const hasEval=r.score!==null;
-    const s=r.score||0, isMe=r.id===CU.id, myFb=(fbs.find(f=>f.evaluado_id===r.id)||{}).fb||null;
-    const pos=hasEval?withScores.indexOf(r)+1:null;
-    const rc=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
-    const rolName=r.roles?.nombre||r.tipo_miembro||'Creator';
-    const critBars=hasEval?criterios.map(c=>{
-      const val=puntajeDe(r.scoreRow,c.key);
-      return `<div class="dm-crit-row"><span class="dm-crit-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span><div class="dm-crit-track"><div class="dm-crit-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div><span class="dm-crit-val" style="color:var(--criterio)">${val}</span></div>`;
-    }).join(''):'';
-    const hasFb=myFb&&criterios.some(c=>myFb[c.key]);
-    return `<div class="dm-card${isMe?' dm-card--me':''}">
-      <div class="dm-card-head">
-        <div class="dm-rank ${rc}">${pos?'#'+pos:'—'}</div>
-        <div class="dm-avatar">${escHtml(initials(r.nombre||r.email))}</div>
-        <div class="dm-info">
-          <div class="dm-name">${escHtml(r.nombre||r.email)}${isMe?'<span class="dm-you-tag">YO</span>':''}</div>
-          <div class="dm-role">${escHtml(rolName)}</div>
-        </div>
-        <div class="dm-score-block">
-          ${hasEval?`
-            <div class="dm-score-total" style="color:${scoreColorTxt(s)}">${s}</div>
-            <div class="dm-score-max">/ ${MAX_TOTAL()}</div>
-            <span class="nivel-badge ${scoreClass(s)}" style="font-size:.55rem;padding:3px 8px">${scoreLabel(s)}</span>
-            ${r.ext>0?`<span class="bono-badge" style="font-size:.55rem;padding:3px 8px;margin-top:4px"><span class="bono-icon">${ICONS.star}</span>+${r.ext}</span>`:''}
-          `:`<div class="dm-score-total" style="color:var(--muted);font-size:.85rem">Sin evaluar</div>`}
-        </div>
-      </div>
-      ${critBars?`<div class="dm-crit-bars">${critBars}</div>`:''}
-      ${hasFb?`<details class="dm-feedback"><summary>Ver retroalimentación</summary><div class="dm-feedback-body">${criterios.map(c=>myFb[c.key]?`<div class="dm-fb-row"><span style="color:var(--criterio);font-weight:700;font-size:.65rem;letter-spacing:1px">${escHtml(c.abbr)}</span><span>${myFb[c.key]}</span></div>`:'').join('')}</div></details>`:''}
-    </div>`;
-  }).join('')}</div>`;
-}
+/**
+ * Las personas del distrito como tarjetas que abren su perfil. Sirve a las
+ * dos rúbricas: el puntaje de cada tarjeta es el de su período (sobre 100 con
+ * la rúbrica por roles, sobre el máximo clásico en los anteriores).
+ */
+async function renderRoster() {
+  const el = document.getElementById('distrito-members'); if (!el) return;
+  const miembros = getDistrictMembersList();
+  if (!miembros.length) { el.innerHTML = rosterHTML([], 'No hay personas registradas en tu distrito.'); return; }
 
-/* ── RÚBRICA ── */
-function renderRubrica() {
-  const el=document.getElementById('rubrica-grid'); if(!el) return;
   const v2 = esPeriodoV2(Store.periodo());
-  ajustarIntroRubrica(v2);
-  if (v2) {
-    el.innerHTML = '<div class="empty-box"><div class="empty-txt">En este período cada criterio explica cómo se puntúa: ábrelo en «¿Cómo se puntúa?» dentro de Mi Score.</div></div>';
-    return;
-  }
-  const rubrica=D?.rubrica||[], criterios=getCriterios();
-  if (!rubrica.length) { el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
-  const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
-  const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{const c=criterios[i]||{},color='var(--criterio)';return `<div class="rubrica-card" id="rc-${i}"><div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}"><div class="rubrica-dot" style="background:${color}"></div><div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div><span class="rubrica-chev">▾</span></div><div class="rubrica-body"><div class="rubrica-levels">${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}</div></div></div>`;}).join('');
-}
+  const t = v2 ? await datosTareasDistrito() : null;
+  const filas = _contenido?.v2 || [];
+  const scoreRows = getDistritoRows();
 
-/* ── TABLA DE EVALUACIÓN (solo secretario) ── */
-let _rubricaMode = 'creators';
+  const personas = miembros.map(m => {
+    const base = { id: m.id, nombre: m.nombre || m.email, avatar_url: m.avatar_url, rol: m.roles?.nombre || (m.tipo_miembro === 'secretario' ? 'Secretario' : 'Creator'),
+                   soyYo: m.id === CU.id, chips: [], valor: null };
+    if (v2) {
+      const f = filas.find(r => r.evaluado_id === m.id);
+      if (f) {
+        base.rol = f.rol_nombre || base.rol;
+        if (f.individual != null) Object.assign(base, { valor: f.individual, max: 100, color: scoreColorV2(f.individual), nivel: nivelV2(f.individual) });
+        if (f.rol_pequeno) base.chips.push({ txt: 'Rol pequeño', icono: 'users' });
+      }
+      const r = t?.resumen.get(m.id), pr = t?.porRevisar.get(m.id) || 0;
+      if (pr > 0) base.chips.push({ txt: `${pr} por revisar`, aviso: true, icono: 'inbox' });
+      if (r?.vencidas_abiertas > 0) base.chips.push({ txt: `${r.vencidas_abiertas} vencida${r.vencidas_abiertas === 1 ? '' : 's'}`, aviso: true, icono: 'alarm-clock' });
+    } else {
+      const sr = scoreRows.find(r => r.evaluado_id === m.id);
+      if (sr) { const s = calcScore(sr); Object.assign(base, { valor: s, max: MAX_TOTAL(), color: scoreColor(s), nivel: { key: scoreClass(s), label: scoreLabel(s) } }); }
+      if ((sr?.ext || 0) > 0) base.chips.push({ txt: `Bono +${sr.ext}`, icono: 'star' });
+    }
+    return base;
+  }).sort((a, b) => (b.valor ?? -1) - (a.valor ?? -1) || a.nombre.localeCompare(b.nombre, 'es'));
 
-function setRubricaMode(mode, btn) {
-  _rubricaMode = mode;
-  document.querySelectorAll('.eval-rtb').forEach(b=>b.classList.remove('active'));
-  btn?.classList.add('active');
-  document.getElementById('eval-rubric-creators').style.display  = mode==='creators'  ? '' : 'none';
-  document.getElementById('eval-rubric-distritos').style.display = mode==='distritos' ? '' : 'none';
-}
-
-function renderTablaEvaluacion() {
-  if (!isSecretario()) return;
-  _renderRubricaGrid('eval-rubrica-creators-grid',  D?.rubrica || [], getCriterios());
-  _renderRubricaGrid('eval-rubrica-distritos-grid',  D?.rubricaDistritos || [], D?.distCompetencias || [
-    {color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'},{color:'var(--criterio)'}
-  ]);
-}
-
-function _renderRubricaGrid(elId, rubrica, criterios) {
-  const el = document.getElementById(elId); if (!el) return;
-  if (!rubrica.length) {
-    el.innerHTML=`<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible aún.</div></div>`;
-    return;
-  }
-  const levels=[{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
-  const lk={4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
-  el.innerHTML=rubrica.map((r,i)=>{
-    const c=criterios[i]||{}, color = 'var(--criterio)', uid=`${elId}-${i}`;
-    return `<div class="rubrica-card" id="${uid}">
-      <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="${uid}">
-        <div class="rubrica-dot" style="background:${color}"></div>
-        <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
-        <span class="rubrica-chev">▾</span>
-      </div>
-      <div class="rubrica-body">
-        <div class="rubrica-levels">
-          ${levels.map(l=>`<div class="rlevel">
-            <div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div>
-            <div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
-            <div class="rlevel-desc">${escHtml(r[lk[l.n]]||'—')}</div>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML = rosterHTML(personas) + (v2 && filas.length ? `
+    <details class="rubrica-details entregas-cal"><summary class="rubrica-summary">Ranking del distrito por roles</summary>
+      <div class="rubrica-wrap">${rankingV2HTML(filas, { resaltarId: CU.id })}</div></details>` : '');
+  animarEntrada(el);
 }
 
 /* ── CALENDARIO ── */
 function renderCalendario() {
-  const el=document.getElementById('cal-grid'); if(!el) return;
-  const cal=D?.calendario||[];
-  if (!cal.length) { el.innerHTML=`<div class="empty-box" style="grid-column:1/-1"><div class="empty-icon">${ICONS.calendar}</div><div class="empty-txt">No hay eventos disponibles.</div></div>`; return; }
-  const cAcc={rojo:'cal-acc--rojo',verde:'cal-acc--verde',azul:'cal-acc--azul',amarillo:'cal-acc--amarillo'};
-  const cT={rojo:'cal-t--rojo',verde:'cal-t--verde',azul:'cal-t--azul',amarillo:'cal-t--amarillo'};
-  const emap={'en curso':{cls:'sa',dot:true,txt:'En curso'},'próximo':{cls:'sp',dot:true,txt:'Próximo'},'proximo':{cls:'sp',dot:true,txt:'Próximo'},'pendiente':{cls:'spe',dot:false,txt:'Pendiente'},'completado':{cls:'spe',dot:false,txt:'Completado'}};
-  el.innerHTML=cal.map(p=>{const c=(p.color||'rojo').toLowerCase(),es=emap[(p.estado||'pendiente').toLowerCase()]||emap.pendiente,rows=[['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body"><div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}<div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;}).join('');
+  const el = document.getElementById('cal-grid'); if (!el) return;
+  const cal = D?.calendario || [];
+  if (!cal.length) { el.innerHTML = `<div class="empty-box" style="grid-column:1/-1"><div class="empty-icon">${ICONS.calendar}</div><div class="empty-txt">No hay eventos disponibles.</div></div>`; return; }
+  const cAcc = {rojo:'cal-acc--rojo',verde:'cal-acc--verde',azul:'cal-acc--azul',amarillo:'cal-acc--amarillo'};
+  const cT   = {rojo:'cal-t--rojo',verde:'cal-t--verde',azul:'cal-t--azul',amarillo:'cal-t--amarillo'};
+  const emap = {'en curso':{cls:'sa',dot:true,txt:'En curso'},'próximo':{cls:'sp',dot:true,txt:'Próximo'},'proximo':{cls:'sp',dot:true,txt:'Próximo'},'pendiente':{cls:'spe',dot:false,txt:'Pendiente'},'completado':{cls:'spe',dot:false,txt:'Completado'}};
+  el.innerHTML = cal.map(p => {
+    const c  = (p.color||'rojo').toLowerCase();
+    const es = emap[(p.estado||'pendiente').toLowerCase()] || emap.pendiente;
+    const rows = [['Inicio',p.inicio],['Fin de trabajo',p.finTrabajo],['Entrega scores',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
+    return `<div class="cal-card"><div class="cal-acc ${cAcc[c]||cAcc.rojo}"></div><div class="cal-body">
+      <div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div><div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>
+      ${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${escHtml(v)}</span></div>`).join('')}
+      <div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div></div></div>`;
+  }).join('');
 }
 
-/* ── REFRESH ── */
-async function handleRefresh() {
-  const btn=document.getElementById('btn-refresh');
-  if(btn){btn.classList.add('refreshing');btn.disabled=true;}
-  showToast('Actualizando...','info');
-  await loadData(); renderDistritoHeader();
-  renderMyScore(mPE); renderRankingDistritos(dPE); renderDistrito(rPE);
-  renderRubrica(); renderTablaEvaluacion(); renderCalendario(); updateTimestamp();
-  if(btn){btn.classList.remove('refreshing');btn.disabled=false;}
-  showToast('Datos actualizados ✓','ok');
+/* ── ENTREGAS: LÍNEA DE TIEMPO ── */
+function renderLineaTiempo() {
+  const el = document.getElementById('linea-tiempo'); if (!el) return;
+  const periodos = D?.periodos || [];
+  if (!periodos.length) {
+    el.innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos disponibles.</div></div>';
+    return;
+  }
+  el.innerHTML = lineaTiempoHTML(periodos, { peActual: mPE });
 }
 
 /* Los helpers viven ahora en core/render.js. */
 
 /* ── TABS ── */
-/* Se aceptan los nombres viejos por si queda algun enlace guardado. */
-const _ALIAS_TAB = { periodos:'historial', cal:'historial', reportes:'historial' };
-const _secTabParent = {
-  miscore:'miscore', ranking:'ranking', distrito:'ranking',
-  trabajos:'trabajos', historial:'historial', tareas:'tareas',
-  evaluacion:'evaluacion', rubrica:'rubrica',
+/* Se aceptan los nombres viejos por si queda algún enlace guardado. */
+const _ALIAS_TAB = {
+  miscore:'perfil', scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', evaluacion:'perfil',
+  ranking:'distrito', periodos:'trabajos', cal:'trabajos',
 };
+const _secTabParent = { inicio:'inicio', perfil:'perfil', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
 
 function switchTab(tab, btn) {
+  const original = tab;
   tab = _ALIAS_TAB[tab] || tab;
+  // El distrito y las tareas son solo del secretario.
+  if ((tab === 'distrito' || tab === 'tareas') && !isSecretario()) tab = 'inicio';
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
+
+  // El Historial de antes es ahora la pestaña Evolución del perfil, y el
+  // Ranking de distritos, una subpestaña de Distrito.
+  if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) Perfil.tab('evolucion', document.getElementById('perfil-host'));
+  if (tab === 'distrito' && original === 'ranking') seleccionarDistritoTab('ranking');
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
-  if (tab === 'trabajos') renderPeriodosTab();
+  if (tab === 'trabajos') renderLineaTiempo();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();
-    syncTrabajoPEBtns();
+    syncAllPEButtons();
     renderTrabajosTab();
   }
   if (tab === 'tareas' && Store.necesitaCarga('tareas')) {
@@ -786,9 +670,6 @@ function switchTab(tab, btn) {
     _trabajosPE = Store.periodoNombre();
     syncAllPEButtons();
     renderTareasDistrito();
-  }
-  if (tab === 'historial' && Store.necesitaCarga('reportes')) {
-    Store.marcarCargado('reportes'); renderUserReport();
   }
 }
 
@@ -800,62 +681,11 @@ function logout(){Auth.logout();}
 /* updateTimestamp, showToast, initScrollEffects → core/render.js */
 function goTab(tab) { goTabCore(tab, switchTab); }
 
-/* ── ATAJOS RÁPIDOS ── */
-function renderQuickLinks() {
-  const el = document.getElementById('quick-links'); if (!el) return;
-  const sec = isSecretario();
-  const links = [
-    { tab:'trabajos',  icon:'folder-open',    title:'Mis Tareas',       desc:'Tus tareas y entregas del período' },
-    { tab:'periodos',  icon:'layers',          title:'Períodos',         desc:'Fechas y estados de evaluación' },
-    ...(sec ? [
-      { tab:'distrito',  icon:'map',           title:'Mi Distrito',      desc:'Miembros y calificación de tu distrito' },
-      { tab:'ranking',   icon:'trophy',        title:'Ranking Distritos', desc:'Posición de todos los distritos' },
-    ] : []),
-    { tab:'rubrica',   icon:'clipboard-list', title:'Rúbrica',          desc:'Criterios y tabla de puntuación' },
-    { tab:'reportes',  icon:'bar-chart-2',    title:'Mis Estadísticas', desc:'Historial y evolución de tu desempeño' },
-  ];
-  el.innerHTML = links.map(l =>
-    `<button class="ql-card" data-act="irTab" data-arg="${l.tab}" aria-label="Ir a ${l.title}">
-       <i data-lucide="${l.icon}" class="ql-icon"></i>
-       <div class="ql-text"><div class="ql-title">${l.title}</div><div class="ql-desc">${l.desc}</div></div>
-       <i data-lucide="chevron-right" class="ql-arrow"></i>
-     </button>`
-  ).join('');
-  renderIconos(el);
-}
-
-/* ── TAB: PERÍODOS ── */
-function renderPeriodosTab() {
-  const el = document.getElementById('periodos-body'); if (!el) return;
-  const periodos = D?.periodos || [];
-  if (!periodos.length) {
-    el.innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos disponibles.</div></div>';
-    return;
-  }
-  const stateMap = { 'Activo':'sex','Próximo':'sbu','En Progreso':'spr','Cerrado':'sba' };
-  el.innerHTML = periodos.map(p => {
-    const active = p.pe === mPE;
-    const cls    = stateMap[p.estado] || 'sbu';
-    const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
-    return `<div class="pe-card${active?' pe-card--active':''}">
-      <div class="pe-card-head">
-        <div class="pe-card-code">${escHtml(p.pe)}</div>
-        <div class="pe-card-nombre">${escHtml(p.nombre||p.pe)}</div>
-        ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
-        ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
-      </div>
-      ${fields.length?`<div class="pe-card-dates">${fields.map(([l,v])=>`<div class="pe-card-date"><span class="pe-card-lbl">${l}</span><span class="pe-card-val">${v}</span></div>`).join('')}</div>`:''}
-    </div>`;
-  }).join('');
-}
-
-/* ── TAB: TRABAJOS ── */
-// null hasta que loadData() resuelva el período activo real.
+/* ── ENTREGAS: TRABAJOS Y TAREAS ── */
+// null hasta que loadContexto() resuelva el período activo real.
 let _trabajosPE = null, _trabajosLoaded = false;
 
-function syncTrabajoPEBtns() {
-  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
-}
+function syncTrabajoPEBtns() { syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE); }
 
 function selectTrabajoPE(pe, btn) { cambiarPeriodo(pe, btn); }
 
@@ -893,7 +723,7 @@ async function renderTrabajosTab() {
 
 async function renderTrabajosLegacy() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
-  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  renderCargando(el);
   // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
   const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
   const data = await API.getTrabajosEntregados(CU.id, pidTrab);
@@ -907,7 +737,7 @@ function renderTrabajosBody(trabajos) {
   el.innerHTML = `
     <div class="trabajo-form-card">
       <div class="trabajo-form-title">
-        <i data-lucide="plus-circle" class="tj-icon"></i> Registrar trabajo en ${_trabajosPE}
+        <i data-lucide="plus-circle" class="tj-icon"></i> Registrar trabajo en ${escHtml(_trabajosPE)}
       </div>
       <input class="cfg-inp" id="tj-titulo" type="text" placeholder="Título del trabajo" style="width:100%;margin-bottom:8px">
       <textarea class="cfg-inp" id="tj-desc" placeholder="Describe la actividad realizada..." rows="3" style="width:100%;resize:vertical"></textarea>
@@ -917,7 +747,7 @@ function renderTrabajosBody(trabajos) {
     </div>
     <div class="section-label" style="margin:20px 0 10px">
       <i data-lucide="list" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px"></i>
-      ${trabajos.length} trabajo${trabajos.length!==1?'s':''} en ${_trabajosPE}
+      ${trabajos.length} trabajo${trabajos.length!==1?'s':''} en ${escHtml(_trabajosPE)}
     </div>
     ${trabajos.length
       ? `<div class="trabajos-list">${trabajos.map(t=>`
@@ -937,7 +767,7 @@ function renderTrabajosBody(trabajos) {
         </div>`
       : `<div class="empty-box" style="border-style:dashed;margin-top:0">
            <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
-           <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
+           <div class="empty-txt">Sin trabajos en <strong>${escHtml(_trabajosPE)}</strong>.<br>Usa el formulario de arriba para agregar.</div>
          </div>`}`;
   renderIconos(el);
 }
@@ -961,76 +791,4 @@ async function deleteTrabajo(id) {
   if (!res.ok) { showToast('Error al eliminar','error'); return; }
   showToast('Trabajo eliminado','ok');
   await renderTrabajosTab();
-}
-
-/* ── TAB: REPORTES (secretario/miembro) ── */
-async function renderUserReport() {
-  const el = document.getElementById('rpt-user-body'); if (!el) return;
-  renderCargando(el);
-
-  const hist = await ensureHistorial();
-  const criterios = getCriterios();
-  // Los períodos v2 usan otra escala y otros criterios: no entran aquí.
-  const data = (Store.periodos() || []).map(p => {
-    if (esPeriodoV2(p)) return null;
-    const h = hist[p.id];
-    if (!h) return null;
-    const row = { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes };
-    return { pe: p.pe, row, total: calcScore(row) };
-  }).filter(Boolean);
-  const v2html = await historialV2HTML(CU.id);
-
-  if (!data.length) {
-    if (v2html) { el.innerHTML = `<div class="urpt-header"><div class="urpt-name">${escHtml(CU.name||CU.user)}</div></div>${v2html}`; return; }
-    renderVacio(el, 'Sin evaluaciones registradas aún.',
-                { periodo: Store.periodo(), calendario: D?.calendario });
-    return;
-  }
-  borrarGrafico('rpt-evolucion');
-
-  const scores = data.map(d => d.total);
-  const best = Math.max(...scores), avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
-  const maxT = MAX_TOTAL();
-  el.innerHTML = `
-    <div class="urpt-header">
-      <div class="urpt-name">${escHtml(CU.name||CU.user)}</div>
-      <div class="urpt-meta">Historial de desempeño · ${data.length} período${data.length!==1?'s':''} evaluado${data.length!==1?'s':''}</div>
-    </div>
-    <div class="urpt-kpi-row">
-      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:${scoreColorTxt(best)}">${best}</div><div class="urpt-kpi-lbl">Mejor puntaje</div></div>
-      <div class="urpt-kpi"><div class="urpt-kpi-val">${avg}</div><div class="urpt-kpi-lbl">Promedio</div></div>
-      <div class="urpt-kpi"><div class="urpt-kpi-val">${maxT}</div><div class="urpt-kpi-lbl">Puntaje máximo</div></div>
-      <div class="urpt-kpi"><div class="urpt-kpi-val" style="color:var(--sex);font-size:1rem">${scoreLabel(best)}</div><div class="urpt-kpi-lbl">Mejor nivel</div></div>
-    </div>
-    <div class="urpt-section-lbl" id="rpt-evol-lbl">Evolución entre períodos</div>
-    <div class="chart-wrap">
-      <canvas id="rpt-evolucion" role="img"
-              aria-labelledby="rpt-evol-lbl" aria-describedby="rpt-evol-alt"></canvas>
-    </div>
-    <p class="chart-alt" id="rpt-evol-alt">${escHtml(
-      data.map(d => `${d.pe}: ${d.total} de ${maxT} (${scoreLabel(d.total)})`).join('. ')
-    )}.</p>
-    <div class="urpt-section-lbl" style="margin-top:16px">Detalle por criterio</div>
-    <div class="urpt-section">
-      <div class="urpt-table-wrap"><table class="urpt-table">
-        <thead><tr>
-          <th class="urpt-th">Criterio</th>
-          ${data.map(d=>`<th class="urpt-th">${escHtml(d.pe)}</th>`).join('')}
-        </tr></thead>
-        <tbody>
-          ${criterios.map(c=>`<tr>
-            <td class="urpt-td" style="text-align:left;font-weight:600;font-size:.72rem">${escHtml(c.abbr||c.label)}</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-s" style="color:var(--criterio)">${puntajeDe(d.row,c.key)}</td>`).join('')}
-          </tr>`).join('')}
-          <tr>
-            <td class="urpt-td urpt-td-pe">TOTAL</td>
-            ${data.map(d=>`<td class="urpt-td urpt-td-total" style="color:${scoreColorTxt(d.total)}">${d.total}</td>`).join('')}
-          </tr>
-        </tbody>
-      </table></div>
-    </div>`;
-
-  // Después del innerHTML: antes el <canvas> todavía no existe.
-  graficoEvolucion('rpt-evolucion', data, maxT);
-  if (v2html) el.insertAdjacentHTML('beforeend', v2html);
 }

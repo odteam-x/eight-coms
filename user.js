@@ -1,5 +1,11 @@
 /**
  * EIGHT CREATORS LABs — Lógica Vista de Miembro
+ *
+ * Tres destinos: Inicio, Mi perfil y Entregas.
+ *   · Inicio     → core/inicio.js: qué toca ahora (tareas, próximas fechas, mi evaluación).
+ *   · Mi perfil  → core/perfil.js (score, criterios, tareas y evolución). Absorbe
+ *                  lo que eran «Mi Score» e «Historial».
+ *   · Entregas   → tareas, fechas del período y calendario.
  */
 'use strict';
 
@@ -9,22 +15,14 @@ let CU = null, D = null, mPE = null, _lastUpdated = null, _peInited = false;
    debe mostrar un error, no siete criterios inventados que parecen reales.
    getCriterios/getMaxScore/MAX_TOTAL viven en core/render.js y leen Store. */
 
-/* toggleMenu / closeMenu vivían aquí, apuntando a #hamburger y
-   #mobile-menu. Ninguno de los dos existe en el marcado desde que el
-   rail sustituyó a la topbar en la fase 6, junto con sus dos listeners
-   globales de clic y resize. */
-
 /* ── BOOT ── */
 document.addEventListener('DOMContentLoaded', async () => {
   CU = await Auth.requireRole('miembro');
   if (!CU) return;
 
-  // Fase 1: con esto ya se pinta el hero y la barra de períodos.
-  if (await loadContexto()) {
-    initUI();
-    // Fase 2: el contenido del período llega después, sin bloquear el pintado.
-    if (await loadContenido()) renderPeriodoActual();
-  }
+  // Con el contexto (perfil, criterios, períodos) ya se puede pintar todo:
+  // el perfil pide por sí mismo lo que necesita de cada período.
+  if (await loadContexto()) await initUI();
   initRevalidacion();
 });
 
@@ -51,13 +49,12 @@ function initRevalidacion() {
       mPE = nuevo.pe;
       _trabajosPE = nuevo.pe;
     }
-    await loadContenido();
-    initUI();
+    await initUI();
     if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
   });
 }
 
-/* ── FASE 1: CONTEXTO (crítica, paralela) ── */
+/* ── CONTEXTO (crítico, paralelo) ── */
 async function loadContexto() {
   try {
     const ctx = await API.getContexto(gestionDeURL());
@@ -113,252 +110,112 @@ function gestionDeURL() {
   return new URLSearchParams(location.search).get('gestion') || null;
 }
 
-/* ── FASE 2: CONTENIDO del período elegido (lazy, cancelable) ──
- * Cambiar de PE rápido disparaba N peticiones sin cancelación que podían
- * llegar desordenadas y pintar el período equivocado.
- */
-let _abortContenido = null;
-
-async function loadContenido() {
-  const pid = Store.periodoId();
-  if (!pid) { _contenido = null; return true; }
-
-  _abortContenido?.abort();
-  const ctrl = _abortContenido = new AbortController();
-
-  const res = await API.getContenido(pid, { signal: ctrl.signal });
-  if (res.aborted) return false;          // llegó una petición más nueva
-  if (!res.ok) { mostrarErrorCarga(res.error); return false; }
-
-  // Período con la rúbrica por roles: el resultado lo calcula la base.
-  res.v2 = null;
-  if (esPeriodoV2(Store.periodo())) {
-    const r2 = await API.getResultadosV2(pid);
-    if (ctrl.signal.aborted) return false;
-    if (!r2.ok) { mostrarErrorCarga(r2.error); return false; }
-    res.v2 = r2.rows;
-  }
-
-  _contenido   = res;
-  _lastUpdated = new Date();
-  Store.set({ lastUpdated: _lastUpdated });
-  return true;
-}
-
-let _contenido = null;
-
-/** Mi fila del período actual. Identidad SIEMPRE por UUID (3.6). */
-const miFila     = () => (_contenido?.scores   || []).find(r => r.evaluado_id === CU?.id) || null;
-const miFeedback = () => (_contenido?.feedback || []).find(r => r.evaluado_id === CU?.id) || null;
-
-/** Estado de error visible. Un fallo de RLS no debe parecer "sin datos". */
-/** Estado de error del bloque de score. Delega en renderError() de
-    core/render.js: el mensaje al usuario y la ocultacion del detalle
-    tecnico se deciden en un solo sitio. */
+/** Estado de error visible. Delega en renderError() de core/render.js: el
+    mensaje al usuario y la ocultación del detalle técnico se deciden allí. */
 function mostrarErrorCarga(msg) {
-  renderError(document.getElementById('score-body'), msg, () => location.reload());
+  renderError(document.getElementById('perfil-host'), msg, () => location.reload());
 }
 
-/* Barras de período: se construyen desde los datos, no desde HTML fijo. */
-function buildPEBars() {
-  const pes = D?.periodos || [];
-  renderPEBar(document.getElementById('pe-row-scores'),   pes, mPE,         selectPE);
-  renderPEBar(document.getElementById('trabajos-pe-row'), pes, _trabajosPE, selectTrabajoPE);
-  setEl('hero-pe', mPE);
-}
-
-function syncAllPEButtons() {
-  syncPEBar(document.getElementById('pe-row-scores'),   mPE);
-  syncPEBar(document.getElementById('trabajos-pe-row'), _trabajosPE);
-  setEl('hero-pe', mPE);
-}
-
-/* Render quirúrgico (3.9): initUI() monta lo que no cambia; el contenido
-   que depende del período se repinta aparte con renderPeriodoActual().
-   Antes initUI() reconstruía por innerHTML scores, rúbrica, calendario,
-   quick links y timestamp completos en cada pasada. */
+/* ── UI ──────────────────────────────────────────────────────────────────
+   initUI() monta lo que no cambia una sola vez y vuelve a pintar el perfil
+   cuando cambian los datos (revalidación). */
 let _uiMontada = false;
 
-function initUI() {
+async function initUI() {
   if (!CU) return;
-  buildPEBars();
 
   if (!_uiMontada) {
     initNav({
       marca: 'EIGHT CREATORS',
-      activo: 'scores',
+      activo: 'inicio',
       pie: { nombre: CU.name || CU.user, badge: 'Creator' },
       grupos: [{ items: [
-        { tab:'scores',    icono:'bar-chart-2', etiqueta:'Mi Score'  },
-        { tab:'trabajos',  icono:'folder-open', etiqueta:'Entregas'  },
-        { tab:'historial', icono:'history',     etiqueta:'Historial' },
+        { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
+        { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+        { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
       ]}],
     });
-    const name = CU.name || CU.user;
-    const ini  = initials(name);
-    // 'av-mobile' y 'uname-mobile' no existen en ningún HTML: eran ids
-    // de la topbar que el rail sustituyó en la fase 6.
     // montarAvatar() de core/render.js: pinta la foto si la hay, las
     // iniciales si no, y engancha el selector de archivo.
     montarAvatar(CU);
-    setEl('hero-name', name);
-    renderQuickLinks();     // 4 tarjetas estáticas: se montan UNA vez
     initScrollEffects();
     _uiMontada = true;
   }
 
-  renderRubrica();
+  buildPEBars();
   renderCalendario();
-  renderPeriodoActual();
+  renderLineaTiempo();
+  await Promise.all([montarInicio(), montarPerfil()]);
   updateTimestamp();
+
+  // Enlace guardado a una pestaña interna del perfil: #perfil/criterios.
+  const m = /^#perfil\/(\w+)/.exec(location.hash);
+  if (m) { switchTab('perfil', null); Perfil.tab(m[1], document.getElementById('perfil-host')); }
 }
 
-/** Repinta solo lo que depende del período seleccionado. */
-function renderPeriodoActual() {
-  renderScores(mPE);
-  renderRubrica();
-  renderPEDates(mPE);
+/** Persona que ve el perfil: la propia sesión. */
+async function _personaPropia() {
+  let rol_nombre = '';
+  try { rol_nombre = (await API.getRoles(false)).find(r => String(r.id) === String(CU.rol_id))?.nombre || ''; }
+  catch { /* sin nombre de rol el perfil sigue: el v2 lo trae en su fila */ }
+  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url,
+           rol_nombre, distrito: CU.distrito, tipo_miembro: CU.tipo_miembro };
 }
 
-/* ── PE DATES ── */
-function renderPEDates(pe) {
-  const p = D?.periodos?.find(x => x.pe === pe);
-  let el = document.getElementById('pe-dates-info');
-  if (!el) {
-    const peRow = document.querySelector('#tab-scores .pe-row');
-    if (!peRow) return;
-    el = document.createElement('div');
-    el.id = 'pe-dates-info';
-    el.className = 'pe-dates-info';
-    peRow.insertAdjacentElement('afterend', el);
-  }
-  if (!p) { el.innerHTML = ''; return; }
-  const items = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
-  // La etiqueta de estado la decide la UI, no la capa de datos (3.5).
-  const est = estadoPeriodo(p);
-  el.innerHTML = `<span class="pe-dates-nombre">${escHtml(p.nombre||p.pe)}</span>` +
-    items.map(([l,v])=>`<span class="pe-dates-item"><span class="pe-dates-lbl">${l}:</span> ${escHtml(v)}</span>`).join('') +
-    `<span class="pe-dates-estado pe-estado--${est.key}">${est.label}</span>`;
+/** Inicio: lo que toca ahora. Mismo módulo que el secretario (sin su bloque de distrito). */
+async function montarInicio() {
+  const host = document.getElementById('inicio-host'); if (!host) return;
+  await Inicio.montar({ el: host, persona: await _personaPropia() });
 }
 
-/* ── SCORES ── */
-async function selectPE(pe, btn) {
-  mPE = pe;
-  Store.setPeriodo(pe);
-  // Solo la barra que contiene el botón pulsado. Antes usaba
-  // '.pe-row .pb' global y desactivaba también la barra de Trabajos.
-  syncPEBar(btn.closest('.pe-row'), pe);
-  setEl('hero-pe', pe);
-  renderPEDates(pe);
-  renderCargando(document.getElementById('score-body'));
-  // Cambiar de período dispara solo la fase 2, cancelando la anterior.
-  if (await loadContenido()) renderScores(pe);
+async function montarPerfil() {
+  const host = document.getElementById('perfil-host'); if (!host) return;
+  Perfil.configurar({ calendario: () => D?.calendario });
+  await Perfil.montar({
+    el: host, persona: await _personaPropia(), modo: 'propio', periodoId: Store.periodoId(),
+    rubricaLegacy: renderRubricaLegacy,
+    // Una sola barra de período gobierna la página: Entregas sigue al perfil.
+    onPeriodo: pe => {
+      mPE = _trabajosPE = pe;
+      Store.setPeriodo(pe);
+      syncPEBar(document.getElementById('trabajos-pe-row'), pe);
+      renderLineaTiempo();
+      if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
+    },
+  });
 }
 
-function renderScores(pe) {
-  const container = document.getElementById('score-body'); if (!container) return;
-
-  // Sin criterios no se puede puntuar nada. Antes se caía a
-  // CRITERIOS_DEFAULT y el usuario veía barras plausibles pero falsas.
-  if (!hayCriterios()) {
-    renderError(container, 'No se pudieron cargar los criterios de evaluación.', () => location.reload());
-    return;
-  }
-  if (!_contenido) { renderCargando(container); return; }
-
-  if (esPeriodoV2(Store.periodo())) {
-    miScoreV2({ contenido: _contenido, miId: CU.id, pe, periodo: Store.periodo(),
-                calendario: D?.calendario, contenedor: container });
-    return;
-  }
-
-  const criterios = getCriterios();
-  // Identidad SIEMPRE por UUID (3.6). Antes buscaba por email O por UUID
-  // porque el join a veces no devolvía el email; eso era una curita sobre
-  // el problema real, no una solución.
-  const myScore = miFila();
-  const myFb    = miFeedback()?.fb || null;
-
-  /* Hero */
-  if (myScore) {
-    const total = calcScore(myScore);
-    const el = document.getElementById('hero-score');
-    if (el) { el.textContent = total; el.style.color = scoreColor(total); }
-    setEl('hero-nivel', scoreLabel(total));
-  } else {
-    setEl('hero-score', '—');
-    setEl('hero-nivel', '—');
-    const el = document.getElementById('hero-score'); if (el) el.style.color = 'var(--muted)';
-  }
-  setEl('hero-max', MAX_TOTAL());
-
-  if (!myScore) {
-    // Vacío legítimo: dice CUÁNDO estará disponible si se sabe.
-    renderVacio(container, `Aún no hay evaluación para ${pe}.`,
-                { periodo: Store.periodo(), calendario: D?.calendario });
-    return;
-  }
-
-  const total = calcScore(myScore);
-  const ext   = myScore.ext || 0;
-  const bars  = criterios.map((c, i) => {
-    const val    = puntajeDe(myScore, c.key);
-    const critFb = myFb?.[c.key] || '';
-    return `
-      <div class="cbar" style="animation-delay:${i*40}ms">
-        <div class="cbar-top">
-          <div>
-            <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
-            <div class="cbar-name">${escHtml(c.label)}</div>
-          </div>
-          <div class="cbar-val" style="color:var(--criterio)">${val}<span>/4</span></div>
-        </div>
-        <div class="cbar-track">
-          <div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div>
-        </div>
-        ${critFb ? `<div class="cbar-feedback"><span class="cbar-fb-icon">${ICONS.msg}</span><span class="cbar-fb-txt">${escHtml(critFb)}</span></div>` : ''}
-      </div>`;
-  }).join('');
-
-  container.innerHTML = `
-    ${ext > 0 ? `<div class="bono-row"><span class="bono-badge"><span class="bono-icon">${ICONS.star}</span>Bono de excelencia +${ext}</span></div>` : ''}
-    <div class="desglose-label">Desglose por criterio</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${bars}</div>`;
-  // La tarjeta resumen se eliminó: repetía el mismo puntaje que el hero,
-  // con otro tratamiento visual y separada por el selector de período.
-  // El score se muestra UNA vez, arriba.
-}
-
-/* ── RÚBRICA ── */
-function renderRubrica() {
-  const el = document.getElementById('rubrica-grid'); if (!el) return;
-  const v2 = esPeriodoV2(Store.periodo());
-  ajustarIntroRubrica(v2);
-  if (v2) {
-    el.innerHTML = '<div class="empty-box"><div class="empty-txt">En este período cada criterio explica cómo se puntúa: ábrelo en «¿Cómo se puntúa?» dentro de Mi Score.</div></div>';
-    return;
-  }
+/* ── RÚBRICA CLÁSICA ─────────────────────────────────────────────────────
+   Referencia de «cómo se califica» de los períodos anteriores a la rúbrica
+   por roles. La pinta el perfil dentro de su pestaña Criterios. */
+function renderRubricaLegacy(el) {
+  if (!el) return;
   const rubrica   = D?.rubrica || [];
   const criterios = getCriterios();
   if (!rubrica.length) { el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
-  const levels = [{n:4,lbl:'Excelente',color:'var(--green)'},{n:3,lbl:'Bueno',color:'var(--blue)'},{n:2,lbl:'En Proceso',color:'var(--gold)'},{n:1,lbl:'Bajo',color:'var(--red)'}];
+  const levels = [{n:4,lbl:'Excelente',color:'var(--sex-txt)'},{n:3,lbl:'Bueno',color:'var(--sbu-txt)'},{n:2,lbl:'En Proceso',color:'var(--spr-txt)'},{n:1,lbl:'Bajo',color:'var(--sba-txt)'}];
   const lk = {4:'nivel4',3:'nivel3',2:'nivel2',1:'nivel1'};
   el.innerHTML = rubrica.map((r,i) => {
-    const c = criterios[i] || {}, color = 'var(--criterio)';
+    const c = criterios[i] || {}, color = 'var(--criterio-txt)';
     return `
       <div class="rubrica-card" id="rc-${i}">
         <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}">
-          <div class="rubrica-dot" style="background:${color}"></div>
+          <div class="rubrica-dot" style="background:var(--criterio)"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
           <span class="rubrica-chev">▾</span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
-            ${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${r[lk[l.n]]||'—'}</div></div>`).join('')}
+            ${levels.map(l=>`<div class="rlevel"><div class="rlevel-badge" style="color:${escHtml(l.color)}">${l.n}</div><div class="rlevel-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div><div class="rlevel-desc">${escHtml(r[lk[l.n]]||'—')}</div></div>`).join('')}
           </div>
         </div>
       </div>`;
   }).join('');
+}
+
+/* ── BARRA DE PERÍODOS DE ENTREGAS ── */
+function buildPEBars() {
+  renderPEBar(document.getElementById('trabajos-pe-row'), D?.periodos || [], _trabajosPE, selectTrabajoPE);
 }
 
 /* ── CALENDARIO ── */
@@ -379,51 +236,40 @@ function renderCalendario() {
         <div class="cal-body">
           <div class="cal-num">PERÍODO ${String(p.numero).padStart(2,'0')}</div>
           <div class="cal-t ${cT[c]||cT.rojo}">${escHtml(p.titulo)}</div>
-          ${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${v}</span></div>`).join('')}
+          ${rows.map(([l,v])=>`<div class="cal-r"><span class="cal-rl">${l}</span><span>${escHtml(v)}</span></div>`).join('')}
           <div class="cst ${es.cls}">${es.dot?'<span class="sdot"></span>':''}${es.txt}</div>
         </div>
       </div>`;
   }).join('');
 }
 
-/* ── REFRESH ── */
-async function handleRefresh() {
-  const btn = document.getElementById('btn-refresh');
-  if (btn) { btn.classList.add('refreshing'); btn.disabled = true; }
-  showToast('Actualizando...', 'info');
-  await loadData();
-  renderScores(mPE); renderRubrica(); renderCalendario(); updateTimestamp();
-  if (btn) { btn.classList.remove('refreshing'); btn.disabled = false; }
-  showToast('Datos actualizados ✓', 'ok');
-}
-
 /* Los helpers (calcScore, scoreColor/Label/Class, initials, setEl, pad,
    showToast, timeAgo...) viven ahora en core/render.js. */
 
 /* ── TABS ──────────────────────────────────────────────────────────────
- * Tres destinos en vez de seis. "Períodos" y "Calendario" eran el mismo
- * dato —las fechas de cada PE— partido en dos, y "Reportes" es su vista
- * temporal: los tres viven ahora en Historial. La rúbrica dejó de ser
- * pestaña y es un desplegable bajo las barras de Mi Score, que es donde
- * surge la pregunta de cómo se califica.
+ * Dos destinos. «Mi Score» e «Historial» se fundieron en Mi perfil
+ * (Resumen, Criterios, Tareas, Evolución); «Períodos» y «Calendario» son las
+ * fechas de cada PE y viven en Entregas, donde se pregunta «qué debo
+ * entregar y cuándo». La rúbrica es una referencia dentro de Criterios.
  *
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
-const _ALIAS_TAB = { periodos:'historial', cal:'historial', reportes:'historial', rubrica:'scores' };
-const _userTabParent = { scores:'scores', trabajos:'trabajos', historial:'historial' };
+const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'trabajos' };
+const _userTabParent = { inicio:'inicio', perfil:'perfil', trabajos:'trabajos' };
 
 function switchTab(tab, btn) {
+  const original = tab;
   tab = _ALIAS_TAB[tab] || tab;
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _userTabParent });
 
-  // Política única de carga (3.11): se carga la primera vez y solo se
-  // repite si alguien invalida la pestaña explícitamente.
-  if (tab === 'historial') {
-    if (Store.necesitaCarga('reportes')) { Store.marcarCargado('reportes'); renderUserReport(); }
+  // El Historial de antes es ahora la pestaña Evolución del perfil.
+  if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) {
+    Perfil.tab('evolucion', document.getElementById('perfil-host'));
   }
+
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
-  if (tab === 'trabajos') renderPeriodosTab();
+  if (tab === 'trabajos') renderLineaTiempo();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');
     _trabajosPE = Store.periodoNombre();
@@ -436,192 +282,26 @@ function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
 
-/* ── TAB: REPORTES (usuario) ──
- * El historial cruza TODOS los períodos, así que no puede salir de la fase
- * 2 (que está filtrada a uno). Usa su propia consulta, pequeña: una fila
- * por período y solo del usuario en sesión.
- */
-async function renderUserReport() {
-  const el = document.getElementById('rpt-user-body'); if (!el) return;
-  renderCargando(el);
-
-  const res = await API.getMiHistorial();
-  if (!res.ok) {
-    renderError(el, res.error, () => {
-      Store.invalidar('reportes'); renderUserReport();
-    });
-    return;
-  }
-
-  const criterios = getCriterios();
-  // Los períodos v2 usan otra escala y otros criterios: no entran aquí.
-  const data = (Store.periodos() || []).map(p => {
-    if (esPeriodoV2(p)) return null;
-    const h = res.porPeriodo[p.id];
-    if (!h) return null;
-    const row = { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes };
-    return { pe: p.pe, row, total: calcScore(row) };
-  }).filter(Boolean);
-  const v2html = await historialV2HTML(CU.id);
-
-  if (!data.length) {
-    if (v2html) { el.innerHTML = `<div class="urpt-header"><div class="urpt-name">${escHtml(CU.name || CU.user)}</div></div>${v2html}`; return; }
-    renderVacio(el, 'No tienes evaluaciones disponibles aún.',
-                { periodo: Store.periodo(), calendario: D?.calendario });
-    return;
-  }
-
-  const avg   = data.reduce((s,d)=>s+d.total,0) / data.length;
-  const best  = data.reduce((b,d)=>d.total>b.total?d:b);
-  const trend = data.length >= 2 ? data[data.length-1].total - data[0].total : 0;
-  const trendTxt = trend > 0 ? `+${trend} vs PE1` : trend < 0 ? `${trend} vs PE1` : 'Sin cambio';
-  const trendColor = trend > 0 ? 'var(--sex)' : trend < 0 ? 'var(--sba)' : 'var(--muted)';
-  const MAX   = MAX_TOTAL();
-
-  borrarGrafico('rpt-evolucion');
-
-  const critAvg = criterios.map(c => {
-    const vals = data.map(d => puntajeDe(d.row, c.key));
-    return { ...c, avg: vals.reduce((s,v)=>s+v,0) / vals.length };
-  }).sort((a,b) => b.avg - a.avg);
-
-  el.innerHTML = `
-    <div class="urpt-header">
-      <div class="urpt-name">${escHtml(CU.name || CU.user)}</div>
-      <div class="urpt-meta">Períodos evaluados: ${escHtml(data.map(d=>d.pe).join(' · '))}</div>
-    </div>
-
-    <div class="urpt-kpi-row">
-      <div class="urpt-kpi">
-        <div class="urpt-kpi-val" style="color:${scoreColorTxt(best.total)}">${best.total}</div>
-        <div class="urpt-kpi-lbl">Mejor puntaje<br><span style="font-size:.7rem;color:var(--muted)">${escHtml(best.pe)}</span></div>
-      </div>
-      <div class="urpt-kpi">
-        <div class="urpt-kpi-val" style="color:var(--data)">${avg.toFixed(1)}</div>
-        <div class="urpt-kpi-lbl">Promedio<br><span style="font-size:.7rem;color:var(--muted)">/ ${MAX} pts</span></div>
-      </div>
-      <div class="urpt-kpi">
-        <div class="urpt-kpi-val" style="color:${trendColor}">${trendTxt}</div>
-        <div class="urpt-kpi-lbl">Tendencia</div>
-      </div>
-      <div class="urpt-kpi">
-        <div class="urpt-kpi-val"><span class="nivel-badge ${scoreClass(best.total)}">${scoreLabel(best.total)}</span></div>
-        <div class="urpt-kpi-lbl">Mejor nivel</div>
-      </div>
-    </div>
-
-    <div class="urpt-section-lbl" id="rpt-evol-lbl">Evolución entre períodos</div>
-    <div class="chart-wrap">
-      <canvas id="rpt-evolucion" role="img"
-              aria-labelledby="rpt-evol-lbl" aria-describedby="rpt-evol-alt"></canvas>
-    </div>
-    <p class="chart-alt" id="rpt-evol-alt">${escHtml(
-      data.map(d => `${d.pe}: ${d.total} de ${MAX} (${scoreLabel(d.total)})`).join('. ')
-    )}.</p>
-
-    <div class="urpt-bottom">
-      <div class="urpt-section urpt-section-crit">
-        <div class="urpt-section-lbl">Promedio por criterio</div>
-        ${critAvg.map((c, i) => {
-          const pct = pctBarra(c.avg, c);
-          const tag = i === 0 ? '↑ Mejor' : i === critAvg.length - 1 ? '↓ A mejorar' : '';
-          return `<div class="urpt-crit-row">
-            <div class="urpt-crit-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
-            <div class="urpt-crit-bar-track">
-              <div class="urpt-crit-bar-fill" style="width:${pct}%;background:var(--criterio)"></div>
-            </div>
-            <div class="urpt-crit-val">${c.avg.toFixed(1)}</div>
-            ${tag ? `<div class="urpt-crit-tag" style="color:${i===0?'var(--sex)':'var(--sba)'}">${tag}</div>` : '<div></div>'}
-          </div>`;
-        }).join('')}
-      </div>
-
-      <div class="urpt-section urpt-section-table">
-        <div class="urpt-section-lbl">Detalle por período</div>
-        <div class="urpt-table-wrap">
-          <table class="urpt-table">
-            <thead>
-              <tr>
-                <th class="urpt-th">PE</th>
-                ${criterios.map(c=>`<th class="urpt-th" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</th>`).join('')}
-                <th class="urpt-th">Bono</th>
-                <th class="urpt-th">Total</th>
-                <th class="urpt-th">Nivel</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.map(d=>`
-                <tr>
-                  <td class="urpt-td urpt-td-pe">${escHtml(d.pe)}</td>
-                  ${criterios.map(c=>`<td class="urpt-td urpt-td-s">${puntajeDe(d.row,c.key)}</td>`).join('')}
-                  <td class="urpt-td urpt-td-s">${d.row.ext||0}</td>
-                  <td class="urpt-td urpt-td-total" style="color:${scoreColorTxt(d.total)}">${d.total}</td>
-                  <td class="urpt-td"><span class="nivel-badge ${scoreClass(d.total)}" style="font-size:.55rem">${scoreLabel(d.total)}</span></td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>`;
-
-  // Después del innerHTML: antes el <canvas> todavía no existe.
-  graficoEvolucion('rpt-evolucion', data, MAX);
-  if (v2html) el.insertAdjacentHTML('beforeend', v2html);
-}
-
-/* ── MENÚ ── */
-
 /* ── LOGOUT ── */
 function logout() { Auth.logout(); }
 
 /* updateTimestamp, showToast, initScrollEffects → core/render.js */
 function goTab(tab) { goTabCore(tab, switchTab); }
 
-/* ── ATAJOS RÁPIDOS ── */
-function renderQuickLinks() {
-  const el = document.getElementById('quick-links'); if (!el) return;
-  // Solo visibles en móvil (ver user.css): en escritorio duplicaban el
-  // topbar. Con tres pestañas, dos accesos bastan.
-  const links = [
-    { tab:'trabajos',  icon:'folder-open', title:'Entregas',  desc:'Tus tareas y entregas del período' },
-    { tab:'historial', icon:'history',     title:'Historial', desc:'Fechas, calendario y evolución de tu desempeño' },
-  ];
-  el.innerHTML = links.map(l =>
-    `<button class="ql-card" data-act="irTab" data-arg="${l.tab}" aria-label="Ir a ${l.title}">
-       <i data-lucide="${l.icon}" class="ql-icon"></i>
-       <div class="ql-text"><div class="ql-title">${l.title}</div><div class="ql-desc">${l.desc}</div></div>
-       <i data-lucide="chevron-right" class="ql-arrow"></i>
-     </button>`
-  ).join('');
-  renderIconos(el);
-}
-
-/* ── TAB: PERÍODOS ── */
-function renderPeriodosTab() {
-  const el = document.getElementById('periodos-body'); if (!el) return;
+/* ── ENTREGAS: LÍNEA DE TIEMPO ──
+   Las fechas de cada período en un solo eje, con «hoy» marcado. Sustituye a
+   «Fechas del período», que repetía los mismos datos en otra forma. */
+function renderLineaTiempo() {
+  const el = document.getElementById('linea-tiempo'); if (!el) return;
   const periodos = D?.periodos || [];
   if (!periodos.length) {
     el.innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos disponibles.</div></div>';
     return;
   }
-  const stateMap = { 'Activo':'sex','Próximo':'sbu','En Progreso':'spr','Cerrado':'sba' };
-  el.innerHTML = periodos.map(p => {
-    const active = p.pe === mPE;
-    const cls    = stateMap[p.estado] || 'sbu';
-    const fields = [['Inicio',p.inicio],['Fin trabajo',p.finTrabajo],['Entrega',p.entrega],['Jornada',p.jornada]].filter(([,v])=>v);
-    return `<div class="pe-card${active?' pe-card--active':''}">
-      <div class="pe-card-head">
-        <div class="pe-card-code">${escHtml(p.pe)}</div>
-        <div class="pe-card-nombre">${escHtml(p.nombre||p.pe)}</div>
-        ${p.estado?`<span class="nivel-badge ${cls}" style="font-size:.52rem;padding:3px 9px">${p.estado}</span>`:''}
-        ${active?'<span class="pe-card-now">◉ ACTUAL</span>':''}
-      </div>
-      ${fields.length?`<div class="pe-card-dates">${fields.map(([l,v])=>`<div class="pe-card-date"><span class="pe-card-lbl">${l}</span><span class="pe-card-val">${v}</span></div>`).join('')}</div>`:''}
-    </div>`;
-  }).join('');
+  el.innerHTML = lineaTiempoHTML(periodos, { peActual: mPE });
 }
 
-/* ── TAB: TRABAJOS ── */
+/* ── ENTREGAS: TRABAJOS Y TAREAS ── */
 // null hasta que loadData() resuelva el período activo real.
 // Antes era 'PE1' fijo, que con PE4 activo mostraba el período equivocado.
 let _trabajosPE = null, _trabajosLoaded = false;
@@ -653,7 +333,7 @@ async function renderTrabajosTab() {
 
 async function renderTrabajosLegacy() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
-  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  renderCargando(el);
   // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
   const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
   const data = await API.getTrabajosEntregados(CU.id, pidTrab);
@@ -667,7 +347,7 @@ function renderTrabajosBody(trabajos) {
   el.innerHTML = `
     <div class="trabajo-form-card">
       <div class="trabajo-form-title">
-        <i data-lucide="plus-circle" class="tj-icon"></i> Registrar trabajo en ${_trabajosPE}
+        <i data-lucide="plus-circle" class="tj-icon"></i> Registrar trabajo en ${escHtml(_trabajosPE)}
       </div>
       <input class="cfg-inp" id="tj-titulo" type="text" placeholder="Título del trabajo (ej: Video campaña agosto)" style="width:100%;margin-bottom:8px">
       <textarea class="cfg-inp" id="tj-desc" placeholder="Describe la actividad realizada..." rows="3" style="width:100%;resize:vertical"></textarea>
@@ -677,7 +357,7 @@ function renderTrabajosBody(trabajos) {
     </div>
     <div class="section-label" style="margin:20px 0 10px">
       <i data-lucide="list" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px"></i>
-      ${trabajos.length} trabajo${trabajos.length!==1?'s':''} registrado${trabajos.length!==1?'s':''} · ${_trabajosPE}
+      ${trabajos.length} trabajo${trabajos.length!==1?'s':''} registrado${trabajos.length!==1?'s':''} · ${escHtml(_trabajosPE)}
     </div>
     ${trabajos.length
       ? `<div class="trabajos-list">${trabajos.map(t=>`
@@ -697,7 +377,7 @@ function renderTrabajosBody(trabajos) {
         </div>`
       : `<div class="empty-box" style="border-style:dashed;margin-top:0">
            <div class="empty-icon" style="opacity:.35"><i data-lucide="folder-open" style="width:30px;height:30px"></i></div>
-           <div class="empty-txt">Sin trabajos en <strong>${_trabajosPE}</strong>.<br>Usa el formulario de arriba para agregar.</div>
+           <div class="empty-txt">Sin trabajos en <strong>${escHtml(_trabajosPE)}</strong>.<br>Usa el formulario de arriba para agregar.</div>
          </div>`}`;
   renderIconos(el);
 }

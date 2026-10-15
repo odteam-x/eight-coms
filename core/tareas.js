@@ -528,7 +528,7 @@ const Tareas = (() => {
       </section>`;
   }
 
-  return { montar, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal };
+  return { montar, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML };
 })();
 
 /* Globales de la lista blanca de config.js (data-act="fn" / data-change). */

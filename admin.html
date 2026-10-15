@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="shared.css">
   <link rel="stylesheet" href="rubrica.css">
   <link rel="stylesheet" href="tareas.css">
+  <link rel="stylesheet" href="perfil.css">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -38,13 +39,14 @@
 
   <!-- ── TAB: OVERVIEW ── -->
   <div id="tab-overview" class="atab-content active">
-    <div class="ptitle">OVERVIEW</div>
+    <div class="ptitle">PANEL</div>
     <div class="eval-pe-bar">
       <span class="eval-pe-lbl">Período:</span>
       <div class="eval-pe-btns" id="ov-pe-btns">
         <div class="loading-box" style="height:32px"><span class="spin"></span></div>
       </div>
     </div>
+    <div id="ov-atencion"></div>
     <div id="ov-body">
       <div class="loading-box"><span class="spin"></span></div>
     </div>
@@ -93,9 +95,9 @@
 
   <!-- ── TAB: USUARIOS ── -->
   <div id="tab-usuarios" class="atab-content">
-    <div class="ptitle">USUARIOS</div>
+    <div class="ptitle">PERSONAS</div>
     <div class="cfg-toolbar">
-      <p class="cfg-hint">Lista de todos los miembros registrados. Puedes cambiar su rol, permisos y participación por período.</p>
+      <p class="cfg-hint">Todas las personas registradas. Abre una tarjeta para ver su perfil y gestionar su rol, acceso y participación.</p>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
         <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
@@ -110,7 +112,9 @@
       <span class="pe-label">Período activo:</span>
       <div class="users-pe-btns" id="users-pe-btns"></div>
     </div>
-    <div id="usuarios-list"><div class="loading-box"><span class="spin"></span></div></div>
+    <div id="personas-seg" class="personas-seg"></div>
+    <div id="personas-cards"><div class="skel-wrap" aria-busy="true"><span class="sr-only">Cargando…</span></div></div>
+    <div id="usuarios-list" hidden><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
   <!-- ── TAB: ROLES ── -->
@@ -486,14 +490,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="core/store.js"></script>
 <script src="core/render.js"></script>
+<script src="core/ui.js"></script>
 <script src="core/rubrica.js"></script>
 <script src="core/tareas.js"></script>
+<script src="core/personas.js"></script>
+<script src="core/perfil.js"></script>
 <script src="core/rail.js"></script>
 <script src="core/charts.js"></script>
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
 <script src="api.js"></script>
 <script src="admin.js"></script>
+<script src="admin-personas.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>

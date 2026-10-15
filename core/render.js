@@ -617,6 +617,9 @@ function montarAvatar(perfil) {
             style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
     : (initials(nombre) || _ICONO_USUARIO);
 
+  // El perfil abierto en pantalla repinta su cabecera con la foto nueva.
+  if (typeof Perfil !== 'undefined') Perfil.refrescarAvatar(p);
+
   if (!document.getElementById('avatar-file-input')) return;
   el.style.cursor = 'pointer';
   el.title = 'Cambiar foto de perfil';

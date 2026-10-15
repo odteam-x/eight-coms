@@ -99,6 +99,30 @@ function descriptoresHTML(c) {
 }
 
 
+/**
+ * La nota que explica dónde queda la persona dentro de su rol. Existe aparte
+ * para que Mi Score y el perfil digan exactamente lo mismo: si la regla de
+ * roles pequeños se explica distinto en dos pantallas, se lee como favoritismo.
+ * `propio` = la lee la propia persona («tu rol»); si no, quien supervisa («su rol»).
+ */
+function notaRolV2HTML(fila, propio = true) {
+  const pos = propio ? 'Tu' : 'Su';
+  const posL = propio ? 'tu' : 'su';
+  const n = fila.n_rol;
+  return fila.rol_pequeno
+    ? `<div class="v2-nota v2-nota--regla" role="note">
+         <strong>Regla de roles pequeños.</strong>
+         ${pos} rol (${escHtml(fila.rol_nombre || '—')}) tiene ${n} persona${n === 1 ? '' : 's'}
+         evaluada${n === 1 ? '' : 's'} en este período, menos de 4: con tan pocos pares el percentil no
+         significa nada. Por eso el componente relativo se sustituye por ${propio ? 'tu' : 'el'} score técnico en valor absoluto
+         y se evalúa contra la rúbrica, no contra compañeros.
+       </div>`
+    : `<div class="v2-nota" role="note">
+         ${propio ? 'Estás' : 'Está'} en el percentil <strong>${fmtV2(fila.percentil)}</strong> de ${posL} rol
+         (${escHtml(fila.rol_nombre || '—')}, ${n} personas evaluadas).
+       </div>`;
+}
+
 /* ══ RESULTADO DE UNA PERSONA ══════════════════════════════════════════
  * Para Mi Score (miembro y secretario) y para el admin al revisar a alguien.
  *   fila        : una fila de resultados_periodo
@@ -109,18 +133,7 @@ function descriptoresHTML(c) {
 function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, perfil }) {
   const ap = criteriosAplicables(perfil);
 
-  const nota = fila.rol_pequeno
-    ? `<div class="v2-nota v2-nota--regla" role="note">
-         <strong>Regla de roles pequeños.</strong>
-         Tu rol (${escHtml(fila.rol_nombre || '—')}) tiene ${fila.n_rol} persona${fila.n_rol === 1 ? '' : 's'}
-         evaluada${fila.n_rol === 1 ? '' : 's'} en este período, menos de 4: con tan pocos pares el percentil no
-         significa nada. Por eso el componente relativo se sustituye por tu score técnico en valor absoluto
-         y se evalúa contra la rúbrica, no contra compañeros.
-       </div>`
-    : `<div class="v2-nota" role="note">
-         Estás en el percentil <strong>${fmtV2(fila.percentil)}</strong> de tu rol
-         (${escHtml(fila.rol_nombre || '—')}, ${fila.n_rol} personas evaluadas).
-       </div>`;
+  const nota = notaRolV2HTML(fila);
 
   const kpi = (lbl, val, sub, destacado) => `
     <div class="v2-kpi${destacado ? ' v2-kpi--main' : ''}">

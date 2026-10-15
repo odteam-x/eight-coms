@@ -739,7 +739,7 @@ const API = {
       // Miembros del distrito y evaluaciones del período van en paralelo.
       const pMiembros = esSecretario
         ? SB.from('profiles')
-            .select('id, nombre, email, distrito, tipo_miembro, roles:rol_id(nombre)')
+            .select('id, nombre, email, distrito, tipo_miembro, avatar_url, roles:rol_id(nombre)')
             .eq('distrito', profile.distrito)
             .abortSignal(signal)
         : Promise.resolve({ data: [], error: null });
