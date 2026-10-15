@@ -1,0 +1,66 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EIGHT CREATORS LABs — IDENTIDAD DE MARCA (contrato visual)
+   ═══════════════════════════════════════════════════════════════════════
+   Este archivo es la fuente de las reglas de forma. Se carga antes de
+   premium.css y después de las hojas de página. Todo lo que se dibuje en el
+   sitio debe poder explicarse con estas reglas; si algo no encaja, se cambia
+   el elemento, no la regla.
+
+   1. FORMA — una escala de radios, ninguna esquina viva
+      --r-control  píldora   botón, chip, etiqueta, segmentado, buscador, pestaña
+      --r-xs       8px       marca diminuta: kbd, muestra de color, código
+      --r-fila     12px      campo de formulario, fila suelta, aviso en línea
+      --r-card     20px      tarjeta independiente, fila de atención, KPI
+      --r-cont     28px      contenedor de lista, tabla, panel, calendario
+      --r-modal    32px      ventana emergente, buscador
+      --r-hero     40px      esquina inferior del bloque de marca
+      50% / 999px  solo para círculos y barras de progreso.
+      Nunca 0, 2, 3, 4, 6, 10, 14 ni 16px en una superficie visible.
+
+   2. ELEVACIÓN — capas, no sombras
+      --bg < --surface-1 (contenedor) < --surface-2 (fila/campo) < --surface-3 (activo).
+      Sin box-shadow decorativo. El borde --trazo solo separa filas o campos.
+
+   3. COLOR — 70 / 30 / 10
+      Azules profundos y superficies 70 %, cianes de datos 30 %, coral 10 %: solo
+      el CTA principal de la vista, el período actual y las etiquetas de estado.
+      Texto sobre coral o sobre el degradado del CTA: --navy-900 (nunca blanco).
+
+   4. TIPO
+      Titular = Barlow Condensed 700, tracking -.02em; fila = Barlow 600;
+      cuerpo = Source Sans 3. Sin versales en etiquetas ni tablas.
+
+   5. ACCIÓN — un primario por vista
+      Primario coral (.btn-save), secundario con contorno (.btn-ghost),
+      texto (.btn-texto), destructivo (.btn-danger). Iconos de fila: círculo.
+
+   6. LISTAS — todo conjunto de filas vive en UN contenedor redondeado con
+      divisores finos (.lista-aj / .fila-aj). Tarjetas sueltas solo si cada una
+      es un objeto con vida propia (persona abierta, tarea).
+*/
+:root {
+  --r-xs: 8px;
+  /* Los nombres antiguos apuntan a la escala nueva: lo viejo hereda la identidad. */
+  --r-sm: var(--r-xs);
+  --r-md: var(--r-fila);
+  --r-lg: var(--r-card);
+  --r-xl: var(--r-cont);
+  --r-pill: var(--r-control);
+}
+
+/* ── Aplicación por categoría: lo que antes salía con esquina viva ─────── */
+/* Píldoras */
+.tk-pill, .nivel-badge, .v2-version, .pe-estado, [class^="pe-estado--"], .eval-estado-badge, .tag-marca, .rail-badge, .estado--publicado, .estado--borrador, .estado--none, .tag, .sbadge, .pcard-chip, .pcard-yo, .cal2-pe, .rlevel { border-radius: var(--r-control); }
+/* Tarjetas y avisos */
+.atencion-item, .hist-sub, .pf-tk, .v2-det, .v2-nota, .no-data-msg, .empty-box, .pf-card, .scard, .kpi-card, .section-panel, .rubrica-card, .cal-card, .dist-scard, .dist-rank-banner, .dist-cal-card, .ov-top5-panel, .v2-kpi, .tk-card { border-radius: var(--r-card); }
+/* Contenedores */
+.tbl, .v2-tabla, .v2-tabla-wrap, .roster, .lista-aj, .cal2-mes, .cal2-agenda, .panel, .eval-resumen, .rpt-card, .rpt-preview { border-radius: var(--r-cont); overflow: hidden; }
+/* Tablas dentro de contenedor: nunca sobresalen de su esquina */
+table { border-collapse: separate; border-spacing: 0; }
+.v2-tabla, .v2-tabla-wrap, .rpt-preview { overflow-x: auto; }
+/* Campos, filas y avisos */
+.cfg-inp, .cfg-textarea, .search-inp, .field input, select, textarea, .tk-info, .tk-aviso, .tk-dato, .eval-ucard, .row, .ev, .pc, .cal2-ev { border-radius: var(--r-fila); }
+.search-inp, .field input { border-radius: var(--r-control); }
+/* Controles */
+button.btn-save, .btn-ghost, .btn-cfg-add, .btn-cfg-cancel, .btn-cancel, .pb, .seg, .seg-btn, .chip, .tk-chip, .eval-chip, .cal2-chip, .cal2-btn { border-radius: var(--r-control); }
+kbd, .rail-kbd { border-radius: var(--r-xs); }

@@ -366,6 +366,10 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 - `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
 - Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
 
+### Brand identity contract (`marca.css`)
+
+`marca.css` is the written rule set for shape, elevation, colour, type, action and lists; `premium.css` implements components on top of it. Both load **last** (order: page sheet → `marca.css` → `premium.css`) so the system wins over page sheets. **No square corners**: radius scale `--r-control` (pill) / `--r-xs` 8 / `--r-fila` 12 / `--r-card` 20 / `--r-cont` 28 / `--r-modal` 32 / `--r-hero` 40; the old `--r-sm/md/lg/xl` names now alias that scale. A new component joins one of the category lists at the bottom of `marca.css` instead of declaring its own radius. Verify with the DOM check: any element with a background or border, at least 40×24, radius 0 and not inside a rounded `overflow:hidden` container is a bug.
+
 ### Premium system (anti-"AI look" pass)
 
 The target is a dark, premium product app (diffuse blue light, compact display type, pill controls, settings-style lists), not a card template. The rules live in the last block of `shared.css` ("SISTEMA PREMIUM"), which is written to win the cascade; page sheets only add what is theirs.

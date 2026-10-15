@@ -299,7 +299,7 @@
 .cal2-sem span { text-align: center; font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .01em; color: var(--txt-muted); }
 .cal2-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .cal2-dia {
-  position: relative; min-height: 76px; padding: 8px; text-align: left; border-radius: 14px;
+  position: relative; min-height: 76px; padding: 8px; text-align: left; border-radius: var(--r-fila);
   border: 1px solid var(--trazo); background: color-mix(in srgb, var(--surface-2) 55%, transparent); color: var(--txt);
   display: flex; flex-direction: column; justify-content: space-between; transition: transform .12s var(--ease), border-color .12s var(--ease);
 }
@@ -322,8 +322,8 @@
 .cal2-agenda-h span { display: block; font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: .08em; color: var(--txt-2); }
 .cal2-agenda-pe { margin: var(--sp-2) 0 var(--sp-4); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
 .cal2-lista { list-style: none; display: flex; flex-direction: column; gap: var(--sp-3); }
-.cal2-ev { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-radius: 16px; border: 1px solid var(--trazo); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
-.cal2-ev-ico { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-3); color: var(--txt); font-size: 1.2rem; }
+.cal2-ev { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-card); border: 1px solid var(--trazo); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+.cal2-ev-ico { width: 38px; height: 38px; display: grid; place-items: center; border-radius: var(--r-fila); background: var(--surface-3); color: var(--txt); font-size: 1.2rem; }
 .cal2-ev--entrega .cal2-ev-ico { background: var(--coral); color: var(--navy-900); }
 .cal2-ev--vencida .cal2-ev-ico { background: var(--alert); color: var(--alert-on); }
 .cal2-ev-txt { display: flex; flex-direction: column; min-width: 0; }
