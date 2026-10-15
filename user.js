@@ -127,11 +127,12 @@ async function initUI() {
   if (!_uiMontada) {
     initNav({
       marca: 'EIGHT CREATORS',
-      activo: 'inicio',
+      activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user, badge: 'Creator' },
       grupos: [{ items: [
         { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+        { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
         { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
       ]}],
     });
@@ -139,12 +140,14 @@ async function initUI() {
     // iniciales si no, y engancha el selector de archivo.
     montarAvatar(CU);
     initScrollEffects();
+    registrarBuscador();
     _uiMontada = true;
   }
 
   buildPEBars();
   renderCalendario();
   renderLineaTiempo();
+  actualizarRailProximo();
   await Promise.all([montarInicio(), montarPerfil()]);
   updateTimestamp();
 
@@ -254,8 +257,8 @@ function renderCalendario() {
  *
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
-const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'trabajos' };
-const _userTabParent = { inicio:'inicio', perfil:'perfil', trabajos:'trabajos' };
+const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario' };
+const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -267,6 +270,10 @@ function switchTab(tab, btn) {
     Perfil.tab('evolucion', document.getElementById('perfil-host'));
   }
 
+  if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
+    Store.marcarCargado('calendario');
+    Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });
+  }
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'trabajos') renderLineaTiempo();
@@ -281,6 +288,15 @@ function switchTab(tab, btn) {
 function switchTabMobile(tab, btn) { switchTabMobileCore(tab, btn, switchTab); }
 
 function toggleMobGroup(header) { header.classList.toggle('open'); }
+
+/* ── BUSCADOR: atajos de este portal ── */
+function registrarBuscador() {
+  Buscador.registrar(() => {
+    const per = Store.periodo();
+    return esPeriodoV2(per) ? [{ grupo: 'Acciones', icono: 'plus-circle', titulo: 'Nueva tarea por iniciativa propia', sub: per.pe,
+      ir: () => Tareas.nueva({ periodoId: per.id, yo: CU.id, onCambio: () => { Store.invalidar('calendario'); if (!Store.necesitaCarga('trabajos')) renderTrabajosTab(); } }) }] : [];
+  });
+}
 
 /* ── LOGOUT ── */
 function logout() { Auth.logout(); }

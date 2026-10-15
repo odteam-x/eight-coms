@@ -412,6 +412,19 @@ const Perfil = (() => {
         ${inst.modo === 'propio' ? 'Tus entregas están en la pestaña Entregas.' : ''}</div></div>`;
       return;
     }
+    // Quien asigna y revisa (secretario del distrito, admin) las gestiona AQUÍ,
+    // sin ir a otra sección: mismas acciones, mismos permisos (los impone la base).
+    if (_cfg.tareas && inst.modo !== 'propio') {
+      const c = _cfg.tareas;
+      await Tareas.montar({
+        id: 'perfil-tareas', el: cuerpo, periodoId: periodo.id, yo: c.yo, revisor: true, esAdmin: !!c.esAdmin,
+        personas: c.personas(), soloPersona: inst.persona.id,
+        onCambio: () => { inst.tareas.delete(String(periodo.id)); },
+        onNoDisponible: () => { cuerpo.innerHTML = '<div class="empty-box"><div class="empty-txt">Las tareas todavía no están activas en esta instalación.</div></div>'; },
+      });
+      if (seq === inst.seq) animarEntrada(cuerpo);
+      return;
+    }
     renderCargando(cuerpo);
     inst.tareas.delete(String(periodo.id));              // al abrir la pestaña se refresca
     const datos = await _cargarTareas(inst, periodo);
@@ -638,6 +651,17 @@ const Perfil = (() => {
    */
   function configurar(cfg) { _cfg = { ..._cfg, ...cfg }; }
 
+  /** «Nueva tarea» para esta persona, desde su perfil (o el buscador). */
+  function nuevaTarea(personaId) {
+    const c = _cfg.tareas;
+    const inst = [..._inst.values()].find(i => i.panel) || [..._inst.values()][0];
+    const periodo = inst?.periodo || Store.periodo();
+    if (!c || !periodo) return;
+    if (!esPeriodoV2(periodo)) { showToast(`${periodo.pe} usa la rúbrica clásica: las tareas son de los períodos nuevos.`, 'info'); return; }
+    Tareas.nueva({ periodoId: periodo.id, yo: c.yo, revisor: true, esAdmin: !!c.esAdmin, personas: c.personas(), paraId: personaId,
+      onCambio: () => { if (inst) { inst.tareas.clear(); if (inst.tab === 'tareas') tab('tareas', document.getElementById(inst.id)); } } });
+  }
+
   /** Abre el perfil de una persona en el panel lateral. */
   async function abrir(personaId) {
     const persona = await _cfg.resolver?.(personaId);
@@ -647,5 +671,5 @@ const Perfil = (() => {
     renderIconos(cuerpo);
   }
 
-  return { montar, abrir, configurar, tab, refrescar, refrescarAvatar, sincronizar };
+  return { montar, abrir, configurar, nuevaTarea, tab, refrescar, refrescarAvatar, sincronizar };
 })();

@@ -1792,3 +1792,27 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
     display: block !important;
   }
 }
+
+/* ── Evaluar: avance, filtros por estado y lista junto al formulario ───── */
+.eval-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+@media (min-width: 1100px) {
+  .eval-split { grid-template-columns: 380px minmax(0, 1fr); }
+  .eval-col-lista { position: sticky; top: var(--sp-4); max-height: calc(100vh - 2 * var(--sp-4)); overflow-y: auto; padding-right: 4px; }
+}
+.eval-resumen { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); margin-bottom: var(--sp-3); border-radius: var(--r-xl); border: 1px solid var(--trazo); background: var(--vidrio), var(--surface-1); }
+.eval-resumen-n { display: flex; flex-direction: column; line-height: 1; }
+.eval-resumen-n strong { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; }
+.eval-resumen-n span { font-size: var(--fs-xs); color: var(--txt-2); margin-top: 4px; }
+.eval-resumen-bar { flex: 1; height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--surface-2) 80%, transparent); overflow: hidden; }
+.eval-resumen-bar i { display: block; height: 100%; border-radius: inherit; background: var(--brillo); }
+.eval-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.eval-chip { min-height: 38px; padding: 0 var(--sp-3); border-radius: var(--r-full); border: 1px solid var(--trazo); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); display: inline-flex; align-items: center; gap: 6px; }
+.eval-chip b { font-weight: 700; color: var(--txt); }
+.eval-chip.on { color: var(--txt); border-color: var(--data); background: color-mix(in srgb, var(--data) 16%, transparent); }
+.eval-ucard { border-radius: 16px; position: relative; }
+.eval-ucard--active { box-shadow: inset 3px 0 0 var(--data); }
+.eval-perfil { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--trazo); color: var(--txt-2); }
+.eval-perfil:hover { color: var(--txt); border-color: var(--data); }
+.eval-ucard { flex-wrap: wrap; row-gap: 4px; }
+.eval-ucard-name { white-space: normal; overflow-wrap: anywhere; }
+@media (min-width: 1100px) { .eval-col-lista .eval-ucard-bar { display: none; } }

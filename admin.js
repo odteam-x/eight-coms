@@ -27,6 +27,7 @@ let _rankingTab         = 'users';
 let _inactivosPE        = new Set();
 let _evalPECache    = [];
 let _selectedEvalUser = null;
+let _evalEstado = '';   // filtro de la lista de Evaluar: '', pendiente, borrador, publicado
 /** Rúbrica v2 (migración 0015). Vacíos si la migración aún no se aplicó. */
 let _criteriosV2 = [];
 let _perfiles    = [];
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!CU) return;
 
   initNav({
-    marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview',
+    marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview', calTab: 'agenda',
     // Cabecera de cuenta de la hoja móvil, donde viven salir y el
     // selector de gestión: el rail no existe por debajo de 768px.
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
@@ -78,11 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
+        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
       { titulo:'Configuración', items: [
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
-        { tab:'calendario', icono:'calendar-days', etiqueta:'Calendario' },
+        { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
         { tab:'perfiles',   icono:'sliders-horizontal', etiqueta:'Perfiles' },
         { tab:'roles',      icono:'tag',           etiqueta:'Roles'      },
@@ -121,6 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderDistPEBar();
   populateDistritoFilters();
   initScrollEffects();
+  actualizarRailProximo();
+  registrarBuscadorAdmin();
   loadOverview();
 });
 
@@ -274,9 +278,22 @@ function renderEvalUserList() {
     return d !== 0 ? d : b.score - a.score;
   });
 
+  // Avance del período (sobre quien pasa el filtro de búsqueda/distrito) y filtro por estado.
+  const cuenta = { publicado: 0, borrador: 0, pendiente: 0 };
+  sorted.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
+  const hechos = cuenta.publicado, total = sorted.length;
+  const lista = _evalEstado ? sorted.filter(u => u.estado === _evalEstado) : sorted;
+  const chip = (id, txt, n) => `<button type="button" class="eval-chip${_evalEstado === id ? ' on' : ''}" data-act="evalFiltro" data-arg="${id}" aria-pressed="${_evalEstado === id}">${txt} <b>${n}</b></button>`;
+  const cab = `<div class="eval-resumen">
+      <div class="eval-resumen-n"><strong>${hechos}</strong><span>de ${total} publicadas</span></div>
+      <div class="eval-resumen-bar" role="img" aria-label="${hechos} de ${total} evaluaciones publicadas"><i style="width:${total ? Math.round(hechos / total * 100) : 0}%"></i></div>
+    </div>
+    <div class="eval-chips">${chip('', 'Todas', total)}${chip('pendiente', 'Pendientes', cuenta.pendiente)}${chip('borrador', 'Borrador', cuenta.borrador)}${chip('publicado', 'Publicadas', cuenta.publicado)}</div>`;
+  if (!lista.length) { el.innerHTML = cab + '<div class="empty-box"><div class="empty-txt">Nadie en este estado.</div></div>'; return; }
+
   let rank = 0;
-  el.innerHTML = `<div class="eval-users-grid">
-    ${sorted.map(u => {
+  el.innerHTML = cab + `<div class="eval-users-grid">
+    ${lista.map(u => {
       const isActive = _selectedEvalUser === u.id;
       const estadoCls = u.estado === 'publicado' ? 'estado--publicado' : u.estado === 'borrador' ? 'estado--borrador' : 'estado--none';
       const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : 'Pendiente';
@@ -293,9 +310,11 @@ function renderEvalUserList() {
         ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${colFill(u.score)}"></div></div></div>
         <div class="eval-ucard-score" style="color:${colTxt(u.score)}">${v2 ? fmtV2(u.score) : u.score}</div>` : ''}
         <span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>
+        <button type="button" class="eval-perfil" data-act="perfilVer" data-arg="${u.id}" aria-label="Ver perfil de ${escHtml(u.nombre)}" title="Ver perfil"><i data-lucide="user"></i></button>
       </div>`;
     }).join('')}
   </div>`;
+  renderIconos(el);
 }
 
 async function selectEvalUser(userId) {
@@ -2112,6 +2131,7 @@ function montarTareas() {
 /* Operación suelta; todo lo de configuración cuelga del engranaje, cuyo
    botón padre es `periodos`. */
 const _tabParentMap = {
+  agenda: 'agenda',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
@@ -2182,6 +2202,10 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'agenda' && Store.necesitaCarga('agenda')) {
+    Store.marcarCargado('agenda');
+    Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
+  }
   if (tab === 'gestiones') renderGestiones();
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();

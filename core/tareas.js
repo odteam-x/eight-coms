@@ -105,7 +105,7 @@ const Tareas = (() => {
       <article class="tk-card tk-card--${est.cls}" data-tarea="${t.id}" aria-label="${escHtml(t.titulo)}">
         <header class="tk-head">
           <h4 class="tk-titulo">${escHtml(t.titulo)}</h4>
-          <span class="tk-pill tk-pill--${est.cls}">${escHtml(estTxt)}</span>
+          <span class="tk-pill tk-pill--${est.cls}">${escHtml(estTxt)}${t.estado === 'aprobada' && t.puntos != null ? ` · ${t.puntos}/10` : ''}</span>
         </header>
         <div class="tk-meta">
           ${c.revisor && nombre ? `<span class="tk-persona">${escHtml(nombre)}</span>` : ''}
@@ -182,10 +182,12 @@ const Tareas = (() => {
 
   /* ── Carga ──────────────────────────────────────────────────────────── */
   async function cargar(c) {
+    // Contexto sin lista (crear una tarea desde otra sección): no hay nada que repintar.
+    if (!c.el) return { ok: true };
     renderCargando(c.el);
     c._abort?.abort();
     const ctrl = c._abort = new AbortController();
-    const res = await API.getTareas({ periodoId: c.periodoId, userId: c.revisor ? null : c.yo, signal: ctrl.signal });
+    const res = await API.getTareas({ periodoId: c.periodoId, userId: c.soloPersona || (c.revisor ? null : c.yo), signal: ctrl.signal });
     if (res.aborted) return;
     if (!res.ok) {
       if (res.noDisponible) c.onNoDisponible?.();
@@ -206,19 +208,35 @@ const Tareas = (() => {
    *   onCambio     : se llama tras cada cambio guardado
    *   onNoDisponible: la migración 0016 no está aplicada
    */
-  async function montar({ id, el, periodoId, yo, revisor = false, esAdmin = false, personas = [], onCambio, onNoDisponible }) {
+  async function montar({ id, el, periodoId, yo, revisor = false, esAdmin = false, personas = [], onCambio, onNoDisponible, soloPersona = null }) {
     const c = {
-      id, el, periodoId, yo, revisor, esAdmin, onCambio, onNoDisponible,
+      id, el, periodoId, yo, revisor, esAdmin, onCambio, onNoDisponible, soloPersona, paraId: soloPersona,
       puedeCrear: !soloLectura(), filtro: revisor ? 'porRevisar' : 'todas', persona: '',
       personas: new Map(personas.map(p => [p.id, p])),
       catalogo: new Map((Store.get('criteriosV2') || []).map(k => [k.key, k.nombre])),
       tareas: [],
     };
+    // Vista de UNA persona: se parte de todas sus tareas.
+    if (soloPersona) c.filtro = 'todas';
     // Si no hay nada por revisar, partir de «Abiertas» y no de una lista vacía.
     ctxs.set(id, c);
     const res = await cargar(c);
-    if (res?.ok && c.revisor && !c.tareas.some(t => t.estado === 'entregada')) { c.filtro = 'abiertas'; render(c); }
+    if (res?.ok && c.revisor && !soloPersona && !c.tareas.some(t => t.estado === 'entregada')) { c.filtro = 'abiertas'; render(c); }
     return c;
+  }
+
+  /**
+   * Abre «Nueva tarea» sin tener la lista en pantalla: se usa desde el perfil de
+   * una persona, el buscador o el calendario.
+   */
+  function nueva({ periodoId, yo, revisor = false, esAdmin = false, personas = [], paraId = null, fecha = '', onCambio }) {
+    const c = {
+      id: 'rapida', el: null, periodoId, yo, revisor, esAdmin, onCambio, paraId, fechaIni: fecha, puedeCrear: true, filtro: 'todas', persona: '',
+      personas: new Map(personas.map(p => [p.id, p])),
+      catalogo: new Map((Store.get('criteriosV2') || []).map(k => [k.key, k.nombre])),
+      tareas: [],
+    };
+    modalNueva(c);
   }
 
   const recargar = id => { const c = ctxs.get(id); return c ? cargar(c) : null; };
@@ -249,6 +267,8 @@ const Tareas = (() => {
     switch (f.tipo) {
       case 'info':
         return `<p class="tk-info">${escHtml(f.texto)}</p>`;
+      case 'puntos':
+        return `<div class="tk-campo">${lab}<div class="tk-puntos" role="radiogroup" aria-label="Puntos">${Array.from({ length: 11 }, (_, n) => `<label class="tk-punto"><input type="radio" name="${id}" value="${n}"${n === Number(f.valor) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div>${pie}</div>`;
       case 'texto':
         return `<div class="tk-campo">${lab}<input class="cfg-inp" id="${id}" type="text" maxlength="${f.max || 160}"
           value="${escHtml(f.valor || '')}" placeholder="${escHtml(f.ph || '')}">${pie}</div>`;
@@ -274,6 +294,7 @@ const Tareas = (() => {
     const v = {};
     for (const f of campos) {
       if (f.tipo === 'info') continue;
+      if (f.tipo === 'puntos') { v[f.id] = document.querySelector(`input[name="tkf-${f.id}"]:checked`)?.value ?? ''; continue; }
       const el = document.getElementById('tkf-' + f.id);
       if (!el) continue;
       v[f.id] = f.tipo === 'checks'
@@ -335,12 +356,12 @@ const Tareas = (() => {
 
   function modalNueva(c) {
     const campos = [
-      ...(c.revisor ? [{ id: 'para', tipo: 'checks', label: 'Asignar a', req: true, valor: [],
+      ...(c.revisor ? [{ id: 'para', tipo: 'checks', label: 'Asignar a', req: true, valor: c.paraId ? [c.paraId] : [],
         opciones: [...c.personas.values()].filter(p => p.id !== c.yo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
           .map(p => ({ v: p.id, l: p.nombre })), ayuda: 'Puedes marcar varias personas: cada una recibe su propia tarea.' }]
         : [{ id: 'aviso', tipo: 'info', texto: 'Es una tarea por iniciativa propia. Cuenta como evidencia de iniciativa cuando tu secretario o el administrador la aprueban; no la puedes aprobar tú.' }]),
       ...camposContenido(c),
-      { id: 'fecha', tipo: 'fecha', label: 'Fecha límite' },
+      { id: 'fecha', tipo: 'fecha', label: 'Fecha límite', valor: c.fechaIni || '' },
     ];
     abrirModal({
       titulo: c.revisor ? 'Nueva tarea' : 'Nueva tarea por iniciativa propia', campos, confirmar: 'Crear',
@@ -395,6 +416,28 @@ const Tareas = (() => {
       titulo: 'Devolver para corregir', confirmar: 'Devolver',
       campos: [{ id: 'nota', tipo: 'area', label: 'Qué hay que corregir', req: true, filas: 3, ph: 'Sé concreto: qué falta y cómo debería quedar.' }],
       onConfirm: async v => minimo(v.nota, 3) ? aplicar(c, t, { estado: 'devuelta', revision_nota: v.nota }, 'Devuelta con observaciones') : 'Explica qué hay que corregir.',
+    });
+  }
+
+  /* Aprobar = puntuar. La puntuación (0–10) es un hecho más para el evaluador;
+     la base la exige al aprobar (migración 0017) y solo el admin la corrige. */
+  function modalAprobar(c, t) {
+    abrirModal({
+      titulo: 'Aprobar y puntuar', confirmar: 'Aprobar',
+      campos: [
+        { id: 'info', tipo: 'info', texto: `«${t.titulo}». Los puntos quedan en el historial de la persona; no entran solos en su evaluación.` },
+        { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: 8 },
+      ],
+      onConfirm: async v => {
+        const n = Number(v.puntos);
+        if (!Number.isInteger(n) || n < 0 || n > 10) return 'Elige unos puntos entre 0 y 10.';
+        let err = await aplicar(c, t, { estado: 'aprobada', puntos: n }, `Aprobada con ${n} puntos`);
+        // Antes de aplicar 0017 la columna no existe: se aprueba sin puntos y se avisa.
+        if (err && /puntos/i.test(err) && /column|schema|PGRST/i.test(err)) {
+          err = await aplicar(c, t, { estado: 'aprobada' }, 'Aprobada (la base aún no guarda puntos: aplica 0017)');
+        }
+        return err;
+      },
     });
   }
 
@@ -457,7 +500,7 @@ const Tareas = (() => {
     switch (a) {
       case 'empezar':     return void await aplicarMsg(c, t, { estado: 'en_curso' }, 'En curso');
       case 'desbloquear': return void await aplicarMsg(c, t, { estado: 'en_curso' }, 'Desbloqueada');
-      case 'aprobar':     return void await aplicarMsg(c, t, { estado: 'aprobada' }, 'Aprobada');
+      case 'aprobar':     return modalAprobar(c, t);
       case 'reabrir':     return void await aplicarMsg(c, t, { estado: 'entregada' }, 'Reabierta: vuelve a quedar por revisar');
       case 'entregar':    return modalEntregar(c, t);
       case 'bloquear':    return modalBloquear(c, t);
@@ -528,7 +571,7 @@ const Tareas = (() => {
       </section>`;
   }
 
-  return { montar, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML };
+  return { montar, nueva, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML };
 })();
 
 /* Globales de la lista blanca de config.js (data-act="fn" / data-change). */

@@ -9,8 +9,8 @@
 .tk-filtros { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .tk-chip {
   min-height: 44px; padding: 0 var(--sp-4); cursor: pointer;
-  background: transparent; color: var(--txt); border: 2px solid var(--trazo); border-radius: 0;
-  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: .06em; text-transform: uppercase;
+  background: transparent; color: var(--txt); border: 1px solid var(--trazo); border-radius: var(--r-full);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm);
 }
 .tk-chip:hover { border-color: var(--action); }
 .tk-chip--on { background: var(--action-fill); color: var(--action-on); border-color: var(--action-fill); }
@@ -22,7 +22,7 @@
 .tk-lista { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 .tk-card {
   background: var(--surface-1); border: 2px solid var(--trazo); border-left: 6px solid var(--border-hi);
-  border-radius: 0; box-shadow: 4px 4px 0 var(--blue-700); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
+  border-radius: var(--r-lg); box-shadow: var(--sombra-dura); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
 }
 .tk-card--en-curso  { border-left-color: var(--spr); }
 .tk-card--entregada { border-left-color: var(--sbu); }

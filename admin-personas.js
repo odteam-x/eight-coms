@@ -39,11 +39,33 @@ function initPersonas() {
     resolver: id => { const u = _users.find(x => String(x.id) === String(id)); return u ? personaDeUsuario(u) : null; },
     calendario: () => _calendario,
     periodoId: () => _activePEUsers?.id ?? null,
-    acciones: [{ act: 'evaluarDesdePerfil', etiqueta: 'Evaluar', icono: 'clipboard-list' }],
+    tareas: { yo: CU.id, esAdmin: true, personas: () => _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) },
+    acciones: [
+      { act: 'evaluarDesdePerfil', etiqueta: 'Evaluar', icono: 'clipboard-list' },
+      { act: 'perfilNuevaTarea', etiqueta: 'Nueva tarea', icono: 'plus-circle' },
+    ],
     tabsExtra: [{ k: 'gestion', etiqueta: 'Gestión', icono: 'settings', soloAdmin: true, render: renderGestionPersona }],
   });
   pintarSegPersonas();
   renderPersonasCards();
+}
+
+/** Buscador del admin: personas (abren su perfil), nueva tarea y evaluar. */
+function registrarBuscadorAdmin() {
+  Buscador.registrar(() => {
+    const out = [];
+    const per = _activePE;
+    if (esPeriodoV2(per)) {
+      out.push({ grupo: 'Acciones', icono: 'plus-circle', titulo: 'Nueva tarea', sub: per.nombre,
+        ir: () => Tareas.nueva({ periodoId: per.id, yo: CU.id, revisor: true, esAdmin: true,
+          personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })), onCambio: () => Store.invalidar('agenda') }) });
+    }
+    for (const u of _users) {
+      out.push({ grupo: 'Personas', icono: 'user-round', titulo: u.nombre || u.email, sub: [u.roles?.nombre, _distritoNombre(u.distrito)].filter(Boolean).join(' · '), ir: () => Perfil.abrir(u.id) });
+      if (!u.es_admin) out.push({ grupo: 'Evaluar', icono: 'clipboard-list', titulo: 'Evaluar a ' + (u.nombre || u.email), sub: per?.nombre || '', ir: () => evaluarDesdePerfil(u.id) });
+    }
+    return out;
+  });
 }
 
 function evaluarDesdePerfil(id) {

@@ -140,9 +140,11 @@
      Las piezas de la marca son bloques planos de color con esquinas vivas,
      no tarjetas redondeadas con sombra difusa. --trazo es el contorno y
      --sombra-dura la sombra desplazada, sin difuminar. */
-  --trazo:        rgba(167,232,255,.34);
-  --sombra-dura:  6px 6px 0 var(--blue-700);
-  --sombra-dura-hover: 9px 9px 0 var(--cyan-400);
+  --trazo:        rgba(167,232,255,.14);
+  --sombra-dura:  0 20px 44px -22px rgba(0,135,241,.55);
+  --sombra-dura-hover: 0 26px 52px -20px rgba(0,203,255,.6);
+  --vidrio: linear-gradient(180deg, rgba(167,232,255,.07), rgba(167,232,255,.02));
+  --brillo: linear-gradient(135deg, var(--cyan-400), var(--blue-500));
 
   /* ── TIPOGRAFÍA — tres familias, un rol cada una ─────────────────────── */
   --font-display:'Barlow Condensed',system-ui,sans-serif;  /* números y títulos */
@@ -254,9 +256,11 @@
   --shadow-sm:0 1px 2px rgba(0,34,71,.08);
   --shadow-md:0 4px 16px rgba(0,34,71,.12);
   --shadow-lg:0 12px 40px rgba(0,34,71,.16);
-  --trazo:        var(--navy-900);
-  --sombra-dura:  6px 6px 0 var(--navy-900);
-  --sombra-dura-hover: 9px 9px 0 var(--blue-500);
+  --trazo:        rgba(0,34,71,.12);
+  --sombra-dura:  0 18px 40px -22px rgba(0,34,71,.35);
+  --sombra-dura-hover: 0 24px 48px -20px rgba(0,104,201,.45);
+  --vidrio: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.72));
+  --brillo: linear-gradient(135deg, var(--cyan-400), var(--blue-500));
 
   /* Único alias que necesita valor propio por tema; el resto son var(). */
   --hover-subtle:rgba(0,34,71,.04);
@@ -431,20 +435,15 @@ body.gestion-archivada [aria-disabled="true"] {
 .pe-bar-msg--error { color:var(--accent); }
 .pb {
   padding:10px 20px; min-height:44px;
-  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
-  letter-spacing:.08em; text-transform:uppercase;
-  color:var(--txt); background:transparent;
-  border:2px solid var(--trazo); border-radius:0;
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; letter-spacing:.02em;
+  color:var(--txt); background:var(--vidrio);
+  border:1px solid var(--trazo); border-radius:var(--r-full);
   transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s var(--ease);
   position:relative;
 }
-.pb:hover { background:color-mix(in srgb, var(--data) 16%, transparent); }
-.pb:active { transform:translate(2px,2px); }
-/* El período seleccionado es el bloque cian de la guía, con sombra dura coral. */
-.pb.active {
-  color:var(--action-on); background:var(--action-fill); border-color:var(--navy-900);
-  box-shadow:4px 4px 0 var(--marca);
-}
+.pb:hover { border-color:var(--action); }
+.pb:active { transform:scale(.97); }
+.pb.active { color:var(--navy-900); background:var(--brillo); border-color:transparent; box-shadow:0 8px 22px -8px rgba(0,203,255,.7); }
 
 /* ── PE STICKY BAR ── */
 .pe-sticky-bar {
@@ -1583,26 +1582,22 @@ select:-webkit-autofill {
 
 /* ── Pestañas segmentadas ───────────────────────────────────────────── */
 .seg {
-  display:flex; gap:0; max-width:100%;
-  border-bottom:3px solid var(--trazo);
+  display:inline-flex; gap:4px; max-width:100%; padding:4px;
+  background:var(--vidrio); border:1px solid var(--trazo); border-radius:var(--r-full);
   overflow-x:auto; scrollbar-width:none;
 }
 .seg::-webkit-scrollbar { display:none; }
 .seg-btn {
   position:relative; flex:0 0 auto;
   display:inline-flex; align-items:center; gap:var(--sp-2);
-  min-height:48px; padding:0 var(--sp-5);
-  font-family:var(--font-display); font-size:1.2rem; font-weight:700;
-  letter-spacing:.04em; text-transform:uppercase;
+  min-height:42px; padding:0 var(--sp-5); border-radius:var(--r-full);
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
   color:var(--txt-2); white-space:nowrap;
-  transition:color .15s var(--ease), background .15s var(--ease);
+  transition:color .15s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease);
 }
 .seg-btn:hover { color:var(--txt); background:color-mix(in srgb, var(--data) 12%, transparent); }
-/* Activo: la barra coral de 6px sobre el filete + el texto a pleno contraste. */
-.seg-btn.active { color:var(--txt); }
-.seg-btn.active::after {
-  content:''; position:absolute; inset:auto 0 -3px 0; height:6px; background:var(--marca);
-}
+/* Activo: píldora con brillo; el texto es navy sobre cian (8.3). */
+.seg-btn.active { color:var(--navy-900); background:var(--brillo); box-shadow:0 8px 22px -8px rgba(0,203,255,.7); }
 .seg-ico { width:16px; height:16px; flex:0 0 auto; }
 @media (pointer:coarse) { .seg-btn { min-height:44px; } }
 
@@ -1683,13 +1678,16 @@ select:-webkit-autofill {
   --sex: var(--cyan-200); --sbu: var(--cyan-400); --spr: var(--blue-500); --sba: var(--coral);
   --sex-txt: var(--sex);  --sbu-txt: var(--sbu);  --spr-txt: var(--spr);  --sba-txt: var(--sba);
   position: relative; z-index: 1;
-  background: var(--grad-marca); color: var(--on-brand);
+  background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-900) 45%, var(--blue-700) 130%); color: var(--on-brand);
   /* Borde inferior en diagonal: un corte, no una raya. */
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 44px), 0 100%);
+  border-radius: 0 0 40px 40px; overflow: hidden;
 }
+/* Brillos de la marca: dos focos de luz cian y azul sobre el navy. */
 .sup-marca::after {
-  content: ''; position: absolute; inset: auto 0 0 0; height: 44px; z-index: 1;
-  background: linear-gradient(to bottom right, transparent calc(50% - 5px), var(--marca) calc(50% - 5px) 50%, transparent 50%);
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 90% at 88% 0%, rgba(0,203,255,.42), transparent 62%),
+    radial-gradient(55% 80% at 8% 100%, rgba(0,135,241,.38), transparent 60%);
 }
 .sup-marca > * { position: relative; z-index: 1; }
 /* Píldora de nivel sobre navy: contorno de su color + texto blanco. Rellena,
@@ -1742,3 +1740,120 @@ select:-webkit-autofill {
 .rail-marca { flex-wrap: wrap; row-gap: var(--sp-1); }
 .rail-marca .rail-badge { flex-basis: auto; margin-left: calc(32px + var(--sp-2)); }
 .rail-colapsado .rail-marca { flex-wrap: nowrap; }
+
+/* Botón principal: píldora con brillo, como el CTA de las referencias. */
+.btn-save { color: var(--navy-900); border-radius: var(--r-full); background: var(--brillo); box-shadow: 0 10px 26px -10px rgba(0,203,255,.75); }
+.btn-save:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.08); }
+.ico { width: 1em; height: 1em; flex: 0 0 auto; vertical-align: -.125em; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VENTANAS, RAIL Y BUSCADOR — estilo cristal
+   ═══════════════════════════════════════════════════════════════════════
+   Las ventanas emergentes (nueva tarea, aprobar, confirmaciones), el panel
+   lateral y el buscador comparten un mismo lenguaje: velo azul desenfocado,
+   cuerpo de cristal con borde fino, esquinas amplias y un filo de luz arriba.
+   El rail gana buscador, una tarjeta de próxima fecha y la cuenta en tarjeta. */
+
+.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay {
+  background: color-mix(in srgb, var(--navy-900) 62%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.tk-box, .modal-box, .bus-box {
+  position: relative;
+  background: var(--vidrio), var(--surface-1);
+  border: 1px solid var(--trazo); border-radius: 28px;
+  box-shadow: 0 40px 90px -30px rgba(0, 10, 28, .8);
+  animation: ventanaEntra .28s var(--ease-spring) both;
+}
+.tk-box::before, .modal-box::before, .bus-box::before {
+  content: ''; position: absolute; inset: 0 28px auto 28px; height: 2px; border-radius: 0 0 4px 4px;
+  background: var(--franja); opacity: .85; pointer-events: none;
+}
+@keyframes ventanaEntra { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.tk-box { padding: var(--sp-6); max-width: 560px; }
+.tk-box .modal-title {
+  font-family: var(--font-display); font-weight: 700; font-size: 2rem; text-transform: uppercase;
+  letter-spacing: .01em; line-height: 1; margin-bottom: var(--sp-5);
+}
+.tk-campo label, .tk-campo legend { font-size: var(--fs-sm); letter-spacing: .01em; color: var(--txt-2); }
+.tk-box .cfg-inp, .tk-box .cfg-textarea { border-radius: 14px; background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.tk-checks-lista { border-radius: 14px; border-color: var(--trazo); }
+.tk-info { border-radius: 14px; background: color-mix(in srgb, var(--data) 10%, var(--surface-2)); }
+.tk-modal-acciones { margin-top: var(--sp-5); justify-content: flex-end; flex-direction: row-reverse; }
+.tk-modal-acciones .tk-btn { border-radius: var(--r-full); }
+.tk-btn { border-radius: var(--r-full); }
+.tk-btn--main { background: var(--brillo); border: 0; box-shadow: 0 8px 22px -8px rgba(0, 203, 255, .7); }
+
+/* Puntos 0–10 al aprobar una tarea: botones numerados. */
+.tk-puntos { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; }
+.tk-punto { position: relative; display: block; }
+.tk-punto input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.tk-punto span {
+  display: grid; place-items: center; min-height: 44px; border-radius: 12px;
+  border: 1px solid var(--trazo); background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; transition: background .12s, transform .12s;
+}
+.tk-punto:hover span { border-color: var(--data); }
+.tk-punto input:checked + span { background: var(--brillo); color: var(--navy-900); border-color: transparent; transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgba(0,203,255,.8); }
+.tk-punto input:focus-visible + span { outline: 2px solid var(--action); outline-offset: 2px; }
+@media (max-width: 480px) { .tk-puntos { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* ── Buscador ───────────────────────────────────────────────────────── */
+.bus-overlay { position: fixed; inset: 0; z-index: var(--z-modal); display: none; align-items: flex-start; justify-content: center; padding: 14vh var(--sp-4) var(--sp-4); }
+.bus-box { width: min(640px, 100%); overflow: hidden; }
+.bus-campo { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--trazo); color: var(--txt-2); font-size: 1.3rem; }
+.bus-campo input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--txt); font-family: var(--font-ui); font-size: 1.1rem; }
+.bus-campo input::placeholder { color: var(--txt-muted); }
+.bus-campo kbd, .rail-kbd { font-family: var(--font-ui); font-size: var(--fs-xs); padding: 2px 8px; border-radius: 8px; border: 1px solid var(--trazo); color: var(--txt-muted); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.bus-lista { max-height: min(56vh, 420px); overflow-y: auto; padding: var(--sp-2) var(--sp-3) var(--sp-3); }
+.bus-grupo { padding: var(--sp-3) var(--sp-3) var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--txt-muted); }
+.bus-item { display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: 52px; padding: var(--sp-2) var(--sp-3); border-radius: 14px; text-align: left; color: var(--txt); }
+.bus-item .ico { font-size: 1.25rem; color: var(--txt-2); }
+.bus-txt { display: flex; flex-direction: column; min-width: 0; }
+.bus-txt strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); overflow-wrap: anywhere; }
+.bus-txt small { font-size: var(--fs-xs); color: var(--txt-2); }
+.bus-item:hover, .bus-item.sel { background: linear-gradient(90deg, color-mix(in srgb, var(--data) 22%, transparent), transparent); box-shadow: inset 3px 0 0 var(--data); }
+.bus-vacio { padding: var(--sp-5); text-align: center; color: var(--txt-2); font-size: var(--fs-sm); }
+
+/* ── Rail: buscador, tarjeta de próxima fecha y cuenta ──────────────── */
+.rail { background: linear-gradient(180deg, var(--navy-900) 0%, color-mix(in srgb, var(--navy-900) 82%, var(--blue-700)) 100%); }
+.rail-buscar {
+  display: flex; align-items: center; gap: var(--sp-3); min-height: 46px; padding: 0 var(--sp-3);
+  margin-bottom: var(--sp-3); border-radius: 14px; border: 1px solid var(--border);
+  background: rgba(255,255,255,.05); color: var(--txt-muted); font-family: var(--font-ui); font-size: var(--fs-sm);
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.rail-buscar:hover { border-color: var(--cyan-400); background: rgba(255,255,255,.09); color: var(--txt); }
+.rail-buscar .rail-txt { flex: 1; text-align: left; }
+.rail-buscar .rail-kbd { color: var(--txt-muted); border-color: var(--border); background: transparent; }
+.rail-colapsado .rail-buscar { justify-content: center; padding: 0; }
+.rail-colapsado .rail-buscar .rail-kbd { display: none; }
+@media (min-width: 768px) and (max-width: 1023px) { .rail .rail-buscar { justify-content: center; padding: 0; } .rail .rail-buscar .rail-kbd { display: none; } }
+
+/* Destino activo: brillo hacia la derecha y barra cian, como en las referencias. */
+.rail-item { border-radius: 14px; }
+.rail-item.active {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--cyan-400) 24%, transparent) 100%);
+  box-shadow: inset -3px 0 0 var(--cyan-400);
+}
+.rail-item.active::before { display: none; }
+
+.rail-prox { margin: var(--sp-3) 0; }
+.rail-prox[hidden] { display: none; }
+.rail-prox-btn {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; padding: var(--sp-3) var(--sp-4); text-align: left;
+  border-radius: 18px; border: 1px solid var(--border);
+  background: radial-gradient(120% 140% at 100% 0%, rgba(0,203,255,.28), transparent 60%), rgba(255,255,255,.05);
+  transition: transform .15s var(--ease), border-color .15s var(--ease);
+}
+.rail-prox-btn:hover { transform: translateY(-2px); border-color: var(--cyan-400); }
+.rail-prox-etq { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--cyan-200); }
+.rail-prox-t { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; line-height: 1.05; color: var(--txt); }
+.rail-prox-d { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-2); }
+.rail-prox-d b { color: var(--txt); font-weight: 600; }
+.rail-colapsado .rail-prox, .rail .rail-prox-solo { display: none; }
+@media (min-width: 768px) and (max-width: 1023px) { .rail .rail-prox { display: none; } }
+.rail-user { border-radius: 16px; border: 1px solid var(--border); background: rgba(255,255,255,.05); }
+.rail-colapsado .rail-user { border: 0; background: none; }
+.pb--hoy::after { content: ''; position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }

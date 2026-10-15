@@ -206,19 +206,21 @@ let _uiMontada = false;
 async function initUI() {
   if (!CU) return;
   buildPEBars();
+  actualizarRailProximo();
 
   if (!_uiMontada) {
     const sec = isSecretario();
     initNav({
       marca: 'EIGHT CREATORS',
       badge: sec ? 'SECRETARIO' : 'CREATOR',
-      activo: 'inicio',
+      activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user,
              badge: sec ? 'Secretario de Comunicaciones' : 'Creator' },
       grupos: [
         { titulo: sec ? 'Mi espacio' : '', items: [
           { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+          { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
@@ -230,7 +232,11 @@ async function initUI() {
     montarAvatar(CU);
     renderDistritoHeader();
     initScrollEffects();
-    Perfil.configurar({ modo: 'supervision', resolver: personaDeDistrito, calendario: () => D?.calendario });
+    Perfil.configurar({ modo: 'supervision', resolver: personaDeDistrito, calendario: () => D?.calendario,
+      // Desde el perfil de cualquier persona del distrito: asignar y revisar sus tareas.
+      tareas: isSecretario() ? { yo: CU.id, esAdmin: false, personas: () => personasDelDistrito() } : null,
+      acciones: isSecretario() ? [{ act: 'perfilNuevaTarea', etiqueta: 'Nueva tarea', icono: 'plus-circle' }] : [] });
+    registrarBuscador();
     _uiMontada = true;
   }
 
@@ -258,6 +264,31 @@ async function montarPerfil() {
   await Perfil.montar({
     el: host, persona: await _personaPropia(), modo: 'propio', periodoId: Store.periodoId(),
     onPeriodo: pe => cambiarPeriodo(pe, null, { desdePerfil: true }),
+  });
+}
+
+/** Quién entra en «Asignar a»: las personas del distrito. */
+const personasDelDistrito = () => (_contenido?.districtMembers || []).map(m => ({ id: m.id, nombre: m.nombre || m.email }));
+
+/* ── BUSCADOR: personas del distrito y atajos ── */
+function registrarBuscador() {
+  Buscador.registrar(() => {
+    const out = [];
+    const per = Store.periodo();
+    if (isSecretario()) {
+      for (const m of (_contenido?.districtMembers || [])) {
+        out.push({ grupo: 'Personas', icono: 'user-round', titulo: m.nombre || m.email, sub: m.roles?.nombre || '', ir: () => Perfil.abrir(m.id) });
+      }
+      if (esPeriodoV2(per)) {
+        out.push({ grupo: 'Acciones', icono: 'plus-circle', titulo: 'Nueva tarea para el distrito', sub: per.pe,
+          ir: () => Tareas.nueva({ periodoId: per.id, yo: CU.id, revisor: true, personas: personasDelDistrito(), onCambio: () => Store.invalidar('calendario') }) });
+        out.push({ grupo: 'Acciones', icono: 'inbox', titulo: 'Revisar entregas del distrito', ir: () => switchTab('tareas', null) });
+      }
+    } else if (esPeriodoV2(per)) {
+      out.push({ grupo: 'Acciones', icono: 'plus-circle', titulo: 'Nueva tarea por iniciativa propia', sub: per.pe,
+        ir: () => Tareas.nueva({ periodoId: per.id, yo: CU.id, onCambio: () => Store.invalidar('calendario') }) });
+    }
+    return out;
   });
 }
 
@@ -640,9 +671,9 @@ function renderLineaTiempo() {
 /* Se aceptan los nombres viejos por si queda algún enlace guardado. */
 const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', evaluacion:'perfil',
-  ranking:'distrito', periodos:'trabajos', cal:'trabajos',
+  ranking:'distrito', periodos:'trabajos', cal:'calendario',
 };
-const _secTabParent = { inicio:'inicio', perfil:'perfil', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
+const _secTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -658,6 +689,10 @@ function switchTab(tab, btn) {
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
+  if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
+    Store.marcarCargado('calendario');
+    Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: isSecretario() ? 'secretario' : 'miembro', personas: personasDelDistrito() });
+  }
   if (tab === 'trabajos') renderLineaTiempo();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {
     Store.marcarCargado('trabajos');

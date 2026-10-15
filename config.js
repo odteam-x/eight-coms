@@ -112,6 +112,16 @@ const ACCIONES = {
   perfilVer:     (a)     => Perfil.abrir(a),
   cambiarAvatar: ()      => document.getElementById('avatar-file-input')?.click(),
   distritoTab:   (a)     => seleccionarDistritoTab(a),
+  // Calendario (core/calendario.js)
+  calMes:    (a)   => Calendario.mes(a),
+  calDia:    (a)   => Calendario.dia(a),
+  calFiltro: (a)   => Calendario.filtro(a),
+  calNueva:  (a)   => Calendario.nueva(a),
+  calVer:    (a)   => Calendario.ver(a),
+  // Buscador (core/buscador.js)
+  abrirBuscador: () => Buscador.abrir(),
+  busIr:         (a) => Buscador.ir(a),
+  perfilNuevaTarea: (a) => Perfil.nuevaTarea(a),
   // Admin: Personas (admin-personas.js)
   personasVista:       (a)     => personasVista(a),
   evaluarDesdePerfil:  (a)     => evaluarDesdePerfil(a),
@@ -137,6 +147,7 @@ const ACCIONES = {
   borrarRubrica:  (a) => deleteRubricaEntry(_num(a)),
   borrarTrabajo:  (a) => deleteTrabajo(a),
   evaluarUsuario: (a) => selectEvalUser(a),
+  evalFiltro:     (a) => { _evalEstado = a || ''; renderEvalUserList(); },
   modalCal:       (a) => showCalModal(a),
   modalCriterio:  (a) => showCriterioModal(_num(a)),
   modalPeriodo:   (a) => showPeriodoModal(a),
@@ -225,7 +236,14 @@ function renderPEBar(container, periodos, current, onSelect) {
     // "PE1" no significa nada para alguien nuevo. Si el período tiene
     // fecha de inicio se añade el mes: "PE1 · Marzo". Mientras las fechas
     // sigan en NULL se muestra solo el código, sin inventar nada.
-    b.textContent = p.pe + (mesDe(p.inicio) ? ' · ' + mesDe(p.inicio) : '');
+    // El PE se lee del calendario: «PE2 · 15 sep – 25 oct». Sin fechas, solo el código.
+    const fin = p.jornada || p.entrega || p.finTrabajo;
+    b.textContent = p.pe + (p.inicio && fin && typeof fechaCortaISO === 'function' ? ' · ' + fechaCortaISO(p.inicio) + ' – ' + fechaCortaISO(fin)
+      : mesDe(p.inicio) ? ' · ' + mesDe(p.inicio) : '');
+    if (p.inicio && fin) {
+      const h = new Date(); const hoy = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
+      if (hoy >= p.inicio && hoy <= fin) { b.classList.add('pb--hoy'); b.dataset.hoy = '1'; }
+    }
     b.dataset.pe  = p.pe;
     b.setAttribute('aria-pressed', String(activo));
     if (p.nombre && p.nombre !== p.pe) b.title = p.nombre;

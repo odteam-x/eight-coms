@@ -24,7 +24,7 @@
   font-family: var(--font-display); font-weight: 700; line-height: .8;
   font-size: clamp(5.5rem, 14vw, 10rem); color: var(--cyan-200);
   font-variant-numeric: tabular-nums;
-  text-shadow: 6px 6px 0 var(--marca);
+  text-shadow: 0 0 40px rgba(0,203,255,.55);
   animation: sello .7s var(--ease-spring) .2s both;
 }
 .inicio-dias-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); line-height: 1.35; color: var(--on-brand-2); max-width: 16ch; }
@@ -53,8 +53,8 @@
 
 /* ── Línea de tiempo (Entregas) ─────────────────────────────────────── */
 .lt { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--sp-4); }
-.lt-periodo { background: var(--surface-1); border: 2px solid var(--trazo); box-shadow: 5px 5px 0 var(--blue-700); padding: var(--sp-4) var(--sp-5); min-width: 0; }
-.lt-periodo--actual { border-color: var(--data); box-shadow: 5px 5px 0 var(--coral); }
+.lt-periodo { background: var(--surface-1); border: 2px solid var(--trazo); box-shadow: var(--sombra-dura); border-radius: var(--r-xl); padding: var(--sp-4) var(--sp-5); min-width: 0; }
+.lt-periodo--actual { border-color: var(--data); box-shadow: 0 24px 48px -22px rgba(255,96,99,.5); }
 .lt-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); }
 .lt-pe { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; line-height: 1; letter-spacing: .02em; }
 .lt-nombre { flex: 1 1 8ch; min-width: 0; font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
@@ -88,7 +88,7 @@
   --anillo-pista: color-mix(in srgb, var(--navy-900) 22%, transparent);
 }
 .pf-card--cian {
-  background: var(--cyan-400); border-color: var(--navy-900); box-shadow: 6px 6px 0 var(--navy-900);
+  background: var(--cyan-400); border-color: var(--navy-900); box-shadow: 0 24px 48px -22px rgba(0,203,255,.55);
   --txt: var(--navy-900); --txt-2: var(--navy-900); --txt-muted: var(--navy-900); --anillo-txt: var(--navy-900);
   color: var(--navy-900);
 }
@@ -97,7 +97,7 @@
 .pf-card--cian .pf-enlace { color: var(--navy-900); border-bottom-color: var(--navy-900); }
 .pf-card--cian .pf-h::after { background: var(--navy-900); }
 .pf-card--azul {
-  background: var(--blue-700); border-color: var(--navy-900); box-shadow: 6px 6px 0 var(--navy-900);
+  background: var(--blue-700); border-color: var(--navy-900); box-shadow: 0 24px 48px -22px rgba(0,203,255,.55);
   --txt: var(--on-brand); --txt-2: var(--on-brand-2); --txt-muted: var(--on-brand-2); --border: rgba(167,232,255,.3);
   color: var(--on-brand);
 }

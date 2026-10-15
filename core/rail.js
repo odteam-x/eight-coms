@@ -68,6 +68,16 @@ function renderRail() {
     (_railCfg.badge ? `<span class="rail-badge">${escHtml(_railCfg.badge)}</span>` : '');
   host.appendChild(marca);
 
+  // Buscador: llega a cualquier sitio (Ctrl/⌘ K)
+  const buscar = document.createElement('button');
+  buscar.type = 'button';
+  buscar.className = 'rail-buscar';
+  buscar.dataset.act = 'abrirBuscador';
+  buscar.setAttribute('aria-label', 'Buscar personas y secciones');
+  buscar.dataset.tip = 'Buscar';
+  buscar.innerHTML = '<i data-lucide="search" class="rail-ico"></i><span class="rail-txt">Buscar…</span><kbd class="rail-kbd">Ctrl K</kbd>';
+  host.appendChild(buscar);
+
   // Destinos
   const nav = document.createElement('nav');
   nav.className = 'rail-nav';
@@ -91,6 +101,7 @@ function renderRail() {
   pie.className = 'rail-pie';
   pie.innerHTML = `
     <span id="gestion-switch" hidden></span>
+    <div class="rail-prox" id="rail-prox" hidden></div>
     <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme"
             aria-label="Cambiar tema" data-tip="Cambiar tema">
       <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
@@ -112,6 +123,25 @@ function renderRail() {
 
   renderIconos(host);
   marcarActivo(_railCfg.activo);
+}
+
+/**
+ * Tarjeta «Próxima fecha» al pie del rail: el dato que más se consulta, a
+ * un vistazo y con salto directo al calendario. Se llama cuando el Store ya
+ * tiene los períodos (cada portal lo hace tras cargar su contexto).
+ */
+function actualizarRailProximo() {
+  const el = document.getElementById('rail-prox');
+  if (!el || typeof proximosHitos !== 'function') return;
+  const h = proximosHitos(Store.periodos() || [], 1)[0];
+  if (!h) { el.hidden = true; return; }
+  const destino = _railCfg?.calTab || 'calendario';
+  el.hidden = false;
+  el.innerHTML = `<button type="button" class="rail-prox-btn" data-act="tab" data-arg="${escHtml(destino)}">
+    <span class="rail-prox-etq">Próxima fecha</span>
+    <span class="rail-prox-t">${escHtml(h.etiqueta)}</span>
+    <span class="rail-prox-d"><b>${escHtml(fechaCortaISO(h.fecha))}</b> · ${escHtml(textoDias(h.dias))}</span>
+  </button>`;
 }
 
 function _botonRail(it) {

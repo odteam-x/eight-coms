@@ -366,13 +366,25 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 - `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
 - Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
 
+### Points per task (migration 0017)
+
+Whoever approves a task assigns **0–10 points**, mandatory at the moment of approval. `zz_tareas_puntos` (runs after `tareas_validar_update`) enforces it: points are written only on approving, only the admin corrects them afterwards, reopening clears them. Points are a *fact* for the evaluator (shown in the task, profile and calendar); they feed no formula in `resultados_periodo()`. Apply **0017 after 0016**. The approve modal (`Tareas.modalAprobar`) uses `.tk-puntos` radio chips.
+
+### Calendar, search and "from anywhere" actions
+
+- `core/calendario.js` is a section for every role (nav item *Calendario*; admin also has the *Calendario* tab, the old config tab is now *Actividades*). It merges PE ranges, activities/jornadas and tasks (due dates, overdue, delivered, approved) into one month grid + agenda panel (`.cal2*` in `perfil.css`). PE buttons (`renderPEBar`) show their date range and mark today (`.pb--hoy`).
+- `core/buscador.js` is the Ctrl/⌘+K palette (`Buscador.registrar(fn)` per portal): jump to a section, open a person's profile, start an action. Everything it offers already exists; RLS still decides what works.
+- Actions reachable from anywhere: `Tareas.nueva({soloPersona, fecha})`, `Perfil.nuevaTarea`, the profile *Tareas* tab (full review list for supervisors), `perfilVer` from *Evaluar* cards, calendar events (`calVer`, `calNueva`). New actions are registered in `ACCIONES` (config.js) as usual.
+- Visual language: glass surfaces (`--vidrio`, `--trazo`, `--brillo` gradient, `--franja`), pill controls, brand-navy rail with a glowing active item. **Text on the `--brillo` cyan gradient is always `--navy-900`** (white fails contrast in the light theme). Icons are Phosphor SVGs bundled in `core/iconos.js` (regenerate with `tools/generar-iconos.mjs`); the markup is still `data-lucide="name"` through a shim, no CDN.
+- *Evaluar* (admin): progress bar of published evaluations, status chips (`evalFiltro`), list beside the form on ≥1100px.
+
 ### Tests (`tools/pruebas/`)
 
-`npm install && npm run todo` there runs 0015 and 0016 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
+`npm install && npm run todo` there runs 0015–0017 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
 
 ### Migrations
 
-Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015 then 0016**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
+Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, then 0017**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
 
 ### Password Reset Flow
 

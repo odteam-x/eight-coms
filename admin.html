@@ -52,6 +52,12 @@
     </div>
   </div>
 
+  <!-- ── TAB: CALENDARIO (todas las fechas y tareas) — core/calendario.js ── -->
+  <div id="tab-agenda" class="atab-content">
+    <div class="ptitle">CALENDARIO</div>
+    <div id="agenda-host"></div>
+  </div>
+
   <!-- ── TAB: EVALUAR ── -->
   <div id="tab-evaluar" class="atab-content">
     <div class="ptitle">EVALUACIÓN</div>
@@ -73,11 +79,12 @@
       </div>
     </div>
 
-    <div id="eval-user-list">
-      <div class="loading-box"><span class="spin"></span></div>
+    <div class="eval-split">
+      <div id="eval-user-list" class="eval-col-lista">
+        <div class="loading-box"><span class="spin"></span></div>
+      </div>
+      <div id="eval-form-area" class="eval-col-form"></div>
     </div>
-
-    <div id="eval-form-area"></div>
   </div>
 
   <!-- ── TAB: TAREAS ── -->
@@ -486,6 +493,7 @@
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 <input type="file" id="avatar-file-input" aria-label="Seleccionar foto de perfil" accept="image/*" style="display:none" data-change="handleAvatarUpload">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="core/iconos.js"></script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="core/store.js"></script>
@@ -495,6 +503,8 @@
 <script src="core/tareas.js"></script>
 <script src="core/personas.js"></script>
 <script src="core/perfil.js"></script>
+<script src="core/calendario.js"></script>
+<script src="core/buscador.js"></script>
 <script src="core/rail.js"></script>
 <script src="core/charts.js"></script>
 <script src="supabase-client.js"></script>
@@ -502,6 +512,5 @@
 <script src="api.js"></script>
 <script src="admin.js"></script>
 <script src="admin-personas.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.min.js" integrity="sha384-wkxmY9HYHJVzx0oZ7k8stpLQ7g7ogSqBha75ozCZmxFadwtaIw5dzXKVWWfi9I36" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>
