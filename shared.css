@@ -312,7 +312,7 @@ img { display:block; max-width:100%; }
   display:flex; align-items:center; justify-content:center;
   flex-shrink:0;
 }
-.theme-toggle:hover { background:var(--s4); transform:scale(1.1); border-color:var(--accent); }
+.theme-toggle:hover { background:var(--s4); border-color:var(--accent); }
 
 /* ── LUCIDE NAV ICONS ── */
 .nav-icon { width:16px; height:16px; flex-shrink:0; vertical-align:middle; }
@@ -375,7 +375,7 @@ img { display:block; max-width:100%; }
 
 /* ── TABS ── */
 .tab-content, .atab-content { display:none; }
-.tab-content.active, .atab-content.active { display:block; animation:tabIn .22s var(--ease); }
+.tab-content.active, .atab-content.active { display:block; }
 @keyframes tabIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
 /* ── CONTENIDO ── */
@@ -443,12 +443,12 @@ body.gestion-archivada [aria-disabled="true"] {
 }
 .pb:hover { border-color:var(--action); }
 .pb:active { transform:scale(.97); }
-.pb.active { color:var(--navy-900); background:var(--brillo); border-color:transparent; box-shadow:0 8px 22px -8px rgba(0,203,255,.7); }
+.pb.active { color:var(--txt); background:var(--surface-3); border-color:transparent; box-shadow:none; }
 
 /* ── PE STICKY BAR ── */
 .pe-sticky-bar {
   position:sticky; top:var(--topbar-h); z-index:var(--z-sticky);
-  background:var(--glass); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:var(--glass);
   border-bottom:1px solid var(--border);
   padding:10px 20px;
   display:flex; align-items:center; gap:8px;
@@ -479,7 +479,7 @@ body.gestion-archivada [aria-disabled="true"] {
   padding:10px 24px;
   font-family:var(--font-body); font-size:.8rem; font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase; color:var(--txt);
-  box-shadow:var(--shadow-md); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  box-shadow:var(--shadow-md);
   transition:transform .3s var(--ease), opacity .3s;
   opacity:0; pointer-events:none;
 }
@@ -497,7 +497,6 @@ body.gestion-archivada [aria-disabled="true"] {
   opacity:0; pointer-events:none;
   transition:opacity .3s, transform .3s, border-color .2s, box-shadow .2s;
   transform:translateY(12px);
-  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
 }
 .back-top::after {
   content:''; position:absolute; top:50%; left:50%;
@@ -516,7 +515,7 @@ body.gestion-archivada [aria-disabled="true"] {
   font-family:var(--font-display); font-size:1rem; border:2px solid currentColor;
   transition:transform .2s, box-shadow .2s;
 }
-.sbadge:hover { transform:scale(1.1); }
+.sbadge:hover { }
 .sbadge.sex { color:var(--sex); box-shadow:0 0 12px color-mix(in srgb, var(--sex) 25%, transparent); }
 .sbadge.sbu { color:var(--sbu); box-shadow:0 0 12px color-mix(in srgb, var(--action) 25%, transparent); }
 .sbadge.spr { color:var(--spr); box-shadow:0 0 12px color-mix(in srgb, var(--spr) 25%, transparent); }
@@ -538,7 +537,7 @@ body.gestion-archivada [aria-disabled="true"] {
 .tbl { font-size:.8rem; }
 .tbl-h { display:grid; padding:8px 14px; }
 .tbl-th { font-family:var(--font-body); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
-.tbl-r { display:grid; padding:10px 14px; border-top:1px solid var(--border); transition:background .15s; animation:slideRow .3s var(--ease) both; cursor:pointer; }
+.tbl-r { display:grid; padding:10px 14px; border-top:1px solid var(--border); transition:background .15s; cursor:pointer; }
 .tbl-r:hover { background:var(--glass); }
 @keyframes slideRow { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
 .rank-num { font-family:var(--font-display); font-size:1rem; color:var(--muted); min-width:28px; text-align:right; margin-right:10px; }
@@ -567,7 +566,7 @@ body.gestion-archivada [aria-disabled="true"] {
 .rubrica-intro { font-size:.85rem; color:var(--muted); margin-bottom:1.5rem; }
 .rubrica-intro strong { color:var(--txt); }
 .rubrica-grid { display:flex; flex-direction:column; gap:10px; }
-.rubrica-card { background:var(--glass); border:1px solid var(--glass-border); border-top:1px solid var(--glass-hi); border-radius:var(--r-md); overflow:hidden; transition:border-color .2s; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.rubrica-card { background:var(--glass); border:1px solid var(--glass-border); border-top:1px solid var(--glass-hi); border-radius:var(--r-md); overflow:hidden; transition:border-color .2s; }
 .rubrica-card:hover { border-color:var(--border-glow); }
 .rubrica-card-head { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; user-select:none; transition:background .2s; }
 .rubrica-card-head:hover { background:var(--hover-subtle); }
@@ -603,10 +602,9 @@ body.gestion-archivada [aria-disabled="true"] {
   border-top:1px solid var(--glass-hi); border-radius:var(--r-lg);
   overflow:hidden; display:flex;
   transition:transform .2s var(--ease), border-color .2s, box-shadow .2s;
-  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   box-shadow:var(--shadow-sm);
 }
-.cal-card:hover { transform:translateY(-3px); border-color:var(--border-glow); box-shadow:var(--shadow-md); }
+.cal-card:hover { border-color:var(--border-glow); }
 .cal-acc { width:5px; flex-shrink:0; }
 .cal-acc--rojo     { background:var(--marca); }
 .cal-acc--verde    { background:var(--sex); }
@@ -688,7 +686,7 @@ body.gestion-archivada [aria-disabled="true"] {
   font-size:.8rem;
   letter-spacing: 1px;
   color: var(--muted);
-  animation: tabIn .2s var(--ease);
+
 }
 .pe-dates-nombre {
   font-weight: 700;
@@ -729,7 +727,6 @@ body.gestion-archivada [aria-disabled="true"] {
   display: flex; align-items: center; gap: 14px;
   background: var(--glass); border: 1px solid var(--glass-border);
   border-radius: var(--r-md); padding: 14px 16px;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   text-align: left; cursor: pointer;
   transition: border-color .18s, background .18s, transform .15s, box-shadow .18s;
 }
@@ -762,7 +759,6 @@ body.gestion-archivada [aria-disabled="true"] {
 .pe-card {
   background: var(--glass); border: 1px solid var(--glass-border);
   border-radius: var(--r-md); padding: 16px 18px;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   transition: border-color .2s;
 }
 .pe-card--active {
@@ -797,7 +793,6 @@ body.gestion-archivada [aria-disabled="true"] {
 .trabajo-form-card {
   background: var(--glass); border: 1px solid var(--glass-border);
   border-radius: var(--r-md); padding: 18px 20px; margin-bottom: 8px;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .trabajo-form-title {
   font-family: var(--font-body); font-size:.8rem;
@@ -1597,7 +1592,7 @@ select:-webkit-autofill {
 }
 .seg-btn:hover { color:var(--txt); background:color-mix(in srgb, var(--data) 12%, transparent); }
 /* Activo: píldora con brillo; el texto es navy sobre cian (8.3). */
-.seg-btn.active { color:var(--navy-900); background:var(--brillo); box-shadow:0 8px 22px -8px rgba(0,203,255,.7); }
+.seg-btn.active { color:var(--txt); background:var(--surface-3); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--cyan-200) 22%, transparent), inset 0 0 14px color-mix(in srgb, var(--data) 18%, transparent); }
 .seg-ico { width:16px; height:16px; flex:0 0 auto; }
 @media (pointer:coarse) { .seg-btn { min-height:44px; } }
 
@@ -1722,18 +1717,6 @@ select:-webkit-autofill {
   opacity: .3; pointer-events: none;
 }
 
-/* Franja bajo la cabecera de cada portal: el mismo patrón, muy tenue, que se
-   desvanece hacia el fondo y se desplaza con la página. */
-.con-rail #contenido, .amain { position: relative; --patron-img: url("img/patrones/patron-1.webp"); }
-.con-rail #contenido::before, .amain::before {
-  content: ''; position: absolute; inset: 0 0 auto 0; height: 380px; z-index: 0;
-  background: var(--patron-img) 0 0 / 320px 320px repeat;
-  opacity: .1;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-          mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  pointer-events: none;
-}
-@media print { .con-rail #contenido::before, .amain::before { display: none; } }
 
 /* La marca y la etiqueta de rol no caben en una línea de 232px: la etiqueta
    pasa debajo, alineada con el texto. */
@@ -1743,7 +1726,7 @@ select:-webkit-autofill {
 
 /* Botón principal: píldora con brillo, como el CTA de las referencias. */
 .btn-save { color: var(--navy-900); border-radius: var(--r-full); background: var(--brillo); box-shadow: 0 10px 26px -10px rgba(0,203,255,.75); }
-.btn-save:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.08); }
+.btn-save:hover:not(:disabled) { background: var(--brillo); }
 .ico { width: 1em; height: 1em; flex: 0 0 auto; vertical-align: -.125em; }
 
 
@@ -1795,7 +1778,7 @@ select:-webkit-autofill {
   font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; transition: background .12s, transform .12s;
 }
 .tk-punto:hover span { border-color: var(--data); }
-.tk-punto input:checked + span { background: var(--brillo); color: var(--navy-900); border-color: transparent; transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgba(0,203,255,.8); }
+.tk-punto input:checked + span { background: var(--action-fill); color: var(--action-on); border-color: transparent; }
 .tk-punto input:focus-visible + span { outline: 2px solid var(--action); outline-offset: 2px; }
 @media (max-width: 480px) { .tk-puntos { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
@@ -1813,7 +1796,7 @@ select:-webkit-autofill {
 .bus-txt { display: flex; flex-direction: column; min-width: 0; }
 .bus-txt strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); overflow-wrap: anywhere; }
 .bus-txt small { font-size: var(--fs-xs); color: var(--txt-2); }
-.bus-item:hover, .bus-item.sel { background: linear-gradient(90deg, color-mix(in srgb, var(--data) 22%, transparent), transparent); box-shadow: inset 3px 0 0 var(--data); }
+.bus-item:hover, .bus-item.sel { background: var(--surface-3); }
 .bus-vacio { padding: var(--sp-5); text-align: center; color: var(--txt-2); font-size: var(--fs-sm); }
 
 /* ── Rail: buscador, tarjeta de próxima fecha y cuenta ──────────────── */
@@ -1835,7 +1818,7 @@ select:-webkit-autofill {
 .rail-item { border-radius: 14px; }
 .rail-item.active {
   background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--cyan-400) 24%, transparent) 100%);
-  box-shadow: inset -3px 0 0 var(--cyan-400);
+ 
 }
 .rail-item.active::before { display: none; }
 
@@ -1847,7 +1830,7 @@ select:-webkit-autofill {
   background: radial-gradient(120% 140% at 100% 0%, rgba(0,203,255,.28), transparent 60%), rgba(255,255,255,.05);
   transition: transform .15s var(--ease), border-color .15s var(--ease);
 }
-.rail-prox-btn:hover { transform: translateY(-2px); border-color: var(--cyan-400); }
+.rail-prox-btn:hover { border-color: var(--cyan-400); }
 .rail-prox-etq { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--cyan-200); }
 .rail-prox-t { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; line-height: 1.05; color: var(--txt); }
 .rail-prox-d { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-2); }
@@ -1857,3 +1840,208 @@ select:-webkit-autofill {
 .rail-user { border-radius: 16px; border: 1px solid var(--border); background: rgba(255,255,255,.05); }
 .rail-colapsado .rail-user { border: 0; background: none; }
 .pb--hoy::after { content: ''; position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SISTEMA PREMIUM — app oscura de producto, no plantilla de tarjetas
+   ═══════════════════════════════════════════════════════════════════════
+   Sin colores nuevos: todo sale de los tokens de arriba (opacidades y
+   color-mix sobre ellos). Esta capa va AL FINAL de shared.css a propósito:
+   fija el sistema y deja sin efecto lo decorativo que se acumuló.
+
+   SUPERFICIES (de fondo a primer plano; cada capa es una elevación real)
+     --bg         lienzo. Lleva la luz ambiental (.luz).
+     --surface-1  contenedor: una lista, un panel, la tarjeta de un portal.
+     --surface-2  fila o campo dentro de un contenedor.
+     --surface-3  estado: activo, hover, seleccionado.
+     --navy-900   superficie de MARCA, una sola por pantalla (hero, login).
+   El borde (--trazo) solo se dibuja donde separa dos cosas del mismo nivel.
+
+   RADIOS (la jerarquía es información)
+     --r-control  píldora: botones, chips, segmentados, buscador.
+     --r-fila     12px: campo, fila suelta.
+     --r-card     20px: tarjeta independiente.
+     --r-cont     28px: contenedor de lista, panel, calendario.
+     --r-modal    32px: ventana emergente y buscador.
+     --r-hero     40px en la esquina inferior del bloque de marca.
+
+   TIPOGRAFÍA (rol · familia · peso · interlínea · tracking)
+     display  --font-display 700 1.02 -.02em   titulares de pantalla y hero
+     titulo   --font-display 700 1.05 -.01em   cabecera de contenedor
+     fila     --font-ui      600 1.25 0        título de una fila
+     cuerpo   --font-body    400 1.5  0        descripción, texto corrido
+     etiqueta --font-ui      600 1.2  .02em    chips, controles
+     micro    --font-body    400 1.4  0        aclaraciones, --txt-muted
+   Una palabra clave por titular puede ir en --data-txt (.acento), sin gradiente.
+
+   RITMO VERTICAL (varía con la importancia; no es un gap único)
+     --sec-hero   entre el bloque de marca y lo siguiente
+     --sec-main   entre secciones principales
+     --sec-sub    dentro de una sección
+*/
+:root {
+  --r-control: var(--r-full); --r-fila: 12px; --r-card: 20px; --r-cont: 28px; --r-modal: 32px; --r-hero: 40px;
+  --sec-hero: var(--sp-6); --sec-main: var(--sp-7); --sec-sub: var(--sp-3);
+  --tr-display: -.02em; --tr-titulo: -.01em; --lh-display: 1.02; --lh-titulo: 1.05;
+  /* Todo lo que antes era brillo, cristal y sombra de color queda plano; --brillo
+     es solo el relleno del CTA principal (un protagonista por vista). */
+  --sombra-dura: none; --sombra-dura-hover: none;
+  --vidrio: linear-gradient(transparent, transparent);
+  --brillo: linear-gradient(180deg, color-mix(in srgb, var(--action-fill) 84%, var(--cyan-200)), var(--action-fill));
+}
+[data-theme="light"] {
+  --sombra-dura: none; --sombra-dura-hover: none;
+  --vidrio: linear-gradient(transparent, transparent);
+  --brillo: linear-gradient(180deg, color-mix(in srgb, var(--action-fill) 90%, var(--cyan-400)), var(--action-fill));
+}
+
+/* ── Luz ambiental: componente reutilizable ────────────────────────────
+   Dos manchas difusas y asimétricas (una arriba a la derecha, otra en el
+   borde izquierdo) que se funden con --bg. Se configura por variables:
+   --luz-a/--luz-b color, --luz-op intensidad, --luz-ax/ay y --luz-bx/by
+   posición del centro, --luz-size diámetro. En claro es la misma luz, más tenue. */
+.luz, .con-rail #contenido, .amain {
+  position: relative; isolation: isolate; overflow-x: clip;
+  --luz-a: var(--blue-500); --luz-b: var(--cyan-400); --luz-op: .26; --luz-size: 760px;
+  --luz-ax: 88%; --luz-ay: -4%; --luz-bx: -8%; --luz-by: 46%;
+}
+[data-theme="light"] .luz, [data-theme="light"] #contenido, [data-theme="light"] .amain { --luz-op: .14; }
+.luz::before, .luz::after, .con-rail #contenido::before, .con-rail #contenido::after, .amain::before, .amain::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none; border-radius: 50%;
+  width: var(--luz-size); height: var(--luz-size); transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, var(--luz-a), transparent);
+  opacity: var(--luz-op); left: var(--luz-ax); top: var(--luz-ay); inset-inline-end: auto; bottom: auto; mask-image: none; -webkit-mask-image: none;
+}
+.luz::after, .con-rail #contenido::after, .amain::after {
+  background: radial-gradient(closest-side, var(--luz-b), transparent);
+  width: calc(var(--luz-size) * .62); height: calc(var(--luz-size) * .62);
+  opacity: calc(var(--luz-op) * .7); left: var(--luz-bx); top: var(--luz-by);
+}
+.con-rail #contenido::before, .amain::before { height: var(--luz-size); }
+@media (max-width: 767px) { .luz, .con-rail #contenido, .amain { --luz-size: 480px; } }
+@media print { .luz::before, .luz::after, #contenido::before, #contenido::after, .amain::before, .amain::after { display: none; } }
+
+/* ── Titulares: display compacto, tracking negativo, una palabra clave ─ */
+.ptitle, .perfil-nombre, .inicio-h, .cal2-titulo, .win h3, .tk-box .modal-title {
+  letter-spacing: var(--tr-display); line-height: var(--lh-display); text-transform: none;
+}
+.ptitle { font-size: var(--fs-xl); border-bottom: 0; padding-bottom: 0; }
+.ptitle::after { display: none; }
+.acento { color: var(--data-txt); }
+.sup-marca .acento { color: var(--cyan-200); }
+
+/* ── Botones: primario, secundario, ghost, destructivo ─────────────────
+   Estados completos: hover, active, focus-visible, disabled, loading. */
+.btn-save, .tk-btn--main {
+  min-height: 48px; padding-inline: var(--sp-6); border-radius: var(--r-control);
+  background: var(--brillo); color: var(--action-on); border: 0; box-shadow: none;
+  font-family: var(--font-ui); font-weight: 600;
+  transition: filter .18s var(--ease), transform .18s var(--ease), opacity .18s var(--ease);
+}
+.btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.07); }
+.btn-save:active:not(:disabled), .tk-btn--main:active:not(:disabled) { transform: scale(.985); filter: none; }
+.btn-save:focus-visible, .tk-btn--main:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.btn-save:disabled, .tk-btn--main:disabled { opacity: .4; cursor: not-allowed; }
+.btn-save.is-loading, .tk-btn.is-loading { pointer-events: none; opacity: .75; }
+.btn-ghost, .tk-btn:not(.tk-btn--main), .cal2-btn, .eval-chip, .cal2-chip {
+  background: transparent; border: 1px solid var(--trazo); color: var(--txt);
+  transition: background .18s var(--ease), border-color .18s var(--ease);
+}
+.btn-ghost:hover, .tk-btn:not(.tk-btn--main):hover, .cal2-btn:hover { background: var(--surface-2); border-color: var(--data); }
+.btn-ghost:active { background: var(--surface-3); }
+.btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+/* Secundaria en texto, como en las pantallas de referencia. */
+.btn-texto { color: var(--txt-2); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); min-height: 44px; padding: 0 var(--sp-3); }
+.btn-texto:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
+.btn-danger:hover:not(:disabled) { filter: none; background: color-mix(in srgb, var(--alert) 16%, transparent); }
+.btn-danger:active:not(:disabled) { background: color-mix(in srgb, var(--alert) 26%, transparent); }
+
+/* ── Períodos: barra fina activa + puntos, sin píldoras de color ─────── */
+.pe-row { gap: var(--sp-1) var(--sp-3); }
+.pb {
+  position: relative; background: none; border: 0; border-radius: 0; box-shadow: none;
+  min-height: 44px; padding: 8px 6px 18px; color: var(--txt-2); transition: color .18s var(--ease);
+}
+.pb::after {
+  content: ''; position: absolute; left: 50%; bottom: 6px; width: 6px; height: 6px; border-radius: 99px;
+  background: var(--txt-muted); transform: translateX(-50%); transition: width .22s var(--ease), background .22s var(--ease);
+}
+.pb:hover { color: var(--txt); border-color: transparent; }
+.pb:hover::after { background: var(--txt-2); }
+.pb.active { color: var(--txt); background: none; }
+.pb.active::after { width: 100%; height: 3px; bottom: 7px; background: var(--data); }
+.pb--hoy::before { content: ''; position: absolute; top: 9px; right: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--marca); }
+.pb--hoy::after { right: auto; top: auto; }
+
+/* ── Listas tipo ajustes: filas con divisores, no tarjetas sueltas ─────
+   .lista-aj es el contenedor; .fila-aj cada fila: título + descripción a la
+   izquierda, indicador a la derecha (check, candado, chevron, puntaje). */
+.lista-aj { background: var(--surface-1); border-radius: var(--r-cont); overflow: hidden; }
+.fila-aj { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); min-height: 64px; width: 100%; text-align: left; color: inherit; }
+.fila-aj + .fila-aj { border-top: 1px solid var(--trazo); }
+a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
+.fila-aj-txt { flex: 1; min-width: 0; }
+.fila-aj-t { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; overflow-wrap: anywhere; }
+.fila-aj-d { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); margin-top: 2px; }
+.fila-aj-ind { flex: none; font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); color: var(--txt); }
+
+/* ── Estados: vacío, carga y error, cada uno distinto ─────────────────── */
+.empty-box, .no-data-msg { align-items: flex-start; text-align: left; }
+.no-data-msg { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-5); border: 1px dashed var(--trazo); border-radius: var(--r-card); max-width: 60ch; }
+.no-data-msg[role="alert"] { border: 0; background: var(--surface-2); padding-left: var(--sp-6); position: relative; }
+.no-data-msg[role="alert"]::before { content: '!'; position: absolute; left: var(--sp-4); top: var(--sp-5); width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--alert); color: var(--alert-on); font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-xs); line-height: 1; }
+.no-data-msg[role="alert"] .no-data-txt { color: var(--txt); font-weight: 600; }
+.skel { border-radius: var(--r-fila); animation-duration: 1.8s; }
+.skel--caja { border-radius: var(--r-card); }
+
+/* ── Superficies: contenedores con elevación y radio propios ─────────── */
+.section-panel, .rubrica-card, .cal-card, .kpi-card, .scard { border-radius: var(--r-card); }
+.scard::before, .stat-cards .scard::before { display: none; }
+.panel, .cal2-mes, .cal2-agenda, .eval-resumen { border-radius: var(--r-cont); background: var(--surface-1); border-color: transparent; }
+.tk-box, .modal-box, .bus-box { border-radius: var(--r-modal); background: var(--surface-1); border-color: var(--trazo); box-shadow: none; }
+.tk-box::before, .modal-box::before, .bus-box::before, .win::before { display: none; }
+.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay { background: color-mix(in srgb, var(--navy-900) 70%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.rail-item.active { background: color-mix(in srgb, var(--data) 14%, transparent); box-shadow: none; }
+.rail-prox-btn { background: color-mix(in srgb, var(--on-brand) 6%, transparent); }
+.rail-prox-btn:hover { background: color-mix(in srgb, var(--on-brand) 10%, transparent); transform: none; }
+.cal2-dia { border-color: transparent; background: var(--surface-2); }
+.cal2-dia:hover { background: var(--surface-3); }
+.cal2-ev, .eval-ucard, .row { border-color: transparent; }
+.cal2-filtros .cal2-chip.on, .eval-chip.on { background: var(--surface-3); border-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+
+/* ── Rail: la persona y sus acciones ──────────────────────────────────
+   La tarjeta con borde desaparece: un renglón limpio con avatar y punto de
+   presencia. Tema, salir y contraer comparten una sola fila de iconos. */
+.rail-user { border: 0; background: none; padding: var(--sp-2) var(--sp-2); gap: var(--sp-3); border-radius: var(--r-card); margin-block: var(--sp-1); }
+.rail-user .avatar { position: relative; width: 40px; height: 40px; flex: none; }
+.rail-user .avatar::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--cyan-400); border: 2px solid var(--navy-900); }
+.rail-uname { font-size: var(--fs-md); line-height: 1.2; }
+.rail-ts { color: var(--txt-2); }
+.rail-acciones { display: flex; gap: var(--sp-1); padding-top: var(--sp-2); border-top: 1px solid var(--trazo); }
+.rail-acciones > * { flex: 1; min-width: 0; justify-content: center; padding-inline: 0; }
+.rail-acciones .rail-txt { display: none; }
+.rail-colapsado .rail-acciones { flex-direction: column; }
+
+/* Sin filos de color en las tarjetas: ni barra lateral ni barra superior. */
+.ov-top5-panel::before, .dist-scard::before, .dist-rank-banner::before, .dist-cal-card::before { display: none; }
+
+/* ── Acento de marca: el coral es el protagonista (10 % de la guía) ─────
+   CTA principal, indicador de período y etiqueta de estado. Texto navy
+   sobre coral (5.6, medido en contraste.js); nunca blanco sobre coral. */
+:root, [data-theme="light"] { --brillo: linear-gradient(180deg, color-mix(in srgb, var(--coral) 86%, var(--cyan-200)), var(--coral)); }
+.btn-save, .tk-btn--main, .btn-login { color: var(--navy-900); }
+.btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled), .btn-login:hover:not(:disabled) { filter: brightness(1.05); }
+.pb.active::after { background: var(--marca); }
+.pb--hoy::before { background: var(--marca); }
+.tag-marca, .sup-marca .tag { background: var(--coral); color: var(--navy-900); }
+
+/* ── Degradados de la paleta ──────────────────────────────────────────
+   Permitidos mientras no salgan de los tonos de la marca: azules profundos
+   hacia cianes para datos y relieve de superficies; el coral queda para el CTA. */
+.barra-fill, .eval-resumen-bar i, .cal2-pe { background: linear-gradient(90deg, var(--blue-500), var(--data)); }
+.pf-card, .cal2-mes, .cal2-agenda, .panel, .eval-resumen { background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 55%); }
+.rail { background: linear-gradient(180deg, var(--navy-900) 0%, color-mix(in srgb, var(--navy-900) 70%, var(--blue-700)) 100%); }
+.tk-box, .modal-box, .bus-box { background: linear-gradient(180deg, var(--surface-2), var(--surface-1) 60%); }

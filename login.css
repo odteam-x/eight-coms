@@ -368,3 +368,29 @@
   .btn-login, .field input, .pass-meter-fill { transition: none; }
   .btn-login .spin { animation-duration: 1.4s; }
 }
+
+/* ══ Capa premium: formulario como app oscura de producto ═══════════════
+   El panel de marca es la única superficie navy; el lado del formulario es
+   el lienzo con luz ambiental. Controles pill, un CTA ancho, nada en versales
+   salvo la etiqueta del hero. */
+.login-panel-form { position: relative; isolation: isolate; overflow: hidden;
+  --luz-a: var(--blue-500); --luz-b: var(--cyan-400); --luz-op: .26; --luz-size: 720px;
+  --luz-ax: 92%; --luz-ay: -6%; --luz-bx: -10%; --luz-by: 100%; }
+[data-theme="light"] .login-panel-form { --luz-op: .14; }
+.login-panel-form::before, .login-panel-form::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none; border-radius: 50%; transform: translate(-50%, -50%);
+  width: var(--luz-size); height: var(--luz-size); left: var(--luz-ax); top: var(--luz-ay);
+  background: radial-gradient(closest-side, var(--luz-a), transparent); opacity: var(--luz-op);
+}
+.login-panel-form::after { width: calc(var(--luz-size) * .6); height: calc(var(--luz-size) * .6); left: var(--luz-bx); top: var(--luz-by);
+  background: radial-gradient(closest-side, var(--luz-b), transparent); opacity: calc(var(--luz-op) * .7); }
+.login-hero-h1 { letter-spacing: var(--tr-display); line-height: var(--lh-display); }
+.login-form-title { letter-spacing: var(--tr-display); line-height: var(--lh-display); text-transform: none; }
+.field input { border-radius: var(--r-control); padding-inline: var(--sp-5); background: var(--surface-1); border-color: var(--trazo); }
+.field input:hover:not(:focus) { border-color: var(--border-hi); }
+.btn-login { border-radius: var(--r-control); background: var(--brillo); text-transform: none; letter-spacing: 0; min-height: 52px; font-size: var(--fs-md); box-shadow: none; }
+.btn-login:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.07); }
+.btn-login:active:not(:disabled) { transform: scale(.985); }
+.login-aux, .login-link { text-align: left; }
+.login-form-inner { text-align: left; }
+@media print { .login-panel-form::before, .login-panel-form::after { display: none; } }

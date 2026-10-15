@@ -16,16 +16,12 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   margin-bottom: var(--sp-4);
 }
-.v2-kpis > :nth-child(4n+1) { --b-bg: var(--cyan-400);  --b-fg: var(--navy-900); }
-.v2-kpis > :nth-child(4n+2) { --b-bg: var(--blue-700);  --b-fg: var(--on-brand); }
-.v2-kpis > :nth-child(4n+3) { --b-bg: var(--cyan-200);  --b-fg: var(--navy-900); }
-.v2-kpis > :nth-child(4n+4) { --b-bg: var(--coral);     --b-fg: var(--navy-900); }
 /* Bloque de color con la esquina cortada: el par texto/fondo lo declara el bloque. */
 .v2-kpi {
-  background: var(--b-bg); color: var(--b-fg);
+  background: var(--surface-2); color: var(--txt); border-radius: var(--r-card);
   padding: var(--sp-4) var(--sp-4) var(--sp-5);
-  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
 }
+.v2-kpis > :first-child .v2-kpi-val { color: var(--data-txt); }
 .v2-kpi-val {
   font-family: var(--font-display); font-weight: 700; font-size: clamp(2.6rem, 4vw, 4rem); line-height: .9;
   font-variant-numeric: tabular-nums;
@@ -36,14 +32,14 @@
 
 .v2-nota {
   background: var(--surface-1); border: 1px solid var(--border);
-  border-left: 3px solid var(--data); border-radius: var(--r-sm);
+  border-radius: var(--r-fila); background: var(--surface-2);
   padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4);
   font-size: var(--fs-sm); line-height: 1.55; color: var(--txt-2);
 }
 .v2-nota strong { color: var(--txt); }
 /* La regla de roles pequeños lleva la marca: es lo que, sin explicar, se
    lee como favoritismo. */
-.v2-nota--regla { border-left-color: var(--marca); }
+.v2-nota--regla { background: color-mix(in srgb, var(--marca) 12%, var(--surface-2)); }
 
 .v2-bars { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .v2-fuera { font-size: var(--fs-xs); color: var(--txt-2); line-height: 1.55; max-width: 68ch; }

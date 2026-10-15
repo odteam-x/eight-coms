@@ -146,7 +146,6 @@
   border-radius: var(--r-lg);
   padding: 20px 22px; margin-bottom: 16px;
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
 .sse-left { flex: 1; min-width: 0; }
 .sse-label {

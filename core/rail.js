@@ -102,10 +102,6 @@ function renderRail() {
   pie.innerHTML = `
     <span id="gestion-switch" hidden></span>
     <div class="rail-prox" id="rail-prox" hidden></div>
-    <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme"
-            aria-label="Cambiar tema" data-tip="Cambiar tema">
-      <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
-    </button>
     <div class="rail-user">
       <div class="avatar" id="av-desktop">?</div>
       <div class="rail-user-info">
@@ -113,12 +109,17 @@ function renderRail() {
         <div class="rail-ts" id="ts-badge"></div>
       </div>
     </div>
-    <button class="rail-item rail-item--sec" data-act="salir" data-tip="Salir">
-      <i data-lucide="log-out" class="rail-ico"></i><span class="rail-txt">Salir</span>
-    </button>
-    <button class="rail-toggle" data-act="railColapso" aria-label="Contraer o expandir el menú">
-      <i data-lucide="chevrons-left" class="rail-ico"></i>
-    </button>`;
+    <div class="rail-acciones">
+      <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema" data-tip="Cambiar tema">
+        <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
+      </button>
+      <button class="rail-item rail-item--sec" data-act="salir" aria-label="Salir" data-tip="Salir">
+        <i data-lucide="log-out" class="rail-ico"></i><span class="rail-txt">Salir</span>
+      </button>
+      <button class="rail-toggle" data-act="railColapso" aria-label="Contraer o expandir el menú">
+        <i data-lucide="chevrons-left" class="rail-ico"></i>
+      </button>
+    </div>`;
   host.appendChild(pie);
 
   renderIconos(host);

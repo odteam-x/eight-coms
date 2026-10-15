@@ -49,7 +49,7 @@ const Inicio = (() => {
       <section class="inicio-hero sup-marca pat-${_patron(persona.id)}" aria-labelledby="inicio-titulo">
         <div class="inicio-saludo">
           ${periodo ? `<span class="tag-marca">${escHtml(estado?.label || 'Período')} · ${escHtml(periodo.pe)}</span>` : ''}
-          <h2 class="inicio-titulo" id="inicio-titulo">Hola, ${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</h2>
+          <h2 class="inicio-titulo" id="inicio-titulo">Hola, <span class="acento">${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</span></h2>
           <p class="inicio-sub">${periodo
             ? escHtml(periodo.nombre && periodo.nombre !== periodo.pe ? periodo.nombre : `Período ${periodo.pe}`)
             : 'Todavía no hay un período en curso.'}</p>

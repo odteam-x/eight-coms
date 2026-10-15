@@ -21,14 +21,10 @@
 /* ── Tarjeta ───────────────────────────────────────────────────────── */
 .tk-lista { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 .tk-card {
-  background: var(--surface-1); border: 2px solid var(--trazo); border-left: 6px solid var(--border-hi);
-  border-radius: var(--r-lg); box-shadow: var(--sombra-dura); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
+  background: var(--surface-1); border: 0;
+  border-radius: var(--r-card); box-shadow: none; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
 }
-.tk-card--en-curso  { border-left-color: var(--spr); }
-.tk-card--entregada { border-left-color: var(--sbu); }
-.tk-card--aprobada  { border-left-color: var(--sex); }
-.tk-card--devuelta  { border-left-color: var(--sba); }
-.tk-card--bloqueada { border-left-style: dashed; }
+.tk-card--bloqueada { opacity: .85; }
 .tk-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
 .tk-titulo { margin: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--txt); overflow-wrap: anywhere; }
 .tk-pill {
@@ -53,7 +49,7 @@
   background: var(--surface-2); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3);
   font-size: var(--fs-sm); line-height: 1.45; color: var(--txt); overflow-wrap: anywhere;
 }
-.tk-aviso--devuelta { border-left: 3px solid var(--sba); }
+.tk-aviso--devuelta { background: color-mix(in srgb, var(--sba) 14%, var(--surface-2)); border-radius: var(--r-fila); }
 .tk-entrega { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
 .tk-entrega a { color: var(--action); font-weight: 600; }
 
@@ -103,7 +99,7 @@
 .tk-evid-h span { font-weight: 400; font-size: var(--fs-xs); color: var(--txt-2); margin-left: var(--sp-2); }
 .tk-datos { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); margin-bottom: var(--sp-3); }
 .tk-dato { background: var(--surface-2); border-radius: var(--r-sm); padding: var(--sp-3); }
-.tk-dato--aviso { border-left: 3px solid var(--sba); }
+.tk-dato--aviso { background: color-mix(in srgb, var(--sba) 14%, var(--surface-2)); border-radius: var(--r-fila); }
 .tk-dato-val { font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1; color: var(--txt); font-variant-numeric: tabular-nums; }
 .tk-dato-lbl { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt); margin-top: var(--sp-1); }
 .tk-dato-sub { font-size: var(--fs-xs); color: var(--txt-2); }

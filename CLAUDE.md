@@ -63,7 +63,7 @@ Two things it taught us while being written: a regex that reads token declaratio
 
 **Brand surfaces redefine their own text tokens.** `.sup-marca`, `.rail`, `.bottom-bar` and `.cab-movil` always sit on navy in both themes, so inside them `--txt`, `--txt-2`, `--txt-muted` (and in `.sup-marca` the level ramp `--sex…--sba`) are re-declared to the measured `--on-brand` / `--on-brand-2` pairs. Without that, a light-theme level colour (dark, made for white) vanishes on the navy. `tools/contraste.js` measures those pairs and the label pairs on coral / cyan: navy on coral is 5.6, **white on coral is 2.9 — never use it**, even though the printed guide does.
 
-**Brand patterns are images, not code.** The seven geometric patterns from the brand go in `img/patrones/patron-1.webp … patron-7.webp` and are only painted behind a brand surface (`.sup-marca::before`, 30 % opacity) and as a 10 % strip that fades out under each portal's header (`#contenido::before`, `.amain::before`). They scroll with the page (never `background-attachment: fixed`). Each person gets one (`pat-N`, picked from their id). Do not redraw them in CSS: the brand supplied them. If a file is missing the request 404s and the surface is simply flat navy.
+**Brand patterns are images, not code.** The seven geometric patterns from the brand go in `img/patrones/patron-1.webp … patron-7.webp` and are only painted behind a brand surface (`.sup-marca::before`, 30 % opacity). They scroll with the page (never `background-attachment: fixed`). Each person gets one (`pat-N`, picked from their id). Do not redraw them in CSS: the brand supplied them. If a file is missing the request 404s and the surface is simply flat navy.
 
 **`--franja` is the six-band palette strip** (navy → coral) from the guide: ornament on the rail, hero edges and section titles, never information.
 
@@ -366,6 +366,23 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 - `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
 - Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
 
+### Premium system (anti-"AI look" pass)
+
+The target is a dark, premium product app (diffuse blue light, compact display type, pill controls, settings-style lists), not a card template. The rules live in the last block of `shared.css` ("SISTEMA PREMIUM"), which is written to win the cascade; page sheets only add what is theirs.
+
+**What was removed on purpose** (do not reintroduce): `backdrop-filter` on cards (only the modal/panel/buscador overlays keep a blur); `--vidrio` and `--sombra-dura*` are now flat/`none` tokens; hover lifts (`translateY`, `scale`) and glow shadows; entrance animations per block (`entra/sello/sube/tabIn/slideRow`); the 10 % pattern strip under the header; the coloured KPI blocks (`.v2-kpi` is a plain `--surface-2` tile) and the cyan/blue cards of Inicio. **One brand surface per screen** (hero or login panel) and **one gradient protagonist** (`--brillo`, now a same-hue gradient of `--action-fill`, only on the primary CTA: `.btn-save`, `.tk-btn--main`, `.btn-login`).
+
+- **Surfaces** (each is a real elevation): `--bg` canvas (carries the light) < `--surface-1` container < `--surface-2` row/field < `--surface-3` active/hover. Borders (`--trazo`) only where two same-level things meet.
+- **Radii**: `--r-control` pill (buttons, chips, `.seg`), `--r-fila` 12, `--r-card` 20, `--r-cont` 28 (list containers, panels, calendar), `--r-modal` 32, `--r-hero` 40.
+- **Type** (role · family · weight · line-height · tracking): display = Barlow Condensed 700, 1.02, −.02em (`--tr-display`/`--lh-display`); titulo 700, 1.05, −.01em; fila = Barlow 600; cuerpo = Source Sans 3 400; micro = `--txt-muted`. One key word per headline may use `.acento` (`--data-txt`; `--cyan-200` on the brand surface), never a gradient on text.
+- **Rhythm**: `--sec-hero` / `--sec-main` / `--sec-sub` (from `--sp-*`), not one uniform gap.
+- **Ambient light** (`.luz`, applied to `#contenido`, `.amain`, and the login form panel): two asymmetric, very soft radial blobs from `--blue-500`/`--cyan-400`; configure with `--luz-a/-b`, `--luz-op`, `--luz-ax/-ay/-bx/-by`, `--luz-size`. Light theme uses the same light at lower opacity. It is a component: do not copy a `::after` into a section.
+- **Buttons**: primary (`.btn-save`), secondary (`.btn-ghost`, outlined pill), text (`.btn-texto`), destructive (`.btn-danger`); every one has hover, active, `:focus-visible`, disabled and (`.is-loading`).
+- **Periods** (`renderPEBar`): thin elongated bar under the active period + dots for the rest; `.pb--hoy` adds a `--marca` dot.
+- **Settings-style lists**: `.lista-aj` container (`--surface-1`, `--r-cont`) with `.fila-aj` rows (title + description left, indicator right, hairline dividers). `.pf-tareas` already renders this way.
+- **States**: empty = dashed outline, left-aligned; error (`role="alert"`) = `--alert` left bar + "!" icon + text; loading = `.skel`/`.spin`. They never look alike.
+- Verify with `?as=...` pages and `__contraste()` after adding `*{animation:none!important;transition:none!important}`: with the browser pane hidden, transitions never finish and the audit reads half-faded colours (false 1.0–1.1 ratios).
+
 ### Points per task (migration 0017)
 
 Whoever approves a task assigns **0–10 points**, mandatory at the moment of approval. `zz_tareas_puntos` (runs after `tareas_validar_update`) enforces it: points are written only on approving, only the admin corrects them afterwards, reopening clears them. Points are a *fact* for the evaluator (shown in the task, profile and calendar); they feed no formula in `resultados_periodo()`. Apply **0017 after 0016**. The approve modal (`Tareas.modalAprobar`) uses `.tk-puntos` radio chips.
@@ -375,7 +392,7 @@ Whoever approves a task assigns **0–10 points**, mandatory at the moment of ap
 - `core/calendario.js` is a section for every role (nav item *Calendario*; admin also has the *Calendario* tab, the old config tab is now *Actividades*). It merges PE ranges, activities/jornadas and tasks (due dates, overdue, delivered, approved) into one month grid + agenda panel (`.cal2*` in `perfil.css`). PE buttons (`renderPEBar`) show their date range and mark today (`.pb--hoy`).
 - `core/buscador.js` is the Ctrl/⌘+K palette (`Buscador.registrar(fn)` per portal): jump to a section, open a person's profile, start an action. Everything it offers already exists; RLS still decides what works.
 - Actions reachable from anywhere: `Tareas.nueva({soloPersona, fecha})`, `Perfil.nuevaTarea`, the profile *Tareas* tab (full review list for supervisors), `perfilVer` from *Evaluar* cards, calendar events (`calVer`, `calNueva`). New actions are registered in `ACCIONES` (config.js) as usual.
-- Visual language: glass surfaces (`--vidrio`, `--trazo`, `--brillo` gradient, `--franja`), pill controls, brand-navy rail with a glowing active item. **Text on the `--brillo` cyan gradient is always `--navy-900`** (white fails contrast in the light theme). Icons are Phosphor SVGs bundled in `core/iconos.js` (regenerate with `tools/generar-iconos.mjs`); the markup is still `data-lucide="name"` through a shim, no CDN.
+- Visual language: see "Premium system" above (flat layered surfaces, ambient light, pill controls, brand-navy rail). **Text on the `--brillo` cyan gradient is always `--navy-900`** (white fails contrast in the light theme). Icons are Phosphor SVGs bundled in `core/iconos.js` (regenerate with `tools/generar-iconos.mjs`); the markup is still `data-lucide="name"` through a shim, no CDN.
 - *Evaluar* (admin): progress bar of published evaluations, status chips (`evalFiltro`), list beside the form on ≥1100px.
 
 ### Tests (`tools/pruebas/`)
