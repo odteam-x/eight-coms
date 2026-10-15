@@ -340,3 +340,11 @@
 .pf-enlace { border-bottom: 0; color: var(--data-txt); text-transform: none; letter-spacing: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); }
 .pf-enlace:hover { text-decoration: underline; text-underline-offset: 4px; }
 .sup-marca .pf-enlace { color: var(--on-brand); }
+
+/* ── Criterios como lista tipo ajustes: una sola caja, filas con divisor ─ */
+.pf-lista { gap: 0; background: var(--surface-2); border-radius: var(--r-card); overflow: hidden; }
+.pf-lista > li { padding: var(--sp-4); }
+.pf-lista > li + li { border-top: 1px solid var(--trazo); }
+
+/* ── Cabecera de pantalla: título, períodos y contenido forman un solo bloque ─ */
+.ptitle + .pe-row, .page-header + .pe-row { margin-top: calc(var(--sp-2) * -1); margin-bottom: var(--sec-hero); }
