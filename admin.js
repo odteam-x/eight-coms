@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
-      { titulo:'Configuración', items: [
+      { titulo:'Configuración', plegado: true, items: [
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
         { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },

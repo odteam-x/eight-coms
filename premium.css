@@ -305,3 +305,111 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .cuenta-salir { margin-top: var(--sp-4); }
 .cuenta-salir .fila-aj-ind svg, .cuenta-cols .fila-aj-ind svg { width: 22px; height: 22px; }
 @media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { width: 84px; height: 84px; font-size: 2.1rem; } }
+
+/* ═══ Admin: configuración, tablas y formularios ═══════════════════════
+   Las pantallas de gestión usaban tablas con cabecera gris, un botón «+ Nuevo»
+   de texto y campos de 4px de radio. Ahora: barra de herramientas con el CTA
+   coral a la derecha, tablas como listas con filas altas y divisores finos,
+   campos con la misma jerarquía de radios que el resto. */
+.cfg-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-5); }
+.cfg-hint { flex: 1 1 100%; order: -1; font-family: var(--font-body); font-size: var(--fs-md); color: var(--txt-2); max-width: 70ch; margin: 0; }
+.cfg-toolbar .search-inp { flex: 1 1 240px; max-width: 420px; }
+.btn-cfg-add { margin-left: auto; min-height: 48px; padding: 0 var(--sp-6); border: 0; border-radius: var(--r-control); background: var(--brillo); color: var(--navy-900); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0; transition: filter .18s var(--ease), transform .18s var(--ease); }
+.btn-cfg-add:hover { color: var(--navy-900); border: 0; background: var(--brillo); filter: brightness(1.06); }
+.btn-cfg-add:active { transform: scale(.985); }
+.btn-cfg-add:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+
+.cfg-inp, .cfg-textarea, .search-inp { border-radius: var(--r-fila); border: 1px solid transparent; background: var(--surface-1); min-height: 48px; font-size: var(--fs-md); }
+.cfg-inp:hover, .search-inp:hover { border-color: var(--trazo); }
+.cfg-inp:focus, .cfg-textarea:focus, .search-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.search-inp { border-radius: var(--r-control); padding-inline: var(--sp-5); }
+.cfg-field-lbl, .cfg-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); letter-spacing: 0; text-transform: none; }
+
+/* Tablas → lista */
+.tbl { background: var(--surface-1); border-radius: var(--r-cont); overflow-x: auto; border: 0; }
+.tbl-head { background: none; border: 0; border-bottom: 1px solid var(--trazo); border-radius: 0; padding: var(--sp-3) var(--sp-5); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--txt-muted); }
+.tbl-body { border: 0; border-radius: 0; }
+.tbl-row { padding: var(--sp-3) var(--sp-5); min-height: 64px; border-top: 1px solid var(--trazo); }
+.tbl-row:first-child { border-top: 0; }
+.tbl-row:hover { background: var(--surface-2); }
+.tbl-cell { font-size: var(--fs-sm); }
+.tbl-cell:first-child { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); }
+.tbl-muted { font-size: var(--fs-xs); }
+
+/* Botones de icono de las filas: círculos limpios */
+.btn-icon, .tbl-actions button { min-width: 40px; min-height: 40px; border-radius: 50%; border: 1px solid var(--trazo); background: transparent; color: var(--txt-2); display: inline-grid; place-items: center; transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease); }
+.btn-icon:hover, .tbl-actions button:hover { background: var(--surface-3); color: var(--txt); border-color: var(--data); }
+
+/* Ventanas del admin: mismo cuerpo que las demás */
+.modal-box { padding: var(--sp-6); max-width: 560px; }
+.modal-title { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.02; letter-spacing: -.02em; text-transform: none; margin-bottom: var(--sp-5); }
+.modal-actions { justify-content: flex-end; gap: var(--sp-3); margin-top: var(--sp-5); flex-direction: row-reverse; }
+.modal-actions .btn-save { min-height: 48px; }
+.modal-actions .btn-cancel, .modal-actions .btn-cfg-cancel, .modal-actions .btn-ghost { min-height: 48px; padding: 0 var(--sp-5); border-radius: var(--r-control); background: transparent; border: 1px solid var(--trazo); color: var(--txt); font-family: var(--font-ui); font-weight: 600; }
+
+/* Las tablas genéricas se reparten solas según su número de columnas
+   (roles 3, períodos 4, criterios 7…); las variantes con rejilla propia la conservan. */
+.tbl-head, .tbl-row { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.tbl-head > :last-child, .tbl-row > :last-child { justify-content: flex-end; text-align: right; }
+@media (max-width: 767px) { .tbl-head, .tbl-row { grid-auto-flow: row; } .tbl-row > :last-child { justify-content: flex-start; text-align: left; } }
+
+/* Un solo primario por vista: el coral es solo el botón de la barra de herramientas;
+   los «+ Nueva versión» dentro de cada tarjeta son secundarios. */
+.btn-cfg-add { margin-left: 0; background: transparent; color: var(--txt); border: 1px solid var(--trazo); font-weight: 600; min-height: 44px; padding: 0 var(--sp-5); }
+.btn-cfg-add:hover { background: var(--surface-3); color: var(--txt); border: 1px solid var(--data); filter: none; }
+.cfg-toolbar > .btn-cfg-add { margin-left: auto; min-height: 48px; padding: 0 var(--sp-6); background: var(--brillo); color: var(--navy-900); border: 0; }
+.cfg-toolbar > .btn-cfg-add:hover { background: var(--brillo); color: var(--navy-900); border: 0; filter: brightness(1.06); }
+
+/* ── Ventanas de tareas (nueva, aprobar, devolver…): como en la maqueta ─ */
+.tk-box { max-height: min(92dvh, 760px); overflow-y: auto; padding: var(--sp-6); border-radius: var(--r-modal); }
+.tk-box .modal-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.2rem); line-height: 1.02; letter-spacing: -.02em; text-transform: none; margin-bottom: var(--sp-4); }
+.tk-info { background: color-mix(in srgb, var(--data) 12%, var(--surface-2)); border-radius: var(--r-fila); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--txt-2); }
+.tk-campo { margin-bottom: var(--sp-4); }
+.tk-campo label, .tk-campo legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); letter-spacing: 0; margin-bottom: var(--sp-2); }
+.tk-campo .cfg-inp { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); border: 1px solid transparent; font-size: 16px; }
+.tk-campo textarea.cfg-inp { padding: var(--sp-3) var(--sp-4); min-height: 96px; }
+.tk-campo .cfg-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.tk-checks-lista { border: 0; border-radius: var(--r-fila); background: var(--surface-1); padding: 0; max-height: 240px; }
+.tk-check { padding: 0 var(--sp-4); min-height: 48px; font-size: var(--fs-sm); cursor: pointer; }
+.tk-check + .tk-check { border-top: 1px solid var(--trazo); }
+.tk-check:hover { background: var(--surface-2); }
+.tk-check input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; flex: none; border-radius: 7px; border: 2px solid var(--txt-muted); background: transparent; display: grid; place-content: center; cursor: pointer; transition: background .15s var(--ease), border-color .15s var(--ease); }
+.tk-check input::after { content: ''; width: 11px; height: 6px; border-left: 2.5px solid var(--action-on); border-bottom: 2.5px solid var(--action-on); transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform .15s var(--ease); }
+.tk-check input:checked { background: var(--action-fill); border-color: var(--action-fill); }
+.tk-check input:checked::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+.tk-check input:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.tk-modal-acciones { position: sticky; bottom: calc(var(--sp-6) * -1); margin: var(--sp-5) calc(var(--sp-6) * -1) calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-6); background: var(--surface-1); border-top: 1px solid var(--trazo); justify-content: flex-end; flex-direction: row-reverse; }
+.tk-modal-acciones .btn-save { min-height: 48px; }
+.tk-modal-acciones .tk-btn { min-height: 48px; padding: 0 var(--sp-5); border-radius: var(--r-control); background: transparent; border: 1px solid var(--trazo); color: var(--txt); font-weight: 600; }
+.tk-puntos { gap: var(--sp-2); }
+.tk-campo .tk-check { display: flex; align-items: center; margin-bottom: 0; color: var(--txt); font-weight: 500; }
+
+/* ── Barra lateral: el pie nunca se sale de pantalla ───────────────────
+   El rail es una columna de la altura de la ventana: marca y buscador arriba,
+   destinos con su propio scroll en medio y la persona abajo, siempre visible. */
+.rail { overflow: hidden; }
+.rail-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 2px; }
+.rail-pie { flex: none; }
+.rail-marca-col { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.rail-marca .rail-badge { margin-left: 0; padding: 1px var(--sp-2); border-radius: var(--r-control); background: color-mix(in srgb, var(--on-brand) 14%, transparent); color: var(--on-brand); font-size: var(--fs-xs); line-height: 1.3; }
+.rail-colapsado .rail-marca-col { display: none; }
+@media (max-height: 640px) { .rail-prox { display: none; } .rail-marca { min-height: 44px; padding-bottom: var(--sp-2); } }
+
+/* ── Personas: una lista, no una pared de tarjetas ─────────────────────
+   Avatar, nombre y rol a la izquierda; resultado a la derecha; un solo
+   contenedor con divisores finos (como las listas de ajustes). */
+.roster { display: flex; flex-direction: column; gap: 0; background: var(--surface-1); border-radius: var(--r-cont); overflow: hidden; }
+.pcard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4); width: 100%; min-height: 76px; padding: var(--sp-3) var(--sp-5); border: 0; border-top: 1px solid var(--trazo); border-radius: 0; background: none; box-shadow: none; text-align: left; transition: background .15s var(--ease); }
+.roster > .pcard:first-child { border-top: 0; }
+.pcard:hover { background: var(--surface-2); border-color: var(--trazo); }
+.pcard--yo { background: var(--surface-2); }
+.pcard-av { width: 48px; height: 48px; flex: none; }
+.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
+.pcard-yo { margin-left: var(--sp-2); }
+.pcard-valor { flex-direction: row-reverse; align-items: center; gap: var(--sp-3); }
+.pcard-valor .anillo { --tam: 52px; }
+.pcard-valor .anillo-num { font-size: 1.25rem; }
+.pcard-valor .nivel-badge { padding: 2px var(--sp-3); }
+.pcard-sin { max-width: none; font-size: var(--fs-sm); color: var(--txt-2); text-align: right; }
+@media (max-width: 520px) { .pcard { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); } .pcard-valor .nivel-badge { display: none; } }

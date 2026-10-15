@@ -64,8 +64,9 @@ function renderRail() {
   marca.innerHTML =
     '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
     '<img src="logo.png" alt="" class="rail-logo" width="32" height="32"></picture>' +
+    '<span class="rail-marca-col">' +
     `<span class="rail-marca-txt">${escHtml(_railCfg.marca || '')}</span>` +
-    (_railCfg.badge ? `<span class="rail-badge">${escHtml(_railCfg.badge)}</span>` : '');
+    (_railCfg.badge ? `<span class="rail-badge">${escHtml(_railCfg.badge)}</span>` : '') + '</span>';
   host.appendChild(marca);
 
   // Buscador: llega a cualquier sitio (Ctrl/⌘ K)
@@ -91,6 +92,7 @@ function renderRail() {
       // no alarga el menú; se abre solo si el destino activo está dentro.
       const det = document.createElement('details');
       det.className = 'rail-grupo';
+      if (!g.plegado) det.open = true;   // solo lo marcado como plegado empieza cerrado
       const sum = document.createElement('summary');
       sum.className = 'rail-sep';
       sum.innerHTML = `<span>${escHtml(g.titulo)}</span><i data-lucide="chevron-down" class="rail-ico rail-chev"></i>`;
