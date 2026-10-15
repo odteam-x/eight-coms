@@ -1,0 +1,15 @@
+{
+  "name": "eight-coms-pruebas",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas de las migraciones y de la UI. NO forma parte del sitio: el sitio sigue sin build ni npm.",
+  "scripts": {
+    "sql": "node sql-0015.mjs && node sql-0016.mjs",
+    "front": "node front.mjs",
+    "ui": "node ui/server.mjs",
+    "todo": "npm run sql && npm run front"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10"
+  }
+}

@@ -234,7 +234,7 @@ const API = {
    * Crea o actualiza un período. NO toca `activo`: eso va por
    * setPeriodoActivo(), que es atómico y respeta el índice único.
    */
-  async savePeriodo({ id, nombre, descripcion = '', fechas = {} }) {
+  async savePeriodo({ id, nombre, descripcion = '', fechas = {}, modelo = null }) {
     const p = {
       nombre:            nombre.trim(),
       descripcion:       descripcion.trim(),
@@ -243,6 +243,10 @@ const API = {
       fecha_entrega:     fechas.entrega    || null,
       fecha_jornada:     fechas.jornada    || null,
     };
+    // Solo se envía si el formulario lo ofrece: sin la migración 0015 la
+    // columna no existe y mandarla haría fallar el guardado entero. La base
+    // rechaza el cambio si el período ya tiene evaluaciones.
+    if (modelo) p.modelo = modelo;
     const { data, error } = id
       ? await SB.from('periodos_evaluacion').update(p).eq('id', id).select('id').maybeSingle()
       : await SB.from('periodos_evaluacion').insert({ ...p, gestion_id: await _gid() }).select('id').maybeSingle();
@@ -265,6 +269,63 @@ const API = {
   async deletePeriodo(id) {
     const { error } = await SB.from('periodos_evaluacion').delete().eq('id', id);
     return { ok: !error, error: error?.message };
+  },
+
+  // ── RÚBRICA v2 (migración 0015) ──────────────────────────────────
+  // Todas degradan a [] si la migración aún no está aplicada: el frontend
+  // puede desplegarse antes que el SQL sin romper los períodos legacy.
+
+  /** Catálogo de 24 criterios (5 núcleo + 19 técnicos) de la gestión. */
+  async getCriteriosV2() {
+    const g = await _gid();
+    let q = SB.from('criterios_v2').select('*').order('orden');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
+    if (error) { console.warn('[API.getCriteriosV2]', error.message); return []; }
+    return data ?? [];
+  },
+
+  /** Perfiles por rol con sus pesos. Todas las versiones. */
+  async getPerfiles() {
+    const g = await _gid();
+    let q = SB.from('perfiles_rol')
+      .select('id, rol_id, version, vigente_desde_periodo, created_at, roles(nombre), perfil_criterios(criterio_key, peso)')
+      .order('rol_id').order('version');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
+    if (error) { console.warn('[API.getPerfiles]', error.message); return []; }
+    return data ?? [];
+  },
+
+  /**
+   * Crea una versión de perfil. pesos = { encuadre: 30, ... } (enteros).
+   * La base valida suma = 100, solo técnicos y la regla de "período
+   * siguiente"; el mensaje de error es el de la base, ya redactado.
+   */
+  async crearPerfilRol({ rolId, pesos, vigenteDesde = null }) {
+    const { data, error } = await SB.rpc('crear_perfil_rol', {
+      p_gestion_id: await _gid(), p_rol_id: rolId,
+      p_pesos: pesos, p_vigente_desde: vigenteDesde,
+    });
+    return { ok: !error, error: error?.message, id: data ?? null };
+  },
+
+  /**
+   * Resultados v2 de un período, calculados en la base (núcleo, técnico,
+   * individual, percentil, general). Devuelve solo las filas que el
+   * llamante puede ver. `borradores` solo lo honra el admin.
+   */
+  async getResultadosV2(periodoId, { borradores = false } = {}) {
+    if (!periodoId) return { ok: true, rows: [] };
+    const { data, error } = await SB.rpc('resultados_periodo', {
+      p_periodo: periodoId, p_borradores: borradores,
+    });
+    if (error) return { ok: false, error: error.message };
+    const n = v => (v == null ? null : Number(v));
+    return { ok: true, rows: (data ?? []).map(r => ({
+      ...r, nucleo: n(r.nucleo), tecnico: n(r.tecnico), individual: n(r.individual),
+      percentil: n(r.percentil), general: n(r.general), n_rol: Number(r.n_rol) || 0,
+    })) };
   },
 
   // ── ADMIN: evaluaciones ──────────────────────────────────────────
@@ -442,6 +503,78 @@ const API = {
     return { ok: !error, error: error?.message };
   },
 
+  // ── TAREAS (migración 0016) ──────────────────────────────────────────
+  // El estado, las fechas de entrega/aprobación y el contador de devoluciones
+  // los fija la base; aquí solo se piden transiciones. Los errores de la base
+  // vienen ya redactados en español y se muestran tal cual.
+
+  /** ¿El error significa que la migración 0016 aún no está aplicada? */
+  _sinTareas(error) {
+    const m = `${error?.code || ''} ${error?.message || ''}`;
+    return /PGRST20[25]|42P01|does not exist|Could not find the (table|function)/i.test(m);
+  },
+
+  /**
+   * Tareas de un período. `userId` acota a una persona; sin él, RLS devuelve
+   * lo que el llamante puede ver (admin: todas; secretario: su distrito;
+   * miembro: las suyas). `noDisponible` = la migración no está aplicada.
+   */
+  async getTareas({ periodoId, userId = null, signal } = {}) {
+    if (!periodoId) return { ok: true, tareas: [] };
+    let q = SB.from('tareas').select('*').eq('periodo_id', periodoId)
+      .order('fecha_limite', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false });
+    if (userId) q = q.eq('asignada_a', userId);
+    if (signal) q = q.abortSignal(signal);
+    const { data, error } = await q;
+    if (error) {
+      if (error.name === 'AbortError') return { ok: false, aborted: true };
+      return { ok: false, noDisponible: this._sinTareas(error), error: error.message };
+    }
+    return { ok: true, tareas: data ?? [] };
+  },
+
+  async crearTarea({ periodo_id, titulo, descripcion = '', asignada_a, prioridad = 'normal', fecha_limite = null, criterios = [] }) {
+    const { data, error } = await SB.from('tareas')
+      .insert({ periodo_id, titulo, descripcion, asignada_a, prioridad, fecha_limite: fecha_limite || null, criterios })
+      .select().single();
+    return error ? { ok: false, error: error.message } : { ok: true, tarea: data };
+  },
+
+  /** Cambios de estado y de contenido. El trigger valida quién puede qué. */
+  async actualizarTarea(id, patch) {
+    const { data, error } = await SB.from('tareas').update(patch).eq('id', id).select().maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    // Sin fila = RLS no deja ver o tocar esa tarea; no es un éxito silencioso.
+    if (!data) return { ok: false, error: 'No tienes acceso a esa tarea.' };
+    return { ok: true, tarea: data };
+  },
+
+  async prorrogarTarea(id, nuevaFecha, motivo) {
+    const { error } = await SB.rpc('prorrogar_tarea', { p_id: id, p_nueva: nuevaFecha, p_motivo: motivo });
+    return { ok: !error, error: error?.message };
+  },
+
+  async borrarTarea(id) {
+    const { data, error } = await SB.from('tareas').delete().eq('id', id).select('id');
+    if (error) return { ok: false, error: error.message };
+    if (!data?.length) return { ok: false, error: 'Esa tarea ya no se puede borrar.' };
+    return { ok: true };
+  },
+
+  async getEventosTarea(id) {
+    const { data, error } = await SB.from('tarea_eventos').select('*').eq('tarea_id', id).order('created_at');
+    return error ? { ok: false, error: error.message } : { ok: true, eventos: data ?? [] };
+  },
+
+  /** Hechos para evaluar: una fila por persona (ver resumen_tareas_periodo). */
+  async getResumenTareas(periodoId) {
+    if (!periodoId) return { ok: true, porUsuario: {} };
+    const { data, error } = await SB.rpc('resumen_tareas_periodo', { p_periodo: periodoId });
+    if (error) return { ok: false, noDisponible: this._sinTareas(error), error: error.message };
+    return { ok: true, porUsuario: Object.fromEntries((data ?? []).map(r => [r.user_id, r])) };
+  },
+
   /**
    * FASE 1 — CONTEXTO. Todo lo que no depende del período elegido.
    * Cuatro consultas en paralelo: un solo round-trip. Con esto ya se pinta
@@ -468,13 +601,15 @@ const API = {
     if (!gestion) return { ok: false, error: 'No hay ninguna gestión configurada.' };
     _gestionActual = gestion.id;
 
-    let criteriosRaw, rubricaRaw, calRaw, periodosRaw;
+    let criteriosRaw, rubricaRaw, calRaw, periodosRaw, criteriosV2, perfiles;
     try {
-      [criteriosRaw, rubricaRaw, calRaw, periodosRaw] = await Promise.all([
+      [criteriosRaw, rubricaRaw, calRaw, periodosRaw, criteriosV2, perfiles] = await Promise.all([
         this.getCriterios(true),
         this.getRubrica(),
         this.getCalendario(),
         this.getPeriodos(),
+        this.getCriteriosV2(),
+        this.getPerfiles(),
       ]);
     } catch (e) {
       return { ok: false, error: e.message || String(e) };
@@ -496,6 +631,10 @@ const API = {
       pe:         p.nombre,
       nombre:     p.descripcion || p.nombre,
       activo:     !!p.activo,
+      // 'legacy' | 'v2'. Sin la migración 0015 la columna no existe.
+      modelo:     p.modelo || 'legacy',
+      // false = el período existía antes de la rúbrica por roles y no puede pasar a v2.
+      v2Permitido: p.v2_permitido !== false,
       inicio:     p.fecha_inicio      || null,
       finTrabajo: p.fecha_fin_trabajo || null,
       entrega:    p.fecha_entrega     || null,
@@ -522,6 +661,7 @@ const API = {
     const periodoActivo = periodos.find(p => p.activo) ?? null;
 
     return { ok: true, profile, criterios, periodos, rubrica, calendario,
+             criteriosV2, perfiles,
              periodoActivo, periodoActivoId: periodoActivo?.id ?? null,
              gestion, gestiones,
              // Una gestión archivada se lee siempre, se escribe nunca.

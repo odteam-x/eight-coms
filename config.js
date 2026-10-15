@@ -75,6 +75,10 @@ const _ACCIONES_SIMPLES = new Set([
   // selector de entrada del admin
   'entrarConSeleccion', 'entrarConPeriodoActivo', 'restablecerEntrada',
   'onCambioGestionEntrada',
+  // rúbrica v2: perfiles por rol
+  'showPerfilModal', 'savePerfil', 'actualizarSumaPerfil', 'cambiarRolPerfil',
+  // tareas (core/tareas.js)
+  'tkFiltroPersona', 'tkConfirmar',
 ]);
 
 const ACCIONES = {
@@ -140,6 +144,13 @@ const ACCIONES = {
   bono:        (a, el) => setBono(_num(a), el),
   puntaje:     (a, el) => setScore(a, _num(el.dataset.arg2), el),
   puntajeDist: (a, el) => setDistScore(a, _num(el.dataset.arg2), el),
+  puntajeV2:   (a, el) => setScoreV2(a, _num(el.dataset.arg2), el),
+  // Tareas: la acción viaja en data-arg y el id de la tarea en data-arg2.
+  tkAccion:    (a, el) => Tareas.accion(a, el),
+  tkFiltro:    (a, el) => Tareas.filtro(a, el),
+  tkConfirmar: ()      => Tareas.confirmar(),
+  peTareas:    (a, el) => selectTareasPE(a, el),
+  modalPerfil: (a)     => showPerfilModal(a),
   guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
   guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),
   participante:(a, el) => toggleParticipante(a, el.dataset.arg2 === 'true'),

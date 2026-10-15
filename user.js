@@ -68,6 +68,8 @@ async function loadContexto() {
       profile:     CU,
       periodos:    ctx.periodos  || [],
       criterios:   ctx.criterios || [],
+      criteriosV2: ctx.criteriosV2 || [],
+      perfiles:    ctx.perfiles    || [],
       lastUpdated: _lastUpdated,
     });
     D = { ...(D || {}), criterios: ctx.criterios, periodos: ctx.periodos,
@@ -122,11 +124,20 @@ async function loadContenido() {
   if (!pid) { _contenido = null; return true; }
 
   _abortContenido?.abort();
-  _abortContenido = new AbortController();
+  const ctrl = _abortContenido = new AbortController();
 
-  const res = await API.getContenido(pid, { signal: _abortContenido.signal });
+  const res = await API.getContenido(pid, { signal: ctrl.signal });
   if (res.aborted) return false;          // llegó una petición más nueva
   if (!res.ok) { mostrarErrorCarga(res.error); return false; }
+
+  // Período con la rúbrica por roles: el resultado lo calcula la base.
+  res.v2 = null;
+  if (esPeriodoV2(Store.periodo())) {
+    const r2 = await API.getResultadosV2(pid);
+    if (ctrl.signal.aborted) return false;
+    if (!r2.ok) { mostrarErrorCarga(r2.error); return false; }
+    res.v2 = r2.rows;
+  }
 
   _contenido   = res;
   _lastUpdated = new Date();
@@ -205,6 +216,7 @@ function initUI() {
 /** Repinta solo lo que depende del período seleccionado. */
 function renderPeriodoActual() {
   renderScores(mPE);
+  renderRubrica();
   renderPEDates(mPE);
 }
 
@@ -253,6 +265,12 @@ function renderScores(pe) {
     return;
   }
   if (!_contenido) { renderCargando(container); return; }
+
+  if (esPeriodoV2(Store.periodo())) {
+    miScoreV2({ contenido: _contenido, miId: CU.id, pe, periodo: Store.periodo(),
+                calendario: D?.calendario, contenedor: container });
+    return;
+  }
 
   const criterios = getCriterios();
   // Identidad SIEMPRE por UUID (3.6). Antes buscaba por email O por UUID
@@ -314,6 +332,12 @@ function renderScores(pe) {
 /* ── RÚBRICA ── */
 function renderRubrica() {
   const el = document.getElementById('rubrica-grid'); if (!el) return;
+  const v2 = esPeriodoV2(Store.periodo());
+  ajustarIntroRubrica(v2);
+  if (v2) {
+    el.innerHTML = '<div class="empty-box"><div class="empty-txt">En este período cada criterio explica cómo se puntúa: ábrelo en «¿Cómo se puntúa?» dentro de Mi Score.</div></div>';
+    return;
+  }
   const rubrica   = D?.rubrica || [];
   const criterios = getCriterios();
   if (!rubrica.length) { el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.clipboard}</div><div class="empty-txt">Rúbrica no disponible.</div></div>`; return; }
@@ -430,14 +454,18 @@ async function renderUserReport() {
   }
 
   const criterios = getCriterios();
+  // Los períodos v2 usan otra escala y otros criterios: no entran aquí.
   const data = (Store.periodos() || []).map(p => {
+    if (esPeriodoV2(p)) return null;
     const h = res.porPeriodo[p.id];
     if (!h) return null;
     const row = { evaluado_id: CU.id, ext: h.ext, puntajes: h.puntajes };
     return { pe: p.pe, row, total: calcScore(row) };
   }).filter(Boolean);
+  const v2html = await historialV2HTML(CU.id);
 
   if (!data.length) {
+    if (v2html) { el.innerHTML = `<div class="urpt-header"><div class="urpt-name">${escHtml(CU.name || CU.user)}</div></div>${v2html}`; return; }
     renderVacio(el, 'No tienes evaluaciones disponibles aún.',
                 { periodo: Store.periodo(), calendario: D?.calendario });
     return;
@@ -538,6 +566,7 @@ async function renderUserReport() {
 
   // Después del innerHTML: antes el <canvas> todavía no existe.
   graficoEvolucion('rpt-evolucion', data, MAX);
+  if (v2html) el.insertAdjacentHTML('beforeend', v2html);
 }
 
 /* ── MENÚ ── */
@@ -554,7 +583,7 @@ function renderQuickLinks() {
   // Solo visibles en móvil (ver user.css): en escritorio duplicaban el
   // topbar. Con tres pestañas, dos accesos bastan.
   const links = [
-    { tab:'trabajos',  icon:'folder-open', title:'Entregas',  desc:'Registra tus trabajos del período actual' },
+    { tab:'trabajos',  icon:'folder-open', title:'Entregas',  desc:'Tus tareas y entregas del período' },
     { tab:'historial', icon:'history',     title:'Historial', desc:'Fechas, calendario y evolución de tu desempeño' },
   ];
   el.innerHTML = links.map(l =>
@@ -607,7 +636,22 @@ function selectTrabajoPE(pe, btn) {
   renderTrabajosTab();
 }
 
+/* Las tareas (migración 0016) sustituyen a «Registrar trabajo». Si la base aún
+   no las tiene, se conserva el formulario anterior para no dejar la pestaña
+   sin función hasta que se aplique el SQL. */
 async function renderTrabajosTab() {
+  const el = document.getElementById('trabajos-body'); if (!el) return;
+  const per = Store.periodos().find(p => p.pe === _trabajosPE) || null;
+  // Los períodos anteriores a la rúbrica por roles siguen con «registrar trabajo».
+  setEl('trabajos-titulo', esPeriodoV2(per) ? 'Mis tareas' : 'Mis trabajos');
+  if (!esPeriodoV2(per)) return renderTrabajosLegacy();
+  await Tareas.montar({
+    id: 'mis-tareas', el, periodoId: per?.id ?? null, yo: CU.id,
+    onNoDisponible: () => renderTrabajosLegacy(),
+  });
+}
+
+async function renderTrabajosLegacy() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
   el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
   // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.

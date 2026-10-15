@@ -20,6 +20,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
   <script src="core/theme.js"></script>
   <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="rubrica.css">
+  <link rel="stylesheet" href="tareas.css">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -74,6 +76,19 @@
     </div>
 
     <div id="eval-form-area"></div>
+  </div>
+
+  <!-- ── TAB: TAREAS ── -->
+  <div id="tab-tareas" class="atab-content">
+    <div class="ptitle">TAREAS</div>
+    <div class="eval-pe-bar" style="justify-content:center">
+      <span class="eval-pe-lbl">Período:</span>
+      <div class="eval-pe-btns" id="tareas-pe-btns">
+        <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+      </div>
+    </div>
+    <p class="cfg-hint" style="margin:8px 0 16px">Asigna trabajo, revisa las entregas y deja constancia de los plazos. Lo que se hace aquí es la evidencia que verás al evaluar.</p>
+    <div id="tareas-lista"></div>
   </div>
 
   <!-- ── TAB: USUARIOS ── -->
@@ -141,6 +156,18 @@
     <div class="rubrica-wrap" style="max-width:900px">
       <div class="rubrica-grid" id="rubrica-admin-grid"></div>
     </div>
+  </div>
+
+  <!-- ── TAB: PERFILES (rúbrica v2) ── -->
+  <div id="tab-perfiles" class="atab-content">
+    <div class="ptitle">PERFILES DE EVALUACIÓN</div>
+    <div class="cfg-toolbar">
+      <p class="cfg-hint">Cada rol se evalúa con el núcleo transversal más sus criterios técnicos, con pesos que suman 100. Un perfil que ya se usó no se edita: se crea una versión nueva que rige desde el período que elijas.</p>
+      <button class="btn-cfg-add" data-act="fn" data-arg="showPerfilModal">+ Nuevo perfil</button>
+    </div>
+    <div id="perfiles-list"><div class="loading-box"><span class="spin"></span></div></div>
+    <div class="section-label" style="margin-top:32px">Catálogo de criterios</div>
+    <div id="catalogo-v2" style="max-width:900px"></div>
   </div>
 
   <!-- ── TAB: CALENDARIO ── -->
@@ -298,6 +325,16 @@
     <input type="hidden" id="mpe-id">
     <div class="field"><label for="mpe-nombre">Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
     <div class="field"><label for="mpe-desc">Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
+    <div class="field" id="mpe-modelo-field">
+      <label for="mpe-modelo">Modelo de evaluación</label>
+      <select class="cfg-inp cfg-select" id="mpe-modelo">
+        <option value="v2">Rúbrica por roles (v2): núcleo + criterios del rol, escala 1–5</option>
+        <option value="legacy">Clásica: 7 criterios iguales para todos, escala 0–4</option>
+      </select>
+      <div class="modal-hint" id="mpe-modelo-ayuda" style="font-size:.8rem;color:var(--txt-2);line-height:1.5;margin-top:4px">
+        No se puede cambiar una vez que el período tiene evaluaciones.
+      </div>
+    </div>
     <div class="field-row" style="display:flex;gap:12px">
       <div class="field" style="flex:1"><label for="mpe-inicio">Inicio</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
       <div class="field" style="flex:1"><label for="mpe-fintrabajo">Fin de trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
@@ -319,6 +356,29 @@
       <button class="btn-out" data-act="cerrarModal" data-arg="modal-periodo">Cancelar</button>
     </div>
     <div class="modal-err" id="mpe-err"></div>
+  </div>
+</div>
+
+<!-- MODAL: PERFIL (rúbrica v2) -->
+<div class="modal-overlay" id="modal-perfil" style="display:none" data-act="cerrarModalFondo" data-arg="modal-perfil">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-title" id="modal-perfil-title">Nuevo perfil</div>
+    <div class="field"><label for="mpf-rol">Rol</label><select class="cfg-inp cfg-select" id="mpf-rol" data-change="cambiarRolPerfil"></select></div>
+    <div class="field" id="mpf-desde-field">
+      <label for="mpf-desde">Rige desde el período</label>
+      <select class="cfg-inp cfg-select" id="mpf-desde"></select>
+      <div class="modal-hint" style="font-size:.8rem;color:var(--txt-2);line-height:1.5;margin-top:4px">
+        Debe ser posterior a cualquier período en el que ese rol ya tenga evaluaciones: cambiar pesos hacia atrás movería rankings sin que nadie haya sido evaluado de nuevo.
+      </div>
+    </div>
+    <div class="field"><label>Pesos de los criterios técnicos <span style="font-weight:400;color:var(--txt-2)">(deja vacío lo que no aplique a este rol)</span></label></div>
+    <div id="mpf-pesos" class="v2-pesos"></div>
+    <div class="v2-resumen" aria-live="polite"><span>Suma: <b id="mpf-suma">0</b> / 100 · <span id="mpf-estado"></span></span></div>
+    <div class="modal-actions">
+      <button class="btn-save" data-act="fn" data-arg="savePerfil">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-perfil">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mpf-err"></div>
   </div>
 </div>
 
@@ -426,6 +486,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="core/store.js"></script>
 <script src="core/render.js"></script>
+<script src="core/rubrica.js"></script>
+<script src="core/tareas.js"></script>
 <script src="core/rail.js"></script>
 <script src="core/charts.js"></script>
 <script src="supabase-client.js"></script>

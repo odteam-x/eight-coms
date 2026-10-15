@@ -1,0 +1,123 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Tareas — estilos compartidos por los tres portales (core/tareas.js)
+   Solo tokens de shared.css. El estado nunca va solo en color: cada píldora
+   lleva su texto. El texto secundario usa --txt-2 sobre --surface-1.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Barra: filtros, persona, nueva ────────────────────────────────── */
+.tk-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.tk-filtros { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.tk-chip {
+  min-height: 44px; padding: 0 var(--sp-4); cursor: pointer;
+  background: var(--surface-1); color: var(--txt); border: 1px solid var(--border-hi); border-radius: var(--r-full);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm);
+}
+.tk-chip:hover { border-color: var(--action); }
+.tk-chip--on { background: var(--action-fill); color: var(--action-on); border-color: var(--action-fill); }
+.tk-chip b { margin-left: var(--sp-1); font-variant-numeric: tabular-nums; }
+.tk-persona-sel { min-height: 44px; min-width: 190px; flex: 0 1 240px; }
+.tk-nueva { margin-left: auto; min-height: 44px; }
+
+/* ── Tarjeta ───────────────────────────────────────────────────────── */
+.tk-lista { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.tk-card {
+  background: var(--surface-1); border: 1px solid var(--border); border-left: 3px solid var(--border-hi);
+  border-radius: var(--r-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
+}
+.tk-card--en-curso  { border-left-color: var(--spr); }
+.tk-card--entregada { border-left-color: var(--sbu); }
+.tk-card--aprobada  { border-left-color: var(--sex); }
+.tk-card--devuelta  { border-left-color: var(--sba); }
+.tk-card--bloqueada { border-left-style: dashed; }
+.tk-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+.tk-titulo { margin: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--txt); overflow-wrap: anywhere; }
+.tk-pill {
+  flex: none; padding: 1px var(--sp-3); border: 1px solid currentColor; border-radius: var(--r-full);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; color: var(--txt-2);
+}
+.tk-pill--en-curso  { color: var(--spr-txt); }
+.tk-pill--entregada { color: var(--sbu-txt); }
+.tk-pill--aprobada  { color: var(--sex-txt); }
+.tk-pill--devuelta  { color: var(--sba-txt); }
+.tk-pill--bloqueada { border-style: dashed; }
+
+.tk-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-xs); color: var(--txt-2); }
+.tk-persona { color: var(--txt); font-weight: 600; }
+.tk-tag { border: 1px solid var(--border-hi); border-radius: var(--r-sm); padding: 0 var(--sp-2); color: var(--txt-2); }
+.tk-tag--alta { color: var(--sba-txt); border-color: currentColor; }
+.tk-plazo--vencida { color: var(--sba-txt); font-weight: 600; }
+.tk-prorroga { border-bottom: 1px dotted currentColor; cursor: help; }
+.tk-desc, .tk-crit { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--txt-2); overflow-wrap: anywhere; }
+.tk-crit { font-size: var(--fs-xs); }
+.tk-aviso {
+  background: var(--surface-2); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm); line-height: 1.45; color: var(--txt); overflow-wrap: anywhere;
+}
+.tk-aviso--devuelta { border-left: 3px solid var(--sba); }
+.tk-entrega { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
+.tk-entrega a { color: var(--action); font-weight: 600; }
+
+.tk-acciones { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: auto; padding-top: var(--sp-2); }
+.tk-btn {
+  min-height: 44px; padding: 0 var(--sp-4); cursor: pointer;
+  background: transparent; color: var(--txt); border: 1px solid var(--border-hi); border-radius: var(--r-sm);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm);
+}
+.tk-btn:hover { border-color: var(--action); }
+.tk-btn--main { background: var(--action-fill); color: var(--action-on); border-color: var(--action-fill); }
+.tk-btn--main:hover { background: var(--action-fill-hover); }
+
+/* ── Modal propio (el de admin.css no se carga en miembro/secretario) ─ */
+.tk-overlay {
+  position: fixed; inset: 0; z-index: var(--z-modal); display: none; align-items: flex-start; justify-content: center;
+  padding: var(--sp-5) var(--sp-4); overflow-y: auto; background: rgba(0, 16, 40, .72);
+}
+.tk-box {
+  width: 100%; max-width: 520px; margin: auto; flex: none;
+  background: var(--surface-1); border: 1px solid var(--border-hi); border-radius: var(--r-xl);
+  padding: var(--sp-5); box-shadow: var(--shadow-lg);
+}
+.tk-box .modal-title { font-family: var(--font-display); font-size: var(--fs-lg); letter-spacing: 1px; margin-bottom: var(--sp-4); color: var(--txt); }
+.tk-campo { margin: 0 0 var(--sp-3); padding: 0; border: 0; min-width: 0; }
+.tk-campo label, .tk-campo legend { display: block; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt); margin-bottom: var(--sp-1); padding: 0; }
+.tk-campo .cfg-inp { width: 100%; font-size: 16px; }          /* 16 px: iOS no hace zoom al enfocar */
+.tk-campo textarea.cfg-inp { resize: vertical; }
+.tk-ayuda { display: block; margin-top: var(--sp-1); font-size: var(--fs-xs); color: var(--txt-2); }
+.tk-info { margin: 0 0 var(--sp-3); padding: var(--sp-2) var(--sp-3); background: var(--surface-2); border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--txt); line-height: 1.5; overflow-wrap: anywhere; }
+.tk-checks-lista { max-height: 220px; overflow-y: auto; border: 1px solid var(--border-hi); border-radius: var(--r-sm); padding: var(--sp-1) var(--sp-3); }
+.tk-check { display: flex; align-items: center; gap: var(--sp-3); min-height: 44px; font-size: var(--fs-sm); color: var(--txt); cursor: pointer; }
+.tk-check input { width: 20px; height: 20px; flex: none; accent-color: var(--action); }
+.tk-err { margin-top: var(--sp-2); min-height: 1.2em; font-size: var(--fs-sm); color: var(--sba-txt); line-height: 1.4; }
+.tk-modal-acciones { display: flex; gap: var(--sp-3); margin-top: var(--sp-4); flex-wrap: wrap; }
+.tk-modal-acciones .btn-save[hidden] { display: none; }
+
+.tk-historial { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); }
+.tk-historial li { display: grid; grid-template-columns: 7.5em 1fr; gap: var(--sp-1) var(--sp-3); font-size: var(--fs-sm); color: var(--txt); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--border); }
+.tk-h-cuando { color: var(--txt-2); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; grid-row: span 2; }
+.tk-h-quien { font-weight: 600; }
+.tk-h-que { grid-column: 2; overflow-wrap: anywhere; color: var(--txt-2); }
+
+/* ── Evidencia en Evaluar ──────────────────────────────────────────── */
+.tk-evid { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-4); margin: var(--sp-3) 0; }
+.tk-evid-h { margin: 0 0 var(--sp-3); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--txt); }
+.tk-evid-h span { font-weight: 400; font-size: var(--fs-xs); color: var(--txt-2); margin-left: var(--sp-2); }
+.tk-datos { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); margin-bottom: var(--sp-3); }
+.tk-dato { background: var(--surface-2); border-radius: var(--r-sm); padding: var(--sp-3); }
+.tk-dato--aviso { border-left: 3px solid var(--sba); }
+.tk-dato-val { font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1; color: var(--txt); font-variant-numeric: tabular-nums; }
+.tk-dato-lbl { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt); margin-top: var(--sp-1); }
+.tk-dato-sub { font-size: var(--fs-xs); color: var(--txt-2); }
+.tk-evid-guia { margin: 0 0 var(--sp-3); padding-left: 1.2em; font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.55; }
+.tk-evid-guia strong { color: var(--txt); }
+.tk-evid-p { margin: 0 0 var(--sp-2); font-size: var(--fs-sm); color: var(--txt-2); max-width: 68ch; line-height: 1.5; }
+.tk-evid-lista { margin: var(--sp-2) 0 0; padding: 0; list-style: none; display: grid; gap: var(--sp-2); font-size: var(--fs-sm); color: var(--txt); }
+
+@media (max-width: 767px) {
+  .tk-overlay { padding: var(--sp-3) var(--sp-2); align-items: flex-end; }
+  .tk-box { border-radius: var(--r-xl) var(--r-xl) var(--r-md) var(--r-md); padding: var(--sp-4); max-height: 92dvh; overflow-y: auto; }
+  .tk-modal-acciones { flex-direction: column-reverse; }
+  .tk-modal-acciones > * { width: 100%; }
+  .tk-nueva { margin-left: 0; width: 100%; }
+  .tk-persona-sel { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .tk-card, .tk-chip, .tk-btn { transition: none; } }

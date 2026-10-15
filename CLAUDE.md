@@ -190,19 +190,19 @@ Charts carry `role="img"` with `aria-labelledby` (the section title) and `aria-d
 
 **Member (`user.html`): three destinations.** Mi Score · Entregas · Historial.
 
-- **Entregas** holds the delivered works, the period dates and the calendar. All three answer one question — *what do I owe and when* — and "Períodos" and "Calendario" were the same data (the dates of each PE) split across two tabs.
+- **Entregas** holds **my tasks** (`core/tareas.js`; before migration 0016, the old "registrar trabajo" form), the period dates and the calendar. All three answer one question — *what do I owe and when* — and "Períodos" and "Calendario" were the same data (the dates of each PE) split across two tabs.
 - **Historial** holds only the evolution across periods, which is a different question.
 - The rubric is no longer a tab: it is a `<details>` under the score bars, where "how is this graded?" actually arises.
 
-**Secretary (`secretario.html`): four.** Same consolidation, keeping Ranking (with Mi Distrito) which is secretary-specific.
+**Secretary (`secretario.html`): five.** Same consolidation, keeping Ranking (with Mi Distrito) which is secretary-specific, plus **Tareas** (assign to and review the members of *their own district*; their own tasks live in Entregas — they do not approve themselves).
 
-**Admin: operation vs configuration.** Overview, Evaluar, Usuarios and Reportes stay at top level; Períodos, Calendario, Rúbrica, Roles, Distritos and Gestiones live behind the gear. Previously all nine competed at the same level, so "Evaluar" (daily) sat beside "Rúbrica" (twice a gestión).
+**Admin: operation vs configuration.** Overview, Evaluar, Tareas, Usuarios and Reportes stay at top level; Períodos, Calendario, Rúbrica, Perfiles, Roles, Distritos and Gestiones live behind the gear. Previously all nine competed at the same level, so "Evaluar" (daily) sat beside "Rúbrica" (twice a gestión).
 
 `_ALIAS_TAB` in `user.js` and `secretario.js` maps the old tab names to the new ones so saved links keep working.
 
 ### Supabase Tables
 
-`profiles`, `roles`, `periodos_evaluacion`, `criterios`, `rubrica`, `evaluaciones` (per-user scores), `evaluaciones_distrito`, `calendario`, `config`, `periodo_participantes`, `distritos`, `trabajos_entregados`. Storage bucket: `avatars`.
+`profiles`, `roles`, `periodos_evaluacion`, `criterios`, `rubrica`, `evaluaciones` (per-user scores), `evaluaciones_distrito`, `calendario`, `config`, `periodo_participantes`, `distritos`, `trabajos_entregados`. From 0015: `criterios_v2`, `perfiles_rol`, `perfil_criterios`. From 0016: `tareas`, `tarea_eventos`. Storage bucket: `avatars`.
 
 The `credenciales` table (plaintext passwords) is dropped by migration `0002`. Do not recreate it.
 
@@ -212,6 +212,9 @@ Loaded by `user.html`, `secretario.html` and `admin.html`, right after `config.j
 
 - **`core/store.js`** — single application state. One `periodoId` (UUID) governs the whole page; `Store.setPeriodo()` notifies subscribers so every section repaints together. Also holds the per-tab load policy (`necesitaCarga` / `marcarCargado` / `invalidar`) — one rule for all tabs, with explicit invalidation.
 - **`core/render.js`** — shared presentation helpers, defined as globals because the portals are classic scripts: the `NIVELES` table, `scoreColor/Label/Class`, `getCriterios`, `calcScore` (portal rows) vs `calcScorePuntajes` (admin `puntajes` + bonus), `parseJSON`, `initials`, `setEl`, `pad`, `timeAgo`, `showToast`, `openModal`/`closeModal`, `switchTabCore`, `initScrollEffects`, `updateTimestamp`, and the three view states `renderCargando` / `renderVacio` / `renderError`.
+
+- **`core/rubrica.js`** — presentation for the role-based rubric (v2): `NIVELES_V2`, `perfilVigenteDe`, `criteriosAplicables`, `resultadoV2HTML`, `rankingV2HTML`, `historialV2HTML`, `miScoreV2`. **No formulas** — see "Role-based rubric" below.
+- **`core/tareas.js`** — the `Tareas` module: one list/modal/flow for the three portals (`Tareas.montar`, `Tareas.evidenciaHTML`).
 
 Do not copy these back into the page scripts. They were duplicated across all three portals and had silently diverged.
 
@@ -314,9 +317,39 @@ registration for everyone. The RPC exposes one boolean and nothing else.
 SECURITY DEFINER functions and 5 policies and needs frontend changes in the
 same deploy.
 
+### Role-based rubric, v2 (migration 0015)
+
+Each period declares its `modelo` (`'legacy'` or `'v2'`) and is read with its own calculation; old periods are never rewritten. **v2 and tasks apply only to NEW periods**: every period that exists when 0015 is applied gets `v2_permitido = false` — it stays `legacy` and the database refuses to switch it to v2 (nobody re-grades someone after the fact). Periods created afterwards can use v2; `v2_permitido` is set by the server on insert and nobody changes it. The model of a period also cannot change once it has evaluations. **Every v2 branch in the frontend starts with `esPeriodoV2(periodo)`.** The frontend degrades to `[]` if 0015 is not applied, so it can be deployed before the SQL.
+
+- **24 criteria** (`criterios_v2`, per gestión): 5 *núcleo* (same for every role, compared in absolute value) + 19 *técnicos*. Scale **1–5**, with anchors for 1, 3 and 5 (2 and 4 are in-between). **A criterion that does not apply is excluded, never scored 0**: it is not in the JSON, not on the form, not in the denominator.
+- **Profiles** (`perfiles_rol` + `perfil_criterios`): per role, versioned, technical weights that **sum exactly 100** (deferred constraint trigger). A profile used by any evaluation is **immutable**; a change is `crear_perfil_rol()` → a new version that applies from a period with no evaluations for that role yet. The profile of an evaluation is fixed by the server (`perfil_vigente`) on first save and never changes — the client's `perfil_id`/`modelo` are overwritten.
+- **The calculation lives in the database**, in `resultados_periodo()`, not in JS: it already diverged between portals once (`scoreClass`). Núcleo = mean of `(s−1)/4·100`; Técnico = `Σ peso·(s−1)/4·100 / Σ peso` over scored criteria; Individual = `0.6·Téc + 0.4·Núc`; Percentil = `(pos−1)/(n−1)·100` within the role (ties = mean position, so the best of every role reaches 100); General = `0.4·Núc + 0.6·Percentil`. **Roles with fewer than 4 evaluated people**: percentil := Técnico, `rol_pequeno = true`, and the screens must say so (`.v2-nota--regla`) — unexplained, it reads as favouritism. Only `publicado` evaluations count; the admin may ask for drafts (`p_borradores`) to preview.
+- `resultados_periodo` is `SECURITY DEFINER` because the percentil needs peers a member cannot read; **it filters the rows it returns itself** (admin: all; secretary: district; member: self). No session → error. The guard is the right way round (`IF auth.uid() IS NULL THEN RAISE`) — see "The admin guard was inverted".
+- Levels on 0–100 are the legacy 26/20/11-of-30 thresholds scaled: **87 / 67 / 37** (`NIVELES_V2`); same `--sex…--sba` tokens.
+- No bonus in v2 (`bono_ext` must be 0).
+- `0015_seed_perfiles.PENDIENTE.sql` creates the 8 profiles from the rubric. It is **pending on purpose**: which of the 8 rubric roles maps to which row of `roles` is a data decision. Edit its mapping table first.
+- `abrir_gestion()` (redefined in 0015, same guard as 0008) also clones the v2 catalog and the latest version of each profile; the periods of the new gestión are v2 when the origin has the catalog.
+
+### Tasks (migration 0016)
+
+Tasks give the evaluator facts instead of memory: what was asked, for when, when it was first delivered, how many times it came back, how much was done on one's own initiative.
+
+- **Who can do what is enforced by triggers, not the client.** `tareas_validar_insert/update` fix `origen`, `asignada_por`, `estado`, `entregada_en`, `aprobada_en` and `rondas_revision`; whatever the client sends is overwritten. Admin assigns anyone; a secretary only members of their district; a member only themselves (`origen = 'propia'`). **Nobody reviews their own task** (`puede_revisar_tarea` excludes the assignee, except the admin, who is not evaluated) — that is also what stops "own initiative" from being inflated.
+- States: `asignada → en_curso → entregada → aprobada | devuelta`, plus `bloqueada` (waiting on someone else; needs a reason; **not counted as late**). Returning needs a note; delivering needs a link or a note; the delivery can only be written *at* the moment of delivering.
+- The deadline moves only through `prorrogar_tarea()` (with a reason); `fecha_limite_original` never changes. `tarea_eventos` is append-only and written only by triggers (`REVOKE INSERT/UPDATE/DELETE` from clients).
+- **"On time" is measured on the FIRST delivery**, in the gestión's time zone (`config.zona_horaria`, default `America/Santiago` — confirm it; a wrong zone mislabels deliveries near midnight). Fixing an observation never turns an on-time delivery into a late one.
+- `resumen_tareas_periodo()` is the evidence panel in *Evaluar* (admin). It suggests which núcleo criterion each fact feeds (Plazos ← on time/overdue/moved; Calidad ← returns; Iniciativa ← own tasks *approved by someone else*) and **never scores or pre-fills anything**. Few tasks with a deadline → it says to read it with caution.
+- **Tasks exist only in v2 periods** (the insert trigger rejects any other). 0016 **does not touch** `trabajos_entregados` and copies nothing: legacy periods keep the old "registrar trabajo" form (`renderTrabajosLegacy`), the member/secretary *Entregas* tab picks tasks or the old form by `esPeriodoV2(periodo)`, and the admin/secretary *Tareas* tabs explain it for older periods. Until 0016 is applied, v2 periods fall back to the old form too.
+- `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
+- Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
+
+### Tests (`tools/pruebas/`)
+
+`npm install && npm run todo` there runs 0015 and 0016 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers. `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it now also scans `rubrica.css` and `tareas.css`.
+
 ### Migrations
 
-Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order. `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
+Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015 then 0016**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
 
 ### Password Reset Flow
 
@@ -327,7 +360,7 @@ The reset email redirects to `index.html`. Supabase delivers the token in the UR
 - All user-supplied data rendered via `innerHTML` must go through `escHtml()` (defined in `config.js`)
 - Lucide icons auto-render via MutationObserver in `config.js` — just add `data-lucide` attributes
 - Each page calls `Auth.requireRole()` / `Auth.requireAuth()` on DOMContentLoaded to enforce access; unauthorized users redirect to `index.html`
-- Scoring: 7 criteria × 4 points max = 28 base + 2 bonus = 30 max. Levels: **Excelente ≥26, Bueno ≥20, En Proceso ≥11, Bajo <11** — defined once in the `NIVELES` table in `core/render.js`. `scoreColor`, `scoreLabel` and `scoreClass` all derive from it; never write thresholds inline. (Before Phase 3A, `scoreClass` used 24/18/10 in `user.js`/`admin.js` while the label and colour used 26/20/11, so a score of 25 rendered the text "Bueno" inside an "Excelente"-styled badge.)
+- Scoring (**legacy periods**, `periodos_evaluacion.modelo = 'legacy'`): 7 criteria × 4 points max = 28 base + 2 bonus = 30 max. Levels: **Excelente ≥26, Bueno ≥20, En Proceso ≥11, Bajo <11** — defined once in the `NIVELES` table in `core/render.js`. `scoreColor`, `scoreLabel` and `scoreClass` all derive from it; never write thresholds inline. (Before Phase 3A, `scoreClass` used 24/18/10 in `user.js`/`admin.js` while the label and colour used 26/20/11, so a score of 25 rendered the text "Bueno" inside an "Excelente"-styled badge.)
 - District evaluations use a separate 4-criteria system (CGO, CCT, COM, CEE) with max 7 per criterion
 
 ## Language

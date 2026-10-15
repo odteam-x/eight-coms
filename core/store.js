@@ -21,6 +21,8 @@ const Store = (() => {
     profile:     null,
     periodos:    [],     // [{ id, pe, nombre, activo, inicio, ... }]
     criterios:   [],
+    criteriosV2: [],     // catálogo de la rúbrica v2 (migración 0015)
+    perfiles:    [],     // perfiles por rol con sus pesos (todas las versiones)
     periodoId:   null,   // UUID del período seleccionado
     data:        null,   // libre para uso de cada portal
     lastUpdated: null,

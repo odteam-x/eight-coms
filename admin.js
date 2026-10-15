@@ -27,6 +27,13 @@ let _rankingTab         = 'users';
 let _inactivosPE        = new Set();
 let _evalPECache    = [];
 let _selectedEvalUser = null;
+/** Rúbrica v2 (migración 0015). Vacíos si la migración aún no se aplicó. */
+let _criteriosV2 = [];
+let _perfiles    = [];
+/** Resultados v2 del período en Evaluar, por evaluado_id (incluye borradores). */
+let _resV2 = {};
+/** Estado del formulario v2 abierto: { evaluadoId, perfil, puntajes, claves }. */
+let _formV2 = null;
 
 /* parseJSON → core/render.js */
 
@@ -69,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       { items: [
         { tab:'overview', icono:'layout-dashboard', etiqueta:'Overview' },
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
+        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Usuarios' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
@@ -76,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
         { tab:'calendario', icono:'calendar-days', etiqueta:'Calendario' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
+        { tab:'perfiles',   icono:'sliders-horizontal', etiqueta:'Perfiles' },
         { tab:'roles',      icono:'tag',           etiqueta:'Roles'      },
         { tab:'distritos',  icono:'map-pin',       etiqueta:'Distritos'  },
         { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
@@ -106,6 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderPeriodos();
   renderCriterios();
   renderRubrica();
+  renderPerfiles();
   renderCalendario();
   renderDistPEBar();
   populateDistritoFilters();
@@ -114,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadAllData() {
-  const [users, roles, pes, crits, rub, cal, dists] = await Promise.all([
+  const [users, roles, pes, crits, rub, cal, dists, crV2, perf] = await Promise.all([
     API.getAllUsers(),
     API.getRoles(false),
     API.getPeriodos(),
@@ -122,6 +132,8 @@ async function loadAllData() {
     API.getRubrica(),
     API.getCalendario(),
     API.getDistritos(),
+    API.getCriteriosV2(),
+    API.getPerfiles(),
   ]);
   _users      = users;
   _roles      = roles;
@@ -130,9 +142,12 @@ async function loadAllData() {
   _rubrica    = rub;
   _calendario = cal;
   _distritos  = dists;
+  _criteriosV2 = crV2;
+  _perfiles    = perf;
 
   // getCriterios() de core/render.js lee del Store, no de _criterios.
-  Store.set({ profile: CU, periodos: _periodos, criterios: _criterios, lastUpdated: new Date() });
+  Store.set({ profile: CU, periodos: _periodos, criterios: _criterios,
+              criteriosV2: _criteriosV2, perfiles: _perfiles, lastUpdated: new Date() });
 
   // Gestión elegida por URL (?gestion=). Si está archivada, solo lectura.
   const gs = await API.getGestiones();
@@ -203,7 +218,15 @@ async function loadEvalPEData() {
   if (!_activePE) return;
   const el = document.getElementById('eval-user-list');
   if (el && !_evalPECache.length) el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
+  const v2 = esPeriodoV2(_activePE);
+  const [evs, res] = await Promise.all([
+    API.getEvaluacionesByPE(_activePE.id),
+    // El admin pide también los borradores para ver el avance mientras evalúa.
+    v2 ? API.getResultadosV2(_activePE.id, { borradores: true }) : Promise.resolve({ ok: true, rows: [] }),
+  ]);
+  _evalPECache = evs;
+  _resV2 = Object.fromEntries((res.rows || []).map(r => [r.evaluado_id, r]));
+  if (v2 && !res.ok) showToast('No se pudieron calcular los resultados v2: ' + res.error, 'error');
   renderEvalUserList();
 }
 
@@ -223,11 +246,17 @@ function renderEvalUserList() {
   const evalMap = {};
   _evalPECache.forEach(e => { evalMap[e.evaluado_id] = e; });
   const criterios = getCriterios();
-  const MAX = criterios.length * 4 + 2;
+  const v2  = esPeriodoV2(_activePE);
+  // v2: el puntaje viene de la base (resultados_periodo), escala 0–100.
+  const MAX = v2 ? 100 : criterios.length * 4 + 2;
+  const colFill = v2 ? scoreColorV2    : scoreColor;
+  const colTxt  = v2 ? scoreColorTxtV2 : scoreColorTxt;
 
   const sorted = nonAdmins.map(u => {
     const ev = evalMap[u.id];
-    const score = ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1;
+    const score = v2
+      ? (_resV2[u.id]?.individual ?? -1)
+      : (ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1);
     const estado = ev?.estado || 'pendiente';
     return { ...u, ev, score, estado };
   }).sort((a, b) => {
@@ -245,14 +274,15 @@ function renderEvalUserList() {
       if (u.estado === 'publicado') rank++;
       const medal = u.estado === 'publicado' ? (rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${rank}</span>`) : '';
       const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
+      const sinRol = v2 && !u.rol_id;
       return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" data-act="evaluarUsuario" data-arg="${u.id}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
-          <div class="eval-ucard-meta">${escHtml(u.roles?.nombre||'—')} · ${escHtml(u.distrito||'—')}</div>
+          <div class="eval-ucard-meta">${sinRol ? '<span style="color:var(--marca)">Sin rol: asígnalo en Usuarios</span>' : escHtml(u.roles?.nombre||'—')} · ${escHtml(u.distrito||'—')}</div>
         </div>
-        ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${scoreColor(u.score)}"></div></div></div>
-        <div class="eval-ucard-score" style="color:${scoreColorTxt(u.score)}">${u.score}</div>` : ''}
+        ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${colFill(u.score)}"></div></div></div>
+        <div class="eval-ucard-score" style="color:${colTxt(u.score)}">${v2 ? fmtV2(u.score) : u.score}</div>` : ''}
         <span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>
       </div>`;
     }).join('')}
@@ -264,9 +294,11 @@ async function selectEvalUser(userId) {
   renderEvalUserList();
   const area = document.getElementById('eval-form-area'); if (!area) return;
   area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  // getTrabajosEntregados indexa por periodo_id (UUID). Aquí se le pasaba el
+  // NOMBRE del período, así que el panel de trabajos salía siempre vacío.
   const [ev, trabajos] = await Promise.all([
     API.getEvaluacion(_activePE.id, userId),
-    API.getTrabajosEntregados(userId, _activePE?.nombre || ''),
+    API.getTrabajosEntregados(userId, _activePE?.id || null),
   ]);
   renderEvalForm(ev, userId, trabajos);
   area.scrollIntoView({ behavior:'smooth', block:'nearest' });
@@ -274,6 +306,7 @@ async function selectEvalUser(userId) {
 
 function renderEvalForm(ev, evaluadoId, trabajos) {
   const area = document.getElementById('eval-form-area'); if (!area) return;
+  if (esPeriodoV2(_activePE)) { renderEvalFormV2(ev, evaluadoId, trabajos); return; }
   const criterios  = getCriterios();
   const puntajes   = parseJSON(ev?.puntajes);
   const coms       = parseJSON(ev?.comentarios);
@@ -377,6 +410,7 @@ function setBono(val, btn) {
 
 async function saveEvaluacion(estado, evaluadoId) {
   if (!_activePE) return;
+  if (esPeriodoV2(_activePE)) { await saveEvaluacionV2(estado, evaluadoId); return; }
   const criterios  = getCriterios();
   const puntajes   = {}, comentarios = {};
   criterios.forEach(c => {
@@ -404,9 +438,211 @@ async function saveEvaluacion(estado, evaluadoId) {
   renderEvalUserList();
   const [evNew, trabajos] = await Promise.all([
     API.getEvaluacion(_activePE.id, evaluadoId),
-    API.getTrabajosEntregados(evaluadoId, _activePE?.nombre || ''),
+    API.getTrabajosEntregados(evaluadoId, _activePE?.id || null),
   ]);
   renderEvalForm(evNew, evaluadoId, trabajos);
+}
+
+/* ── EVALUAR v2 (rúbrica por roles, migración 0015) ───────────────────
+ * El formulario se construye desde el PERFIL del rol de la persona: el
+ * núcleo (5, igual para todos) y los técnicos de su rol con su peso. Lo que
+ * no está en el perfil no se muestra ni se puntúa: un criterio que no aplica
+ * se excluye, nunca vale cero. Escala 1–5; los descriptores de 1, 3 y 5 van
+ * a mano y el 2 y el 4 son intermedios.
+ *
+ * Nada se calcula aquí: Núcleo, Técnico, Individual y General salen de la
+ * base (resultados_periodo) y se refrescan tras cada guardado.
+ */
+function trabajosPanelHTML(trabajos) {
+  if (!trabajos?.length) {
+    return `<div class="eval-extras" style="opacity:.5">
+      <div class="eval-extra-label">Trabajos entregados — ${escHtml(_activePE?.nombre || '')}</div>
+      <div style="font-size:.8rem;color:var(--txt-2)">Este miembro no ha entregado trabajos en este período.</div>
+    </div>`;
+  }
+  return `<details class="eval-trabajos-section" open>
+    <summary class="eval-extra-label" style="cursor:pointer;user-select:none">
+      Trabajos entregados — ${escHtml(_activePE?.nombre || '')} <span style="font-weight:400;color:var(--txt-2)">(${trabajos.length})</span>
+    </summary>
+    <div class="eval-trabajos-list">
+      ${trabajos.map(t => `<div class="eval-trabajo-item">
+        <div class="eval-trabajo-title">${escHtml(t.titulo || 'Sin título')}</div>
+        <div class="eval-trabajo-desc">${escHtml(t.descripcion || '')}</div>
+        <div class="eval-trabajo-date">${t.created_at ? new Date(t.created_at).toLocaleDateString('es-CL') : ''}</div>
+      </div>`).join('')}
+    </div>
+  </details>`;
+}
+
+function renderEvalFormV2(ev, evaluadoId, trabajos) {
+  const area = document.getElementById('eval-form-area'); if (!area) return;
+  const evaluado = _users.find(u => u.id === evaluadoId);
+  const estado   = ev?.estado || 'borrador';
+  const coms     = parseJSON(ev?.comentarios);
+  const guardado = parseJSON(ev?.puntajes);
+
+  // El perfil de una evaluación ya guardada es el que fijó el servidor; si
+  // aún no hay evaluación, el vigente para el rol en este período.
+  const perfil = !evaluado?.rol_id ? null
+    : (ev?.perfil_id && _perfiles.find(p => String(p.id) === String(ev.perfil_id)))
+      || perfilVigenteDe(evaluado.rol_id, _activePE.id, _perfiles, _periodos);
+
+  const cabecera = `
+    <div class="eval-form-header">
+      <div>
+        <div class="eval-miembro-name">${escHtml(evaluado?.nombre || '—')}</div>
+        <div class="eval-miembro-rol">${escHtml(evaluado?.roles?.nombre || 'Sin rol')}${evaluado?.distrito ? ' · ' + escHtml(evaluado.distrito) : ''}${perfil ? ' · perfil v' + perfil.version : ''}</div>
+      </div>
+      <span class="eval-estado-badge estado--${estado}">${estado}</span>
+    </div>`;
+
+  if (!perfil) {
+    _formV2 = null;
+    area.innerHTML = `<div class="eval-form-card">${cabecera}
+      <div class="v2-nota v2-nota--regla" role="alert">
+        ${!evaluado?.rol_id
+          ? '<strong>Esta persona no tiene rol.</strong> Asígnalo en <em>Usuarios</em> para poder evaluarla: cada rol tiene su propio formulario.'
+          : `<strong>No hay perfil de evaluación para el rol ${escHtml(evaluado?.roles?.nombre || '')}.</strong> Créalo en <em>Configuración → Perfiles</em>.`}
+      </div></div>`;
+    return;
+  }
+
+  const ap = criteriosAplicables(perfil, _criteriosV2);
+  _formV2 = {
+    evaluadoId, perfilId: perfil.id,
+    claves: [...ap.nucleo, ...ap.tecnicos].map(c => c.key),
+    puntajes: Object.fromEntries(Object.entries(guardado).map(([k, v]) => [k, Number(v)])),
+  };
+
+  const fila = c => `
+    <div class="v2-crit">
+      <div class="v2-crit-head">
+        <div class="v2-crit-nombre">${escHtml(c.nombre)}</div>
+        ${c.peso != null ? `<div class="v2-crit-peso">Peso ${c.peso}</div>` : ''}
+      </div>
+      <div class="v2-score" role="group" aria-label="Puntaje de ${escHtml(c.nombre)}">
+        ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="${_formV2.puntajes[c.key] === n ? 'active' : ''}"
+          data-act="puntajeV2" data-arg="${escHtml(c.key)}" data-arg2="${n}"
+          aria-pressed="${_formV2.puntajes[c.key] === n}">${n}</button>`).join('')}
+      </div>
+      <details class="v2-det"><summary>Descriptores 1 · 3 · 5</summary>${descriptoresHTML(c)}</details>
+      <input class="cfg-inp eval-com-inp" type="text" id="com-${escHtml(c.key)}" aria-label="Comentario sobre ${escHtml(c.nombre)}"
+        placeholder="Comentario (opcional)" value="${escHtml(coms[c.key] || '')}">
+    </div>`;
+
+  const r = _resV2[evaluadoId];
+  const resumen = r ? `
+      <span>Núcleo <b>${fmtV2(r.nucleo)}</b></span>
+      <span>Técnico <b>${fmtV2(r.tecnico)}</b></span>
+      <span>Individual <b>${fmtV2(r.individual)}</b></span>
+      <span>General <b>${fmtV2(r.general)}</b>${r.rol_pequeno ? ' <small>(rol pequeño)</small>' : ''}</span>` : '';
+
+  const isPub = estado === 'publicado';
+  area.innerHTML = `
+    <div class="eval-form-card">
+      ${cabecera}
+      <div id="v2-evidencia"></div>
+      <div id="v2-trabajos">${trabajosPanelHTML(trabajos)}</div>
+      <div class="v2-form-sec">Núcleo transversal<small>Igual para los ocho roles. Se compara en valor absoluto.</small></div>
+      ${ap.nucleo.map(fila).join('')}
+      <div class="v2-form-sec">Criterios técnicos de ${escHtml(evaluado?.roles?.nombre || 'su rol')}<small>Solo se compara con quienes tienen el mismo rol. Ordenados por peso.</small></div>
+      ${ap.tecnicos.map(fila).join('')}
+      <p class="v2-fuera"><strong>No se evalúan (${ap.fuera.length}):</strong> ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}. No aparecen en este formulario y no entran al denominador.</p>
+
+      <div class="eval-extras">
+        <label class="eval-extra-label" for="com-general">Notas / Comentario general</label>
+        <textarea class="cfg-inp eval-com-inp" id="com-general" rows="3" placeholder="Notas del evaluador...">${escHtml(coms.general || '')}</textarea>
+      </div>
+
+      <div class="v2-resumen" aria-live="polite">
+        <span id="v2-progreso"></span>${resumen}
+      </div>
+
+      ${isPub
+        ? `<div class="eval-pub-info"><span class="eval-pub-dot"></span>Evaluación publicada — visible para el miembro</div>
+           <div class="eval-actions">
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
+             <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
+           </div>`
+        : `<div class="eval-actions">
+             <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Guardar borrador</button>
+             <button class="btn-save btn-publish" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Publicar evaluación</button>
+           </div>`}
+    </div>`;
+  actualizarProgresoV2();
+  cargarEvidenciaV2(evaluadoId);
+}
+
+/**
+ * Hechos de las tareas del período para quien evalúa. Solo sugiere a qué
+ * criterio alimentan; no puntúa ni rellena nada. Si las tareas no están
+ * activadas, el panel no aparece y queda el de «Trabajos entregados».
+ */
+async function cargarEvidenciaV2(evaluadoId) {
+  const periodoId = _activePE?.id;
+  const [resumen, lista] = await Promise.all([
+    API.getResumenTareas(periodoId),
+    API.getTareas({ periodoId, userId: evaluadoId }),
+  ]);
+  // El formulario pudo cambiar de persona mientras llegaba la respuesta.
+  if (!_formV2 || _formV2.evaluadoId !== evaluadoId) return;
+  const host = document.getElementById('v2-evidencia');
+  if (!host || !resumen.ok || !lista.ok) return;
+  host.innerHTML = Tareas.evidenciaHTML(resumen.porUsuario[evaluadoId] || null, lista.tareas);
+  document.getElementById('v2-trabajos')?.remove();   // ya migrados a tareas
+}
+
+/** Clic en un puntaje: vuelve a pulsar el activo para dejarlo sin puntuar. */
+function setScoreV2(key, n, btn) {
+  if (!_formV2) return;
+  if (_formV2.puntajes[key] === n) delete _formV2.puntajes[key];
+  else _formV2.puntajes[key] = n;
+  btn.closest('.v2-score').querySelectorAll('button').forEach(b => {
+    const on = Number(b.dataset.arg2) === _formV2.puntajes[key];
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  actualizarProgresoV2();
+}
+
+function actualizarProgresoV2() {
+  const el = document.getElementById('v2-progreso'); if (!el || !_formV2) return;
+  const hechos = _formV2.claves.filter(k => _formV2.puntajes[k]).length;
+  const faltan = _formV2.claves.length - hechos;
+  el.innerHTML = faltan
+    ? `<b>${hechos}</b> de ${_formV2.claves.length} criterios · <span class="v2-faltan">faltan ${faltan} para poder publicar</span>`
+    : `<b>${hechos}</b> de ${_formV2.claves.length} criterios · completa`;
+}
+
+async function saveEvaluacionV2(estado, evaluadoId) {
+  if (!_formV2 || _formV2.evaluadoId !== evaluadoId) return;
+  const faltan = _formV2.claves.filter(k => !_formV2.puntajes[k]);
+  if (estado === 'publicado' && faltan.length) {
+    showToast(`No se puede publicar: faltan ${faltan.length} criterio${faltan.length === 1 ? '' : 's'} por puntuar.`, 'error');
+    return;
+  }
+  const comentarios = {};
+  _formV2.claves.forEach(k => {
+    const v = document.getElementById(`com-${k}`)?.value.trim();
+    if (v) comentarios[k] = v;
+  });
+  const gen = document.getElementById('com-general')?.value.trim();
+  if (gen) comentarios.general = gen;
+
+  // modelo y perfil_id los fija el servidor; el bono no existe en v2.
+  const res = await API.upsertEvaluacion({
+    periodo_id: _activePE.id, evaluado_id: evaluadoId, evaluador_id: CU.id,
+    puntajes: _formV2.puntajes, bono_ext: 0, comentarios, estado,
+  });
+  if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
+  showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
+
+  await loadEvalPEData();
+  const [evNew, trabajos] = await Promise.all([
+    API.getEvaluacion(_activePE.id, evaluadoId),
+    API.getTrabajosEntregados(evaluadoId, _activePE?.id || null),
+  ]);
+  renderEvalFormV2(evNew, evaluadoId, trabajos);
 }
 
 /* ── TAB: USUARIOS ── */
@@ -809,7 +1045,7 @@ function renderPeriodos() {
       <div class="tbl-body">
         ${list.map(p => `
           <div class="tbl-row">
-            <div class="tbl-cell"><strong>${escHtml(p.nombre)}</strong></div>
+            <div class="tbl-cell"><strong>${escHtml(p.nombre)}</strong>${p.modelo === 'v2' ? ' <span class="estado-pill pill--ok" title="Rúbrica por roles">v2</span>' : ''}</div>
             <div class="tbl-cell tbl-muted">${escHtml(p.descripcion || '—')}</div>
             <div class="tbl-cell">
               <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
@@ -834,6 +1070,17 @@ function showPeriodoModal(id) {
   document.getElementById('mpe-entrega').value    = p.fecha_entrega || '';
   document.getElementById('mpe-jornada').value    = p.fecha_jornada || '';
   document.getElementById('mpe-activo').checked   = !!p.activo;
+  // El modelo solo se ofrece si la migración 0015 está aplicada. Un período
+  // nuevo arranca en v2 si ya hay perfiles; uno existente conserva el suyo.
+  document.getElementById('mpe-modelo-field').hidden = !v2Disponible();
+  document.getElementById('mpe-modelo').value = p.modelo || (_perfiles.length ? 'v2' : 'legacy');
+  // Un período que ya existía antes de la rúbrica por roles conserva su
+  // evaluación original: la base lo impide, aquí se explica en vez de ofrecerlo.
+  const bloqueado = !!p.id && p.v2_permitido === false;
+  document.getElementById('mpe-modelo').disabled = bloqueado;
+  document.getElementById('mpe-modelo-ayuda').textContent = bloqueado
+    ? 'Este período es anterior a la rúbrica por roles: conserva su evaluación original y no puede cambiar de modelo.'
+    : 'No se puede cambiar una vez que el período tiene evaluaciones.';
   setEl('modal-periodo-title', p.id ? 'Editar período' : 'Nuevo período');
   document.getElementById('mpe-err').textContent = '';
   openModal('modal-periodo');
@@ -854,7 +1101,12 @@ async function savePeriodo() {
     jornada:    document.getElementById('mpe-jornada').value    || null,
   };
 
-  const res = await API.savePeriodo({ id: id || null, nombre, descripcion: desc, fechas });
+  const res = await API.savePeriodo({
+    id: id || null, nombre, descripcion: desc, fechas,
+    // Un select deshabilitado (período anterior) no se envía: no se toca el modelo.
+    modelo: v2Disponible() && !document.getElementById('mpe-modelo').disabled
+      ? document.getElementById('mpe-modelo').value : null,
+  });
   if (!res.ok) { err.textContent = res.error; return; }
 
   // El flag `activo` NO va en el update: lo cambia el RPC set_periodo_activo,
@@ -1418,6 +1670,7 @@ async function loadOverview() {
     bodyEl.innerHTML = `<div class="empty-box"><div class="empty-txt">No hay períodos. Crea uno en la pestaña Períodos.</div></div>`;
     return;
   }
+  if (esPeriodoV2(_activePEOv)) { await renderResumenV2(bodyEl, _activePEOv); return; }
   bodyEl.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
   const [evals, distEvals, participantes] = await Promise.all([
     API.getEvaluacionesByPE(_activePEOv.id),
@@ -1636,12 +1889,216 @@ function switchRankTab(tab) {
   });
 }
 
+/* ══════════════════════════════════════════════════
+   TAB: PERFILES (rúbrica v2)
+   Cada rol se evalúa con el núcleo transversal más sus criterios técnicos;
+   los pesos suman 100 y esa suma la valida la base. Un perfil que ya se usó
+   no se edita: se crea una versión nueva que rige desde un período posterior
+   (crear_perfil_rol). Editar en caliente movería rankings hacia atrás sin
+   que nadie haya sido evaluado de nuevo.
+   ══════════════════════════════════════════════════ */
+
+/** ¿Está aplicada la migración 0015? Sin ella no hay catálogo ni columna. */
+const v2Disponible = () => _criteriosV2.length > 0 || (_periodos[0] && 'modelo' in _periodos[0]);
+
+function renderPerfiles() {
+  const el = document.getElementById('perfiles-list'); if (!el) return;
+  if (!v2Disponible()) {
+    renderVacio(el, 'La rúbrica por roles aún no está activada en la base de datos (migración 0015).');
+    return;
+  }
+  const nombrePeriodo = id => _periodos.find(p => String(p.id) === String(id))?.nombre;
+  const catalogo = Object.fromEntries(_criteriosV2.map(c => [c.key, c.nombre]));
+
+  const roles = _roles.filter(r => r.activo);
+  el.innerHTML = roles.map(r => {
+    const versiones = _perfiles.filter(p => String(p.rol_id) === String(r.id)).sort((a, b) => b.version - a.version);
+    const gente = _users.filter(u => !u.es_admin && String(u.rol_id) === String(r.id)).length;
+    const peq = gente < 4;
+    return `
+      <section class="v2-rol-card" aria-label="Perfil de ${escHtml(r.nombre)}">
+        <div class="v2-rol-head">
+          <div>
+            <h3 class="v2-h" style="margin:0">${escHtml(r.nombre)}</h3>
+            <div class="v2-sub">${gente} persona${gente === 1 ? '' : 's'} con este rol${peq ? ' · <span style="color:var(--marca)">menos de 4: se evalúa contra la rúbrica, no contra pares</span>' : ''}</div>
+          </div>
+          <button class="btn-cfg-add" data-act="modalPerfil" data-arg="${r.id}">${versiones.length ? '+ Nueva versión' : '+ Crear perfil'}</button>
+        </div>
+        ${versiones.length ? versiones.map((v, i) => `
+          <div class="v2-version${i === 0 ? ' v2-version--vigente' : ''}">
+            <div class="v2-version-head">
+              <strong>Versión ${v.version}</strong>
+              <span class="v2-sub">${v.vigente_desde_periodo ? 'rige desde ' + escHtml(nombrePeriodo(v.vigente_desde_periodo) || '—') : 'rige desde el inicio de la gestión'}</span>
+            </div>
+            <div class="v2-chips">${[...v.perfil_criterios].sort((a, b) => b.peso - a.peso).map(c =>
+              `<span class="v2-chip"><span>${escHtml(catalogo[c.criterio_key] || c.criterio_key)}</span><b>${c.peso}</b></span>`).join('')}</div>
+          </div>`).join('')
+        : '<div class="v2-nota v2-nota--regla" role="alert">Sin perfil: las personas con este rol no se pueden evaluar en períodos v2.</div>'}
+      </section>`;
+  }).join('') || '<div class="empty-box"><div class="empty-txt">No hay roles activos. Créalos en Roles.</div></div>';
+
+  const cat = document.getElementById('catalogo-v2');
+  if (cat) {
+    const grupo = (titulo, tipo) => `
+      <h4 class="v2-h">${titulo}</h4>
+      ${_criteriosV2.filter(c => c.tipo === tipo).map(c => `
+        <details class="v2-det v2-cat-item"><summary>${escHtml(c.nombre)}</summary>${descriptoresHTML(c)}</details>`).join('')}`;
+    cat.innerHTML = grupo('Núcleo transversal (5)', 'nucleo') + grupo('Criterios técnicos (19)', 'tecnico');
+  }
+}
+
+function showPerfilModal(rolId) {
+  if (!v2Disponible()) { showToast('Aplica primero la migración 0015.', 'error'); return; }
+  const sel = document.getElementById('mpf-rol');
+  sel.innerHTML = _roles.filter(r => r.activo)
+    .map(r => `<option value="${r.id}">${escHtml(r.nombre)}</option>`).join('');
+  if (rolId != null && rolId !== '') sel.value = String(rolId);
+
+  // Por defecto entra en vigor el período siguiente al activo (o el último).
+  const activo = _periodos.findIndex(p => p.activo);
+  const sugerido = _periodos[Math.min(activo + 1, _periodos.length - 1)] || _periodos[_periodos.length - 1];
+  document.getElementById('mpf-desde').innerHTML = _periodos
+    .map(p => `<option value="${p.id}">${escHtml(p.nombre)}</option>`).join('');
+  if (sugerido) document.getElementById('mpf-desde').value = sugerido.id;
+
+  document.getElementById('mpf-pesos').innerHTML = _criteriosV2.filter(c => c.tipo === 'tecnico').map(c => `
+    <div class="v2-peso-fila">
+      <label for="mpf-w-${escHtml(c.key)}">${escHtml(c.nombre)}</label>
+      <input class="cfg-inp" type="number" min="0" max="100" step="1" inputmode="numeric"
+        id="mpf-w-${escHtml(c.key)}" data-key="${escHtml(c.key)}" data-input="actualizarSumaPerfil" placeholder="0">
+    </div>`).join('');
+  document.getElementById('mpf-err').textContent = '';
+  cambiarRolPerfil();
+  openModal('modal-perfil');
+}
+
+/** Al elegir rol: rellena con la última versión y decide si hay "desde". */
+function cambiarRolPerfil() {
+  const rolId = document.getElementById('mpf-rol').value;
+  const previas = _perfiles.filter(p => String(p.rol_id) === String(rolId)).sort((a, b) => b.version - a.version);
+  const ultima = previas[0];
+  document.querySelectorAll('#mpf-pesos input').forEach(i => { i.value = ''; });
+  (ultima?.perfil_criterios || []).forEach(c => {
+    const i = document.getElementById('mpf-w-' + c.criterio_key);
+    if (i) i.value = c.peso;
+  });
+  document.getElementById('mpf-desde-field').hidden = !ultima;
+  setEl('modal-perfil-title', ultima ? `Nueva versión (v${ultima.version + 1})` : 'Nuevo perfil (versión 1)');
+  actualizarSumaPerfil();
+}
+
+function _pesosDelModal() {
+  const pesos = {};
+  document.querySelectorAll('#mpf-pesos input').forEach(i => {
+    const n = parseInt(i.value, 10);
+    if (Number.isFinite(n) && n > 0) pesos[i.dataset.key] = n;
+  });
+  return pesos;
+}
+
+function actualizarSumaPerfil() {
+  const suma = Object.values(_pesosDelModal()).reduce((a, b) => a + b, 0);
+  const el = document.getElementById('mpf-suma'); if (!el) return;
+  el.textContent = suma;
+  el.parentElement.classList.toggle('v2-faltan', suma !== 100);
+  document.getElementById('mpf-estado').textContent =
+    suma === 100 ? 'Suma correcta' : suma < 100 ? `faltan ${100 - suma}` : `sobran ${suma - 100}`;
+}
+
+async function savePerfil() {
+  const err   = document.getElementById('mpf-err');
+  const rolId = Number(document.getElementById('mpf-rol').value);
+  const pesos = _pesosDelModal();
+  const suma  = Object.values(pesos).reduce((a, b) => a + b, 0);
+  if (!rolId) { err.textContent = 'Elige un rol.'; return; }
+  if (suma !== 100) { err.textContent = `Los pesos deben sumar exactamente 100 (suman ${suma}).`; return; }
+
+  const hayPrevias = _perfiles.some(p => Number(p.rol_id) === rolId);
+  const res = await API.crearPerfilRol({
+    rolId, pesos,
+    vigenteDesde: hayPrevias ? document.getElementById('mpf-desde').value : null,
+  });
+  // Los mensajes de la base ya vienen redactados (período con evaluaciones,
+  // suma, etc.); se muestran tal cual.
+  if (!res.ok) { err.textContent = res.error; return; }
+
+  showToast('Perfil guardado', 'ok');
+  closeModal('modal-perfil');
+  _perfiles = await API.getPerfiles();
+  Store.set({ perfiles: _perfiles });
+  renderPerfiles();
+}
+
+/* ── Resumen de un período v2 (Overview y Reportes) ──
+ * El cálculo viene de la base; esto solo lo presenta. */
+async function renderResumenV2(el, periodo) {
+  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  const res = await API.getResultadosV2(periodo.id);
+  if (!res.ok) { renderError(el, res.error, () => renderResumenV2(el, periodo)); return; }
+  const rows = res.rows;
+  const total = _users.filter(u => !u.es_admin).length;
+  const prom = rows.length ? rows.reduce((s, r) => s + (r.individual || 0), 0) / rows.length : null;
+  const top  = rows.length ? Math.max(...rows.map(r => r.individual ?? 0)) : null;
+  const kpi = (lbl, val, color) => `
+    <div class="v2-kpi"><div class="v2-kpi-val" style="color:${color || 'var(--txt)'}">${val}</div><div class="v2-kpi-lbl">${lbl}</div></div>`;
+  el.innerHTML = `
+    <div class="v2-kpis">
+      ${kpi('Evaluados', `${rows.length}<span>/${total}</span>`)}
+      ${kpi('Pendientes', Math.max(0, total - rows.length))}
+      ${kpi('Promedio individual', prom == null ? '—' : fmtV2(prom), prom == null ? null : scoreColorTxtV2(prom))}
+      ${kpi('Mejor individual', top == null ? '—' : fmtV2(top), top == null ? null : scoreColorTxtV2(top))}
+    </div>
+    ${rankingV2HTML(rows)}`;
+}
+
+/* ══════════════════════════════════════════════════
+   TAB: TAREAS
+   La lista, los modales y las reglas viven en core/tareas.js; las reglas de
+   verdad (quién pasa de qué estado a cuál) las impone la base.
+   ══════════════════════════════════════════════════ */
+let _activePETareas = null;
+
+function abrirTareas() {
+  if (!_periodos.length) {
+    document.getElementById('tareas-lista').innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos. Crea uno en Períodos.</div></div>';
+    return;
+  }
+  if (!_activePETareas) _activePETareas = _periodos.find(p => p.activo) || _periodos[0];
+  const bar = document.getElementById('tareas-pe-btns');
+  bar.innerHTML = _periodos.map(p =>
+    `<button class="pb${p.id === _activePETareas.id ? ' active' : ''}" data-act="peTareas" data-arg="${p.id}">${escHtml(p.nombre)}</button>`).join('');
+  montarTareas();
+}
+
+function selectTareasPE(periodoId, btn) {
+  _activePETareas = _periodos.find(p => String(p.id) === String(periodoId)) || _activePETareas;
+  document.querySelectorAll('#tareas-pe-btns .pb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  montarTareas();
+}
+
+function montarTareas() {
+  // Las tareas existen solo en los períodos nuevos (rúbrica por roles).
+  if (!esPeriodoV2(_activePETareas)) {
+    document.getElementById('tareas-lista').innerHTML =
+      '<div class="empty-box"><div class="empty-txt">Las tareas están disponibles en los períodos nuevos, con la rúbrica por roles. Este período conserva su forma de entrega original: elige uno más reciente.</div></div>';
+    return;
+  }
+  Tareas.montar({
+    id: 'adm-tareas', el: document.getElementById('tareas-lista'),
+    periodoId: _activePETareas.id, yo: CU.id, revisor: true, esAdmin: true,
+    personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })),
+    onNoDisponible: () => renderVacio(document.getElementById('tareas-lista'),
+      'Las tareas aún no están activadas en la base de datos (migración 0016).'),
+  });
+}
+
 /* ── TABS ── */
 /* Operación suelta; todo lo de configuración cuelga del engranaje, cuyo
    botón padre es `periodos`. */
 const _tabParentMap = {
-  overview:'overview', evaluar:'evaluar', usuarios:'usuarios', reportes:'reportes',
-  periodos:'periodos', calendario:'periodos', rubrica:'periodos',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes',
+  periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
 
@@ -1711,6 +2168,8 @@ async function confirmarAbrirGestion() {
 
 function switchTabAdminHooks(tab) {
   if (tab === 'gestiones') renderGestiones();
+  if (tab === 'perfiles') renderPerfiles();
+  if (tab === 'tareas') abrirTareas();
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }
@@ -1754,6 +2213,7 @@ async function selectRptPE(periodoId, _btn) {
 function renderAdminReport() {
   const el = document.getElementById('rpt-body'); if (!el) return;
   if (!_rptPE) { el.innerHTML = '<div class="empty-box" style="margin-top:40px"><div class="empty-txt">Selecciona un período para generar el reporte.</div></div>'; return; }
+  if (esPeriodoV2(_rptPE)) { renderResumenV2(el, _rptPE); return; }
 
   const criterios = getCriterios();
   const evals     = _rptEvals[_rptPE.id] || [];

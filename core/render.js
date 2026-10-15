@@ -142,6 +142,7 @@ const _ACCIONES_ESCRITURA = new Set([
   'borrarCriterio','borrarPeriodo','borrarRol','borrarRubrica','borrarTrabajo',
   'modalCal','modalCriterio','modalPeriodo','modalRol','modalRubrica',
   'bono','puntaje','puntajeDist','guardarEval','guardarDist',
+  'puntajeV2','showPerfilModal','savePerfil','modalPerfil','cambiarRolPerfil',
   'participante','aprobarUser',
   'onCambioDistritoUsuario','onCambioTipoUsuario','onCambioRolUsuario',
   'onCambioAdminUsuario','handleAvatarUpload',
