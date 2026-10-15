@@ -1253,10 +1253,10 @@ function renderRubrica() {
     return;
   }
   const levels = [
-    { n:4, lbl:'Excelente', color:'var(--sex)' },
-    { n:3, lbl:'Bueno',     color:'var(--sbu)' },
-    { n:2, lbl:'En Proceso',color:'var(--spr)' },
-    { n:1, lbl:'Bajo',      color:'var(--sba)' },
+    { n:4, lbl:'Excelente', color:'var(--sex-txt)' },
+    { n:3, lbl:'Bueno',     color:'var(--sbu-txt)' },
+    { n:2, lbl:'En Proceso',color:'var(--spr-txt)' },
+    { n:1, lbl:'Bajo',      color:'var(--sba-txt)' },
   ];
   const lk = { 4:'nivel4', 3:'nivel3', 2:'nivel2', 1:'nivel1' };
   el.innerHTML = rubList.map((r, i) => {
@@ -1749,19 +1749,19 @@ function renderOverview() {
         <div class="kpi-sub" style="color:${pending>0?'var(--spr)':'var(--sex)'}">${pending} pendiente${pending!==1?'s':''}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="color:var(--sbu)">${ICONS.activity}</div>
+        <div class="kpi-icon" style="color:var(--sbu-txt)">${ICONS.activity}</div>
         <div class="kpi-val" style="color:${avgScore?scoreColor(Number(avgScore)):'var(--muted)'}">${avgScore || '—'}</div>
         <div class="kpi-lbl">Score promedio</div>
         <div class="kpi-sub">Máx. ${MAX} pts</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="color:var(--sex)">${ICONS.award}</div>
+        <div class="kpi-icon" style="color:var(--sex-txt)">${ICONS.award}</div>
         <div class="kpi-val" style="color:${topScore != null ? scoreColorTxt(topScore) : 'var(--txt-muted)'}">${topScore ?? '—'}</div>
         <div class="kpi-lbl">Mejor score</div>
         <div class="kpi-sub">${escHtml(scored[0]?.user?.nombre?.split(' ')[0] || '—')}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="color:var(--spr)">${ICONS.calendar}</div>
+        <div class="kpi-icon" style="color:var(--spr-txt)">${ICONS.calendar}</div>
         <div class="kpi-val">${_periodos.length}</div>
         <div class="kpi-lbl">Períodos</div>
         <div class="kpi-sub">${_periodos.filter(p=>p.activo).length} activo(s)</div>
@@ -1847,7 +1847,7 @@ function renderOverview() {
             const n   = dist[l.key]||0;
             const pct = scored.length ? Math.round(n/scored.length*100) : 0;
             return `<div class="level-dist-row">
-              <div class="level-dist-lbl" style="color:${escHtml(l.color)}">${l.lbl}</div>
+              <div class="level-dist-lbl" style="color:var(--${l.key}-txt)">${l.lbl}</div>
               <div class="level-dist-bar"><div class="level-dist-fill" style="width:${pct}%;background:${escHtml(l.color)}"></div></div>
               <div class="level-dist-num">${n}</div>
             </div>`;
@@ -2055,7 +2055,7 @@ async function renderResumenV2(el, periodo) {
   const prom = rows.length ? rows.reduce((s, r) => s + (r.individual || 0), 0) / rows.length : null;
   const top  = rows.length ? Math.max(...rows.map(r => r.individual ?? 0)) : null;
   const kpi = (lbl, val, color) => `
-    <div class="v2-kpi"><div class="v2-kpi-val" style="color:${color || 'var(--txt)'}">${val}</div><div class="v2-kpi-lbl">${lbl}</div></div>`;
+    <div class="v2-kpi"><div class="v2-kpi-val">${val}</div><div class="v2-kpi-lbl">${lbl}</div></div>`;
   el.innerHTML = `
     <div class="v2-kpis">
       ${kpi('Evaluados', `${rows.length}<span>/${total}</span>`)}
@@ -2287,7 +2287,7 @@ function renderAdminReport() {
           </div>`;
         }).join('')}
         <div class="rpt-ind-bar-row">
-          <div class="rpt-ind-bar-lbl" style="color:var(--sex)">BONO</div>
+          <div class="rpt-ind-bar-lbl" style="color:var(--sex-txt)">BONO</div>
           <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${(e.bono_ext||0)/2*100}%;background:var(--sex)"></div></div>
           <div class="rpt-ind-bar-val">${e.bono_ext||0}/2</div>
         </div>
@@ -2330,10 +2330,10 @@ function renderAdminReport() {
 
     <div class="rpt-kpi-row">
       <div class="rpt-kpi"><div class="rpt-kpi-val">${nonAdmins.length}</div><div class="rpt-kpi-lbl">Miembros</div></div>
-      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${evaluated}</div><div class="rpt-kpi-lbl">Evaluados</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex-txt)">${evaluated}</div><div class="rpt-kpi-lbl">Evaluados</div></div>
       <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--data)">${avgScore}</div><div class="rpt-kpi-lbl">Promedio</div></div>
-      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex)">${topScore}</div><div class="rpt-kpi-lbl">Puntaje más alto</div></div>
-      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sba)">${unevaluated}</div><div class="rpt-kpi-lbl">Sin evaluar</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sex-txt)">${topScore}</div><div class="rpt-kpi-lbl">Puntaje más alto</div></div>
+      <div class="rpt-kpi"><div class="rpt-kpi-val" style="color:var(--sba-txt)">${unevaluated}</div><div class="rpt-kpi-lbl">Sin evaluar</div></div>
     </div>
 
     ${evaluated === 0 ? `<div class="empty-box" style="margin:32px 0"><div class="empty-txt">No hay evaluaciones publicadas en este período.</div></div>` : `

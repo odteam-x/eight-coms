@@ -163,6 +163,7 @@ const TEXTO = {
 /** Pares "sobre su propio relleno": texto y fondo van en pareja. */
 const PARES_FIJOS = [
   ['--action-on', '--action-fill', 4.5, 'etiqueta del botón primario'],
+  ['--alert-on',  '--alert',       4.5, 'botón destructivo'],
   ['--nivel-on',  '--sex',         4.5, 'píldora Excelente'],
   ['--nivel-on',  '--sbu',         4.5, 'píldora Bueno'],
   ['--nivel-on',  '--spr',         4.5, 'píldora En Proceso'],

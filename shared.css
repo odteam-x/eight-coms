@@ -58,6 +58,7 @@
   --action: var(--blue-500);   /* 5.23  acción, foco, enlace            */
   --data:   var(--cyan-400);   /* 10.03 RELLENO de barra y gráfico      */
   --alert:  var(--coral);      /* 6.48  alerta y destructivo            */
+  --alert-on: var(--navy-900); /* texto sobre un relleno --alert (5.60) */
 
   /* --data se validó como RELLENO (umbral 3:1) y el código lo reutilizaba
      como color de TEXTO, donde el umbral es 4.5. En claro daba 3.62 sobre
@@ -135,6 +136,14 @@
   --shadow-md:0 4px 16px rgba(0,0,0,.35);
   --shadow-lg:0 12px 40px rgba(0,0,0,.45);
 
+  /* ── FORMA DURA (identidad) ───────────────────────────────────────────
+     Las piezas de la marca son bloques planos de color con esquinas vivas,
+     no tarjetas redondeadas con sombra difusa. --trazo es el contorno y
+     --sombra-dura la sombra desplazada, sin difuminar. */
+  --trazo:        rgba(167,232,255,.34);
+  --sombra-dura:  6px 6px 0 var(--blue-700);
+  --sombra-dura-hover: 9px 9px 0 var(--cyan-400);
+
   /* ── TIPOGRAFÍA — tres familias, un rol cada una ─────────────────────── */
   --font-display:'Barlow Condensed',system-ui,sans-serif;  /* números y títulos */
   --font-ui:     'Barlow',system-ui,sans-serif;            /* etiquetas, botones */
@@ -166,8 +175,9 @@
   --s3:var(--surface-3);  --s4:var(--surface-3);
   --glass:var(--surface-1); --glass-border:var(--border); --glass-hi:var(--border-hi);
   --faint:var(--border);  --border-glow:var(--border-hi);
-  --accent:var(--action); --blue:var(--action); --cyan:var(--data); --red:var(--alert);
-  --green:var(--sex);     --gold:var(--spr);
+  /* Los alias viejos se usaban como COLOR DE TEXTO: apuntan a las rampas de texto. */
+  --accent:var(--action); --blue:var(--action); --cyan:var(--data-txt); --red:var(--alert);
+  --green:var(--sex-txt); --gold:var(--spr-txt);
   --purple:var(--data);   --orange:var(--data); --teal:var(--data);
   --muted:var(--txt-muted); --text-muted:var(--txt-muted); --text-strong:var(--txt);
   --desc-txt:var(--txt-2);  --fb-txt:var(--txt-2);
@@ -199,6 +209,7 @@
   --action: #0068C9;   /* 5.07 sobre --bg; no se usa como texto en s2/s3 */
   --data:   #0082E8;   /* 3.18 sobre --surface-3 — RELLENO, umbral 3:1 */
   --alert:  #C0272B;   /* 5.44 */
+  --alert-on: #FFFFFF; /* blanco sobre #C0272B: 5.9 (el navy daba 2.7) */
 
   /* Como texto, --data daba 3.62 sobre --bg.   peor de las cuatro: 5.12 */
   --data-txt:     #005FB8;
@@ -231,7 +242,9 @@
   /* Distinto de --marca y de --alert.  bg 6.72 · s3 5.91 · blanco 7.28 */
   --sba: #A81F23;   /* Bajo */
 
-  --criterio: var(--data);
+  /* Las barras de criterio se pintan con él y el código viejo lo usa también como
+     texto: en claro vale para las dos cosas (5.2 sobre --bg, y ≥3:1 como relleno). */
+  --criterio: var(--data-txt);
 
   /* El oro fijo daba 1.55:1 sobre fondo claro: texto invisible. */
   --medalla-oro:    #8A6300;
@@ -241,6 +254,9 @@
   --shadow-sm:0 1px 2px rgba(0,34,71,.08);
   --shadow-md:0 4px 16px rgba(0,34,71,.12);
   --shadow-lg:0 12px 40px rgba(0,34,71,.16);
+  --trazo:        var(--navy-900);
+  --sombra-dura:  6px 6px 0 var(--navy-900);
+  --sombra-dura-hover: 9px 9px 0 var(--blue-500);
 
   /* Único alias que necesita valor propio por tema; el resto son var(). */
   --hover-subtle:rgba(0,34,71,.04);
@@ -254,7 +270,7 @@ html { scroll-behavior:smooth; scrollbar-width:thin; scrollbar-color:var(--scrol
 ::-webkit-scrollbar-thumb  { background:var(--scrollbar-c); border-radius:3px; }
 body { background:var(--bg); color:var(--txt); font-family:var(--font-body); font-size:16px; line-height:1.6; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
 a { color:inherit; text-decoration:none; }
-button { cursor:pointer; border:none; background:none; font-family:inherit; }
+button { cursor:pointer; border:none; background:none; font-family:inherit; color:inherit; }
 img { display:block; max-width:100%; }
 [hidden] { display:none !important; }
 
@@ -415,23 +431,19 @@ body.gestion-archivada [aria-disabled="true"] {
 .pe-bar-msg--error { color:var(--accent); }
 .pb {
   padding:10px 20px; min-height:44px;
-  font-family:var(--font-ui); font-size:var(--fs-xs); font-weight:600;
-  letter-spacing:.1em; text-transform:uppercase;
-  color:var(--txt-2); background:var(--surface-1);
-  border:1px solid var(--border-hi);
-  border-radius:var(--r-full);
-  transition:color .18s var(--ease), border-color .18s var(--ease),
-             background .18s var(--ease), transform .15s var(--ease);
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--txt); background:transparent;
+  border:2px solid var(--trazo); border-radius:0;
+  transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s var(--ease);
   position:relative;
 }
-.pb:hover { color:var(--txt); border-color:var(--action); }
-.pb:active { transform:scale(.96); }
-/* El período en curso es el bloque cian de la guía de marca: relleno sólido
-   con la etiqueta en navy (8.32 en oscuro; ver --action-fill / --action-on). */
+.pb:hover { background:color-mix(in srgb, var(--data) 16%, transparent); }
+.pb:active { transform:translate(2px,2px); }
+/* El período seleccionado es el bloque cian de la guía, con sombra dura coral. */
 .pb.active {
-  color:var(--action-on);
-  background:var(--action-fill);
-  border-color:var(--action-fill);
+  color:var(--action-on); background:var(--action-fill); border-color:var(--navy-900);
+  box-shadow:4px 4px 0 var(--marca);
 }
 
 /* ── PE STICKY BAR ── */
@@ -1183,7 +1195,7 @@ option { background: var(--surface-1); color: var(--txt); }
 /* Destructivo: junto a las alertas, el único sitio donde va --alert. */
 .btn-confirm, .btn-danger {
   background: var(--alert) !important;
-  color: var(--navy-900) !important;   /* 5.60 sobre --coral */
+  color: var(--alert-on) !important;   /* medido en contraste.js, en los dos temas */
   box-shadow: none !important;
 }
 
@@ -1396,7 +1408,7 @@ option { background: var(--surface-1); color: var(--txt); }
 .no-data-icon { margin-bottom: var(--sp-2); opacity: .4; display: flex; justify-content: center; }
 .no-data-txt  { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.6; }
 /* Subtexto del estado vacío: cuándo estará disponible el dato. */
-.no-data-sub  { margin-top: var(--sp-2); font-family: var(--font-body); font-size: var(--fs-xs); color: var(--data); line-height: 1.5; }
+.no-data-sub  { margin-top: var(--sp-2); font-family: var(--font-body); font-size: var(--fs-xs); color: var(--data-txt); line-height: 1.5; }
 /* Detalle técnico del error. Solo con localStorage 'ec-debug' = '1'. */
 .no-data-detalle {
   margin-top: var(--sp-3);
@@ -1571,26 +1583,25 @@ select:-webkit-autofill {
 
 /* ── Pestañas segmentadas ───────────────────────────────────────────── */
 .seg {
-  display:inline-flex; gap:2px; max-width:100%;
-  padding:3px; border-radius:var(--r-full);
-  background:var(--surface-1); border:1px solid var(--border-hi);
+  display:flex; gap:0; max-width:100%;
+  border-bottom:3px solid var(--trazo);
   overflow-x:auto; scrollbar-width:none;
 }
 .seg::-webkit-scrollbar { display:none; }
 .seg-btn {
   position:relative; flex:0 0 auto;
   display:inline-flex; align-items:center; gap:var(--sp-2);
-  min-height:40px; padding:0 var(--sp-4); border-radius:var(--r-full);
-  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:500;
+  min-height:48px; padding:0 var(--sp-5);
+  font-family:var(--font-display); font-size:1.2rem; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase;
   color:var(--txt-2); white-space:nowrap;
-  transition:background .15s var(--ease), color .15s var(--ease);
+  transition:color .15s var(--ease), background .15s var(--ease);
 }
-.seg-btn:hover { color:var(--txt); background:var(--surface-2); }
-/* Activo: fondo + peso + barra coral. El color solo no lo marca. */
-.seg-btn.active { background:var(--surface-3); color:var(--txt); font-weight:600; }
+.seg-btn:hover { color:var(--txt); background:color-mix(in srgb, var(--data) 12%, transparent); }
+/* Activo: la barra coral de 6px sobre el filete + el texto a pleno contraste. */
+.seg-btn.active { color:var(--txt); }
 .seg-btn.active::after {
-  content:''; position:absolute; left:50%; bottom:3px; transform:translateX(-50%);
-  width:16px; height:3px; border-radius:var(--r-full); background:var(--marca);
+  content:''; position:absolute; inset:auto 0 -3px 0; height:6px; background:var(--marca);
 }
 .seg-ico { width:16px; height:16px; flex:0 0 auto; }
 @media (pointer:coarse) { .seg-btn { min-height:44px; } }
@@ -1673,11 +1684,12 @@ select:-webkit-autofill {
   --sex-txt: var(--sex);  --sbu-txt: var(--sbu);  --spr-txt: var(--spr);  --sba-txt: var(--sba);
   position: relative; z-index: 1;
   background: var(--grad-marca); color: var(--on-brand);
-  clip-path: inset(0 0 -4px 0);
-  margin-bottom: 4px;
+  /* Borde inferior en diagonal: un corte, no una raya. */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 44px), 0 100%);
 }
 .sup-marca::after {
-  content: ''; position: absolute; inset: auto 0 -4px 0; height: 4px; background: var(--franja);
+  content: ''; position: absolute; inset: auto 0 0 0; height: 44px; z-index: 1;
+  background: linear-gradient(to bottom right, transparent calc(50% - 5px), var(--marca) calc(50% - 5px) 50%, transparent 50%);
 }
 .sup-marca > * { position: relative; z-index: 1; }
 /* Píldora de nivel sobre navy: contorno de su color + texto blanco. Rellena,

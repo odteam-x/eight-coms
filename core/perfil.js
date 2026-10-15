@@ -204,7 +204,7 @@ const Perfil = (() => {
     return `
       <div class="pf-kpi">
         <div class="pf-kpi-lbl">${escHtml(lbl)}</div>
-        <div class="pf-kpi-val" style="color:${tiene ? color : 'var(--txt-muted)'}">
+        <div class="pf-kpi-val">
           <span${tiene ? ` data-cuenta="${Number(valor)}" data-dec="0"` : ''}>${tiene ? _fmt(valor, 0) : '—'}</span><small>/${max}</small>
         </div>
         <div class="pf-kpi-sub">${delta || escHtml(sub || '')}</div>

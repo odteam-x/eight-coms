@@ -151,9 +151,9 @@ const Inicio = (() => {
       ${_heroHTML(persona, periodo, proximos[0] || null)}
       <div class="inicio-cuerpo m-content">
         <div class="inicio-grid">
-          <section class="pf-card" aria-label="Tu evaluación">${_evaluacionHTML(persona, periodo, ev)}</section>
+          <section class="pf-card pf-card--cian" aria-label="Tu evaluación">${_evaluacionHTML(persona, periodo, ev)}</section>
           <section class="pf-card" aria-label="Para atender">${_atenderHTML(periodo, datos)}</section>
-          <section class="pf-card pf-card--ancha" aria-label="Próximas fechas">${_fechasHTML(proximos)}</section>
+          <section class="pf-card pf-card--ancha pf-card--azul" aria-label="Próximas fechas">${_fechasHTML(proximos)}</section>
           ${extra ? '<div class="inicio-extra" id="inicio-extra"></div>' : ''}
         </div>
       </div>`;

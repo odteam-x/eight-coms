@@ -9,8 +9,8 @@
 .tk-filtros { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .tk-chip {
   min-height: 44px; padding: 0 var(--sp-4); cursor: pointer;
-  background: var(--surface-1); color: var(--txt); border: 1px solid var(--border-hi); border-radius: var(--r-full);
-  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm);
+  background: transparent; color: var(--txt); border: 2px solid var(--trazo); border-radius: 0;
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: .06em; text-transform: uppercase;
 }
 .tk-chip:hover { border-color: var(--action); }
 .tk-chip--on { background: var(--action-fill); color: var(--action-on); border-color: var(--action-fill); }
@@ -21,8 +21,8 @@
 /* ── Tarjeta ───────────────────────────────────────────────────────── */
 .tk-lista { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 .tk-card {
-  background: var(--surface-1); border: 1px solid var(--border); border-left: 3px solid var(--border-hi);
-  border-radius: var(--r-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
+  background: var(--surface-1); border: 2px solid var(--trazo); border-left: 6px solid var(--border-hi);
+  border-radius: 0; box-shadow: 4px 4px 0 var(--blue-700); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
 }
 .tk-card--en-curso  { border-left-color: var(--spr); }
 .tk-card--entregada { border-left-color: var(--sbu); }
@@ -32,7 +32,7 @@
 .tk-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
 .tk-titulo { margin: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--txt); overflow-wrap: anywhere; }
 .tk-pill {
-  flex: none; padding: 1px var(--sp-3); border: 1px solid currentColor; border-radius: var(--r-full);
+  flex: none; padding: 1px var(--sp-3); border: 1.5px solid currentColor; border-radius: 0; text-transform: uppercase; letter-spacing: .04em;
   font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; color: var(--txt-2);
 }
 .tk-pill--en-curso  { color: var(--spr-txt); }

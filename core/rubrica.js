@@ -137,7 +137,7 @@ function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, perfil }) {
 
   const kpi = (lbl, val, sub, destacado) => `
     <div class="v2-kpi${destacado ? ' v2-kpi--main' : ''}">
-      <div class="v2-kpi-val" style="color:${val == null ? 'var(--txt-muted)' : scoreColorTxtV2(val)}">${fmtV2(val)}<span>/100</span></div>
+      <div class="v2-kpi-val">${fmtV2(val)}<span>/100</span></div>
       <div class="v2-kpi-lbl">${lbl}</div>
       <div class="v2-kpi-sub">${sub}</div>
     </div>`;
