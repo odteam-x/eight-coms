@@ -817,7 +817,7 @@ async function saveTrabajo() {
   const res = await API.upsertTrabajo({ user_id:CU.id, periodo_id:pidNuevo, titulo, descripcion:desc });
   if (!res.ok) { showToast('Error: '+res.error,'error'); return; }
   if (tEl) tEl.value=''; if (dEl) dEl.value='';
-  showToast('✓ Trabajo registrado','ok');
+  showToast('Trabajo registrado','ok');
   await renderTrabajosTab();
 }
 

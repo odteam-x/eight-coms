@@ -63,7 +63,7 @@ function renderRail() {
   marca.setAttribute('aria-label', 'Ir al inicio');
   marca.innerHTML =
     '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
-    '<img src="logo.png" alt="" class="rail-logo" width="32" height="32"></picture>' +
+    '<img src="logo.png" alt="" class="rail-logo" width="40" height="40"></picture>' +
     '<span class="rail-marca-col">' +
     `<span class="rail-marca-txt">${escHtml(_railCfg.marca || '')}</span>` +
     (_railCfg.badge ? `<span class="rail-badge">${escHtml(_railCfg.badge)}</span>` : '') + '</span>';
@@ -181,7 +181,7 @@ function renderCabeceraMovil() {
   cab.className = 'cab-movil';
   cab.innerHTML =
     '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
-    '<img src="logo.png" alt="" class="cab-movil-logo" width="22" height="32"></picture>' +
+    '<img src="logo.png" alt="" class="cab-movil-logo" width="32" height="32"></picture>' +
     `<span class="cab-movil-seccion" id="cab-movil-seccion">${escHtml(_railCfg.marca || '')}</span>`;
   document.body.insertBefore(cab, document.body.firstChild);
 }
@@ -265,7 +265,7 @@ function _montarHoja(items) {
       // ── Cuenta ──
       '<div class="bb-hoja-marca">' +
         '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
-        '<img src="logo.png" alt="" class="bb-hoja-logo" width="19" height="28"></picture>' +
+        '<img src="logo.png" alt="" class="bb-hoja-logo" width="28" height="28"></picture>' +
         `<span>${escHtml(_railCfg?.marca || '')}</span>` +
       '</div>' +
       '<div class="bb-hoja-cuenta">' +

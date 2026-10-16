@@ -104,8 +104,8 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 - **Tabs**: `switchTabCore` sets `role="tablist"`/`role="tab"`/`aria-selected` on the nav and `role="tabpanel"`/`aria-hidden` on the panels. Hidden panels leave the accessibility tree, so a screen reader no longer walks all six tabs at once.
 - **Touch**: `.tnav-drop` menus opened on `:hover` only, which does not exist on touch. Under `@media (pointer: coarse)` the submenu renders inline instead.
 - `prefers-reduced-motion` is now honoured in all four stylesheets (`admin.css` and `secretario.css` ignored it).
-- **The logo is `logo.webp` (16 KB) via `<picture>`**, with `logo.png` (39 KB) as fallback. It was a 749×1093 PNG of 279 KB rendered at 44px. Regenerate both if the source changes; keep `width`/`height` on the `<img>` to avoid layout shift.
-- **The logo is 219×320 — never square.** Every placement keeps that ratio: 33×48 in the report header, 22×32 in the mobile header, 19×28 in the sheet and the gestión modal, 14×20 in the report footer. `favicon.ico` and `icono-192/512.png` are generated from it by padding to a square canvas, not by stretching. `icono.ico` is gone: 22 KB and not derived from the logo.
+- **The logo is the **CELIDER 08 isotipo** (`logo.webp`, `logo@2x.webp`, `logo.png`; master in `img/marca/isotipo-celider08.png`) via `<picture>`**, with `logo.png` (39 KB) as fallback. It was a 749×1093 PNG of 279 KB rendered at 44px. Regenerate both if the source changes; keep `width`/`height` on the `<img>` to avoid layout shift.
+- **The isotipo is square (1:1).** Every placement keeps width = height: 40 in the rail, 32 in the mobile header, 28 in the sheet and modals, 72 in login/registro, 64 and 22 in the report header and footer. `favicon.ico` and `icono-192/512.png` put it on the navy brand ground. The site is still called EIGHT CREATORS LABs but belongs to CELIDER 08.
 - The member score is rendered **once**, in the hero. Quick links are mobile-only — on desktop they duplicated the topbar.
 
 ### No executable code in the markup (Phase 7)
@@ -366,6 +366,10 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 - `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
 - Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
 
+### Canonical components (phase 1 of the second redesign)
+
+`marca.css` ends with the components every screen must use: **six buttons** (`.btn--primario` coral, `--secundario` outline, `--texto`, `--peligro`, `--icono` circle, `--chip`; all historic classes — `btn-save`, `tk-btn`, `btn-cfg-add`, `cal2-btn`… — are mapped to them), **`.etiqueta`** (pill with a dot; `--etq-coral|violeta|verde|ambar|cian|azul|rojo|gris`, 8 tones measured at 3:1 in both themes by `tools/contraste.js` — the only colours allowed outside the brand ramp, for categories/calendar labels), **`.pantalla-cab`** (title + context + one primary action) and **`.tarjeta`** / **`.tarjeta--kpi`**. One primary per view. Study and rules: `docs/estudio-uiux-evaluacion.md`.
+
 ### Brand identity contract (`marca.css`)
 
 `marca.css` is the written rule set for shape, elevation, colour, type, action and lists; `premium.css` implements components on top of it. Both load **last** (order: page sheet → `marca.css` → `premium.css`) so the system wins over page sheets. **No square corners**: radius scale `--r-control` (pill) / `--r-xs` 8 / `--r-fila` 12 / `--r-card` 20 / `--r-cont` 28 / `--r-modal` 32 / `--r-hero` 40; the old `--r-sm/md/lg/xl` names now alias that scale. A new component joins one of the category lists at the bottom of `marca.css` instead of declaring its own radius. Verify with the DOM check: any element with a background or border, at least 40×24, radius 0 and not inside a rounded `overflow:hidden` container is a bug.
@@ -396,7 +400,7 @@ Whoever approves a task assigns **0–10 points**, mandatory at the moment of ap
 - `core/calendario.js` is a section for every role (nav item *Calendario*; admin also has the *Calendario* tab, the old config tab is now *Actividades*). It merges PE ranges, activities/jornadas and tasks (due dates, overdue, delivered, approved) into one month grid + agenda panel (`.cal2*` in `perfil.css`). PE buttons (`renderPEBar`) show their date range and mark today (`.pb--hoy`).
 - `core/buscador.js` is the Ctrl/⌘+K palette (`Buscador.registrar(fn)` per portal): jump to a section, open a person's profile, start an action. Everything it offers already exists; RLS still decides what works.
 - Actions reachable from anywhere: `Tareas.nueva({soloPersona, fecha})`, `Perfil.nuevaTarea`, the profile *Tareas* tab (full review list for supervisors), `perfilVer` from *Evaluar* cards, calendar events (`calVer`, `calNueva`). New actions are registered in `ACCIONES` (config.js) as usual.
-- Visual language: see "Premium system" above (flat layered surfaces, ambient light, pill controls, brand-navy rail). **Text on the `--brillo` cyan gradient is always `--navy-900`** (white fails contrast in the light theme). Icons are Phosphor SVGs bundled in `core/iconos.js` (regenerate with `tools/generar-iconos.mjs`); the markup is still `data-lucide="name"` through a shim, no CDN.
+- Visual language: see "Premium system" above (flat layered surfaces, ambient light, pill controls, brand-navy rail). **Text on the `--brillo` cyan gradient is always `--navy-900`** (white fails contrast in the light theme). Icons are **Remix Icon** SVGs (Apache-2.0, via `@iconify-json/ri`) bundled in `core/iconos.js` (regenerate with `tools/generar-iconos.mjs`; `<name>-fill` keys are the filled variants). **Never emojis or text glyphs as icons**: medals use `medallaHTML(pos)`; the markup is still `data-lucide="name"` through a shim, no CDN.
 - *Evaluar* (admin): progress bar of published evaluations, status chips (`evalFiltro`), list beside the form on ≥1100px.
 
 ### Tests (`tools/pruebas/`)

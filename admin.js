@@ -298,7 +298,7 @@ function renderEvalUserList() {
       const estadoCls = u.estado === 'publicado' ? 'estado--publicado' : u.estado === 'borrador' ? 'estado--borrador' : 'estado--none';
       const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : 'Pendiente';
       if (u.estado === 'publicado') rank++;
-      const medal = u.estado === 'publicado' ? (rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${rank}</span>`) : '';
+      const medal = u.estado === 'publicado' ? medallaHTML(rank) : '';
       const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
       const sinRol = v2 && !u.rol_id;
       return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" data-act="evaluarUsuario" data-arg="${u.id}">
@@ -1516,7 +1516,7 @@ async function renderDistritoRanking(periodoId) {
             <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
             <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
             <div class="tbl-cell" style="justify-content:center">
-              <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:${distScoreColor(d.score)}">${d.score}</span>
+              <span class="num-display" style="color:${distScoreColor(d.score)}">${d.score}</span>
               <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX_DIST}</span>
             </div>
             <div class="tbl-cell" style="justify-content:center"><span class="nivel-badge ${distScoreClass(d.score)}" style="padding:2px 8px;font-size:.55rem">${distScoreLabel(d.score)}</span></div>
@@ -1799,7 +1799,7 @@ function renderOverview() {
     <div class="ov-cols">
       <div class="ov-panel">
         <div class="rank-panel-header">
-          <div class="ov-panel-title" style="margin-bottom:0">🏆 Ranking — ${escHtml(_activePEOv?.nombre || '')}</div>
+          <div class="ov-panel-title" style="margin-bottom:0"><i data-lucide="trophy"></i> Ranking — ${escHtml(_activePEOv?.nombre || '')}</div>
           <div class="rank-tabs">
             <button class="rank-tab-btn${_rankingTab==='users'?' rank-tab-active':''}" data-act="rankTab" data-arg="users">Usuarios</button>
             <button class="rank-tab-btn${_rankingTab==='dist'?' rank-tab-active':''}" data-act="rankTab" data-arg="dist">Distritos</button>
@@ -1810,7 +1810,7 @@ function renderOverview() {
         ${scored.length ? `<div class="ov-ranking">
           ${scored.map((e,i) => {
             const pct = Math.round(e.score/MAX*100);
-            const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${i+1}</span>`;
+            const medal = medallaHTML(i+1);
             return `<div class="rank-row">
               <div class="rank-pos">${medal}</div>
               <div class="rank-info">
@@ -1837,7 +1837,7 @@ function renderOverview() {
           return `<div class="ov-ranking">
             ${scoredDist.map((d,i) => {
               const pct = Math.round(d.score/MAX_DIST*100);
-              const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-family:'Bebas Neue',sans-serif;color:var(--muted)">${i+1}</span>`;
+              const medal = medallaHTML(i+1);
               return `<div class="rank-row">
                 <div class="rank-pos">${medal}</div>
                 <div class="rank-info">
@@ -2340,7 +2340,7 @@ function renderAdminReport() {
       <div class="rpt-marca">
         <picture>
           <source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">
-          <img src="logo.png" alt="" class="rpt-logo" width="33" height="48">
+          <img src="logo.png" alt="" class="rpt-logo" width="64" height="64">
         </picture>
         <div>
         <div class="rpt-org">EIGHT CREATORS LABs</div>
@@ -2457,7 +2457,7 @@ function renderAdminReport() {
     <div class="rpt-footer">
       <picture>
         <source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">
-        <img src="logo.png" alt="" class="rpt-logo-pie" width="14" height="20">
+        <img src="logo.png" alt="" class="rpt-logo-pie" width="22" height="22">
       </picture>
       <span>EIGHT CREATORS LABs · ${escHtml(_rptPE.nombre)} · Generado el ${today}</span>
     </div>

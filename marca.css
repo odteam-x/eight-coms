@@ -64,3 +64,61 @@ table { border-collapse: separate; border-spacing: 0; }
 /* Controles */
 button.btn-save, .btn-ghost, .btn-cfg-add, .btn-cfg-cancel, .btn-cancel, .pb, .seg, .seg-btn, .chip, .tk-chip, .eval-chip, .cal2-chip, .cal2-btn { border-radius: var(--r-control); }
 kbd, .rail-kbd { border-radius: var(--r-xs); }
+
+/* ═══ COMPONENTES CANÓNICOS ═══════════════════════════════════════════════
+   Todo botón del sitio es UNA de estas seis variantes. Las clases históricas
+   se mapean aquí; el componente nuevo usa los nombres canónicos
+   (.btn .btn--primario | --secundario | --texto | --peligro | --icono | --chip). */
+.btn, .btn-save, .btn-login, .tk-btn--main, .btn-publish, .btn-save-cal, .btn-save-cfg, .btn-add-evento, .btn-confirm, .btn-print-rpt,
+.tk-btn, .btn-cfg-add, .btn-cfg-cancel, .btn-cancel, .btn-cancel-changes, .btn-draft, .btn-out, .btn-out-mobile, .btn-refresh, .cal2-btn, .btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  border-radius: var(--r-control); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: 0; text-transform: none;
+  cursor: pointer; transition: background .18s var(--ease), border-color .18s var(--ease), filter .18s var(--ease), transform .18s var(--ease);
+}
+/* Primario: coral, un solo por vista */
+.btn--primario, .btn-save, .btn-login, .tk-btn--main, .btn-publish, .btn-save-cal, .btn-save-cfg, .btn-add-evento, .btn-confirm, .btn-print-rpt, .cfg-toolbar > .btn-cfg-add {
+  min-height: 48px; padding: 0 var(--sp-6); border: 0; background: var(--brillo); color: var(--navy-900);
+}
+/* Secundario: contorno */
+.btn--secundario, .tk-btn, .btn-cfg-add, .btn-cfg-cancel, .btn-cancel, .btn-cancel-changes, .btn-draft, .btn-out, .btn-out-mobile, .btn-refresh, .cal2-btn, .btn-ghost {
+  min-height: 44px; padding: 0 var(--sp-5); background: transparent; border: 1px solid var(--trazo); color: var(--txt);
+}
+.btn--secundario:hover, .tk-btn:hover, .btn-cfg-add:hover, .btn-cfg-cancel:hover, .btn-cancel:hover, .btn-cancel-changes:hover, .btn-draft:hover, .btn-out:hover, .btn-refresh:hover, .cal2-btn:hover, .btn-ghost:hover { background: var(--surface-3); border-color: var(--data); }
+.cfg-toolbar > .btn-cfg-add { border: 0; background: var(--brillo); color: var(--navy-900); }
+.cfg-toolbar > .btn-cfg-add:hover { background: var(--brillo); }
+/* Texto */
+.btn--texto { min-height: 44px; padding: 0 var(--sp-3); background: none; border: 0; color: var(--txt-2); }
+.btn--texto:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
+/* Peligro */
+.btn--peligro, .btn-danger { min-height: 44px; padding: 0 var(--sp-5); background: transparent; border: 1px solid var(--alert); color: var(--alert); }
+.btn--peligro:hover, .btn-danger:hover { background: color-mix(in srgb, var(--alert) 14%, transparent); }
+/* Icono: círculo */
+.btn--icono, .btn-icon, .btn-icon-del, .btn-icon--danger, .btn-pass-toggle { min-width: 40px; min-height: 40px; padding: 0; border-radius: 50%; }
+.btn-icon--danger, .btn-icon-del:hover { color: var(--alert); }
+/* Chip: filtro */
+.btn--chip, .chip, .tk-chip, .eval-chip, .cal2-chip { min-height: 40px; padding: 0 var(--sp-4); border-radius: var(--r-control); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); }
+/* Estados comunes */
+.btn:focus-visible, .btn-save:focus-visible, .btn-ghost:focus-visible, .tk-btn:focus-visible, .chip:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.btn:active, .btn-save:active { transform: scale(.985); }
+.btn:disabled, .btn-save:disabled, .tk-btn:disabled, .btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+.is-loading { pointer-events: none; opacity: .75; }
+
+/* ── Etiqueta: píldora con punto; el color tiene sentido (--etq-*) ───────
+   <span class="etiqueta" style="--etq: var(--etq-verde)">Capacitación</span> */
+.etiqueta { --etq: var(--etq-gris); display: inline-flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 var(--sp-3); border-radius: var(--r-control);
+  background: color-mix(in srgb, var(--etq) 16%, var(--surface-2)); color: var(--txt); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; }
+.etiqueta::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--etq); flex: none; }
+.etq-coral { --etq: var(--etq-coral); } .etq-violeta { --etq: var(--etq-violeta); } .etq-verde { --etq: var(--etq-verde); } .etq-ambar { --etq: var(--etq-ambar); }
+.etq-cian { --etq: var(--etq-cian); } .etq-azul { --etq: var(--etq-azul); } .etq-rojo { --etq: var(--etq-rojo); } .etq-gris { --etq: var(--etq-gris); }
+
+/* ── Cabecera de pantalla: título + contexto + UNA acción primaria ───── */
+.pantalla-cab { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-3) var(--sp-5); margin-bottom: var(--sp-5); }
+.pantalla-cab h1, .pantalla-cab .pantalla-t { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-xl); line-height: 1.02; letter-spacing: var(--tr-display); margin: 0; }
+.pantalla-cab p { flex: 1 1 100%; order: 3; margin: 0; max-width: 70ch; color: var(--txt-2); font-size: var(--fs-md); }
+.pantalla-acc { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; margin-left: auto; }
+
+/* ── Tarjeta y KPI ───────────────────────────────────────────────────── */
+.tarjeta { background: var(--surface-1); border-radius: var(--r-card); padding: var(--sp-5); min-width: 0; }
+.tarjeta--kpi { display: flex; flex-direction: column; gap: var(--sp-1); }
+.tarjeta--kpi .kpi-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.4rem + 2vw, 3rem); line-height: 1; }
+.tarjeta--kpi .kpi-etq { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); }

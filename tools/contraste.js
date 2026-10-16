@@ -188,6 +188,14 @@ const GRAFICOS = [
   ['--sba',    '3:1 relleno de nivel'],
   ['--marca',  '3:1 ornamento de marca'],
   ['--action', '3:1 anillo de foco'],
+  ['--etq-coral', '3:1 punto de etiqueta'],
+  ['--etq-violeta', '3:1 punto de etiqueta'],
+  ['--etq-verde', '3:1 punto de etiqueta'],
+  ['--etq-ambar', '3:1 punto de etiqueta'],
+  ['--etq-cian', '3:1 punto de etiqueta'],
+  ['--etq-azul', '3:1 punto de etiqueta'],
+  ['--etq-rojo', '3:1 punto de etiqueta'],
+  ['--etq-gris', '3:1 punto de etiqueta'],
 ];
 
 /* ══ EJECUCIÓN ═════════════════════════════════════════════════════════ */

@@ -205,7 +205,7 @@ function renderRubricaLegacy(el) {
         <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}">
           <div class="rubrica-dot" style="background:var(--criterio)"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
-          <span class="rubrica-chev">▾</span>
+          <span class="rubrica-chev"><i data-lucide="chevron-down"></i></span>
         </div>
         <div class="rubrica-body">
           <div class="rubrica-levels">
@@ -408,7 +408,7 @@ async function saveTrabajo() {
   const res = await API.upsertTrabajo({ user_id:CU.id, periodo_id:pidNuevo, titulo, descripcion:desc });
   if (!res.ok) { showToast('Error: '+res.error,'error'); return; }
   if (tEl) tEl.value=''; if (dEl) dEl.value='';
-  showToast('✓ Trabajo registrado','ok');
+  showToast('Trabajo registrado','ok');
   await renderTrabajosTab();
 }
 

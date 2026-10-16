@@ -213,7 +213,7 @@ a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
 .rail::-webkit-scrollbar { width: 6px; }
 .rail::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--on-brand) 22%, transparent); border-radius: 6px; }
 .rail-marca { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-1) var(--sp-2) var(--sp-4); min-height: 56px; }
-.rail-logo { width: 28px; height: 41px; object-fit: contain; flex: none; }
+.rail-logo { width: 40px; height: 40px; object-fit: contain; flex: none; }
 .rail-marca-txt { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: -.01em; line-height: 1; text-align: left; }
 .rail-badge { margin-left: auto; padding: 0; background: none; color: var(--on-brand-2); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; }
 .rail-buscar { margin-bottom: var(--sp-3); background: color-mix(in srgb, var(--on-brand) 8%, transparent); border: 0; border-radius: var(--r-control); min-height: 44px; }
@@ -413,3 +413,15 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .pcard-valor .nivel-badge { padding: 2px var(--sp-3); }
 .pcard-sin { max-width: none; font-size: var(--fs-sm); color: var(--txt-2); text-align: right; }
 @media (max-width: 520px) { .pcard { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); } .pcard-valor .nivel-badge { display: none; } }
+
+
+/* ── Medallas del ranking (icono, no emoji) ───────────────────────────── */
+:root { --medalla-oro: #F0C040; --medalla-plata: #B0B8D0; --medalla-bronce: #C87C40; }
+[data-theme="light"] { --medalla-oro: #8A6300; --medalla-plata: #5A6275; --medalla-bronce: #8A4E18; }
+.medalla { display: inline-flex; align-items: center; gap: 4px; min-width: 28px; }
+.medalla .ico { width: 26px; height: 26px; }
+.medalla b { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; line-height: 1; color: var(--txt-2); }
+.medalla--oro .ico { color: var(--medalla-oro); } .medalla--plata .ico { color: var(--medalla-plata); } .medalla--bronce .ico { color: var(--medalla-bronce); }
+.medalla-num { display: inline-grid; place-items: center; width: 28px; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--txt-muted); }
+.num-display { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
+.ov-panel-title .ico { margin-right: var(--sp-1); }

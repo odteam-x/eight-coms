@@ -9,6 +9,10 @@
    no elegidos a ojo. El número entre paréntesis es el ratio.
    ═══════════════════════════════════════════════════════════════════════ */
 :root {
+  /* Etiquetas de color (calendario, actividades): paleta ampliada con sentido.
+     Solo para marcar categorías; la marca sigue mandando en todo lo demás. */
+  --etq-coral:   #FF6063;  --etq-violeta: #B79CFF;  --etq-verde: #4ADE9B;  --etq-ambar: #FFC247;
+  --etq-cian:    #00CBFF;  --etq-azul:    #4DA3FF;  --etq-rojo:  #FF8A8C;  --etq-gris:  #9FB4C7;
 
   /* ── MARCA — idéntica en ambos temas ──────────────────────────────────
      Es la paleta cerrada. Ningún color fuera de aquí. */
@@ -197,6 +201,8 @@
    de texto pequeño: sobre blanco no alcanzan 4.5:1. El texto de una píldora
    va en --txt o en blanco sobre relleno sólido. */
 [data-theme="light"] {
+  --etq-coral:   #D93A3E;  --etq-violeta: #6B46D6;  --etq-verde: #12804F;  --etq-ambar: #A15C00;
+  --etq-cian:    #0A7EA6;  --etq-azul:    #0068C9;  --etq-rojo:  #B3262B;  --etq-gris:  #5A6B7B;
   /* Fondos con un velo de --cyan-200; el texto es un navy muy oscuro. */
   --bg:        #EEF7FC;
   --surface-1: #FFFFFF;
@@ -301,7 +307,7 @@ img { display:block; max-width:100%; }
   padding: 3px var(--sp-2); border-radius: var(--r-sm);
 }
 
-.uname { font-family:var(--font-body); font-size:.85rem; font-weight:500; letter-spacing:.01em; color:var(--muted); }
+.uname { font-family:var(--font-body); font-size: var(--fs-sm); font-weight:500; letter-spacing:.01em; color:var(--muted); }
 
 /* ── THEME TOGGLE ── */
 .theme-toggle {
@@ -563,7 +569,7 @@ body.gestion-archivada [aria-disabled="true"] {
 
 /* ── RUBRICA ── */
 .rubrica-wrap { max-width:860px; }
-.rubrica-intro { font-size:.85rem; color:var(--muted); margin-bottom:1.5rem; }
+.rubrica-intro { font-size: var(--fs-sm); color:var(--muted); margin-bottom:1.5rem; }
 .rubrica-intro strong { color:var(--txt); }
 .rubrica-grid { display:flex; flex-direction:column; gap:10px; }
 .rubrica-card { background:var(--glass); border:1px solid var(--glass-border); border-top:1px solid var(--glass-hi); border-radius: var(--r-md); overflow:hidden; transition:border-color .2s; }
@@ -632,7 +638,7 @@ body.gestion-archivada [aria-disabled="true"] {
   background:color-mix(in srgb, var(--spr) 12%, transparent); color:var(--gold);
   border:1px solid color-mix(in srgb, var(--spr) 30%, transparent);
 }
-.bono-badge .bono-icon { font-size:.85rem; }
+.bono-badge .bono-icon { font-size: var(--fs-sm); }
 
 /* ── SECRETARIO BADGE ── */
 .secretario-badge {
@@ -742,7 +748,7 @@ body.gestion-archivada [aria-disabled="true"] {
 .ql-text { flex: 1; min-width: 0; }
 .ql-title {
   font-family: var(--font-body);
-  font-size: .85rem; font-weight: 700; letter-spacing: .5px; color: var(--txt); margin-bottom: 2px;
+  font-size: var(--fs-sm); font-weight: 700; letter-spacing: .5px; color: var(--txt); margin-bottom: 2px;
 }
 .ql-desc { font-size:.8rem; color: var(--muted); line-height: 1.4; }
 .ql-arrow { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; }
@@ -806,9 +812,9 @@ body.gestion-archivada [aria-disabled="true"] {
 }
 .trabajo-item:hover { border-color: var(--border-glow); }
 .trabajo-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.trabajo-titulo { font-size: .88rem; font-weight: 600; color: var(--txt); line-height: 1.3; }
+.trabajo-titulo { font-size: var(--fs-sm); font-weight: 600; color: var(--txt); line-height: 1.3; }
 .tj-notitle { opacity: .45; font-style: italic; font-weight: 400; }
-.trabajo-desc { font-size: .82rem; color: var(--desc-txt); line-height: 1.6; margin-bottom: 8px; }
+.trabajo-desc { font-size: var(--fs-sm); color: var(--desc-txt); line-height: 1.6; margin-bottom: 8px; }
 .trabajo-meta { font-size:.8rem; color: var(--muted); display: flex; align-items: center; }
 .btn-icon-del {
   flex-shrink: 0; width: 28px; height: 28px;
@@ -872,7 +878,7 @@ body.gestion-archivada [aria-disabled="true"] {
   display:flex; align-items:center; gap:var(--sp-2); min-width:0;
   padding:var(--sp-2); margin-bottom:var(--sp-3); border-radius: var(--r-md);
 }
-.rail-logo { width:32px; height:32px; object-fit:contain; flex:0 0 auto; }
+.rail-logo { width:40px; height:40px; object-fit:contain; flex:0 0 auto; }
 .rail-marca-txt {
   font-family:var(--font-display); font-size:var(--fs-md); font-weight:700;
   text-transform:uppercase; letter-spacing:.04em; color:var(--txt);
@@ -1458,7 +1464,7 @@ select:-webkit-autofill {
     background: var(--marca);
   }
   .cab-movil-logo {
-    width: 22px; height: 32px;    /* 219x320 reales, sin estirar */
+    width: 32px; height: 32px;    /* isotipo CELIDER 08: cuadrado */
     object-fit: contain;
     flex: 0 0 auto;
   }
@@ -1489,7 +1495,7 @@ select:-webkit-autofill {
   letter-spacing: 1px;
   color: var(--txt-2);
 }
-.bb-hoja-logo, .modal-logo { width: 19px; height: 28px; object-fit: contain; flex: 0 0 auto; }
+.bb-hoja-logo, .modal-logo { width: 28px; height: 28px; object-fit: contain; flex: 0 0 auto; }
 .modal-marca { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
 
 /* Casilla del selector de entrada. */

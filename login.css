@@ -31,7 +31,7 @@
 
 .login-brand-top { display: flex; align-items: center; gap: var(--sp-3); }
 
-.logo-img { width: 56px; height: 56px; object-fit: contain; }
+.logo-img { width: 72px; height: 72px; object-fit: contain; }
 
 /* El <h1> ya es el logotipo escrito. Mostrar además "EIGHT CREATORS" junto
    al logo repetía la marca dos veces en la misma cabecera. */
@@ -337,7 +337,7 @@
     padding: var(--sp-4) 56px var(--sp-4) var(--sp-5);
   }
   .login-brand-center { flex: 1; }
-  .logo-img { width: 40px; height: 40px; }
+  .logo-img { width: 56px; height: 56px; }
   .login-hero-tag, .login-hero-desc, .login-brand-foot { display: none; }
   .login-hero-h1 {
     font-size: var(--fs-lg);

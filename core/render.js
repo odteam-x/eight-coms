@@ -441,7 +441,7 @@ function initScrollEffects({ backTop = true } = {}) {
 function updateTimestamp(fecha) {
   const t = fecha || Store.lastUpdated();
   if (!t) return;
-  const txt = `✓ ${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
+  const txt = `Actualizado ${pad(t.getHours())}:${pad(t.getMinutes())}`;
   ['ts-badge', 'ts-badge-mob'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     el.textContent = txt;
@@ -670,4 +670,18 @@ async function handleAvatarUpload(el) {
   p.avatar_url = res.url;
   montarAvatar();
   showToast('Foto actualizada.', 'ok');
+}
+
+
+/**
+ * Posición del ranking: las tres primeras llevan medalla (icono Remix con el color
+ * de la posición); el resto, su número. Nunca emojis.
+ */
+function medallaHTML(pos) {
+  const n = Number(pos);
+  if (n >= 1 && n <= 3) {
+    const cls = n === 1 ? 'oro' : n === 2 ? 'plata' : 'bronce';
+    return `<span class="medalla medalla--${cls}" role="img" aria-label="Puesto ${n}"><i data-lucide="medal-2-fill"></i><b>${n}</b></span>`;
+  }
+  return `<span class="medalla-num">${escHtml(String(pos))}</span>`;
 }
