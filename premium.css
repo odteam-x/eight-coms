@@ -553,3 +553,57 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .mc td.mc-vacio { background: var(--surface-2); color: var(--txt-muted); font-weight: 400; }
 .mc td.mc-total { background: transparent; color: var(--txt); }
 .mc-leyenda { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+
+/* ── Reportes: constructor + hoja imprimible ───────────────────────────── */
+.rep-controles { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+.rep-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); }
+.rep-filtros { gap: var(--sp-4); }
+.rep-campo { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-muted); min-width: 200px; }
+.rep-campo[hidden] { display: none; }
+.rpt-hoja { background: var(--surface-1); border-radius: var(--r-cont); padding: var(--sp-6); max-width: 960px; margin-inline: auto; display: flex; flex-direction: column; gap: var(--sp-6); }
+.rpt-hoja-cab { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--trazo); }
+.rpt-hoja-t span { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); }
+.rpt-hoja-t h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.8rem, 1.3rem + 2vw, 2.6rem); line-height: 1.02; letter-spacing: var(--tr-display); margin: 2px 0; }
+.rpt-hoja-t p { margin: 0; color: var(--txt-2); font-size: var(--fs-sm); }
+.rpt-hoja-f { text-align: right; display: flex; flex-direction: column; font-size: var(--fs-sm); color: var(--txt-2); }
+.rpt-hoja-f b { color: var(--txt); font-family: var(--font-ui); }
+.rpt-sec-t { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); letter-spacing: var(--tr-titulo); margin: 0 0 4px; }
+.rpt-sec-d { margin: 0 0 var(--sp-3); color: var(--txt-2); font-size: var(--fs-sm); }
+.rpt-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.rpt-kpis > div { background: var(--surface-2); border-radius: var(--r-card); padding: var(--sp-4); display: flex; flex-direction: column; }
+.rpt-kpis b { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; }
+.rpt-kpis span { font-size: var(--fs-sm); color: var(--txt-2); }
+.rpt-niveles { display: flex; gap: 3px; height: 16px; border-radius: var(--r-control); overflow: hidden; background: var(--surface-2); }
+.rpt-niveles-leyenda { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0; }
+.rpt-frase { margin: 0; max-width: 70ch; }
+.rpt-tabla { overflow-x: auto; background: var(--surface-2); border-radius: var(--r-card); }
+.rpt-tabla table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); min-width: 520px; }
+.rpt-tabla th, .rpt-tabla td { text-align: left; padding: 10px var(--sp-4); border-top: 1px solid var(--trazo); }
+.rpt-tabla thead th { border-top: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-muted); }
+.rpt-tabla tbody th { font-family: var(--font-ui); font-weight: 600; }
+.rpt-barras { display: flex; flex-direction: column; gap: var(--sp-3); }
+.rpt-barra { display: grid; grid-template-columns: minmax(120px, 240px) minmax(0, 1fr) 48px; align-items: center; gap: var(--sp-3); font-size: var(--fs-sm); }
+.rpt-barra b { font-family: var(--font-display); font-size: 1.2rem; text-align: right; }
+.rpt-personas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: var(--sp-3); }
+.rpt-persona { background: var(--surface-2); border-radius: var(--r-card); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+.rpt-persona header { display: flex; justify-content: space-between; gap: var(--sp-3); align-items: flex-start; }
+.rpt-persona small { display: block; color: var(--txt-2); }
+.rpt-persona-r { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.rpt-persona-r b { font-family: var(--font-display); font-size: 1.6rem; line-height: 1; }
+.rpt-persona p { margin: 0; font-size: var(--fs-sm); color: var(--txt-2); }
+.rpt-sin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-2); }
+.rpt-sin li { background: var(--surface-2); border-radius: var(--r-fila); padding: var(--sp-3) var(--sp-4); font-family: var(--font-ui); font-weight: 600; }
+.rpt-sin small { display: block; font-family: var(--font-body); font-weight: 400; color: var(--txt-2); }
+.rpt-hoja-pie { font-size: var(--fs-xs); color: var(--txt-muted); border-top: 1px solid var(--trazo); padding-top: var(--sp-3); }
+@media (max-width: 640px) { .rpt-hoja { padding: var(--sp-4); } .rpt-hoja-cab { grid-template-columns: auto minmax(0, 1fr); } .rpt-hoja-f { grid-column: 1 / -1; text-align: left; } .rpt-barra { grid-template-columns: minmax(0, 1fr) 48px; } .rpt-barra .barra-track { grid-column: 1 / -1; grid-row: 2; } }
+@media print {
+  body.imprimiendo-reporte .rail, body.imprimiendo-reporte .bottom-bar, body.imprimiendo-reporte .cab-movil, body.imprimiendo-reporte .no-print { display: none !important; }
+  body.imprimiendo-reporte .atab-content:not(#tab-reportes) { display: none !important; }
+  body.imprimiendo-reporte #contenido, body.imprimiendo-reporte .amain { margin: 0 !important; padding: 0 !important; background: none !important; }
+  body.imprimiendo-reporte #contenido::before, body.imprimiendo-reporte #contenido::after { display: none !important; }
+  body.imprimiendo-reporte .rpt-hoja { max-width: none; border-radius: 0; padding: 0; background: none; gap: 18px; }
+  body.imprimiendo-reporte .rpt-sec, body.imprimiendo-reporte .rpt-persona { break-inside: avoid; }
+  body.imprimiendo-reporte .rpt-logo { display: block !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body.imprimiendo-reporte * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

@@ -66,7 +66,7 @@ const _ACCIONES_SIMPLES = new Set([
   'showRubricaModal', 'showAbrirGestionModal', 'confirmarAbrirGestion',
   'executeDeleteUser', 'sendResetCode', 'verifyAndResetPassword',
   // buscadores y selectores de admin.html (data-input / data-change)
-  'renderEvalUserList', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
+  'renderEvalUserList', 'repCambio', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
   'renderCriterios', 'renderRubrica', 'renderCalendario',
   'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
   // selectores de la tabla de usuarios (llevaban onchange= inline)
@@ -153,6 +153,10 @@ const ACCIONES = {
   evalFiltro:     (a) => { _evalEstado = a || ''; renderEvalUserList(); },
   rubricaVista:   (a) => { _rubVista = a; renderRubricaTab(); },
   panelCmp:       (a) => PanelAdmin.setVista(a),
+  repPeriodo:     (a) => Reportes.setPeriodo(a),
+  repSeccion:     (a) => Reportes.toggleSeccion(a),
+  repPdf:         ()  => Reportes.pdf(),
+  repCsv:         ()  => Reportes.csv(),
   evalAtajo:      (a) => { _evalFlag = (_evalFlag === a) ? '' : (a || ''); renderEvalUserList(); },
   modalCal:       (a) => showCalModal(a),
   modalCriterio:  (a) => showCriterioModal(_num(a)),

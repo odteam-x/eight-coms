@@ -246,32 +246,25 @@
 
   <!-- ── TAB: REPORTES ── -->
   <div id="tab-reportes" class="atab-content">
-    <div class="ptitle no-print">REPORTES</div>
-    <div class="rpt-toolbar no-print">
-      <div class="rpt-pe-wrap">
-        <span class="eval-pe-lbl">Período:</span>
-        <div id="rpt-pe-btns"></div>
+    <div class="pantalla-cab no-print">
+      <h1 class="pantalla-t">Reportes</h1>
+      <div class="pantalla-acc">
+        <button type="button" class="btn-cfg-add" data-act="repCsv"><i data-lucide="download"></i>Exportar CSV</button>
+        <button type="button" class="btn-save btn-print-rpt" data-act="repPdf"><i data-lucide="printer"></i>Descargar PDF</button>
       </div>
-      <button class="btn-save btn-print-rpt" data-act="fn" data-arg="printAdminReport">
-        <i data-lucide="printer" style="width:15px;height:15px"></i>
-        Descargar PDF
-      </button>
+      <p>Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.</p>
     </div>
+    <div class="tarjeta rep-controles no-print" id="rep-controles"></div>
     <div id="rpt-body">
-      <div class="empty-box" style="margin-top:40px">
-        <div class="empty-txt">Selecciona un período para generar el reporte.</div>
-      </div>
+      <div class="loading-box"><span class="spin"></span></div>
     </div>
   </div>
 
   <!-- ── TAB: GESTIONES ── -->
   <div id="tab-gestiones" class="atab-content">
-    <div class="ptitle">GESTIONES</div>
-    <p class="rubrica-intro" style="max-width:70ch">
-      Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario.
-      Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.
-    </p>
-    <div style="display:flex;gap:10px;margin:18px 0;flex-wrap:wrap">
+    <div class="pantalla-cab"><h1 class="pantalla-t">Gestiones</h1>
+      <p>Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario. Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.</p></div>
+    <div class="cfg-toolbar">
       <button class="btn-cfg-add" data-act="fn" data-arg="showAbrirGestionModal">+ Abrir gestión nueva</button>
       <!-- Sin esto, "No volver a mostrar" sería una puerta sin picaporte. -->
       <button class="btn-out" data-act="fn" data-arg="restablecerEntrada">Volver a mostrar el selector al entrar</button>
@@ -533,5 +526,6 @@
 <script src="admin.js"></script>
 <script src="admin-personas.js"></script>
 <script src="admin-panel.js"></script>
+<script src="admin-reportes.js"></script>
 </body>
 </html>

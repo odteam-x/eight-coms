@@ -2285,10 +2285,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }
-  if (tab === 'reportes' && !_rptPE && _periodos.length) {
-    const def = _periodos.find(p => p.activo) || _periodos[0];
-    if (def) selectRptPE(def.id, document.querySelector('#rpt-pe-btns .rpt-pe-btn'));
-  }
+  if (tab === 'reportes') Reportes.abrir();
 }
 
 function switchTab(tab, btn) {
