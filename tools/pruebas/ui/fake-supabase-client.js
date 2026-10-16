@@ -51,6 +51,13 @@
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
     calendario: [], config: [], periodo_participantes: [], trabajos_entregados: [],
+    etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Hito', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
+    actividades: [
+      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, creada_por: U.admin },
+      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: 'Práctica de luz natural.', etiqueta_id: 3, fecha_inicio: dia(5), fecha_fin: null, distrito: null, creada_por: U.admin },
+      { id: 3, gestion_id: 1, titulo: 'Reunión del distrito 08-01', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(2), fecha_fin: null, distrito: '08-01', creada_por: U.sec },
+      { id: 4, gestion_id: 1, titulo: 'Reunión del distrito 08-02', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(3), fecha_fin: null, distrito: '08-02', creada_por: U.admin },
+    ],
     criterios_v2,
     perfiles_rol: [
       { id: 1, gestion_id: 1, rol_id: 1, version: 1, vigente_desde_periodo: null, created_at: ahora() },
@@ -120,6 +127,7 @@
     if (table === 'tarea_eventos') return rows.filter(e => veTarea(DB.tareas.find(t => t.id === e.tarea_id) || {}));
     if (table === 'evaluaciones' && !esAdmin()) return rows.filter(e => e.estado === 'publicado' && (e.evaluado_id === meId || (esSec() && distritoIds().includes(e.evaluado_id))));
     if (table === 'profiles' && !esAdmin()) return rows.filter(p => p.id === meId || (esSec() && p.distrito === me().distrito));
+    if (table === 'actividades' && !esAdmin()) return rows.filter(a => !a.distrito || a.distrito === me().distrito);
     return rows;
   }
 
@@ -195,6 +203,15 @@
         rows.push(p); DB.tarea_eventos.push({ id: seq.ev++, tarea_id: p.id, actor_id: meId, tipo: 'creada', a: 'asignada', motivo: p.origen, created_at: ahora() });
         return p;
       }
+      if (this.t === 'actividades' || this.t === 'etiquetas') {
+        if (this.t === 'etiquetas' && !esAdmin()) throw new Error('new row violates row-level security policy for table "etiquetas"');
+        if (this.t === 'actividades') {
+          if (!esAdmin() && !(esSec() && p.distrito && p.distrito === me().distrito)) throw new Error('Solo la administración crea actividades para todo el equipo; tú, para tu distrito.');
+          if (p.fecha_fin && p.fecha_fin < p.fecha_inicio) throw new Error('new row violates check constraint "actividades_check"');
+          p.creada_por = meId;
+        }
+        p.id = (rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0)) + 1; rows.push(p); return p;
+      }
       if (this.t === 'evaluaciones') {
         const per = DB.periodos_evaluacion.find(x => x.id === p.periodo_id);
         const prev = rows.find(r => r.periodo_id === p.periodo_id && r.evaluado_id === p.evaluado_id);
@@ -214,6 +231,7 @@
     }
     _update(r) {
       if (this.t === 'tareas') { const n = validarTarea(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
+      if (this.t === 'actividades' && !esAdmin() && !(esSec() && r.distrito === me().distrito)) throw new Error('row-level security');
       Object.assign(r, this.pl); return r;
     }
   }

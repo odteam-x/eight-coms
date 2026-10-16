@@ -229,9 +229,9 @@ const Tareas = (() => {
    * Abre «Nueva tarea» sin tener la lista en pantalla: se usa desde el perfil de
    * una persona, el buscador o el calendario.
    */
-  function nueva({ periodoId, yo, revisor = false, esAdmin = false, personas = [], paraId = null, fecha = '', onCambio }) {
+  function nueva({ periodoId, yo, revisor = false, esAdmin = false, personas = [], paraId = null, fecha = '', onCambio, periodos = [] }) {
     const c = {
-      id: 'rapida', el: null, periodoId, yo, revisor, esAdmin, onCambio, paraId, fechaIni: fecha, puedeCrear: true, filtro: 'todas', persona: '',
+      id: 'rapida', el: null, periodoId, periodos, yo, revisor, esAdmin, onCambio, paraId, fechaIni: fecha, puedeCrear: true, filtro: 'todas', persona: '',
       personas: new Map(personas.map(p => [p.id, p])),
       catalogo: new Map((Store.get('criteriosV2') || []).map(k => [k.key, k.nombre])),
       tareas: [],
@@ -356,6 +356,9 @@ const Tareas = (() => {
 
   function modalNueva(c) {
     const campos = [
+      ...((c.periodos || []).length > 1 ? [{ id: 'periodo', tipo: 'select', label: 'Período de la tarea', valor: c.periodoId,
+        opciones: c.periodos.map(p => ({ v: p.id, l: p.pe + (p.nombre && p.nombre !== p.pe ? ' · ' + p.nombre : '') })),
+        ayuda: 'La tarea cuenta como evidencia de ese período.' }] : []),
       ...(c.revisor ? [{ id: 'para', tipo: 'checks', label: 'Asignar a', req: true, valor: c.paraId ? [c.paraId] : [],
         opciones: [...c.personas.values()].filter(p => p.id !== c.yo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
           .map(p => ({ v: p.id, l: p.nombre })), ayuda: 'Puedes marcar varias personas: cada una recibe su propia tarea.' }]
@@ -370,7 +373,7 @@ const Tareas = (() => {
         const destinos = c.revisor ? v.para : [c.yo];
         if (!destinos.length) return 'Elige al menos una persona.';
         const res = await Promise.all(destinos.map(id => API.crearTarea({
-          periodo_id: c.periodoId, titulo: v.titulo, descripcion: v.descripcion, asignada_a: id,
+          periodo_id: v.periodo || c.periodoId, titulo: v.titulo, descripcion: v.descripcion, asignada_a: id,
           prioridad: v.prioridad, fecha_limite: v.fecha || null, criterios: v.criterios || [],
         })));
         const fallos = res.filter(r => !r.ok);

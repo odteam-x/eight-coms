@@ -203,12 +203,13 @@
 
   <!-- ── TAB: CALENDARIO ── -->
   <div id="tab-calendario" class="atab-content">
-    <div class="ptitle">CALENDARIO DE EVALUACIONES</div>
-    <div class="cal-editor-toolbar">
-      <input class="search-inp" id="search-calendario" aria-label="Buscar actividad del calendario" type="text" placeholder="Buscar actividad…" data-input="renderCalendario">
-      <button class="btn-add-evento" data-act="fn" data-arg="showCalModal">+ Agregar actividad</button>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Actividades</h1>
+      <div class="pantalla-acc"><button type="button" class="btn-cfg-add" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
+      <p>Capacitaciones, jornadas, reuniones y todo lo que pasa en el calendario. No dependen de los períodos; las fechas de cada período se editan en Períodos.</p>
     </div>
-    <div id="cal-editor-list"><div class="loading-box"><span class="spin"></span></div></div>
+    <div class="cfg-toolbar"><input class="search-inp" id="search-actividades" aria-label="Buscar actividad" type="search" placeholder="Buscar actividad…" data-input="renderActividades"></div>
+    <div id="act-body"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
   <!-- ── TAB: DISTRITOS ── -->
@@ -527,5 +528,6 @@
 <script src="admin-personas.js"></script>
 <script src="admin-panel.js"></script>
 <script src="admin-reportes.js"></script>
+<script src="admin-actividades.js"></script>
 </body>
 </html>

@@ -63,8 +63,25 @@ const Calendario = (() => {
         });
       }
     }
+    // Actividades (independientes de los períodos), repartidas en cada día de su rango.
+    const [et, ac] = await Promise.all([API.getEtiquetas(), API.getActividades()]);
+    S.actividadesOk = ac.disponible !== false;
+    S.etiquetas = et.rows || [];
+    S.actividades = ac.rows || [];
+    const tonoDe = id => (S.etiquetas.find(e => String(e.id) === String(id)) || {}).tono || 'gris';
+    for (const x of S.actividades) {
+      const ini = deIso(x.fecha_inicio), fin = deIso(x.fecha_fin || x.fecha_inicio);
+      for (let d = new Date(ini); d <= fin && d - ini < 1000 * 3600 * 24 * 120; d.setDate(d.getDate() + 1)) {
+        eventos.push({ fecha: iso(d), tipo: 'actividad', cls: 'act', tono: tonoDe(x.etiqueta_id), etiquetaId: x.etiqueta_id ?? null,
+          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito });
+      }
+    }
     S.eventos = eventos;
   }
+  const fechaCorta = f => { const d = deIso(f); return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`; };
+  const nombreEtq = id => (S.etiquetas.find(e => String(e.id) === String(id)) || {}).nombre || 'Sin etiqueta';
+  const puedeEditarAct = x => !document.body.classList.contains('gestion-archivada') && (S.esAdmin || (S.modo === 'secretario' && x.distrito && x.distrito === S.miDistrito));
+  const puedeCrearAct = () => !document.body.classList.contains('gestion-archivada') && S.actividadesOk && (S.esAdmin || (S.modo === 'secretario' && !!S.miDistrito));
 
   /* ── Pintado ─────────────────────────────────────────────────────────── */
   function _celdas() {
@@ -76,7 +93,8 @@ const Calendario = (() => {
   }
 
   function _filtrados() {
-    return S.eventos.filter(e => (e.tipo === 'hito' ? S.ver.hitos : S.ver.tareas));
+    return S.eventos.filter(e => e.tipo === 'hito' ? S.ver.hitos : e.tipo === 'tarea' ? S.ver.tareas
+      : !S.ocultas.has(String(e.etiquetaId ?? 'none')));
   }
 
   function _html() {
@@ -94,7 +112,7 @@ const Calendario = (() => {
           aria-pressed="${f === S.dia}">
         <span class="cal2-num">${d.getDate()}</span>
         ${primeroPe ? `<span class="cal2-pe">${escHtml(pe.pe)}</span>` : ''}
-        <span class="cal2-puntos">${lista.slice(0, 4).map(e => `<i class="cal2-punto cal2-punto--${e.cls}"></i>`).join('')}${lista.length > 4 ? `<b>+${lista.length - 4}</b>` : ''}</span>
+        <span class="cal2-puntos">${lista.slice(0, 4).map(e => `<i class="cal2-punto cal2-punto--${e.cls}"${e.tono ? ` style="--etq:var(--etq-${e.tono})"` : ''}></i>`).join('')}${lista.length > 4 ? `<b>+${lista.length - 4}</b>` : ''}</span>
       </button>`;
     }).join('');
 
@@ -110,9 +128,10 @@ const Calendario = (() => {
               <button type="button" class="cal2-btn" data-act="calMes" data-arg="1" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
             </div>
           </header>
-          <div class="cal2-filtros" role="group" aria-label="Qué mostrar">
+          <div class="cal2-filtros" role="group" aria-label="Qué mostrar (leyenda)">
             <button type="button" class="cal2-chip${S.ver.hitos ? ' on' : ''}" aria-pressed="${S.ver.hitos}" data-act="calFiltro" data-arg="hitos"><i class="cal2-punto cal2-punto--entrega"></i>Fechas de los períodos</button>
             <button type="button" class="cal2-chip${S.ver.tareas ? ' on' : ''}" aria-pressed="${S.ver.tareas}" data-act="calFiltro" data-arg="tareas"><i class="cal2-punto cal2-punto--tarea"></i>${S.modo === 'miembro' ? 'Mis tareas' : S.modo === 'secretario' ? 'Tareas del distrito' : 'Todas las tareas'}</button>
+            ${(S.etiquetas || []).map(e => `<button type="button" class="cal2-chip${S.ocultas.has(String(e.id)) ? '' : ' on'}" aria-pressed="${!S.ocultas.has(String(e.id))}" data-act="calFiltro" data-arg="etq:${e.id}"><i class="cal2-punto cal2-punto--act" style="--etq:var(--etq-${escHtml(e.tono)})"></i>${escHtml(e.nombre)}</button>`).join('')}
             ${peHoy ? `<span class="cal2-hoy-pe">Hoy estás en <strong>${escHtml(peHoy.pe)}</strong></span>` : ''}
           </div>
           <div class="cal2-sem" aria-hidden="true">${DIAS.map(d => `<span>${d}</span>`).join('')}</div>
@@ -126,18 +145,22 @@ const Calendario = (() => {
     const lista = _filtrados().filter(e => e.fecha === S.dia);
     const d = deIso(S.dia);
     const pe = periodoDe(S.dia);
-    const puedeCrear = !document.body.classList.contains('gestion-archivada') && pe && esPeriodoV2(pe);
+    const puedeCrear = !document.body.classList.contains('gestion-archivada') && !!_periodoParaTarea(S.dia);
     return `
       <h3 class="cal2-agenda-h"><span>${['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][d.getDay()]}</span>${d.getDate()} de ${MESES[d.getMonth()]}</h3>
       ${pe ? `<p class="cal2-agenda-pe">${escHtml(pe.pe)}${pe.nombre && pe.nombre !== pe.pe ? ' · ' + escHtml(pe.nombre) : ''}</p>` : '<p class="cal2-agenda-pe">Fuera de un período</p>'}
       ${lista.length ? `<ul class="cal2-lista">${lista.map(e => `
         <li class="cal2-ev cal2-ev--${e.cls}">
-          <span class="cal2-ev-ico"><i data-lucide="${escHtml(e.icono)}"></i></span>
-          <span class="cal2-ev-txt"><strong>${escHtml(e.titulo)}</strong><small>${escHtml(e.sub)}${e.tipo === 'tarea' ? ' · ' + escHtml((Tareas.ESTADOS[e.estado] || {}).txt || '') : ''}</small></span>
+          <span class="cal2-ev-ico"${e.tono ? ` style="--etq:var(--etq-${e.tono})"` : ''}><i data-lucide="${escHtml(e.icono)}"></i></span>
+          <span class="cal2-ev-txt"><strong>${escHtml(e.titulo)}</strong><small>${escHtml(e.sub)}${e.tipo === 'tarea' ? ' · ' + escHtml((Tareas.ESTADOS[e.estado] || {}).txt || '') : ''}${e.tipo === 'actividad' ? ' · ' + escHtml(nombreEtq(e.etiquetaId)) : ''}</small></span>
+          ${e.tipo === 'actividad' && puedeEditarAct(S.actividades.find(a => a.id === e.actId) || {}) ? `<span class="cal2-acc"><button type="button" class="btn-icon" data-act="calEditarAct" data-arg="${e.actId}" aria-label="Editar actividad" title="Editar"><i data-lucide="pencil"></i></button><button type="button" class="btn-icon btn-icon--danger" data-act="calBorrarAct" data-arg="${e.actId}" aria-label="Eliminar actividad" title="Eliminar"><i data-lucide="trash-2"></i></button></span>` : ''}
           ${e.tipo === 'tarea' ? `<button type="button" class="cal2-ver" data-act="calVer" data-arg="${escHtml(e.personaId)}" data-arg2="${e.tareaId}">${S.puedeRevisar ? 'Abrir perfil' : 'Ir a Entregas'}</button>` : ''}
         </li>`).join('')}</ul>`
         : '<p class="cal2-vacio">Nada programado este día.</p>'}
-      ${puedeCrear ? `<button type="button" class="btn-save cal2-nueva" data-act="calNueva" data-arg="${S.dia}"><i data-lucide="plus"></i>${S.puedeRevisar ? 'Nueva tarea para este día' : 'Mi iniciativa para este día'}</button>` : ''}`;
+      <div class="cal2-acciones">
+        ${puedeCrear ? `<button type="button" class="btn-save cal2-nueva" data-act="calNueva" data-arg="${S.dia}"><i data-lucide="plus"></i>${S.puedeRevisar ? 'Asignar una tarea' : 'Mi iniciativa'}</button>` : ''}
+        ${puedeCrearAct() ? `<button type="button" class="btn-ghost cal2-nueva-act" data-act="calActividad" data-arg="${S.dia}"><i data-lucide="calendar-plus"></i>Nueva actividad</button>` : ''}
+      </div>`;
   }
 
   function _pintar() {
@@ -152,11 +175,12 @@ const Calendario = (() => {
    * @param {'miembro'|'secretario'|'admin'} o.modo
    * @param {Array<{id,nombre}>} [o.personas]   a quién se le puede asignar (revisor)
    */
-  async function montar({ el, yo, modo = 'miembro', personas = [] }) {
+  async function montar({ el, yo, modo = 'miembro', personas = [], distrito = null, distritos = [] }) {
     const hoy = new Date();
     S = { el, yo, modo, puedeRevisar: modo !== 'miembro', esAdmin: modo === 'admin', personas,
           nombres: new Map(personas.map(p => [p.id, p.nombre])),
-          mes: new Date(hoy.getFullYear(), hoy.getMonth(), 1), dia: hoyIso(), eventos: [], ver: { hitos: true, tareas: true } };
+          mes: new Date(hoy.getFullYear(), hoy.getMonth(), 1), dia: hoyIso(), eventos: [], ver: { hitos: true, tareas: true },
+          ocultas: new Set(), etiquetas: [], actividades: [], actividadesOk: true, miDistrito: distrito, distritos };
     el.innerHTML = esqueletoHTML();
     await _cargar();
     _pintar();
@@ -171,11 +195,61 @@ const Calendario = (() => {
     _pintar();
   }
   function dia(f) { if (!S) return; S.dia = f; const d = deIso(f); S.mes = new Date(d.getFullYear(), d.getMonth(), 1); _pintar(); }
-  function filtro(k) { if (!S) return; S.ver[k] = !S.ver[k]; _pintar(); }
+  function filtro(k) {
+    if (!S) return;
+    if (String(k).startsWith('etq:')) { const id = k.slice(4); S.ocultas.has(id) ? S.ocultas.delete(id) : S.ocultas.add(id); }
+    else S.ver[k] = !S.ver[k];
+    _pintar();
+  }
+  /** Período de una tarea creada desde un día: el que contiene el día; si no, se elige en el formulario. */
+  function _periodoParaTarea(f) {
+    const pe = periodoDe(f);
+    if (pe && esPeriodoV2(pe)) return pe;
+    const v2 = (Store.periodos() || []).filter(esPeriodoV2);
+    return v2.find(p => p.activo) || v2[0] || null;
+  }
+  function _formActividad(x = {}, fechaIni = '') {
+    const etqs = S.etiquetas || [];
+    const alcance = S.esAdmin
+      ? [{ v: '', l: 'Todo el equipo' }, ...(S.distritos || []).map(d => ({ v: d.id, l: d.nombre }))]
+      : [{ v: S.miDistrito || '', l: 'Mi distrito' }];
+    return [
+      { id: 'titulo', tipo: 'texto', label: 'Título', req: true, valor: x.titulo || '', ph: 'Ej.: Capacitación de edición de video' },
+      { id: 'descripcion', tipo: 'area', label: 'Descripción (opcional)', valor: x.descripcion || '', filas: 2 },
+      { id: 'etiqueta', tipo: 'select', label: 'Etiqueta', valor: x.etiqueta_id || '', opciones: [{ v: '', l: 'Sin etiqueta' }, ...etqs.map(e => ({ v: e.id, l: e.nombre }))] },
+      { id: 'ini', tipo: 'fecha', label: 'Desde', valor: x.fecha_inicio || fechaIni },
+      { id: 'fin', tipo: 'fecha', label: 'Hasta (opcional, si dura varios días)', valor: x.fecha_fin || '' },
+      { id: 'alcance', tipo: 'select', label: 'Para quién', valor: x.distrito || '', opciones: alcance },
+    ];
+  }
+  async function _guardarActividad(x, v) {
+    if (!(v.titulo || '').trim()) return 'Escribe un título.';
+    if (!v.ini) return 'Elige la fecha.';
+    if (v.fin && v.fin < v.ini) return 'La fecha final no puede ser anterior a la inicial.';
+    const r = await API.saveActividad({ id: x.id, titulo: v.titulo, descripcion: v.descripcion, etiqueta_id: v.etiqueta ? Number(v.etiqueta) : null, fecha_inicio: v.ini, fecha_fin: v.fin, distrito: v.alcance || null });
+    if (!r.ok) return r.error;
+    showToast(x.id ? 'Actividad actualizada' : 'Actividad creada', 'ok');
+    await _cargar(); _pintar();
+    return null;
+  }
+  function actividad(f) {
+    if (!S || !puedeCrearAct()) return;
+    Tareas.abrirModal({ titulo: 'Nueva actividad', campos: _formActividad({}, f), confirmar: 'Crear', onConfirm: v => _guardarActividad({}, v) });
+  }
+  function editarAct(id) {
+    const x = (S?.actividades || []).find(a => String(a.id) === String(id)); if (!x || !puedeEditarAct(x)) return;
+    Tareas.abrirModal({ titulo: 'Editar actividad', campos: _formActividad(x), confirmar: 'Guardar', onConfirm: v => _guardarActividad(x, v) });
+  }
+  function borrarAct(id) {
+    const x = (S?.actividades || []).find(a => String(a.id) === String(id)); if (!x || !puedeEditarAct(x)) return;
+    Tareas.abrirModal({ titulo: 'Eliminar actividad', confirmar: 'Eliminar', campos: [{ id: 'i', tipo: 'info', texto: '«' + x.titulo + '» dejará de verse en el calendario de todos.' }],
+      onConfirm: async () => { const r = await API.deleteActividad(x.id); if (!r.ok) return r.error; showToast('Actividad eliminada', 'ok'); await _cargar(); _pintar(); return null; } });
+  }
   function nueva(f) {
     if (!S) return;
-    const pe = periodoDe(f); if (!pe) return;
-    Tareas.nueva({ periodoId: pe.id, yo: S.yo, revisor: S.puedeRevisar, esAdmin: S.esAdmin, personas: S.personas, fecha: f,
+    const pe = _periodoParaTarea(f); if (!pe) return;
+    const v2 = (Store.periodos() || []).filter(esPeriodoV2);
+    Tareas.nueva({ periodoId: pe.id, periodos: v2, yo: S.yo, revisor: S.puedeRevisar, esAdmin: S.esAdmin, personas: S.personas, fecha: f,
                    onCambio: () => _cargar().then(_pintar) });
   }
   function ver(personaId) {
@@ -183,5 +257,5 @@ const Calendario = (() => {
     else if (typeof switchTab === 'function') switchTab('trabajos', null);
   }
 
-  return { montar, mes, dia, filtro, nueva, ver, periodoDe };
+  return { montar, mes, dia, filtro, nueva, ver, periodoDe, actividad, editarAct, borrarAct, recargar: async () => { if (S) { await _cargar(); _pintar(); } } };
 })();

@@ -692,7 +692,7 @@ function switchTab(tab, btn) {
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
-    Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: isSecretario() ? 'secretario' : 'miembro', personas: personasDelDistrito() });
+    Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: isSecretario() ? 'secretario' : 'miembro', personas: personasDelDistrito(), distrito: CU.distrito });
   }
   if (tab === 'trabajos') renderLineaTiempo();
   if (tab === 'trabajos' && Store.necesitaCarga('trabajos')) {

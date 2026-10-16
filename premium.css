@@ -607,3 +607,24 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
   body.imprimiendo-reporte .rpt-logo { display: block !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body.imprimiendo-reporte * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+
+/* ── Calendario: actividades con etiquetas de color ───────────────────── */
+.cal2-punto--act { background: var(--etq, var(--etq-gris)); }
+.cal2-ev--act .cal2-ev-ico { background: color-mix(in srgb, var(--etq, var(--etq-gris)) 22%, var(--surface-3)); color: var(--etq, var(--etq-gris)); }
+.cal2-acc { display: inline-flex; gap: 4px; }
+.cal2-acciones { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-4); }
+.cal2-acciones > button { width: 100%; }
+.cal2-chip { gap: 8px; }
+
+
+/* ── Actividades ──────────────────────────────────────────────────────── */
+.act-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.act-fila { align-items: center; }
+.act-fecha { flex: none; width: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; border-radius: var(--r-fila); background: var(--surface-2); line-height: 1; }
+.act-fecha b { font-family: var(--font-display); font-size: 1.5rem; }
+.act-fecha span { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); text-transform: capitalize; }
+.act-acc { display: inline-flex; gap: 6px; flex: none; }
+.punto--g { width: 14px; height: 14px; }
+.etq-lista { margin-top: var(--sp-3); max-height: 42dvh; overflow-y: auto; }
+@media (max-width: 640px) { .act-fila { flex-wrap: wrap; } .act-fila > .etiqueta { order: 3; } }

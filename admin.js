@@ -2272,12 +2272,13 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'calendario') Actividades.abrir();
   if (tab === 'rubrica') renderRubricaTab();
   if (tab === 'roles') renderRoles();
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'agenda' && Store.necesitaCarga('agenda')) {
     Store.marcarCargado('agenda');
-    Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
+    Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', distritos: _distritos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   }
   if (tab === 'gestiones') renderGestiones();
   if (tab === 'perfiles') renderPerfiles();

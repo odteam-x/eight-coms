@@ -378,6 +378,41 @@ const API = {
   },
 
   // ── ADMIN: calendario ────────────────────────────────────────────
+  /* Etiquetas y actividades (migración 0018). Si aún no se aplicó, devuelven disponible:false y el calendario sigue con lo demás. */
+  _sinTabla(error) { return !!error && /does not exist|42P01|Could not find the table|schema cache/i.test((error.message || '') + (error.code || '')); },
+  async getEtiquetas() {
+    const g = await _gid();
+    let q = SB.from('etiquetas').select('*').order('orden');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
+    return { ok: !error, disponible: !this._sinTabla(error), rows: data ?? [], error: error?.message };
+  },
+  async saveEtiqueta({ id, nombre, tono, orden }) {
+    const p = { nombre: String(nombre || '').trim(), tono, ...(orden != null ? { orden } : {}) };
+    const { error } = id ? await SB.from('etiquetas').update(p).eq('id', id) : await SB.from('etiquetas').insert({ ...p, gestion_id: await _gid() });
+    return { ok: !error, error: error?.message };
+  },
+  async deleteEtiqueta(id) {
+    const { error } = await SB.from('etiquetas').delete().eq('id', id);
+    return { ok: !error, error: error?.message };
+  },
+  async getActividades() {
+    const g = await _gid();
+    let q = SB.from('actividades').select('*').order('fecha_inicio');
+    if (g != null) q = q.eq('gestion_id', g);
+    const { data, error } = await q;
+    return { ok: !error, disponible: !this._sinTabla(error), rows: data ?? [], error: error?.message };
+  },
+  async saveActividad({ id, titulo, descripcion, etiqueta_id, fecha_inicio, fecha_fin, distrito }) {
+    const p = { titulo: String(titulo || '').trim(), descripcion: descripcion || '', etiqueta_id: etiqueta_id || null, fecha_inicio, fecha_fin: fecha_fin || null, distrito: distrito || null };
+    const { error } = id ? await SB.from('actividades').update(p).eq('id', id) : await SB.from('actividades').insert({ ...p, gestion_id: await _gid() });
+    return { ok: !error, error: error?.message };
+  },
+  async deleteActividad(id) {
+    const { error } = await SB.from('actividades').delete().eq('id', id);
+    return { ok: !error, error: error?.message };
+  },
+
   async saveCalEvento(ev) {
     const { id, ...p } = ev;
     const { error } = id
