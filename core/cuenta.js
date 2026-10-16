@@ -71,6 +71,15 @@ const Cuenta = (() => {
             </button>
           </div>
 
+          <div class="lista-aj cuenta-salir">
+            <button type="button" class="fila-aj" data-act="salir">
+              <div class="fila-aj-txt"><div class="fila-aj-t">Cerrar sesión</div><div class="fila-aj-d">Sales de este dispositivo.</div></div>
+              <span class="fila-aj-ind"><i data-lucide="log-out"></i></span>
+            </button>
+          </div>
+        </section>
+
+        <section aria-labelledby="cu-t-seg">
           <h3 class="cuenta-t" id="cu-t-seg">Seguridad</h3>
           <form class="lista-aj cuenta-pass" id="cuenta-form-pass" novalidate>
             <div class="fila-aj cuenta-campo">
@@ -91,12 +100,6 @@ const Cuenta = (() => {
             </div>
           </form>
 
-          <div class="lista-aj cuenta-salir">
-            <button type="button" class="fila-aj" data-act="salir">
-              <div class="fila-aj-txt"><div class="fila-aj-t">Cerrar sesión</div><div class="fila-aj-d">Sales de este dispositivo.</div></div>
-              <span class="fila-aj-ind"><i data-lucide="log-out"></i></span>
-            </button>
-          </div>
         </section>
       </div>`;
     if (typeof renderIconos === 'function') renderIconos(host);
