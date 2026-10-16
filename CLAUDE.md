@@ -366,6 +366,20 @@ Tasks give the evaluator facts instead of memory: what was asked, for when, when
 - `core/tareas.js` has its own modal (`.tk-overlay`): the shared `.modal-*` styles live in `admin.css`, which member and secretary pages do not load. In an archived gestión it offers only *Historial*.
 - Fixed on the way: *Evaluar* asked `getTrabajosEntregados` for the period **name** where it indexes by id, so that panel was always empty.
 
+### Second redesign: panel, reports, activities, periods (migration 0018)
+
+Study and rules: `docs/estudio-uiux-evaluacion.md`. New admin-only files share the globals of `admin.js` (same pattern as `admin-personas.js`):
+
+- **`admin-panel.js` (`PanelAdmin`)** — the Panel. Every chart answers one question (progress ring, level histogram, comparison by role/district for calibration, competency radar, trend across periods, heat map person × competency, top results). It normalises both rubric models to 0–100 **only to draw** (levels 87/67/37); official scores still come from `resultados_periodo()` or the legacy formula. `PanelAdmin.datos(periodo)` is cached; `invalidar(id)` refreshes.
+- **`admin-reportes.js` (`Reportes`)** — a builder (period, scope: team/district/role/person, sections) with a printable sheet (`.rpt-hoja`; PDF by printing with the light theme forced), CSV export, and support for the role-based rubric.
+- **`admin-actividades.js` (`Actividades`)** — the *Actividades* tab: literal activities (title, date or range, label, scope), independent of periods, plus label management.
+- **Migration 0018** (`actividades`, `etiquetas`, `mi_distrito()`): admin writes everything; a secretary writes only activities of her own district; everyone reads team-wide ones and those of their district; no writes in an archived gestión. Labels have a tone from the 8-tone palette and are seeded per gestión by trigger. **Apply 0018 after 0017.** The calendar degrades gracefully (`disponible:false`) if it is not applied. Tests: `tools/pruebas/sql-0018.mjs`.
+- **Calendar** (`core/calendario.js`): create an activity or assign a task straight from a day; the legend is built from labels and filters the grid. Tasks still belong to a period: the one containing the day, else the active one, and the task form lets the person choose among role-based periods.
+- **Periods**: list split into *Rúbrica por roles* / *Clásicos* with a timeline; guided form (name → model → dates in order → active); new periods get suggested dates after the previous one; dates are validated (start ≤ end of work ≤ delivery ≤ ceremony).
+- **Roles y perfiles** are one screen (a card per role with its current profile, a stacked weight bar and older versions); **Rúbrica** is split *Por roles* (common vs role competencies with 1-3-5 anchors) and *Clásica*.
+- **Full criterion names everywhere** — never the 3-letter codes. **Evaluar** keeps its header fixed (period, search, role/district selects, status chips and shortcuts with counts) and each column scrolls on its own.
+- **Mi cuenta** (`core/cuenta.js`): photo, name, assigned data (read-only), theme, password, sign-out.
+
 ### Canonical components (phase 1 of the second redesign)
 
 `marca.css` ends with the components every screen must use: **six buttons** (`.btn--primario` coral, `--secundario` outline, `--texto`, `--peligro`, `--icono` circle, `--chip`; all historic classes — `btn-save`, `tk-btn`, `btn-cfg-add`, `cal2-btn`… — are mapped to them), **`.etiqueta`** (pill with a dot; `--etq-coral|violeta|verde|ambar|cian|azul|rojo|gris`, 8 tones measured at 3:1 in both themes by `tools/contraste.js` — the only colours allowed outside the brand ramp, for categories/calendar labels), **`.pantalla-cab`** (title + context + one primary action) and **`.tarjeta`** / **`.tarjeta--kpi`**. One primary per view. Study and rules: `docs/estudio-uiux-evaluacion.md`.
@@ -405,11 +419,11 @@ Whoever approves a task assigns **0–10 points**, mandatory at the moment of ap
 
 ### Tests (`tools/pruebas/`)
 
-`npm install && npm run todo` there runs 0015–0017 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
+`npm install && npm run todo` there runs 0015–0018 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
 
 ### Migrations
 
-Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, then 0017**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
+Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, then 0018**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
 
 ### Password Reset Flow
 

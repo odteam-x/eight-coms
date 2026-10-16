@@ -142,6 +142,7 @@ async function renderPersonasCards() {
     return {
       id: u.id, nombre: u.nombre || u.email, avatar_url: u.avatar_url,
       rol: u.roles?.nombre || (u.tipo_miembro === 'secretario' ? 'Secretario' : 'Sin rol'),
+      distrito: u.distrito ? _distritoNombre(u.distrito) : '',
       valor: r?.valor ?? null, max: r?.max, color: r?.color, nivel: r?.nivel, chips,
       estado: u.es_admin ? 'No se evalúa' : 'Sin evaluar',
     };

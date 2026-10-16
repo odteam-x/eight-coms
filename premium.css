@@ -649,3 +649,35 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .per-fechas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-3); }
 .per-ayuda { font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.4; margin-top: var(--sp-1); }
 @media (max-width: 520px) { .per-fechas { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* ── Personas: tarjeta de persona (exterior) ───────────────────────────── */
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--sp-3); background: none; border-radius: 0; overflow: visible; }
+.roster > .pcard, .pcard { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: var(--sp-4); border: 0; border-radius: var(--r-card); background: var(--surface-1); text-align: left; transition: background .15s var(--ease); }
+.roster > .pcard:first-child { border-top: 0; }
+.pcard:hover { background: var(--surface-2); }
+.pcard--yo { background: var(--surface-2); }
+.pcard-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
+.pcard-av { width: 56px; height: 56px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
+.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
+.pcard-valor { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.pcard-num { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; }
+.pcard-valor small { font-size: var(--fs-xs); color: var(--txt-muted); margin-top: 2px; }
+.pcard-sin { font-size: var(--fs-sm); color: var(--txt-2); text-align: right; max-width: 12ch; line-height: 1.2; }
+.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.2; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
+.pcard-barra { display: block; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: var(--sp-2); }
+.pcard-barra i { display: block; height: 100%; border-radius: inherit; }
+.pcard-pie { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); min-height: 28px; align-items: center; }
+.pcard-pie .nivel-badge { margin: 0; }
+
+/* ── Perfil: cabecera más sobria y cifras neutras ──────────────────────── */
+.perfil-nombre { font-size: clamp(2rem, 1.2rem + 2.6vw, 3.6rem) !important; line-height: .95; text-transform: none; letter-spacing: var(--tr-display); }
+.perfil-cab { padding-block: var(--sp-6) calc(var(--sp-6) + 36px); }
+.perfil-av { width: 96px; height: 96px; }
+.pf-kpis > :nth-child(n) { --b-bg: var(--surface-1); --b-fg: var(--txt); }
+.pf-kpis > :nth-child(1) .pf-kpi-val { color: var(--data-txt); }
+.pf-kpi { border-radius: var(--r-card); clip-path: none; }
+.pf-kpi-val { font-size: clamp(2.6rem, 3.6vw, 3.6rem); }
+.pf-kpi-lbl { color: var(--txt-2); }
+.pcard-av, .pcard-av span { color: var(--txt); }
