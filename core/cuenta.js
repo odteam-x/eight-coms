@@ -39,9 +39,9 @@ const Cuenta = (() => {
         <div class="cuenta-id">
           <h2 class="cuenta-nombre" id="cuenta-nombre-txt">${escHtml(nombre)}</h2>
           <p class="cuenta-mail">${escHtml(_p.email || '')}</p>
-          <div class="cuenta-cab-acc">
-            <button type="button" class="btn-ghost cuenta-btn" data-act="cuentaFoto"><i data-lucide="camera"></i>Cambiar foto</button>
-          </div>
+        </div>
+        <div class="cuenta-cab-acc">
+          <button type="button" class="btn-ghost cuenta-btn" data-act="cuentaFoto"><i data-lucide="camera"></i>Cambiar foto</button>
         </div>
       </section>
 

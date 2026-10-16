@@ -691,3 +691,33 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 @media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { padding: var(--sp-4); } }
 .cuenta-cols > section > .lista-aj { flex: none; }
 .cuenta-cols .cuenta-salir { margin-top: var(--sp-3); }
+
+
+/* ═══ Cabeceras: una sola posición y un solo ritmo en todas las pantallas ═══ */
+.atab-content, .tab-content { padding-top: var(--sp-7); }
+.atab-content > .pantalla-cab:first-child, #tab-evaluar .pantalla-cab { padding-top: 0; }
+.ptitle, .pantalla-cab, .page-header, .tab-title { margin: 0 0 var(--sp-6); padding-top: 0; }
+.pantalla-cab > p, .page-header__sub { margin-top: var(--sp-1); line-height: 1.5; }
+/* Evaluar: bloques de la cabecera separados con aire */
+#tab-evaluar .eval-fijo { display: flex; flex-direction: column; gap: var(--sp-4); padding-bottom: var(--sp-4); }
+#tab-evaluar .eval-fijo .pantalla-cab { margin: 0; }
+#tab-evaluar .eval-fijo .eval-pe-bar, #tab-evaluar .eval-fijo .eval-filtros, #tab-evaluar .eval-fijo .eval-chips-host { margin: 0; }
+@media (min-width: 1100px) { #tab-evaluar.active { height: calc(100dvh - 24px); } }
+
+/* ═══ Mi cuenta: franja de identidad + tarjetas que se reparten el ancho ═══ */
+.cuenta-cab { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-5); padding: var(--sp-5) var(--sp-6); margin-bottom: var(--sp-6); }
+.cuenta-cab-acc { margin: 0; grid-column: 3; grid-row: 1; }
+.cuenta-id { display: flex; flex-direction: column; gap: 2px; }
+.cuenta-nombre { font-size: clamp(1.8rem, 1.2rem + 1.8vw, 2.6rem); }
+.cuenta-cols { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: start; gap: var(--sp-6) var(--sp-5); }
+.cuenta-cols > section > .lista-aj { flex: none; }
+.cuenta-t { font-size: 1.25rem; margin-bottom: var(--sp-3); }
+.cuenta-cols .fila-aj { padding: var(--sp-3) var(--sp-5); }
+.cuenta-form { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--sp-3); }
+.cuenta-form .fila-aj-txt { flex: none; }
+.cuenta-form .cfg-inp, .cuenta-campo .cfg-inp { width: 100%; }
+.cuenta-form .btn-save, .cuenta-acc .btn-save { width: auto; min-height: 44px; padding: 0 var(--sp-5); }
+.cuenta-val { text-align: right; flex: 0 1 auto; max-width: 24ch; }
+.cuenta-cols .fila-aj-txt { flex: 1 1 auto; min-width: 0; }
+.cuenta-campo .fila-aj-txt { width: 100%; }
+@media (max-width: 640px) { .cuenta-cab { grid-template-columns: auto minmax(0, 1fr); } .cuenta-cab-acc { grid-column: 1 / -1; grid-row: auto; } .cuenta-form { grid-template-columns: minmax(0, 1fr); } }
