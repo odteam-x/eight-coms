@@ -520,3 +520,36 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .rub-crit[open] > summary .fila-aj-ind svg { transform: rotate(180deg); }
 .rub-crit > summary:hover { background: var(--surface-2); }
 .rub-anclas { padding: 0 var(--sp-5) var(--sp-4); color: var(--txt-2); font-size: var(--fs-sm); }
+
+
+/* ── Panel: KPIs, gráficos con pregunta y mapa de calor ──────────────── */
+.panel-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--sp-4); margin: var(--sp-5) 0; }
+.tarjeta--kpi .kpi-num small { font-size: .5em; color: var(--txt-muted); margin-left: 2px; }
+.tarjeta--kpi .kpi-sub { font-size: var(--fs-xs); color: var(--txt-2); }
+.panel-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.panel-t { display: flex; flex-direction: column; gap: var(--sp-3); }
+.panel-t--ancha { grid-column: 1 / -1; }
+.panel-t-h { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); line-height: 1.05; letter-spacing: var(--tr-titulo); margin: 0; }
+.panel-t-d { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--txt-2); }
+.panel-t .chart-alt { font-size: var(--fs-xs); color: var(--txt-muted); margin: 0; }
+.panel-seg { align-self: flex-start; }
+.avance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-5); }
+.avance .anillo { --tam: 132px; flex: none; }
+.avance-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-md); }
+.avance-lista li { display: flex; align-items: center; gap: var(--sp-3); }
+.avance-lista b { font-family: var(--font-display); font-size: 1.5rem; min-width: 2ch; }
+.fila-aj-med { flex: none; width: 56px; }
+.fila-aj > .nivel-badge { flex: none; }
+@media (max-width: 900px) { .panel-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.mc-wrap { overflow-x: auto; border-radius: var(--r-fila); }
+.mc { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 560px; font-size: var(--fs-sm); }
+.mc th, .mc td { text-align: center; padding: 8px 6px; border-radius: 8px; }
+.mc thead th { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); vertical-align: bottom; line-height: 1.2; min-width: 84px; }
+.mc tbody th { text-align: left; font-family: var(--font-ui); font-weight: 600; white-space: nowrap; padding-right: var(--sp-4); position: sticky; left: 0; background: var(--surface-1); }
+.mc tbody th small { display: block; font-family: var(--font-body); font-weight: 400; color: var(--txt-muted); font-size: var(--fs-xs); }
+.mc td { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--nivel-on); }
+.mc td.mc-sex { background: var(--sex); } .mc td.mc-sbu { background: var(--sbu); } .mc td.mc-spr { background: var(--spr); } .mc td.mc-sba { background: var(--sba); }
+.mc td.mc-vacio { background: var(--surface-2); color: var(--txt-muted); font-weight: 400; }
+.mc td.mc-total { background: transparent; color: var(--txt); }
+.mc-leyenda { display: flex; flex-wrap: wrap; gap: var(--sp-2); }

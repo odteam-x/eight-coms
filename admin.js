@@ -1777,6 +1777,10 @@ async function loadOverview() {
     bodyEl.innerHTML = `<div class="empty-box"><div class="empty-txt">No hay períodos. Crea uno en la pestaña Períodos.</div></div>`;
     return;
   }
+  // Panel nuevo (core: admin-panel.js): sirve a los dos modelos de rúbrica.
+  PanelAdmin.invalidar(_activePEOv.id);
+  await PanelAdmin.montar(bodyEl, _activePEOv);
+  return;
   if (esPeriodoV2(_activePEOv)) { await renderResumenV2(bodyEl, _activePEOv); return; }
   bodyEl.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
   const [evals, distEvals, participantes] = await Promise.all([
