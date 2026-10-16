@@ -133,12 +133,12 @@
 
   <!-- ── TAB: ROLES ── -->
   <div id="tab-roles" class="atab-content">
-    <div class="ptitle">ROLES</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Los roles se muestran en el dropdown de registro. Actívalos o desactívalos según necesites.</p>
-      <input class="search-inp" id="search-roles" aria-label="Buscar rol" type="text" placeholder="Buscar rol…" data-input="renderRoles">
-      <button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Roles y perfiles</h1>
+      <div class="pantalla-acc"><button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button></div>
+      <p>Cada rol se evalúa con las competencias comunes más las suyas, con pesos que suman 100. Un perfil que ya se usó no se edita: se crea una versión nueva que rige desde el período que elijas.</p>
     </div>
+    <div class="cfg-toolbar"><input class="search-inp" id="search-roles" aria-label="Buscar rol" type="search" placeholder="Buscar rol…" data-input="renderRoles"></div>
     <div id="roles-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
@@ -155,25 +155,35 @@
 
   <!-- ── TAB: RÚBRICA ── -->
   <div id="tab-rubrica" class="atab-content">
-    <div class="ptitle">RÚBRICA &amp; CRITERIOS</div>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Rúbrica</h1>
+      <div class="pantalla-acc" id="rubrica-seg"></div>
+      <p>Qué se mide y cómo se puntúa. La rúbrica por roles se usa en los períodos nuevos; la clásica, en los anteriores.</p>
+    </div>
 
-    <div class="section-label">Criterios de evaluación</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Define los criterios de evaluación. El <strong>key</strong> es el identificador interno (solo letras minúsculas, sin espacios).</p>
-      <input class="search-inp" id="search-criterios" aria-label="Buscar criterio" type="text" placeholder="Buscar criterio…" data-input="renderCriterios">
-      <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
-    </div>
-    <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
+    <section id="rubrica-roles" aria-label="Rúbrica por roles">
+      <div id="catalogo-v2"></div>
+    </section>
 
-    <div class="section-label" style="margin-top:32px">Tabla de puntuación</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Cada entrada define qué significa cada nivel (1–4) para un criterio.</p>
-      <input class="search-inp" id="search-rubrica" aria-label="Buscar en la rúbrica" type="text" placeholder="Buscar en rúbrica…" data-input="renderRubrica">
-      <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
-    </div>
-    <div class="rubrica-wrap" style="max-width:900px">
-      <div class="rubrica-grid" id="rubrica-admin-grid"></div>
-    </div>
+    <section id="rubrica-clasica" aria-label="Rúbrica clásica" hidden>
+      <h2 class="cuenta-t">Criterios</h2>
+      <div class="cfg-toolbar">
+        <p class="cfg-hint">Los criterios de los períodos clásicos. Cada uno se puntúa de 1 a 4.</p>
+        <input class="search-inp" id="search-criterios" aria-label="Buscar criterio" type="search" placeholder="Buscar criterio…" data-input="renderCriterios">
+        <button class="btn-cfg-add" data-act="fn" data-arg="showCriterioModal">+ Nuevo criterio</button>
+      </div>
+      <div id="criterios-list"><div class="loading-box"><span class="spin"></span></div></div>
+
+      <h2 class="cuenta-t" style="margin-top:var(--sec-main)">Qué significa cada nivel</h2>
+      <div class="cfg-toolbar">
+        <p class="cfg-hint">Cada entrada describe qué significa un nivel (1 a 4) en un criterio.</p>
+        <input class="search-inp" id="search-rubrica" aria-label="Buscar en la rúbrica" type="search" placeholder="Buscar en la rúbrica…" data-input="renderRubrica">
+        <button class="btn-cfg-add" data-act="fn" data-arg="showRubricaModal">+ Nueva entrada</button>
+      </div>
+      <div class="rubrica-wrap" style="max-width:900px">
+        <div class="rubrica-grid" id="rubrica-admin-grid"></div>
+      </div>
+    </section>
   </div>
 
   <!-- ── TAB: PERFILES (rúbrica v2) ── -->

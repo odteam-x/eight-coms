@@ -89,8 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
         { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
-        { tab:'perfiles',   icono:'sliders-horizontal', etiqueta:'Perfiles' },
-        { tab:'roles',      icono:'tag',           etiqueta:'Roles'      },
+        { tab:'roles',      icono:'sliders-horizontal', etiqueta:'Roles y perfiles' },
         { tab:'distritos',  icono:'map-pin',       etiqueta:'Distritos'  },
         { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
       ]},
@@ -1050,32 +1049,55 @@ function entrarConPeriodoActivo() {
 }
 
 /* ── TAB: ROLES ── */
+const _TONOS_PESO = ['azul', 'verde', 'violeta', 'ambar', 'cian', 'coral', 'gris', 'rojo'];
+
 function renderRoles() {
   const el = document.getElementById('roles-list'); if (!el) return;
   const q = (document.getElementById('search-roles')?.value || '').toLowerCase().trim();
-  const list = _roles.filter(r => !q || (r.nombre||'').toLowerCase().includes(q));
+  const list = _roles.filter(r => !q || (r.nombre || '').toLowerCase().includes(q));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.clipboard}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin roles.'}</div></div>`;
-    renderIconos(el);
+    renderVacio(el, q ? 'Ningún rol coincide con "' + q + '".' : 'Aún no hay roles. Crea el primero con «Nuevo rol».');
     return;
   }
-  el.innerHTML = `
-    <div class="tbl">
-      <div class="tbl-head"><div>Nombre</div><div>Estado</div><div>Acciones</div></div>
-      <div class="tbl-body">
-        ${list.map(r => `
-          <div class="tbl-row">
-            <div class="tbl-cell">${escHtml(r.nombre)}</div>
-            <div class="tbl-cell">
-              <span class="estado-pill ${r.activo?'pill--ok':'pill--off'}">${r.activo?'Activo':'Inactivo'}</span>
+  const v2 = v2Disponible();
+  const nombrePeriodo = id => _periodos.find(p => String(p.id) === String(id))?.nombre;
+  const catalogo = Object.fromEntries(_criteriosV2.map(c => [c.key, c.nombre]));
+  el.innerHTML = list.map(r => {
+    const versiones = v2 ? _perfiles.filter(p => String(p.rol_id) === String(r.id)).sort((a, b) => b.version - a.version) : [];
+    const gente = _users.filter(u => !u.es_admin && String(u.rol_id) === String(r.id)).length;
+    const vigente = versiones[0];
+    const barra = pf => {
+      const cs = [...pf.perfil_criterios].sort((a, b) => b.peso - a.peso);
+      return `<div class="pesos-bar" role="img" aria-label="Pesos de las competencias del rol">${cs.map((c, i) => `<i style="flex:${c.peso};--etq:var(--etq-${_TONOS_PESO[i % _TONOS_PESO.length]})" title="${escHtml(catalogo[c.criterio_key] || c.criterio_key)}: ${c.peso}"></i>`).join('')}</div>
+        <ul class="pesos-leyenda">${cs.map((c, i) => `<li><span class="punto" style="--etq:var(--etq-${_TONOS_PESO[i % _TONOS_PESO.length]})"></span>${escHtml(catalogo[c.criterio_key] || c.criterio_key)} <b>${c.peso}</b></li>`).join('')}</ul>`;
+    };
+    return `
+      <section class="tarjeta rol-card" aria-label="Rol ${escHtml(r.nombre)}">
+        <div class="rol-cab">
+          <div class="rol-id">
+            <h3 class="rol-t">${escHtml(r.nombre)}</h3>
+            <div class="rol-meta">
+              <span>${gente} persona${gente === 1 ? '' : 's'}</span>
+              <span class="etiqueta ${r.activo ? 'etq-verde' : 'etq-gris'}">${r.activo ? 'Activo' : 'Inactivo'}</span>
+              ${v2 && r.activo && gente < 4 ? '<span class="etiqueta etq-ambar" title="Con menos de 4 personas no hay posición dentro del rol: se mide contra la rúbrica">Pocas personas</span>' : ''}
             </div>
-            <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" data-act="modalRol" data-arg="${r.id}" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" data-act="borrarRol" data-arg="${r.id}" title="Eliminar">${ICONS.trash}</button>
-            </div>
-          </div>`).join('')}
-      </div>
-    </div>`;
+          </div>
+          <div class="rol-acc">
+            ${v2 && r.activo ? `<button type="button" class="btn-cfg-add" data-act="modalPerfil" data-arg="${r.id}">${versiones.length ? 'Nueva versión del perfil' : 'Crear perfil'}</button>` : ''}
+            <button type="button" class="btn-icon" data-act="modalRol" data-arg="${r.id}" title="Editar rol" aria-label="Editar rol ${escHtml(r.nombre)}"><i data-lucide="pencil"></i></button>
+            <button type="button" class="btn-icon btn-icon--danger" data-act="borrarRol" data-arg="${r.id}" title="Eliminar rol" aria-label="Eliminar rol ${escHtml(r.nombre)}"><i data-lucide="trash-2"></i></button>
+          </div>
+        </div>
+        ${v2 && r.activo ? (vigente ? `
+          <div class="rol-perfil">
+            <div class="rol-perfil-t"><strong>Perfil vigente · versión ${vigente.version}</strong>
+              <span>${vigente.vigente_desde_periodo ? 'rige desde ' + escHtml(nombrePeriodo(vigente.vigente_desde_periodo) || '—') : 'rige desde el inicio de la gestión'}</span></div>
+            ${barra(vigente)}
+          </div>
+          ${versiones.length > 1 ? `<details class="v2-det rol-hist"><summary>Versiones anteriores (${versiones.length - 1})</summary>${versiones.slice(1).map(v => `<div class="rol-perfil"><div class="rol-perfil-t"><strong>Versión ${v.version}</strong><span>${v.vigente_desde_periodo ? 'rigió desde ' + escHtml(nombrePeriodo(v.vigente_desde_periodo) || '—') : 'rigió desde el inicio'}</span></div>${barra(v)}</div>`).join('')}</details>` : ''}`
+          : '<div class="v2-nota v2-nota--regla" role="alert">Sin perfil: las personas con este rol no se pueden evaluar en períodos por roles.</div>') : ''}
+      </section>`;
+  }).join('');
   renderIconos(el);
 }
 
@@ -1245,14 +1267,11 @@ function renderCriterios() {
   }
   el.innerHTML = `
     <div class="tbl">
-      <div class="tbl-head"><div>Color</div><div>Nombre</div><div>Abbr</div><div>Key</div><div>Orden</div><div>Estado</div><div>Acciones</div></div>
+      <div class="tbl-head"><div>Criterio</div><div>Orden</div><div>Estado</div><div>Acciones</div></div>
       <div class="tbl-body">
         ${list.map(c => `
           <div class="tbl-row">
-            <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${colorSeguro(c.color)};flex-shrink:0"></span></div>
             <div class="tbl-cell"><strong>${escHtml(c.label)}</strong></div>
-            <div class="tbl-cell"><span class="cbar-tag" style="color:var(--criterio)">${escHtml(c.label)}</span></div>
-            <div class="tbl-cell tbl-muted">${c.key}</div>
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
             <div class="tbl-cell tbl-actions">
@@ -1988,50 +2007,43 @@ function switchRankTab(tab) {
 /** ¿Está aplicada la migración 0015? Sin ella no hay catálogo ni columna. */
 const v2Disponible = () => _criteriosV2.length > 0 || (_periodos[0] && 'modelo' in _periodos[0]);
 
-function renderPerfiles() {
-  const el = document.getElementById('perfiles-list'); if (!el) return;
-  if (!v2Disponible()) {
-    renderVacio(el, 'La rúbrica por roles aún no está activada en la base de datos (migración 0015).');
+/** Los perfiles ahora viven dentro de la tarjeta de cada rol. */
+function renderPerfiles() { renderRoles(); renderCatalogoV2(); }
+
+let _rubVista = '';
+function renderRubricaTab() {
+  const hay = v2Disponible() && _criteriosV2.length;
+  if (!_rubVista) _rubVista = hay ? 'roles' : 'clasica';
+  const seg = document.getElementById('rubrica-seg');
+  if (seg) {
+    seg.innerHTML = segHTML([{ k: 'roles', etiqueta: 'Por roles' }, { k: 'clasica', etiqueta: 'Clásica' }], _rubVista, 'rubricaVista', { etiqueta: 'Tipo de rúbrica', prefijo: 'rub' });
+  }
+  document.getElementById('rubrica-roles').hidden = _rubVista !== 'roles';
+  document.getElementById('rubrica-clasica').hidden = _rubVista !== 'clasica';
+  renderCatalogoV2();
+}
+
+/** Competencias comunes y del rol, con sus anclas 1-3-5 a un clic. */
+function renderCatalogoV2() {
+  const cat = document.getElementById('catalogo-v2'); if (!cat) return;
+  if (!v2Disponible() || !_criteriosV2.length) {
+    renderVacio(cat, 'La rúbrica por roles aún no está activada en la base de datos (migración 0015).');
     return;
   }
-  const nombrePeriodo = id => _periodos.find(p => String(p.id) === String(id))?.nombre;
-  const catalogo = Object.fromEntries(_criteriosV2.map(c => [c.key, c.nombre]));
-
-  const roles = _roles.filter(r => r.activo);
-  el.innerHTML = roles.map(r => {
-    const versiones = _perfiles.filter(p => String(p.rol_id) === String(r.id)).sort((a, b) => b.version - a.version);
-    const gente = _users.filter(u => !u.es_admin && String(u.rol_id) === String(r.id)).length;
-    const peq = gente < 4;
-    return `
-      <section class="v2-rol-card" aria-label="Perfil de ${escHtml(r.nombre)}">
-        <div class="v2-rol-head">
-          <div>
-            <h3 class="v2-h" style="margin:0">${escHtml(r.nombre)}</h3>
-            <div class="v2-sub">${gente} persona${gente === 1 ? '' : 's'} con este rol${peq ? ' · <span style="color:var(--marca)">menos de 4: se evalúa contra la rúbrica, no contra pares</span>' : ''}</div>
-          </div>
-          <button class="btn-cfg-add" data-act="modalPerfil" data-arg="${r.id}">${versiones.length ? '+ Nueva versión' : '+ Crear perfil'}</button>
-        </div>
-        ${versiones.length ? versiones.map((v, i) => `
-          <div class="v2-version${i === 0 ? ' v2-version--vigente' : ''}">
-            <div class="v2-version-head">
-              <strong>Versión ${v.version}</strong>
-              <span class="v2-sub">${v.vigente_desde_periodo ? 'rige desde ' + escHtml(nombrePeriodo(v.vigente_desde_periodo) || '—') : 'rige desde el inicio de la gestión'}</span>
-            </div>
-            <div class="v2-chips">${[...v.perfil_criterios].sort((a, b) => b.peso - a.peso).map(c =>
-              `<span class="v2-chip"><span>${escHtml(catalogo[c.criterio_key] || c.criterio_key)}</span><b>${c.peso}</b></span>`).join('')}</div>
-          </div>`).join('')
-        : '<div class="v2-nota v2-nota--regla" role="alert">Sin perfil: las personas con este rol no se pueden evaluar en períodos v2.</div>'}
-      </section>`;
-  }).join('') || '<div class="empty-box"><div class="empty-txt">No hay roles activos. Créalos en Roles.</div></div>';
-
-  const cat = document.getElementById('catalogo-v2');
-  if (cat) {
-    const grupo = (titulo, tipo) => `
-      <h4 class="v2-h">${titulo}</h4>
-      ${_criteriosV2.filter(c => c.tipo === tipo).map(c => `
-        <details class="v2-det v2-cat-item"><summary>${escHtml(c.nombre)}</summary>${descriptoresHTML(c)}</details>`).join('')}`;
-    cat.innerHTML = grupo('Núcleo transversal (5)', 'nucleo') + grupo('Criterios técnicos (19)', 'tecnico');
-  }
+  const grupo = (titulo, desc, tipo) => {
+    const lista = _criteriosV2.filter(c => c.tipo === tipo);
+    return `<h2 class="cuenta-t">${titulo} <span class="cuenta-cont">${lista.length}</span></h2>
+      <p class="cfg-hint rub-desc">${desc}</p>
+      <div class="lista-aj">${lista.map(c => `
+        <details class="rub-crit"><summary class="fila-aj">
+          <div class="fila-aj-txt"><div class="fila-aj-t">${escHtml(c.nombre)}</div></div>
+          <span class="fila-aj-ind"><i data-lucide="chevron-down"></i></span>
+        </summary><div class="rub-anclas">${descriptoresHTML(c)}</div></details>`).join('')}</div>`;
+  };
+  cat.innerHTML = grupo('Competencias comunes', 'Las mismas para todos los roles; se comparan en valor absoluto.', 'nucleo') +
+    '<div style="height:var(--sec-main)"></div>' +
+    grupo('Competencias del rol', 'Cada rol usa las suyas, con el peso que le da su perfil.', 'tecnico');
+  renderIconos(cat);
 }
 
 function showPerfilModal(rolId) {
@@ -2256,6 +2268,8 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'rubrica') renderRubricaTab();
+  if (tab === 'roles') renderRoles();
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'agenda' && Store.necesitaCarga('agenda')) {
     Store.marcarCargado('agenda');
@@ -2274,6 +2288,7 @@ function switchTabAdminHooks(tab) {
 }
 
 function switchTab(tab, btn) {
+  if (tab === 'perfiles') tab = 'roles';   // Perfiles vive dentro de Roles y perfiles
   switchTabCore(tab, btn, { contentSelector: '.atab-content', parentMap: _tabParentMap });
   switchTabAdminHooks(tab);
 }

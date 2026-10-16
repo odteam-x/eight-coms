@@ -490,3 +490,33 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background: var(--surface-1); font-size: 16px; }
 .modal-box .field input[type="checkbox"], .field input[type="checkbox"] { min-height: 0; width: 22px; height: 22px; padding: 0; border-radius: 7px; background: transparent; }
 @media (max-width: 767px) { .modal-actions { flex-direction: column-reverse; align-items: stretch; } }
+
+
+/* ── Roles y perfiles ─────────────────────────────────────────────────── */
+.rol-card { margin-bottom: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-4); }
+.rol-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5); }
+.rol-t { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); line-height: 1.05; letter-spacing: var(--tr-titulo); margin: 0; }
+.rol-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-1); font-size: var(--fs-sm); color: var(--txt-2); }
+.rol-acc { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.rol-perfil { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-fila); background: var(--surface-2); }
+.rol-perfil-t { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2); font-family: var(--font-ui); font-size: var(--fs-sm); }
+.rol-perfil-t span { color: var(--txt-2); }
+.rol-hist { margin: 0; }
+.rol-hist .rol-perfil { margin-top: var(--sp-3); background: var(--surface-1); }
+.pesos-bar { display: flex; gap: 3px; height: 14px; border-radius: var(--r-control); overflow: hidden; }
+.pesos-bar i { background: var(--etq); min-width: 6px; }
+.pesos-leyenda { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin: 0; padding: 0; font-size: var(--fs-sm); }
+.pesos-leyenda li { display: inline-flex; align-items: center; gap: 8px; }
+.pesos-leyenda b { font-family: var(--font-display); font-size: 1.1rem; }
+.punto { width: 10px; height: 10px; border-radius: 50%; background: var(--etq); flex: none; }
+
+/* ── Rúbrica por roles ────────────────────────────────────────────────── */
+.cuenta-cont { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); margin-left: var(--sp-2); }
+.rub-desc { margin: 0 0 var(--sp-3); }
+.rub-crit { border-top: 1px solid var(--trazo); }
+.rub-crit:first-child { border-top: 0; }
+.rub-crit > summary { list-style: none; cursor: pointer; }
+.rub-crit > summary::-webkit-details-marker { display: none; }
+.rub-crit[open] > summary .fila-aj-ind svg { transform: rotate(180deg); }
+.rub-crit > summary:hover { background: var(--surface-2); }
+.rub-anclas { padding: 0 var(--sp-5) var(--sp-4); color: var(--txt-2); font-size: var(--fs-sm); }
