@@ -28,6 +28,9 @@ let _inactivosPE        = new Set();
 let _evalPECache    = [];
 let _selectedEvalUser = null;
 let _evalEstado = '';   // filtro de la lista de Evaluar: '', pendiente, borrador, publicado
+let _evalFlag = '';     // atajo: '', revisar, vencidas, sinrol, pequeno, inactivos
+let _evalTareas = {};   // por persona: { porRevisar, vencidas } (solo períodos por roles)
+let _evalInactivos = new Set();
 /** Rúbrica v2 (migración 0015). Vacíos si la migración aún no se aplicó. */
 let _criteriosV2 = [];
 let _perfiles    = [];
@@ -193,6 +196,11 @@ function populateDistritoFilters() {
   const opts = '<option value="">Todos los distritos</option>' +
     _distritos.map(d => `<option value="${escHtml(d.id)}">${escHtml(d.nombre)}</option>`).join('') +
     '<option value="__none__">Sin asignar</option>';
+  const optsRol = '<option value="">Todos los roles</option>' +
+    (typeof _roles !== 'undefined' ? _roles : []).map(r => `<option value="${escHtml(r.id)}">${escHtml(r.nombre)}</option>`).join('') +
+    '<option value="__none__">Sin rol</option>';
+  const selRol = document.getElementById('eval-rol-filter');
+  if (selRol) { const previo = selRol.value; selRol.innerHTML = optsRol; if (previo) selRol.value = previo; }
   ['filter-distrito-usuarios', 'eval-distrito-filter'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -215,7 +223,13 @@ function renderEvalPEBar() {
     `<button class="pb${p.id === _activePE?.id ? ' active' : ''}" data-act="peEval" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 
-  loadEvalPEData();
+  loadEvalPEData().then(fijarCabeceraEval);
+}
+
+function fijarCabeceraEval() {
+  const fijo = document.getElementById('eval-fijo'); if (!fijo || fijo._obs) return;
+  const set = () => document.getElementById('tab-evaluar')?.style.setProperty('--eval-cab-h', fijo.offsetHeight + 'px');
+  fijo._obs = new ResizeObserver(set); fijo._obs.observe(fijo); set();
 }
 
 async function selectEvalPE(periodoId, btn) {
@@ -225,6 +239,7 @@ async function selectEvalPE(periodoId, btn) {
   _selectedEvalUser = null;
   document.getElementById('eval-form-area').innerHTML = '';
   await loadEvalPEData();
+  fijarCabeceraEval();
 }
 
 async function loadEvalPEData() {
@@ -239,73 +254,110 @@ async function loadEvalPEData() {
   ]);
   _evalPECache = evs;
   _resV2 = Object.fromEntries((res.rows || []).map(r => [r.evaluado_id, r]));
+  // Datos para los atajos (participación y, en períodos por roles, tareas). Si fallan, el atajo no cuenta.
+  try {
+    const part = await API.getParticipantes(_activePE.id);
+    _evalInactivos = new Set((part || []).filter(r => !r.activo).map(r => r.user_id));
+  } catch { _evalInactivos = new Set(); }
+  _evalTareas = {};
+  if (v2) {
+    const [rt, lt] = await Promise.all([API.getResumenTareas(_activePE.id), API.getTareas({ periodoId: _activePE.id })]);
+    if (rt.ok) Object.entries(rt.porUsuario).forEach(([id, r]) => { (_evalTareas[id] ||= { porRevisar: 0, vencidas: 0 }).vencidas = r.vencidas_abiertas || 0; });
+    if (lt.ok) lt.tareas.filter(t => t.estado === 'entregada').forEach(t => { (_evalTareas[t.asignada_a] ||= { porRevisar: 0, vencidas: 0 }).porRevisar++; });
+  }
   if (v2 && !res.ok) showToast('No se pudieron calcular los resultados v2: ' + res.error, 'error');
   renderEvalUserList();
 }
 
+const _EVAL_ATAJOS = [
+  { id: 'revisar',   txt: 'Con entregas por revisar', v2: true,  ico: 'inbox',        test: u => (_evalTareas[u.id]?.porRevisar || 0) > 0 },
+  { id: 'vencidas',  txt: 'Con tareas vencidas',      v2: true,  ico: 'alarm-clock',  test: u => (_evalTareas[u.id]?.vencidas || 0) > 0 },
+  { id: 'sinrol',    txt: 'Sin rol asignado',         v2: true,  ico: 'user-x',       test: u => !u.rol_id },
+  { id: 'pequeno',   txt: 'Rol con pocas personas',   v2: true,  ico: 'group',        test: u => !!_resV2[u.id]?.rol_pequeno },
+  { id: 'inactivos', txt: 'Inactivos en el período',  v2: false, ico: 'pause',        test: u => _evalInactivos.has(u.id) },
+];
+
+function _evalPoblacion() {
+  const q = (document.getElementById('search-eval-users')?.value || '').toLowerCase().trim();
+  const dist = (document.getElementById('eval-distrito-filter')?.value || '').trim();
+  const rol = (document.getElementById('eval-rol-filter')?.value || '').trim();
+  return _users.filter(u => !u.es_admin
+    && (!dist || (dist === '__none__' ? !u.distrito : u.distrito === dist))
+    && (!rol || (rol === '__none__' ? !u.rol_id : String(u.rol_id) === rol))
+    && (!q || (u.nombre || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q)));
+}
+
+/** Pinta chips (con conteo) y lista. La cabecera no se toca al elegir a alguien. */
 function renderEvalUserList() {
   const el = document.getElementById('eval-user-list'); if (!el) return;
-  const q = (document.getElementById('search-eval-users')?.value || '').toLowerCase().trim();
-  const distFilter = (document.getElementById('eval-distrito-filter')?.value || '').trim();
-  const nonAdmins = _users.filter(u => !u.es_admin
-    && (!distFilter || u.distrito === distFilter)
-    && (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
-
-  if (!nonAdmins.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${q||distFilter ? 'Sin resultados.' : 'Sin miembros registrados.'}</div></div>`;
-    return;
-  }
-
+  const host = document.getElementById('eval-chips-host');
+  const nonAdmins = _evalPoblacion();
   const evalMap = {};
   _evalPECache.forEach(e => { evalMap[e.evaluado_id] = e; });
   const criterios = getCriterios();
   const v2  = esPeriodoV2(_activePE);
-  // v2: el puntaje viene de la base (resultados_periodo), escala 0–100.
   const MAX = v2 ? 100 : criterios.length * 4 + 2;
   const colFill = v2 ? scoreColorV2    : scoreColor;
   const colTxt  = v2 ? scoreColorTxtV2 : scoreColorTxt;
 
-  const sorted = nonAdmins.map(u => {
+  const todos = nonAdmins.map(u => {
     const ev = evalMap[u.id];
-    const score = v2
-      ? (_resV2[u.id]?.individual ?? -1)
-      : (ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1);
-    const estado = ev?.estado || 'pendiente';
-    return { ...u, ev, score, estado };
+    const score = v2 ? (_resV2[u.id]?.individual ?? -1) : (ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1);
+    return { ...u, ev, score, estado: ev?.estado || 'pendiente' };
   }).sort((a, b) => {
     const order = { publicado: 0, borrador: 1, pendiente: 2 };
-    const d = (order[a.estado]??2) - (order[b.estado]??2);
+    const d = (order[a.estado] ?? 2) - (order[b.estado] ?? 2);
     return d !== 0 ? d : b.score - a.score;
   });
 
-  // Avance del período (sobre quien pasa el filtro de búsqueda/distrito) y filtro por estado.
   const cuenta = { publicado: 0, borrador: 0, pendiente: 0 };
-  sorted.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
-  const hechos = cuenta.publicado, total = sorted.length;
-  const lista = _evalEstado ? sorted.filter(u => u.estado === _evalEstado) : sorted;
-  const chip = (id, txt, n) => `<button type="button" class="eval-chip${_evalEstado === id ? ' on' : ''}" data-act="evalFiltro" data-arg="${id}" aria-pressed="${_evalEstado === id}">${txt} <b>${n}</b></button>`;
-  const cab = `<div class="eval-resumen">
-      <div class="eval-resumen-n"><strong>${hechos}</strong><span>de ${total} publicadas</span></div>
-      <div class="eval-resumen-bar" role="img" aria-label="${hechos} de ${total} evaluaciones publicadas"><i style="width:${total ? Math.round(hechos / total * 100) : 0}%"></i></div>
-    </div>
-    <div class="eval-chips">${chip('', 'Todas', total)}${chip('pendiente', 'Pendientes', cuenta.pendiente)}${chip('borrador', 'Borrador', cuenta.borrador)}${chip('publicado', 'Publicadas', cuenta.publicado)}</div>`;
-  if (!lista.length) { el.innerHTML = cab + '<div class="empty-box"><div class="empty-txt">Nadie en este estado.</div></div>'; return; }
+  todos.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
+  const hechos = cuenta.publicado, total = todos.length;
+  const atajos = _EVAL_ATAJOS.filter(f => v2 || !f.v2);
+  const cuentaAtajo = Object.fromEntries(atajos.map(f => [f.id, todos.filter(f.test).length]));
+  if (_evalFlag && !atajos.some(f => f.id === _evalFlag)) _evalFlag = '';
+  const fAct = atajos.find(f => f.id === _evalFlag);
 
+  const lista = todos.filter(u => (!_evalEstado || u.estado === _evalEstado) && (!fAct || fAct.test(u)));
+  const chip = (act, id, txt, n, on, ico) => `<button type="button" class="eval-chip${on ? ' on' : ''}" data-act="${act}" data-arg="${id}" aria-pressed="${on}">${ico ? `<i data-lucide="${ico}"></i>` : ''}${escHtml(txt)} <b>${n}</b></button>`;
+  if (host) {
+    host.innerHTML = `
+      <div class="eval-resumen">
+        <div class="eval-resumen-n"><strong>${hechos}</strong><span>de ${total} publicadas</span></div>
+        <div class="eval-resumen-bar" role="img" aria-label="${hechos} de ${total} evaluaciones publicadas"><i style="width:${total ? Math.round(hechos / total * 100) : 0}%"></i></div>
+      </div>
+      <div class="eval-grupo"><span class="eval-grupo-t">Estado</span><div class="eval-chips">
+        ${chip('evalFiltro', '', 'Todas', total, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
+      </div></div>
+      <div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
+        ${atajos.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
+      </div></div>`;
+    renderIconos(host);
+  }
+
+  const top = el.scrollTop;
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty-box"><div class="empty-txt">${total ? 'Nadie cumple esos filtros.' : 'Sin miembros registrados.'}</div></div>`;
+    return;
+  }
   let rank = 0;
-  el.innerHTML = cab + `<div class="eval-users-grid">
+  el.innerHTML = `<div class="eval-users-grid">
     ${lista.map(u => {
-      const isActive = _selectedEvalUser === u.id;
       const estadoCls = u.estado === 'publicado' ? 'estado--publicado' : u.estado === 'borrador' ? 'estado--borrador' : 'estado--none';
       const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : 'Pendiente';
       if (u.estado === 'publicado') rank++;
       const medal = u.estado === 'publicado' ? medallaHTML(rank) : '';
-      const pct = u.score >= 0 ? Math.round(u.score/MAX*100) : 0;
+      const pct = u.score >= 0 ? Math.round(u.score / MAX * 100) : 0;
       const sinRol = v2 && !u.rol_id;
-      return `<div class="eval-ucard${isActive?' eval-ucard--active':''}" data-act="evaluarUsuario" data-arg="${u.id}">
+      const dist = (_distritos.find(d => String(d.id) === String(u.distrito)) || {}).nombre || u.distrito || '—';
+      const t = _evalTareas[u.id];
+      const avisos = (t?.porRevisar ? `<span class="etiqueta etq-azul">${t.porRevisar} por revisar</span>` : '') + (t?.vencidas ? `<span class="etiqueta etq-rojo">${t.vencidas} vencida${t.vencidas === 1 ? '' : 's'}</span>` : '');
+      return `<div class="eval-ucard${_selectedEvalUser === u.id ? ' eval-ucard--active' : ''}" data-act="evaluarUsuario" data-arg="${u.id}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
-          <div class="eval-ucard-meta">${sinRol ? '<span style="color:var(--marca)">Sin rol: asígnalo en Usuarios</span>' : escHtml(u.roles?.nombre||'—')} · ${escHtml(u.distrito||'—')}</div>
+          <div class="eval-ucard-meta">${sinRol ? '<span class="etiqueta etq-coral">Sin rol</span>' : escHtml(u.roles?.nombre || '—')} · ${escHtml(dist)}</div>
+          ${avisos ? `<div class="eval-ucard-avisos">${avisos}</div>` : ''}
         </div>
         ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${colFill(u.score)}"></div></div></div>
         <div class="eval-ucard-score" style="color:${colTxt(u.score)}">${v2 ? fmtV2(u.score) : u.score}</div>` : ''}
@@ -315,21 +367,27 @@ function renderEvalUserList() {
     }).join('')}
   </div>`;
   renderIconos(el);
+  el.scrollTop = top;   // no perder el sitio en la lista
 }
 
 async function selectEvalUser(userId) {
   _selectedEvalUser = userId;
-  renderEvalUserList();
+  // Solo se marca la fila: no se repinta la lista ni se mueve la cabecera.
+  document.querySelectorAll('#eval-user-list .eval-ucard').forEach(c => c.classList.toggle('eval-ucard--active', c.dataset.arg === String(userId)));
   const area = document.getElementById('eval-form-area'); if (!area) return;
-  area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  // getTrabajosEntregados indexa por periodo_id (UUID). Aquí se le pasaba el
-  // NOMBRE del período, así que el panel de trabajos salía siempre vacío.
+  if (!area.firstElementChild) area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  area.classList.add('cargando');
+  // getTrabajosEntregados indexa por periodo_id (UUID), no por el nombre.
   const [ev, trabajos] = await Promise.all([
     API.getEvaluacion(_activePE.id, userId),
     API.getTrabajosEntregados(userId, _activePE?.id || null),
   ]);
+  if (_selectedEvalUser !== userId) return;      // se eligió a otra persona mientras cargaba
   renderEvalForm(ev, userId, trabajos);
-  area.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  area.classList.remove('cargando');
+  area.scrollTop = 0;
+  // En pantallas estrechas el formulario va debajo de la lista: ahí sí se baja a él.
+  if (window.matchMedia('(max-width: 1099px)').matches) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderEvalForm(ev, evaluadoId, trabajos) {
@@ -346,7 +404,6 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
   const rows = criterios.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
@@ -1194,7 +1251,7 @@ function renderCriterios() {
           <div class="tbl-row">
             <div class="tbl-cell"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${colorSeguro(c.color)};flex-shrink:0"></span></div>
             <div class="tbl-cell"><strong>${escHtml(c.label)}</strong></div>
-            <div class="tbl-cell"><span class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</span></div>
+            <div class="tbl-cell"><span class="cbar-tag" style="color:var(--criterio)">${escHtml(c.label)}</span></div>
             <div class="tbl-cell tbl-muted">${c.key}</div>
             <div class="tbl-cell tbl-muted">${c.orden}</div>
             <div class="tbl-cell"><span class="estado-pill ${c.activo?'pill--ok':'pill--off'}">${c.activo?'Activo':'Inactivo'}</span></div>
@@ -1213,7 +1270,6 @@ function showCriterioModal(id) {
   document.getElementById('mcrit-id').value       = c?.id || '';
   document.getElementById('mcrit-label').value    = c?.label || '';
   document.getElementById('mcrit-key').value      = c?.key || '';
-  document.getElementById('mcrit-abbr').value     = c?.abbr || '';
   document.getElementById('mcrit-color').value    = c?.color || '#888888';
   document.getElementById('mcrit-orden').value    = c?.orden ?? 99;
   document.getElementById('mcrit-activo').checked = c?.activo !== false;
@@ -1226,14 +1282,13 @@ async function saveCriterioEntry() {
   const id     = document.getElementById('mcrit-id').value;
   const label  = document.getElementById('mcrit-label').value.trim();
   const key    = document.getElementById('mcrit-key').value.trim();
-  const abbr   = document.getElementById('mcrit-abbr').value.trim();
+  const abbr   = (document.getElementById('mcrit-abbr')?.value || label).trim().slice(0, 5).toUpperCase();
   const color  = document.getElementById('mcrit-color').value;
   const orden  = document.getElementById('mcrit-orden').value;
   const activo = document.getElementById('mcrit-activo').checked;
   const err    = document.getElementById('mcrit-err');
   if (!label) { err.textContent = 'Escribe el nombre del criterio.'; return; }
   if (!key)   { err.textContent = 'Escribe la clave interna (key).'; return; }
-  if (!abbr)  { err.textContent = 'Escribe la abreviación.'; return; }
 
   const res = await API.saveCriterio({ id: id ? Number(id) : null, key, label, abbr, color, orden, activo });
   if (!res.ok) { err.textContent = res.error; return; }
@@ -1566,7 +1621,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
           <div class="dist-hist-pe">${escHtml(h.periodos_evaluacion?.nombre || '—')}</div>
           ${DIST_CRITERIOS.map(c => `
             <div class="dist-hist-crit">
-              <span class="dist-hist-abbr" style="color:var(--criterio)">${escHtml(c.abbr)}</span>
+              <span class="dist-hist-abbr" style="color:var(--criterio)">${escHtml(c.label)}</span>
               <span class="dist-hist-val">${h.puntajes?.[c.key] ?? '—'}</span>
             </div>`).join('')}
           <div class="dist-hist-total" style="color:${distScoreColor(s)}">${s}<span style="font-size:.6rem;color:var(--muted);font-weight:400">/${MAX_DIST}</span></div>
@@ -1578,7 +1633,6 @@ function renderDistEvalForm(ev, distId, historial = []) {
   const rows = DIST_CRITERIOS.map((c, i) => `
     <div class="eval-criterio-row" style="animation-delay:${i*30}ms">
       <div class="eval-crit-head">
-        <div class="cbar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
@@ -1898,7 +1952,6 @@ function renderOverview() {
       <div class="crit-bars-grid">
         ${critAvg.map(c => `
           <div class="crit-bar-row">
-            <div class="crit-bar-tag" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
             <div style="flex:1;min-width:0">
               <div class="crit-bar-name">${escHtml(c.label)}</div>
               <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${pctBarra(c.avg, c)}%;background:var(--criterio)"></div></div>
@@ -2236,14 +2289,14 @@ function renderRptPEBar() {
   const bar = document.getElementById('rpt-pe-btns'); if (!bar) return;
   if (!_periodos.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>'; return; }
   bar.innerHTML = _periodos.map(p =>
-    `<button class="eval-pe-btn rpt-pe-btn${_rptPE?.id===p.id?' eval-pe-btn--active':''}" data-act="peRpt" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
+    `<button class="pb rpt-pe-btn${_rptPE?.id===p.id?' active eval-pe-btn--active':''}" data-act="peRpt" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
   ).join('');
 }
 
 async function selectRptPE(periodoId, _btn) {
   _rptPE = _periodos.find(p => p.id == periodoId) || null;
-  document.querySelectorAll('#rpt-pe-btns .rpt-pe-btn').forEach(b => b.classList.remove('eval-pe-btn--active'));
-  _btn?.classList.add('eval-pe-btn--active');
+  document.querySelectorAll('#rpt-pe-btns .rpt-pe-btn').forEach(b => b.classList.remove('eval-pe-btn--active', 'active'));
+  _btn?.classList.add('eval-pe-btn--active', 'active');
   if (!_rptEvals[periodoId]) {
     document.getElementById('rpt-body').innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
     _rptEvals[periodoId] = await API.getEvaluacionesByPE(periodoId);
@@ -2307,7 +2360,7 @@ function renderAdminReport() {
         ${criterios.map(c => {
           const val = Number(punt[c.key]) || 0;
           return `<div class="rpt-ind-bar-row">
-            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.abbr)}</div>
+            <div class="rpt-ind-bar-lbl" title="${escHtml(c.label)}" style="color:var(--criterio)">${escHtml(c.label)}</div>
             <div class="rpt-ind-bar-track"><div class="rpt-ind-bar-fill" style="width:${val/4*100}%;background:var(--criterio)"></div></div>
             <div class="rpt-ind-bar-val">${val}/4</div>
           </div>`;
@@ -2325,7 +2378,7 @@ function renderAdminReport() {
       ${comKeys.length || comentarios.general ? `<div class="rpt-ind-comments">
         ${comKeys.map(k => {
           const c = criterios.find(cr => cr.key === k);
-          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${escHtml(c?.color||'var(--txt)')}">${escHtml(c?.abbr||k)}:</span> ${escHtml(comentarios[k])}</div>`;
+          return `<div class="rpt-ind-com"><span style="font-weight:600;color:${escHtml(c?.color||'var(--txt)')}">${escHtml(c?.label||k)}:</span> ${escHtml(comentarios[k])}</div>`;
         }).join('')}
         ${comentarios.general ? `<div class="rpt-ind-com"><span style="font-weight:600">General:</span> ${escHtml(comentarios.general)}</div>` : ''}
       </div>` : ''}
@@ -2371,7 +2424,7 @@ function renderAdminReport() {
             <th class="rpt-th rpt-th-num">#</th>
             <th class="rpt-th">Nombre</th>
             <th class="rpt-th">Rol</th>
-            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${escHtml(c.label)}">${escHtml(c.abbr)}</th>`).join('')}
+            ${criterios.map(c => `<th class="rpt-th rpt-th-crit" title="${escHtml(c.label)}">${escHtml(c.label)}</th>`).join('')}
             <th class="rpt-th">Bono</th>
             <th class="rpt-th">Total</th>
             <th class="rpt-th">Nivel</th>
@@ -2431,7 +2484,7 @@ function renderAdminReport() {
         ${critAvg.map(c => {
           const pct = pctBarra(c.avg, c);
           return `<div class="rpt-crit-row">
-            <div class="rpt-crit-lbl" title="${escHtml(c.label)}">${escHtml(c.abbr)}</div>
+            <div class="rpt-crit-lbl" title="${escHtml(c.label)}">${escHtml(c.label)}</div>
             <div class="rpt-crit-bar-track">
               <div class="rpt-crit-bar-fill" style="width:${pct}%"></div>
             </div>

@@ -425,3 +425,68 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .medalla-num { display: inline-grid; place-items: center; width: 28px; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--txt-muted); }
 .num-display { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
 .ov-panel-title .ico { margin-right: var(--sp-1); }
+
+
+/* ── Nombres completos de criterios (antes siglas de 3 letras) ───────── */
+.crit-bar-row { align-items: center; }
+.crit-bar-name, .cbar-name, .eval-crit-label, .dm-crit-abbr, .dist-cal-abbr, .dist-hist-abbr, .rpt-ind-bar-lbl, .rpt-crit-lbl {
+  width: auto; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: 0; text-transform: none;
+}
+.dm-crit-row, .rpt-ind-bar-row, .rpt-crit-row { grid-template-columns: minmax(110px, 190px) minmax(0, 1fr) auto; }
+.rpt-th-crit { width: auto; min-width: 84px; white-space: normal; line-height: 1.2; }
+.eval-crit-head { flex-wrap: wrap; }
+.dm-crit-abbr, .dist-cal-abbr, .dist-hist-abbr, .rpt-ind-bar-lbl { flex: 0 1 170px; }
+
+
+/* ── Evaluar: cabecera fija y dos paneles con scroll propio ────────────── */
+#tab-evaluar { --eval-cab-h: 320px; }
+.eval-fijo { background: linear-gradient(var(--bg) 88%, transparent); padding-bottom: var(--sp-3); }
+.eval-filtros { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.eval-filtros .search-inp { flex: 1 1 260px; max-width: 420px; }
+.eval-filtros .cfg-select { flex: 0 1 220px; min-width: 160px; }
+.eval-chips-host { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-5); align-items: flex-start; }
+.eval-chips-host .eval-resumen { flex: 0 1 300px; margin: 0; padding: var(--sp-3) var(--sp-4); }
+.eval-chips-host .eval-resumen-n strong { font-size: 2rem; }
+.eval-grupo { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 280px; }
+.eval-grupo-t { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-muted); }
+.eval-chips-host .eval-chips { margin: 0; }
+.eval-ucard-avisos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.eval-col-form.cargando { opacity: .55; pointer-events: none; transition: opacity .15s var(--ease); }
+@media (min-width: 1100px) {
+  #tab-evaluar .eval-fijo { position: sticky; top: 0; z-index: var(--z-sticky); }
+  #tab-evaluar .eval-split { align-items: stretch; }
+  #tab-evaluar .eval-col-lista, #tab-evaluar .eval-col-form {
+    position: static; max-height: calc(100dvh - var(--eval-cab-h) - var(--sp-5)); height: calc(100dvh - var(--eval-cab-h) - var(--sp-5)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  }
+  .eval-chips-host { flex-wrap: nowrap; }
+}
+@media (max-width: 1099px) { #tab-evaluar .eval-col-lista { max-height: 48dvh; overflow-y: auto; } }
+@media (min-width: 1100px) {
+  #tab-evaluar .eval-fijo { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--sp-5); row-gap: var(--sp-2); }
+  #tab-evaluar .eval-fijo .pantalla-cab, #tab-evaluar .eval-fijo .eval-chips-host { grid-column: 1 / -1; }
+  #tab-evaluar .eval-fijo .pantalla-cab { margin-bottom: 0; }
+  #tab-evaluar .eval-fijo .pantalla-cab p { display: none; }
+  #tab-evaluar .eval-fijo .eval-pe-bar, #tab-evaluar .eval-fijo .eval-filtros { margin: 0; }
+  #tab-evaluar .eval-fijo .eval-resumen-n strong { font-size: 1.6rem; }
+}
+@media (min-width: 1100px) {
+  #tab-evaluar .eval-chips-host { flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-5); }
+  #tab-evaluar .eval-chips-host .eval-grupo { flex: 1 1 auto; flex-direction: row; align-items: center; gap: var(--sp-3); }
+  #tab-evaluar .eval-chips-host .eval-grupo:last-child { flex: 1 1 100%; }
+  #tab-evaluar .eval-chips-host .eval-chips { flex-wrap: wrap; gap: var(--sp-2); }
+  #tab-evaluar .eval-chips-host .eval-chip { min-height: 36px; padding: 0 var(--sp-3); }
+}
+
+/* ── Homogeneidad: botones y campos que se escapaban de la identidad ──── */
+.btn-out { min-height: 44px; padding: 0 var(--sp-5); background: transparent; border: 1px solid var(--trazo); color: var(--txt); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: 0; }
+.btn-out:hover { background: var(--surface-3); border-color: var(--data); }
+.btn-draft { min-height: 44px; padding: 0 var(--sp-5); letter-spacing: 0; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); background: transparent; border: 1px solid var(--trazo); color: var(--txt); }
+.btn-save.btn-confirm, .btn-save.btn-publish { background: var(--brillo) !important; color: var(--navy-900) !important; }
+.btn-save.btn-danger { background: var(--alert) !important; color: var(--alert-on) !important; }
+.btn-add-evento { min-height: 48px; padding: 0 var(--sp-6); background: var(--brillo); color: var(--navy-900); border: 0; font-size: var(--fs-sm); letter-spacing: 0; }
+.ov-action-btn { min-height: 44px; padding: 0 var(--sp-4); font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; }
+.rank-tab-btn.active, .rank-tab-btn[aria-pressed="true"] { background: var(--surface-3) !important; color: var(--txt) !important; }
+.btn-icon { width: 40px; height: 40px; min-width: 40px; }
+.modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background: var(--surface-1); font-size: 16px; }
+.modal-box .field input[type="checkbox"], .field input[type="checkbox"] { min-height: 0; width: 22px; height: 22px; padding: 0; border-radius: 7px; background: transparent; }
+@media (max-width: 767px) { .modal-actions { flex-direction: column-reverse; align-items: stretch; } }

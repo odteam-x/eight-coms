@@ -68,23 +68,22 @@
 
   <!-- ── TAB: EVALUAR ── -->
   <div id="tab-evaluar" class="atab-content">
-    <div class="ptitle">EVALUACIÓN</div>
-
-    <div class="eval-pe-bar" style="justify-content:center">
-      <span class="eval-pe-lbl">Período:</span>
-      <div class="eval-pe-btns" id="eval-pe-btns">
-        <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+    <!-- Cabecera fija: no se mueve al elegir a alguien -->
+    <div class="eval-fijo" id="eval-fijo">
+      <div class="pantalla-cab">
+        <h1 class="pantalla-t">Evaluación</h1>
+        <p>Elige a una persona de la lista para puntuarla. La evidencia y las anclas de cada criterio están a la vista.</p>
       </div>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
-      <input class="search-inp" id="search-eval-users" aria-label="Buscar miembro" type="text" placeholder="Buscar miembro…" data-input="renderEvalUserList">
-      <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
-        <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-        <select class="cfg-inp cfg-select" id="eval-distrito-filter" aria-label="Filtrar por distrito" data-change="renderEvalUserList" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:120px">
-          <option value="">Todos los distritos</option>
-        </select>
+      <div class="eval-pe-bar">
+        <span class="eval-pe-lbl">Período</span>
+        <div class="eval-pe-btns" id="eval-pe-btns"><div class="loading-box" style="height:32px"><span class="spin"></span></div></div>
       </div>
+      <div class="eval-filtros">
+        <input class="search-inp" id="search-eval-users" aria-label="Buscar miembro" type="search" placeholder="Buscar por nombre o correo…" data-input="renderEvalUserList">
+        <select class="cfg-inp cfg-select" id="eval-rol-filter" aria-label="Filtrar por rol" data-change="renderEvalUserList"><option value="">Todos los roles</option></select>
+        <select class="cfg-inp cfg-select" id="eval-distrito-filter" aria-label="Filtrar por distrito" data-change="renderEvalUserList"><option value="">Todos los distritos</option></select>
+      </div>
+      <div id="eval-chips-host" class="eval-chips-host"></div>
     </div>
 
     <div class="eval-split">
@@ -443,7 +442,6 @@
     <input type="hidden" id="mcrit-id">
     <div class="field"><label for="mcrit-label">Nombre completo</label><input class="cfg-inp" type="text" id="mcrit-label" placeholder="Ej: Planificación"></div>
     <div class="field"><label for="mcrit-key">Clave interna (key)</label><input class="cfg-inp" type="text" id="mcrit-key" placeholder="pla" maxlength="10"></div>
-    <div class="field"><label for="mcrit-abbr">Abreviación (badge)</label><input class="cfg-inp" type="text" id="mcrit-abbr" placeholder="PLA" maxlength="5"></div>
     <div class="field"><label for="mcrit-color">Color</label><input class="cfg-inp" type="color" id="mcrit-color" value="#888888" style="height:42px;padding:4px 8px;cursor:pointer"></div>
     <div class="field"><label for="mcrit-orden">Orden</label><input class="cfg-inp" type="number" id="mcrit-orden" min="1" value="99"></div>
     <div class="field" style="display:flex;align-items:center;gap:10px">

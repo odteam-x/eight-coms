@@ -151,6 +151,7 @@ const ACCIONES = {
   borrarTrabajo:  (a) => deleteTrabajo(a),
   evaluarUsuario: (a) => selectEvalUser(a),
   evalFiltro:     (a) => { _evalEstado = a || ''; renderEvalUserList(); },
+  evalAtajo:      (a) => { _evalFlag = (_evalFlag === a) ? '' : (a || ''); renderEvalUserList(); },
   modalCal:       (a) => showCalModal(a),
   modalCriterio:  (a) => showCriterioModal(_num(a)),
   modalPeriodo:   (a) => showPeriodoModal(a),

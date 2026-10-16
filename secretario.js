@@ -439,7 +439,7 @@ function renderRankingDistritos() {
       const critBars = COMP.map(c => {
         const val = d[c.key] ?? 0;
         return `<div class="dm-crit-row">
-          <span class="dm-crit-abbr" style="color:var(--criterio-txt)">${escHtml(c.abbr)}</span>
+          <span class="dm-crit-abbr" style="color:var(--criterio-txt)">${escHtml(c.label)}</span>
           <div class="dm-crit-track"><div class="dm-crit-fill" style="width:${(val/c.max)*100}%;background:var(--criterio)"></div></div>
           <span class="dm-crit-val" style="color:var(--criterio-txt)">${val}</span>
         </div>`;
@@ -548,7 +548,7 @@ function renderCalificacionDistrito() {
     const critBars = DIST_CRITERIOS.map(c => {
       const val = parseJSON(ev.puntajes)[c.key] ?? 0;
       return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:var(--criterio-txt)">${escHtml(c.abbr)}</span>
+        <span class="dist-cal-abbr" style="color:var(--criterio-txt)">${escHtml(c.label)}</span>
         <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:var(--criterio)"></div></div>
         <span class="dist-cal-val" style="color:var(--criterio-txt)">${val}</span>
       </div>`;

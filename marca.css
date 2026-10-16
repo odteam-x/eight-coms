@@ -122,3 +122,10 @@ kbd, .rail-kbd { border-radius: var(--r-xs); }
 .tarjeta--kpi { display: flex; flex-direction: column; gap: var(--sp-1); }
 .tarjeta--kpi .kpi-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.4rem + 2vw, 3rem); line-height: 1; }
 .tarjeta--kpi .kpi-etq { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); }
+
+/* ── Correcciones de homogeneidad (auditoría) ────────────────────────── */
+.atencion-ok, .tk-tag, .score-btn, .v2-score button, .login-err, .login-ok, .gestion-select, .cbar-feedback, .rpt-ind-hl-tag, .no-data-detalle, .v2-desc-n, .eval-form-card, .eval-criterio-row, .trabajo-item, .v2-rol-card, .v2-crit, .dist-hist-card, .dist-rk-card, .ov-panel { border-radius: var(--r-card); }
+.score-btn, .v2-score button, .tk-tag, .gestion-select { border-radius: var(--r-fila); }
+.tk-card .tk-btn, .tk-card .tk-btn--main { border-radius: var(--r-control); }
+.btn-out, .btn-draft, .btn-add-evento, .ov-action-btn, .cuenta-btn, .rank-tab-btn, .pe-toggle, .cal2-ver { border-radius: var(--r-control); }
+.btn-icon-del, .btn-pass-toggle { border-radius: 50%; }

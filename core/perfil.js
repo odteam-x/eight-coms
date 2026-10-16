@@ -388,8 +388,7 @@ const Perfil = (() => {
           const val = puntajeDe(item.row, c.key);
           const com = item.comentarios?.[c.key] || '';
           return `<div class="cbar">
-            <div class="cbar-top"><div><div class="cbar-tag" style="color:var(--criterio-txt)">${escHtml(c.abbr)}</div>
-              <div class="cbar-name">${escHtml(c.label)}</div></div>
+            <div class="cbar-top"><div><div class="cbar-name">${escHtml(c.label)}</div></div>
               <div class="cbar-val" style="color:var(--criterio-txt)">${val}<span>/4</span></div></div>
             <div class="cbar-track"><div class="cbar-fill" style="width:${pctBarra(val, c)}%;background:var(--criterio)"></div></div>
             ${com ? `<div class="cbar-feedback"><span class="cbar-fb-txt">${escHtml(com)}</span></div>` : ''}
