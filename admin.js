@@ -1140,36 +1140,74 @@ async function deleteRol(id) {
 }
 
 /* ── TAB: PERÍODOS ── */
+/** Estado de un período por sus fechas: pasado, en curso o próximo (o sin fechas). */
+function _estadoPeriodo(p) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const ini = p.fecha_inicio, fin = p.fecha_jornada || p.fecha_entrega || p.fecha_fin_trabajo || p.fecha_inicio;
+  if (!ini) return { k: 'sin', t: 'Sin fechas', etq: 'etq-gris' };
+  if (hoy < ini) return { k: 'proximo', t: 'Próximo', etq: 'etq-azul' };
+  if (hoy > fin) return { k: 'pasado', t: 'Terminado', etq: 'etq-gris' };
+  return { k: 'curso', t: 'En curso', etq: 'etq-verde' };
+}
+const _fechaPer = f => { if (!f) return '—'; const [a, m, d] = String(f).slice(0, 10).split('-').map(Number); return d + ' ' + ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][m - 1] + ' ' + a; };
+
 function renderPeriodos() {
   const el = document.getElementById('periodos-list'); if (!el) return;
   const q = (document.getElementById('search-periodos')?.value || '').toLowerCase().trim();
-  const list = _periodos.filter(p => !q ||
-    (p.nombre||'').toLowerCase().includes(q) ||
-    (p.descripcion||'').toLowerCase().includes(q));
-  if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.calendar}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin períodos.'}</div></div>`;
-    renderIconos(el);
-    return;
-  }
-  el.innerHTML = `
-    <div class="tbl">
-      <div class="tbl-head"><div>Nombre</div><div>Descripción</div><div>Activo</div><div>Acciones</div></div>
-      <div class="tbl-body">
-        ${list.map(p => `
-          <div class="tbl-row">
-            <div class="tbl-cell"><strong>${escHtml(p.nombre)}</strong>${p.modelo === 'v2' ? ' <span class="estado-pill pill--ok" title="Rúbrica por roles">v2</span>' : ''}</div>
-            <div class="tbl-cell tbl-muted">${escHtml(p.descripcion || '—')}</div>
-            <div class="tbl-cell">
-              <span class="estado-pill ${p.activo?'pill--ok':'pill--off'}">${p.activo?'Activo':'—'}</span>
-            </div>
-            <div class="tbl-cell tbl-actions">
-              <button class="btn-icon" data-act="modalPeriodo" data-arg="${p.id}" title="Editar">${ICONS.edit}</button>
-              <button class="btn-icon btn-icon--danger" data-act="borrarPeriodo" data-arg="${p.id}" title="Eliminar">${ICONS.trash}</button>
-            </div>
-          </div>`).join('')}
+  const todos = [..._periodos].sort((a, b) => String(a.fecha_inicio || '9999').localeCompare(String(b.fecha_inicio || '9999')) || String(a.nombre).localeCompare(String(b.nombre), 'es', { numeric: true }));
+  const list = todos.filter(p => !q || (p.nombre || '').toLowerCase().includes(q) || (p.descripcion || '').toLowerCase().includes(q));
+  renderLineaPeriodos(todos);
+  if (!list.length) { renderVacio(el, q ? 'Ningún período coincide con "' + q + '".' : 'Aún no hay períodos. Crea el primero con «Nuevo período».'); return; }
+  const fila = p => {
+    const est = _estadoPeriodo(p);
+    const fechas = [['Inicio', p.fecha_inicio], ['Fin del trabajo', p.fecha_fin_trabajo], ['Entrega', p.fecha_entrega], ['Jornada', p.fecha_jornada]].filter(x => x[1]);
+    return `<div class="fila-aj per-fila">
+      <div class="fila-aj-txt">
+        <div class="fila-aj-t">${escHtml(p.nombre)}${p.descripcion ? ` <span class="per-desc">${escHtml(p.descripcion)}</span>` : ''}</div>
+        <div class="fila-aj-d">${fechas.length ? fechas.map(f => `${f[0]}: <b>${escHtml(_fechaPer(f[1]))}</b>`).join(' · ') : 'Define sus fechas para que aparezca en el calendario.'}</div>
+      </div>
+      <span class="etiqueta ${est.etq}">${est.t}</span>
+      ${p.activo ? '<span class="etiqueta etq-coral">Activo</span>' : `<button type="button" class="btn--texto" data-act="activarPeriodo" data-arg="${p.id}">Activar</button>`}
+      <div class="act-acc">
+        <button type="button" class="btn-icon" data-act="modalPeriodo" data-arg="${p.id}" aria-label="Editar ${escHtml(p.nombre)}" title="Editar"><i data-lucide="pencil"></i></button>
+        <button type="button" class="btn-icon btn-icon--danger" data-act="borrarPeriodo" data-arg="${p.id}" aria-label="Eliminar ${escHtml(p.nombre)}" title="Eliminar"><i data-lucide="trash-2"></i></button>
       </div>
     </div>`;
+  };
+  const grupo = (t, d, l) => l.length ? `<h2 class="cuenta-t">${t} <span class="cuenta-cont">${l.length}</span></h2><p class="cfg-hint rub-desc">${d}</p><div class="lista-aj">${l.map(fila).join('')}</div>` : '';
+  const v2 = list.filter(p => p.modelo === 'v2'), cl = list.filter(p => p.modelo !== 'v2');
+  el.innerHTML = grupo('Rúbrica por roles', 'Competencias comunes y del rol, con tareas como evidencia.', v2) +
+    (v2.length && cl.length ? '<div style="height:var(--sec-main)"></div>' : '') +
+    grupo('Clásicos', 'Períodos anteriores a la rúbrica por roles: conservan su evaluación original.', cl);
   renderIconos(el);
+}
+
+/** Línea de tiempo: cada período como un tramo, con la marca de hoy. */
+function renderLineaPeriodos(todos) {
+  const host = document.getElementById('periodos-linea'); if (!host) return;
+  const con = todos.filter(p => p.fecha_inicio);
+  if (con.length < 1) { host.innerHTML = ''; return; }
+  const t = f => new Date(String(f).slice(0, 10)).getTime();
+  const fin = p => p.fecha_jornada || p.fecha_entrega || p.fecha_fin_trabajo || p.fecha_inicio;
+  const min = Math.min(...con.map(p => t(p.fecha_inicio))), max = Math.max(...con.map(p => t(fin(p))), Date.now());
+  const span = Math.max(max - min, 86400000 * 30);
+  const pos = ms => Math.max(0, Math.min(100, (ms - min) / span * 100));
+  host.innerHTML = `<div class="per-linea-pista">
+      ${con.map((p, i) => { const l = pos(t(p.fecha_inicio)), w = Math.max(3, pos(t(fin(p))) - l); return `<div class="per-tramo${p.activo ? ' per-tramo--activo' : ''}" style="left:${l}%;width:${w}%;top:${(i % 2) * 34}px" title="${escHtml(p.nombre)}: ${escHtml(_fechaPer(p.fecha_inicio))} – ${escHtml(_fechaPer(fin(p)))}"><span>${escHtml(p.nombre)}</span></div>`; }).join('')}
+      <i class="per-hoy" style="left:${pos(Date.now())}%" title="Hoy"></i>
+    </div>`;
+}
+
+/** Propone las fechas de un período nuevo a partir del último: mismo largo, a continuación. */
+function _fechasSugeridas() {
+  const prev = [..._periodos].filter(p => p.fecha_inicio).sort((a, b) => String(b.fecha_inicio).localeCompare(String(a.fecha_inicio)))[0];
+  if (!prev) return {};
+  const d = x => x ? new Date(String(x).slice(0, 10) + 'T00:00:00') : null;
+  const fmt = x => x ? x.toISOString().slice(0, 10) : '';
+  const fin = d(prev.fecha_jornada || prev.fecha_entrega || prev.fecha_fin_trabajo || prev.fecha_inicio);
+  const dias = Math.round((fin - d(prev.fecha_inicio)) / 86400000) + 1;
+  const mover = x => { const dx = d(x); if (!dx) return ''; dx.setDate(dx.getDate() + dias); return fmt(dx); };
+  return { inicio: mover(prev.fecha_inicio), finTrabajo: mover(prev.fecha_fin_trabajo), entrega: mover(prev.fecha_entrega), jornada: mover(prev.fecha_jornada) };
 }
 
 function showPeriodoModal(id) {
@@ -1182,6 +1220,13 @@ function showPeriodoModal(id) {
   document.getElementById('mpe-entrega').value    = p.fecha_entrega || '';
   document.getElementById('mpe-jornada').value    = p.fecha_jornada || '';
   document.getElementById('mpe-activo').checked   = !!p.activo;
+  if (!p.id) {   // nuevo: fechas propuestas a partir del período anterior
+    const sg = _fechasSugeridas();
+    document.getElementById('mpe-inicio').value     = sg.inicio || '';
+    document.getElementById('mpe-fintrabajo').value = sg.finTrabajo || '';
+    document.getElementById('mpe-entrega').value    = sg.entrega || '';
+    document.getElementById('mpe-jornada').value    = sg.jornada || '';
+  }
   // El modelo solo se ofrece si la migración 0015 está aplicada. Un período
   // nuevo arranca en v2 si ya hay perfiles; uno existente conserva el suyo.
   document.getElementById('mpe-modelo-field').hidden = !v2Disponible();
@@ -1190,6 +1235,7 @@ function showPeriodoModal(id) {
   // evaluación original: la base lo impide, aquí se explica en vez de ofrecerlo.
   const bloqueado = !!p.id && p.v2_permitido === false;
   document.getElementById('mpe-modelo').disabled = bloqueado;
+  document.querySelectorAll('input[name="mpe-modelo-r"]').forEach(r => { r.checked = r.value === document.getElementById('mpe-modelo').value; r.disabled = bloqueado; });
   document.getElementById('mpe-modelo-ayuda').textContent = bloqueado
     ? 'Este período es anterior a la rúbrica por roles: conserva su evaluación original y no puede cambiar de modelo.'
     : 'No se puede cambiar una vez que el período tiene evaluaciones.';
@@ -1213,6 +1259,12 @@ async function savePeriodo() {
     jornada:    document.getElementById('mpe-jornada').value    || null,
   };
 
+  const orden = [['inicio', 'inicio'], ['finTrabajo', 'fin del trabajo'], ['entrega', 'entrega'], ['jornada', 'jornada']].filter(([k]) => fechas[k]);
+  for (let i = 1; i < orden.length; i++) {
+    if (fechas[orden[i][0]] < fechas[orden[i - 1][0]]) { err.textContent = `La fecha de ${orden[i][1]} no puede ser anterior a la de ${orden[i - 1][1]}.`; return; }
+  }
+  const sel = document.querySelector('input[name="mpe-modelo-r"]:checked');
+  if (sel && !document.getElementById('mpe-modelo').disabled) document.getElementById('mpe-modelo').value = sel.value;
   const res = await API.savePeriodo({
     id: id || null, nombre, descripcion: desc, fechas,
     // Un select deshabilitado (período anterior) no se envía: no se toca el modelo.

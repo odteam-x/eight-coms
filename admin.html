@@ -147,12 +147,13 @@
 
   <!-- ── TAB: PERÍODOS ── -->
   <div id="tab-periodos" class="atab-content">
-    <div class="ptitle">PERÍODOS DE EVALUACIÓN</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Crea y gestiona los períodos. El período activo es el que se usa por defecto al evaluar.</p>
-      <input class="search-inp" id="search-periodos" aria-label="Buscar período" type="text" placeholder="Buscar período…" data-input="renderPeriodos">
-      <button class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal">+ Nuevo período</button>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Períodos de evaluación</h1>
+      <div class="pantalla-acc"><button type="button" class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal"><i data-lucide="plus"></i>Nuevo período</button></div>
+      <p>Cada período es un ciclo: se planifica, se evidencia, se evalúa y se publica. El período activo es el que todos ven por defecto.</p>
     </div>
+    <div id="periodos-linea" class="per-linea" aria-label="Línea de tiempo de los períodos"></div>
+    <div class="cfg-toolbar"><input class="search-inp" id="search-periodos" aria-label="Buscar período" type="search" placeholder="Buscar período…" data-input="renderPeriodos"></div>
     <div id="periodos-list"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
@@ -348,39 +349,38 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-periodo-title">Nuevo período</div>
     <input type="hidden" id="mpe-id">
-    <div class="field"><label for="mpe-nombre">Nombre (ej: PE1)</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE1"></div>
-    <div class="field"><label for="mpe-desc">Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Primer período 2026"></div>
-    <div class="field" id="mpe-modelo-field">
-      <label for="mpe-modelo">Modelo de evaluación</label>
-      <select class="cfg-inp cfg-select" id="mpe-modelo">
-        <option value="v2">Rúbrica por roles (v2): núcleo + criterios del rol, escala 1–5</option>
-        <option value="legacy">Clásica: 7 criterios iguales para todos, escala 0–4</option>
-      </select>
-      <div class="modal-hint" id="mpe-modelo-ayuda" style="font-size:.8rem;color:var(--txt-2);line-height:1.5;margin-top:4px">
-        No se puede cambiar una vez que el período tiene evaluaciones.
+
+    <fieldset class="per-paso"><legend>1 · Quién es</legend>
+      <div class="field"><label for="mpe-nombre">Nombre</label><input class="cfg-inp" type="text" id="mpe-nombre" placeholder="PE5" maxlength="30"></div>
+      <div class="field"><label for="mpe-desc">Descripción</label><input class="cfg-inp" type="text" id="mpe-desc" placeholder="Qué trabaja el equipo en este período" maxlength="80"></div>
+    </fieldset>
+
+    <fieldset class="per-paso" id="mpe-modelo-field"><legend>2 · Cómo se evalúa</legend>
+      <div class="per-modelos" role="radiogroup" aria-label="Modelo de evaluación">
+        <label class="per-modelo"><input type="radio" name="mpe-modelo-r" value="v2"><span><strong>Por roles</strong><small>Competencias comunes y del rol, escala 1 a 5, tareas como evidencia.</small></span></label>
+        <label class="per-modelo"><input type="radio" name="mpe-modelo-r" value="legacy"><span><strong>Clásica</strong><small>7 criterios iguales para todos, escala 0 a 4. Sin tareas asignables.</small></span></label>
       </div>
-    </div>
-    <div class="field-row" style="display:flex;gap:12px">
-      <div class="field" style="flex:1"><label for="mpe-inicio">Inicio</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
-      <div class="field" style="flex:1"><label for="mpe-fintrabajo">Fin de trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
-    </div>
-    <div class="field-row" style="display:flex;gap:12px">
-      <div class="field" style="flex:1"><label for="mpe-entrega">Entrega</label><input class="cfg-inp" type="date" id="mpe-entrega"></div>
-      <div class="field" style="flex:1"><label for="mpe-jornada">Jornada</label><input class="cfg-inp" type="date" id="mpe-jornada"></div>
-    </div>
-    <div class="field" style="display:flex;align-items:center;gap:10px">
-      <label style="margin:0" for="mpe-activo">Activo (período actual)</label>
-      <input type="checkbox" id="mpe-activo" style="width:auto">
-    </div>
-    <div class="modal-hint" style="font-size:.8rem;color:var(--muted);line-height:1.5">
-      Solo puede haber un período activo. Al marcarlo aquí, el anterior se
-      desactiva automáticamente y todos los portales pasan a mostrarlo.
-    </div>
+      <select id="mpe-modelo" hidden aria-hidden="true"><option value="v2">v2</option><option value="legacy">legacy</option></select>
+      <div class="modal-hint per-ayuda" id="mpe-modelo-ayuda">No se puede cambiar una vez que el período tiene evaluaciones.</div>
+    </fieldset>
+
+    <fieldset class="per-paso"><legend>3 · Cuándo ocurre</legend>
+      <div class="per-fechas">
+        <div class="field"><label for="mpe-inicio">Inicio del período</label><input class="cfg-inp" type="date" id="mpe-inicio"></div>
+        <div class="field"><label for="mpe-fintrabajo">Fin del trabajo</label><input class="cfg-inp" type="date" id="mpe-fintrabajo"></div>
+        <div class="field"><label for="mpe-entrega">Entrega de resultados</label><input class="cfg-inp" type="date" id="mpe-entrega"></div>
+        <div class="field"><label for="mpe-jornada">Jornada de cierre</label><input class="cfg-inp" type="date" id="mpe-jornada"></div>
+      </div>
+      <div class="modal-hint per-ayuda" id="mpe-fechas-ayuda">Las fechas deben ir en orden. Se proponen a partir del período anterior; ajústalas si hace falta.</div>
+    </fieldset>
+
+    <label class="per-activo"><input type="checkbox" id="mpe-activo"><span><strong>Dejarlo como período activo</strong><small>Solo hay uno. El anterior se desactiva y todos los portales pasan a mostrar este.</small></span></label>
+
+    <div class="modal-err" id="mpe-err" role="alert"></div>
     <div class="modal-actions">
       <button class="btn-save" data-act="fn" data-arg="savePeriodo">Guardar</button>
       <button class="btn-out" data-act="cerrarModal" data-arg="modal-periodo">Cancelar</button>
     </div>
-    <div class="modal-err" id="mpe-err"></div>
   </div>
 </div>
 

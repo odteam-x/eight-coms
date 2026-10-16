@@ -628,3 +628,24 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .punto--g { width: 14px; height: 14px; }
 .etq-lista { margin-top: var(--sp-3); max-height: 42dvh; overflow-y: auto; }
 @media (max-width: 640px) { .act-fila { flex-wrap: wrap; } .act-fila > .etiqueta { order: 3; } }
+
+
+/* ── Períodos ──────────────────────────────────────────────────────────── */
+.per-linea { margin-bottom: var(--sp-5); }
+.per-linea-pista { position: relative; height: 82px; background: var(--surface-1); border-radius: var(--r-card); overflow: hidden; }
+.per-tramo { position: absolute; height: 30px; min-width: 40px; margin: 8px 0 0; border-radius: var(--r-control); background: var(--surface-3); display: flex; align-items: center; padding: 0 var(--sp-3); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; }
+.per-tramo--activo { background: var(--brillo); color: var(--navy-900); }
+.per-hoy { position: absolute; top: 6px; bottom: 6px; width: 2px; background: var(--marca); border-radius: 2px; }
+.per-fila { align-items: center; flex-wrap: wrap; }
+.per-desc { font-family: var(--font-body); font-weight: 400; color: var(--txt-2); font-size: var(--fs-sm); margin-left: var(--sp-2); }
+.per-paso { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-width: 0; }
+.per-paso legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); margin-bottom: var(--sp-2); padding: 0; }
+.per-modelos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--sp-2); }
+.per-modelo, .per-activo { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); cursor: pointer; border: 1px solid transparent; }
+.per-modelo:has(input:checked) { border-color: var(--data); background: var(--surface-2); }
+.per-modelo input, .per-activo input { margin-top: 3px; width: 20px; height: 20px; accent-color: var(--action-fill); flex: none; }
+.per-modelo strong, .per-activo strong { display: block; font-family: var(--font-ui); font-weight: 600; }
+.per-modelo small, .per-activo small { display: block; color: var(--txt-2); font-size: var(--fs-sm); line-height: 1.35; margin-top: 2px; }
+.per-fechas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-3); }
+.per-ayuda { font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.4; margin-top: var(--sp-1); }
+@media (max-width: 520px) { .per-fechas { grid-template-columns: minmax(0, 1fr); } }

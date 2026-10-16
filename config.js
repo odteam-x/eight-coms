@@ -168,6 +168,7 @@ const ACCIONES = {
   actNuevaEtq:    ()  => Actividades.nuevaEtq(),
   actEditarEtq:   (a) => Actividades.editarEtq(a),
   actBorrarEtq:   (a) => Actividades.borrarEtq(a),
+  activarPeriodo: async (a) => { const r = await API.setPeriodoActivo(a); if (!r.ok) { showToast(r.error, 'error'); return; } _periodos = await API.getPeriodos(); _activePE = _periodos.find(p => p.activo) || _periodos[0]; renderPeriodos(); renderEvalPEBar(); showToast('Período activado', 'ok'); },
   evalAtajo:      (a) => { _evalFlag = (_evalFlag === a) ? '' : (a || ''); renderEvalUserList(); },
   modalCal:       (a) => showCalModal(a),
   modalCriterio:  (a) => showCriterioModal(_num(a)),
