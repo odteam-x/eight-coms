@@ -4,6 +4,12 @@
 // las plantillas del sitio (plantillas.mjs, copia de enviar-notificaciones) y lo enviamos por el puente de
 // Google Apps Script (mismos secretos que «enviar-notificaciones»).
 //
+// ⚠️ Auth da solo 5 segundos al hook (después responde `hook_timeout` y la persona no recibe nada). El
+// puente de Apps Script tarda entre 4 y 8 s, así que NO se espera aquí: se valida la firma, se arman los
+// correos, se contesta 200 enseguida y el envío (con reintentos) sigue en segundo plano con
+// EdgeRuntime.waitUntil. Si el envío fallara tres veces queda en el log de la función; la persona puede
+// pedir otro enlace desde «Reenviar confirmación» / «Olvidé mi contraseña».
+//
 // Secretos (Edge Functions → Secrets): SEND_EMAIL_HOOK_SECRET (el «v1,whsec_…» que genera el panel al
 // activar el hook), APPS_SCRIPT_URL, APPS_SCRIPT_SECRET.
 // Panel → Authentication → Auth Hooks → Send Email → HTTPS → esta URL. Con el hook activo, el SMTP y las
@@ -21,9 +27,13 @@ const TIPOS: Record<string, string> = {
   recovery: 'recuperacion', email_change: 'cambio_correo', reauthentication: 'reautenticacion',
 };
 
+const INTENTOS = 3;
+const ESPERA_MS = 1500;
+
 const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 const falla = (status: number, message: string) =>
   new Response(JSON.stringify({ error: { http_code: status, message } }), { status, headers: { 'Content-Type': 'application/json' } });
+const dormir = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 
 async function enviar(para: string, asunto: string, html: string) {
   const r = await fetch(puenteUrl, {
@@ -34,6 +44,23 @@ async function enviar(para: string, asunto: string, html: string) {
   let j: { ok?: boolean; error?: string };
   try { j = JSON.parse(texto); } catch { throw new Error(`Respuesta inesperada del puente (${r.status})`); }
   if (!j.ok) throw new Error(j.error || 'El puente rechazó el envío');
+}
+
+/** Un correo, con reintentos: el puente de Apps Script falla de vez en cuando por cuota o por arranque en frío. */
+async function enviarConReintentos(c: { para: string; asunto: string; html: string }) {
+  let ultimo = '';
+  for (let i = 1; i <= INTENTOS; i++) {
+    try {
+      await enviar(c.para, c.asunto, c.html);
+      console.log(`auth-correo: enviado a ${c.para} (intento ${i})`);
+      return;
+    } catch (e) {
+      ultimo = (e as Error).message;
+      console.error(`auth-correo: intento ${i}/${INTENTOS} a ${c.para} falló: ${ultimo}`);
+      if (i < INTENTOS) await dormir(ESPERA_MS * i);
+    }
+  }
+  console.error(`auth-correo: NO se pudo enviar a ${c.para} tras ${INTENTOS} intentos: ${ultimo}`);
 }
 
 Deno.serve(async (req) => {
@@ -57,18 +84,26 @@ Deno.serve(async (req) => {
     ? [{ para: user.email, hash: d.token_hash, token: d.token }, { para: user.new_email, hash: d.token_hash_new, token: d.token_new }].filter((x) => x.para && x.hash)
     : [{ para: user.email, hash: d.token_hash, token: d.token }];
 
+  // Se arma todo ahora (es rápido y valida las plantillas); solo el envío va a segundo plano.
+  let correos: { para: string; asunto: string; html: string }[];
   try {
-    for (const x of destinos) {
+    correos = destinos.map((x) => {
       const url = `${SUPA}/auth/v1/verify?token=${encodeURIComponent(x.hash)}&type=${encodeURIComponent(d.email_action_type)}&redirect_to=${encodeURIComponent(d.redirect_to || d.site_url || '')}`;
       const poner = (t: string, escapar: boolean) => t
         .replaceAll('{{ .ConfirmationURL }}', escapar ? esc(url) : url)
         .replaceAll('{{ .Email }}', escapar ? esc(user.email) : user.email)
         .replaceAll('{{ .NewEmail }}', escapar ? esc(user.new_email) : String(user.new_email ?? ''))
         .replaceAll('{{ .Token }}', escapar ? esc(x.token) : String(x.token ?? ''));
-      await enviar(x.para, poner(def.asunto, false), poner(correo(def), true));
-    }
+      return { para: x.para, asunto: poner(def.asunto, false), html: poner(correo(def), true) };
+    });
   } catch (e) {
-    return falla(500, `No se pudo enviar el correo: ${(e as Error).message}`);
+    return falla(500, `No se pudo preparar el correo: ${(e as Error).message}`);
   }
+
+  const trabajo = (async () => { for (const c of correos) await enviarConReintentos(c); })();
+  // @ts-ignore EdgeRuntime existe en el entorno de Supabase Edge Functions
+  if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) EdgeRuntime.waitUntil(trabajo);
+  else await trabajo;
+
   return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
 });

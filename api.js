@@ -931,10 +931,12 @@ const API = {
     return error ? { ok: false, error: error.message } : { ok: true };
   },
 
+  /** `file` es lo que devuelve reducirImagen() (un Blob WebP/JPEG ya ligero), o cualquier File de imagen. */
   async uploadAvatar(userId, file) {
-    const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const tipo = file.type === 'image/jpeg' ? 'jpg' : (file.type || 'image/webp').split('/')[1].replace('jpeg', 'jpg');
+    const ext  = ['webp', 'jpg', 'png', 'gif'].includes(tipo) ? tipo : 'webp';
     const path = `${userId}/avatar.${ext}`;
-    const { error } = await SB.storage.from('avatars').upload(path, file, { upsert: true });
+    const { error } = await SB.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type || 'image/webp', cacheControl: '3600' });
     if (error) return { ok: false, error: error.message };
     const { data } = SB.storage.from('avatars').getPublicUrl(path);
     const url = data.publicUrl;

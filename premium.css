@@ -1001,3 +1001,35 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .modal-x:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 .modal-x i, .modal-x svg { width: 20px; height: 20px; }
 .modal-box .modal-title, .tk-box .modal-title { padding-right: 8px; }
+
+/* Filas de ajuste con texto largo (p. ej. «Instalar en tu celular»): el indicador se queda a la derecha en vez de caer debajo. */
+.cuenta-cols button.fila-aj { flex-wrap: nowrap; }
+.cuenta-cols button.fila-aj .fila-aj-txt { flex: 1 1 0; }
+.cuenta-cols button.fila-aj:disabled { cursor: default; opacity: 1; }
+
+/* ═══ Celular: auditoría de tamaños ═══════════════════════════════════════════════════════════
+   · `.tab-content` reservaba 48px arriba pensando en el encabezado de escritorio; en el celular el
+     encabezado fijo ya ocupa su sitio y quedaba una franja muerta entre él y la tarjeta de marca.
+   · Enlaces de cabecera de tarjeta («Ir a Entregas») en una sola línea.
+   · Calendario: 7 columnas con celdas de al menos 44px de ancho desde 360px. */
+@media (max-width: 767px) {
+  .tab-content, .atab-content { padding-top: var(--sp-4); }
+  #tab-inicio, #tab-perfil { padding-top: 0; }
+  .pf-enlace { white-space: nowrap; flex: none; }
+  .pf-card-cab { align-items: flex-start; }
+  .perfil-resumen .anillo { --tam: 120px; }
+}
+@media (max-width: 420px) {
+  .cal2-mes { padding: var(--sp-1); }
+  .cal2-grid, .cal2-sem { gap: 2px; }
+}
+
+/* «Requiere atención» en celular: número · texto · acción en UNA fila (antes la acción caía debajo y
+   cada aviso medía el doble). */
+@media (max-width: 600px) {
+  .atencion-item { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sp-3); }
+  .atencion-item .pf-enlace { grid-column: auto; justify-self: end; }
+  .atencion-n { font-size: 1.9rem; }
+  .atencion-txt { font-size: var(--fs-sm); }
+  .atencion-lista { gap: var(--sp-2); }
+}

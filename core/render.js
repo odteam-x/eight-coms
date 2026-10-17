@@ -606,6 +606,48 @@ const _ICONO_USUARIO =
   'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
+/* ── Fotos: cualquier imagen, reducida en el navegador ──────────────────
+ * Se decodifica, se recorta al centro en cuadrado, se baja a 512 px y se codifica en WebP (o JPEG si el
+ * navegador no sabe WebP). Una foto de 12 MB del teléfono queda en unos 40–100 KB, sin que la
+ * persona tenga que hacer nada. Los formatos que el navegador no decodifica (p. ej. HEIC fuera de
+ * Safari) fallan con un mensaje claro en vez de subirse rotos. */
+const TOPE_IMAGEN_ORIGINAL = 40 * 1024 * 1024;
+const LADO_FOTO = 512;
+const esArchivoImagen = f => /^image\//.test(f.type) || /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif|tiff?)$/i.test(f.name || '');
+
+async function _decodificarImagen(file) {
+  if (typeof createImageBitmap === 'function') {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { /* se prueba con <img> */ }
+  }
+  // Respaldo: <img> con data: URL (la CSP permite data: en img-src; blob: no).
+  const url = await new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => ko(new Error('No se pudo leer el archivo.')); r.readAsDataURL(file); });
+  return await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ko(new Error('No se pudo leer esa imagen. Prueba con JPG o PNG.')); i.src = url; });
+}
+
+/** @returns {Promise<Blob>} imagen cuadrada de hasta LADO_FOTO px, ligera */
+async function reducirImagen(file, { lado = LADO_FOTO } = {}) {
+  const img = await _decodificarImagen(file);
+  const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight;
+  if (!w || !h) throw new Error('No se pudo leer esa imagen. Prueba con JPG o PNG.');
+  const corte = Math.min(w, h), sx = (w - corte) / 2, sy = (h - corte) / 2;
+  const destino = Math.min(lado, corte);
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = destino;
+  const cx = cv.getContext('2d');
+  cx.fillStyle = '#ffffff';                      // los PNG con transparencia no quedan negros en JPEG
+  cx.fillRect(0, 0, destino, destino);
+  cx.imageSmoothingQuality = 'high';
+  cx.drawImage(img, sx, sy, corte, corte, 0, 0, destino, destino);
+  img.close?.();
+  const codificar = (tipo, q) => new Promise(ok => cv.toBlob(ok, tipo, q));
+  let blob = await codificar('image/webp', 0.86);
+  if (!blob || blob.type !== 'image/webp') blob = await codificar('image/jpeg', 0.86);   // navegador sin WebP
+  // Si aun así pasa de 300 KB (imagen muy detallada), se baja la calidad por pasos.
+  for (let q = 0.76; blob && blob.size > 300 * 1024 && q > 0.4; q -= 0.12) blob = await codificar(blob.type, q);
+  if (!blob) throw new Error('No se pudo preparar la foto.');
+  return blob;
+}
+
 /** Perfil en curso, para que handleAvatarUpload sepa a quién pertenece. */
 let _perfilAvatar = null;
 
@@ -648,13 +690,24 @@ async function handleAvatarUpload(el) {
   // El diálogo respeta accept="image/*", pero un arrastre o un archivo
   // renombrado se lo saltan. El bucket también lo valida (migración 0012):
   // esto es solo para dar un mensaje decente antes de la subida.
-  if (!/^image\//.test(file.type)) {
+  if (!esArchivoImagen(file)) {
     showToast('Elige un archivo de imagen.', 'error');
     el.value = '';
     return;
   }
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('Imagen demasiado grande (máx. 2 MB).', 'error');
+  // Cualquier imagen sirve, del tamaño que sea: se reduce aquí, en el navegador, a una foto cuadrada
+  // ligera. (El bucket sigue limitado a 2 MB, pero lo que sube nunca llega a 300 KB.)
+  if (file.size > TOPE_IMAGEN_ORIGINAL) {
+    showToast('Esa imagen pesa demasiado para procesarla (más de 40 MB). Prueba con otra.', 'error');
+    el.value = '';
+    return;
+  }
+  let foto;
+  showToast('Preparando la foto…', 'info');
+  try {
+    foto = await reducirImagen(file);
+  } catch (e) {
+    showToast(e.message || 'No se pudo leer esa imagen. Prueba con JPG o PNG.', 'error');
     el.value = '';
     return;
   }
@@ -665,7 +718,7 @@ async function handleAvatarUpload(el) {
   av?.setAttribute('aria-busy', 'true');
   showToast('Subiendo foto…', 'info');
 
-  const res = await API.uploadAvatar(p.id, file);
+  const res = await API.uploadAvatar(p.id, foto);
 
   av?.removeAttribute('aria-busy');
   // Se limpia SIEMPRE: si no, volver a elegir el mismo archivo no dispara

@@ -69,6 +69,7 @@ const Cuenta = (() => {
               <div class="fila-aj-txt"><div class="fila-aj-t">Tema</div><div class="fila-aj-d">Cambia entre claro y oscuro.</div></div>
               <span class="fila-aj-ind"><i data-lucide="sun-moon"></i></span>
             </button>
+            <button type="button" class="fila-aj" id="cuenta-instalar" data-act="instalarApp"></button>
           </div>
 
           <div class="lista-aj cuenta-salir">
@@ -102,6 +103,7 @@ const Cuenta = (() => {
 
         </section>
       </div>`;
+    _pintarInstalar();
     if (typeof renderIconos === 'function') renderIconos(host);
     // Enter dentro de un formulario no recarga ni envía: dispara su botón.
     host.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => {
@@ -109,6 +111,20 @@ const Cuenta = (() => {
       f.querySelector('[data-act]')?.click();
     }));
   }
+
+  /** «Instalar en tu celular»: el texto y el icono dependen de dónde se abra (Android, iPhone, ya instalada). */
+  function _pintarInstalar() {
+    const fila = document.getElementById('cuenta-instalar');
+    if (!fila || typeof Pwa === 'undefined') return;
+    const m = Pwa.modo();
+    const ya = m === 'instalada';
+    fila.disabled = ya;
+    fila.innerHTML = `
+      <div class="fila-aj-txt"><div class="fila-aj-t">${ya ? 'App instalada' : 'Instalar en tu celular'}</div><div class="fila-aj-d">${escHtml(Pwa.descripcion())}</div></div>
+      <span class="fila-aj-ind"><i data-lucide="${ya ? 'check' : 'smartphone'}"></i></span>`;
+    if (typeof renderIconos === 'function') renderIconos(fila);
+  }
+  document.addEventListener('pwa:lista', _pintarInstalar);
 
   /** Abre el selector de archivo (el mismo input que ya procesa handleAvatarUpload). */
   function elegirFoto() { document.getElementById('avatar-file-input')?.click(); }

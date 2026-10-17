@@ -48,8 +48,8 @@ ok(r[0].n === 0, 'los 24 llevan descriptores 1/3/5');
 
 // seed (PENDIENTE) ejecutado tal cual: valida pesos y triggers diferidos
 await db.exec(fs.readFileSync(R + '0015_seed_perfiles.PENDIENTE.sql', 'utf8'));
-// Regresión: las mismas pruebas de 0015 con 0020 encima (CON_0020=1).
-if (process.env.CON_0020) { await db.exec(fs.readFileSync(R + '0020_criterios_dinamicos.sql', 'utf8')); console.log('— (con 0020 aplicada)'); }
+// Regresión: las mismas pruebas de 0015 con 0020 encima (node sql-0015.mjs --con-0020; también vale CON_0020=1).
+if (process.env.CON_0020 || process.argv.includes('--con-0020')) { await db.exec(fs.readFileSync(R + '0020_criterios_dinamicos.sql', 'utf8')); console.log('— (con 0020 aplicada)'); }
 console.log('\n[seed]');
 r = await q(`SELECT r.nombre, sum(pc.peso)::int total FROM perfiles_rol pr JOIN roles r ON r.id=pr.rol_id
              JOIN perfil_criterios pc ON pc.perfil_id=pr.id GROUP BY 1`);

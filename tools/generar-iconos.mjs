@@ -29,6 +29,8 @@ const MAPA = {
   'check-double':'check-double','file-excel':'file-excel-2','file-pdf':'file-pdf-2','timeline':'timeline-view','compass':'compass-3','user-add':'user-add',
   'user-settings':'user-settings','lightbulb':'lightbulb','heart':'heart','list-ordered':'list-ordered','line-chart':'line-chart','file-download':'file-download',
   'checkbox':'checkbox-blank','team':'team','at':'at','scales':'scales-3','history-2':'history','mail-open':'mail-open','notification-off':'notification-off',
+  // instalar como app, móvil
+  'smartphone':'smartphone','share-ios':'share-forward-box','install':'install',
 };
 // variantes rellenas (estado activo, medallas): clave nueva = nombre + '-fill'
 const RELLENAS = ['home-5','dashboard','calendar','trophy','medal','medal-2','star','user','group','bookmark','flag','notification-3','checkbox-circle','clipboard'];

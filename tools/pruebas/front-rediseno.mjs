@@ -98,5 +98,26 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/modoAcceso:\s*\(arg\)\s*=>\s*setModoAcceso/.test(cfg), 'config.js: acción modoAcceso registrada');
 }
 
+// ── Instalable como app (PWA) ─────────────────────────────────────────────
+{
+  const man = JSON.parse(fs.readFileSync(ROOT + 'manifest.webmanifest', 'utf8'));
+  ok(man.display === 'standalone' && man.id && man.start_url && man.scope === '/', 'manifest: standalone con id, start_url y scope');
+  ok(man.icons.some(i => i.sizes === '192x192') && man.icons.some(i => i.sizes === '512x512' && i.purpose === 'maskable'), 'manifest: iconos 192 y 512 (maskable incluido)');
+  ok(man.icons.every(i => fs.existsSync(ROOT + i.src.replace(/^\//, ''))), 'manifest: todos los iconos existen');
+  ok(fs.existsSync(ROOT + 'icono-180.png') && fs.existsSync(ROOT + 'offline.html') && fs.existsSync(ROOT + 'sw.js'), 'existen icono-180.png, offline.html y sw.js');
+  const sw = fs.readFileSync(ROOT + 'sw.js', 'utf8');
+  ok(/mode !== 'navigate'/.test(sw) && !/cache\.put/.test(sw), 'sw.js: solo intercepta navegaciones y no guarda respuestas');
+  ok(!/<script/.test(fs.readFileSync(ROOT + 'offline.html', 'utf8')), 'offline.html: sin <script> (la CSP no los permite en línea)');
+  for (const p of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
+    const t = fs.readFileSync(ROOT + p, 'utf8');
+    ok(/rel="manifest"/.test(t) && /rel="apple-touch-icon" sizes="180x180" href="icono-180\.png"/.test(t) && /apple-mobile-web-app-capable/.test(t) && /name="mobile-web-app-capable"/.test(t), p + ': manifest + meta de iOS y Android para añadir a inicio');
+    ok(/<script src="core\/pwa\.js"><\/script>/.test(t), p + ': carga core/pwa.js');
+  }
+  ok(/instalarApp:\s*\(\)\s*=>\s*Pwa\.instalar/.test(fs.readFileSync(ROOT + 'config.js', 'utf8')), 'config.js: acción instalarApp registrada');
+  ok(/id="cuenta-instalar"[^>]*data-act="instalarApp"/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')), 'Mi cuenta: fila «Instalar en tu celular»');
+  const vj = JSON.parse(fs.readFileSync(ROOT + 'vercel.json', 'utf8'));
+  ok(vj.headers.some(h => h.source === '/sw.js' && h.headers.some(x => /no-cache/.test(x.value))), 'vercel.json: sw.js sin caché');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

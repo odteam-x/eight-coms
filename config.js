@@ -91,6 +91,7 @@ const ACCIONES = {
     if (typeof f === 'function') f();
   },
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
+  instalarApp:      ()            => Pwa.instalar(),
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
   cuentaCambiarPass:   (a, el) => Cuenta.cambiarPass(el),
   salir:            ()            => (typeof logout === 'function' ? logout() : Auth.logout()),

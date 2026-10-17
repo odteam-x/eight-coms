@@ -436,6 +436,14 @@ Whoever approves a task assigns **0–10 points**, mandatory at the moment of ap
 
 `npm install && npm run todo` there runs 0015–0018 against a real Postgres (PGlite) as `authenticated`/`anon` so **RLS counts**, plus the front helpers (`front.mjs` for the rubric; `front-rediseno.mjs` for the UI primitives, the new files, the actions and the portals' markup, including "no inline handlers"). `npm run ui` serves the real site (real CSP) with a simulated Supabase. The site itself still has no build. See `tools/pruebas/README.md`. Run `node tools/contraste.js` too: it also scans `rubrica.css`, `tareas.css`, `perfil.css` and `inicio.css`.
 
+### Instalable como app (PWA) y correos de Auth
+
+- **Añadir a inicio** funciona en Android (Chrome/Edge: `beforeinstallprompt` capturado en `core/pwa.js`) y en iPhone (solo Safari; no hay API, la fila de **Mi cuenta → Instalar en tu celular** explica el gesto). Piezas: `manifest.webmanifest` (standalone, iconos 192/512 any + maskable), `icono-180.png` (apple-touch-icon opaco; `node tools/generar-icono-apple.mjs` lo regenera desde `icono-512.png`), metas de iOS en las cuatro páginas, `sw.js` y `offline.html`.
+- **El service worker no cachea nada** salvo `offline.html` y el icono: el sitio no tiene build y sirve datos por persona, así que cachear scripts o respuestas enseñaría versiones viejas o datos de otra sesión. Solo intercepta navegaciones para mostrar «Sin conexión». Sube `VERSION` en `sw.js` si cambias `offline.html`.
+- La barra de estado de iOS es `black` (opaca, el contenido empieza debajo): con `black-translucent` habría que añadir `env(safe-area-inset-top)` a cada cabecera.
+- **Celular**: `.tab-content` ya no reserva 48px arriba (franja muerta bajo el encabezado fijo); los avisos de «Requiere atención» van en una fila; el calendario mantiene celdas ≥44px de ancho desde 360px.
+- **Hook de correos (`auth-correo`)**: Auth da **5 s** al hook y el puente de Apps Script tarda 4–8 s. Por eso la función valida la firma, arma los correos, **responde 200 de inmediato** y envía en segundo plano (`EdgeRuntime.waitUntil`, 3 intentos). Esperar el envío dentro del handler provoca `hook_timeout` y la persona no recibe nada. Si un correo falla tres veces solo queda en el log de la función.
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, then 0018**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
