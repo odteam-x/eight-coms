@@ -73,3 +73,10 @@ body.ayuda { margin: 0; background: var(--bg); color: var(--txt); font: 400 1.06
 
 .ay-pie { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--trazo); font-size: .9375rem; color: var(--txt-muted); }
 @media print { .ay-cab, .ay-toc { display: none; } .ay-main section { break-inside: avoid-page; } .faq > div { display: block; } }
+
+/* Capturas con versión de computadora: en pantallas anchas se muestra la vista de PC (marco de ventana, ancho completo);
+   en celular, la vista de celular dentro del marco de teléfono. */
+@media (min-width: 900px) {
+  .captura--dual .captura-marco { width: min(100%, 860px); aspect-ratio: auto; border-radius: 14px; }
+  .captura--dual img { width: 100%; }
+}

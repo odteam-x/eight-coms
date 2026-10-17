@@ -1,0 +1,252 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Evolución integral — roles y preferencias, selector de personas, nueva tarea,
+   «Para quién» de las actividades, seguimiento global, bienvenida y reportes.
+   Carga DESPUÉS de premium.css y ANTES de movil.css. Solo tokens: cero hex.
+   El estado nunca va solo en color: cada insignia lleva su texto.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Textos del rol (Roles y perfiles, Mi cuenta, Nueva tarea) ──────── */
+.rol-textos { display: flex; flex-direction: column; gap: var(--sp-2); }
+.rol-desc { margin: 0; font: 400 var(--fs-md)/1.5 var(--font-body); color: var(--txt); overflow-wrap: anywhere; }
+.rol-sin-texto { margin: 0; font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt-2); }
+.rol-lista { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-1); font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt); }
+.rol-lista li { overflow-wrap: anywhere; }
+.acordeon--compacto > summary { min-height: 44px; padding-block: var(--sp-2); }
+.acordeon--compacto { background: var(--surface-2); }
+
+/* ── Mi rol y mis preferencias (Mi cuenta) ──────────────────────────── */
+.pref-bloque { align-items: flex-start; }
+.pref-bloque .fila-aj-txt { width: 100%; display: flex; flex-direction: column; gap: var(--sp-3); }
+.pref-extras { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt-2); }
+.pref-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.pref-fila { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-fila); background: var(--surface-2); min-width: 0; }
+.pref-n { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-pill); background: var(--surface-3); color: var(--txt); font: 600 var(--fs-sm)/1 var(--font-ui); }
+.pref-txt { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.pref-txt b { font: 600 var(--fs-md)/1.3 var(--font-ui); color: var(--txt); overflow-wrap: anywhere; }
+.pref-acc { flex: none; display: flex; gap: var(--sp-1); }
+.btn-icon--on { background: var(--action-fill); color: var(--action-on); border-color: var(--action-fill); }
+.btn-icon:disabled { opacity: .45; cursor: not-allowed; }
+.pref-agregar { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.pref-agregar .cfg-select { flex: 1 1 200px; min-width: 0; }
+.pref-guardar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+
+/* ── Roles permitidos (Personas → Gestión) ──────────────────────────── */
+.gp-checks { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin-block: var(--sp-3); }
+.gp-pref { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--trazo); display: flex; flex-direction: column; gap: var(--sp-2); }
+.gp-pref-lista { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-1); font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt); }
+
+/* ── Selector de personas y equipos ─────────────────────────────────── */
+.sel { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.sel-barra { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.sel-q { flex: 1 1 220px; min-width: 0; min-height: 44px; }
+.sel-elegidas { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; min-height: 32px; }
+.sel-chip { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px 4px 2px var(--sp-3); border-radius: var(--r-pill); background: var(--surface-3); color: var(--txt); font: 600 var(--fs-sm)/1.2 var(--font-ui); max-width: 100%; }
+.sel-chip-x { flex: none; width: 28px; height: 28px; display: grid; place-items: center; background: transparent; border: 0; border-radius: var(--r-pill); color: var(--txt-2); cursor: pointer; }
+.sel-chip-x:hover { background: var(--hover-subtle); color: var(--txt); }
+.sel-chip-x:focus-visible { outline: 2px solid var(--action); outline-offset: 1px; }
+.sel-nadie, .sel-mas { font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt-2); }
+.sel-lista { list-style: none; margin: 0; padding: var(--sp-1); display: flex; flex-direction: column; gap: var(--sp-1); max-height: min(46vh, 380px); overflow-y: auto; border-radius: var(--r-cont); background: var(--surface-1); overscroll-behavior: contain; }
+.sel-fila { width: 100%; min-height: 56px; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); text-align: left; cursor: pointer; border: 0; border-radius: var(--r-fila); background: transparent; color: var(--txt); font: inherit; }
+.sel-fila:hover { background: var(--surface-2); }
+.sel-fila:focus-visible { outline: 2px solid var(--action); outline-offset: -2px; }
+.sel-fila--on { background: var(--surface-3); box-shadow: inset 3px 0 0 var(--marca); }
+.sel-fila--parcial { background: var(--surface-2); }
+.sel-av { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-pill); background: var(--surface-3); color: var(--txt); font: 600 var(--fs-sm)/1 var(--font-ui); }
+.sel-av--eq { background: var(--action-fill); color: var(--action-on); }
+.sel-av svg { width: 18px; height: 18px; }
+.sel-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sel-txt b { font: 600 var(--fs-md)/1.3 var(--font-ui); overflow-wrap: anywhere; }
+.sel-txt small { font: 400 var(--fs-sm)/1.3 var(--font-body); color: var(--txt-2); }
+.sel-insignias { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-top: 2px; }
+.sel-check { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: var(--r-pill); border: 2px solid var(--txt-muted); color: var(--action-on); }
+.sel-check svg { width: 16px; height: 16px; }
+.sel-check--on { background: var(--action-fill); border-color: var(--action-fill); }
+.sel-check--parcial { border-color: var(--action); color: var(--action); }
+.sel-vacio { padding: var(--sp-4); font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt-2); }
+.sel-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.sel-n { font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt); }
+.sel-pie-acc { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+
+/* ── Nueva tarea (core/asignar.js) ──────────────────────────────────── */
+.asig-box { width: 100%; max-width: 720px; }
+.asig-pasos { list-style: none; margin: 0 0 var(--sp-4); padding: 0; display: flex; gap: var(--sp-2); }
+.asig-paso { flex: 1; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--txt-2); font: 600 var(--fs-sm)/1.2 var(--font-ui); min-width: 0; }
+.asig-paso-n { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--r-pill); background: var(--surface-3); color: var(--txt); }
+.asig-paso-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asig-paso--on { background: var(--surface-3); color: var(--txt); box-shadow: inset 0 -3px 0 var(--marca); }
+.asig-paso--hecho .asig-paso-n { background: var(--action-fill); color: var(--action-on); }
+.asig-fila2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--sp-3); }
+.asig-personas { display: flex; flex-direction: column; gap: var(--sp-3); margin-block: var(--sp-3); }
+.asig-persona { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-card); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--trazo); }
+.asig-persona .cfg-inp, .asig-resumen .cfg-inp { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--campo-borde); }
+.asig-persona .acordeon--compacto { background: var(--surface-2); }
+.asig-persona-cab { display: flex; align-items: center; gap: var(--sp-3); }
+.asig-persona-cab small { display: block; font: 400 var(--fs-sm)/1.3 var(--font-body); color: var(--txt-2); }
+.asig-lbl { font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt); }
+.asig-rolinfo { display: flex; flex-direction: column; gap: var(--sp-2); }
+.asig-peso { margin-left: var(--sp-1); padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--surface-3); font: 600 var(--fs-xs)/1.5 var(--font-ui); color: var(--txt-2); }
+.asig-avisos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.asig-aviso { display: flex; gap: var(--sp-2); align-items: flex-start; margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-fila); background: var(--surface-1); font: 400 var(--fs-sm)/1.45 var(--font-body); color: var(--txt); }
+.asig-aviso svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
+.asig-aviso--aviso { box-shadow: inset 3px 0 0 var(--sbu); }
+.asig-aviso--error { box-shadow: inset 3px 0 0 var(--alert); background: color-mix(in srgb, var(--alert) 10%, var(--surface-1)); }
+.asig-aviso--error svg { color: var(--alert); }
+.asig-h { margin: 0; font: 700 var(--fs-md)/1.2 var(--font-display); letter-spacing: var(--tr-display, -.01em); color: var(--txt); }
+.asig-crit { display: flex; flex-direction: column; gap: var(--sp-2); margin-block: var(--sp-3); }
+.asig-crit-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.asig-resumen { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-card); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--trazo); margin-top: var(--sp-3); }
+.asig-resumen p { margin: 0; font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt); }
+.asig-res-lista { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-1); font: 400 var(--fs-sm)/1.5 var(--font-body); }
+.asig-ack { margin-top: var(--sp-2); }
+.asig-ack input { width: 24px; height: 24px; }
+
+@media (prefers-reduced-motion: reduce) { .sel-fila, .asig-paso { transition: none; } }
+
+/* ── Seguimiento global (core/seguimiento.js) ───────────────────────── */
+.seg-kpis { margin-bottom: var(--sp-3); }
+.seg-kpi-sub { margin-top: var(--sp-1); font: 400 var(--fs-sm)/1.3 var(--font-body); color: var(--txt-2); }
+.seg-como { margin-bottom: var(--sp-5); font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt); }
+.seg-como summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--action); }
+.seg-pend { min-height: 44px; }
+.seg-grupo { margin-bottom: var(--sp-3); }
+.seg-n { margin-left: var(--sp-2); font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--txt-2); }
+.seg-tabla-wrap { overflow-x: auto; }
+.seg-tabla { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 0; }
+.seg-tabla th, .seg-tabla td { padding: var(--sp-3); text-align: left; vertical-align: top; border-top: 1px solid var(--trazo); }
+.seg-tabla thead th { border-top: 0; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); white-space: nowrap; }
+.seg-tabla thead th small, .seg-tabla tbody th small { display: block; font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--txt-muted); white-space: normal; }
+.seg-persona { min-width: 170px; font-weight: 400; }
+.seg-nombre { display: block; padding: 0; min-height: 44px; text-align: left; background: none; border: 0; cursor: pointer; font: 600 var(--fs-md)/1.3 var(--font-ui); color: var(--txt); }
+.seg-nombre:hover { color: var(--action); text-decoration: underline; }
+.seg-nombre:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; border-radius: var(--r-xs, 8px); }
+.seg-celda { min-width: 140px; }
+.seg-celda > * { margin-right: var(--sp-2); }
+.seg-val { display: inline-flex; align-items: baseline; gap: var(--sp-1); }
+.seg-val b { font: 700 var(--fs-lg)/1 var(--font-display); }
+.seg-val small { font: 400 var(--fs-xs)/1 var(--font-body); color: var(--txt-muted); }
+.seg-tk { display: block; margin-top: var(--sp-1); font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt-2); }
+.seg-venc { color: var(--sba-txt); font-weight: 600; }
+@media (max-width: 767px) {
+  .seg-tabla, .seg-tabla tbody, .seg-tabla tr, .seg-tabla th, .seg-tabla td { display: block; }
+  .seg-tabla thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .seg-tabla tr { padding: var(--sp-3) 0; border-top: 1px solid var(--trazo); }
+  .seg-tabla th, .seg-tabla td { border-top: 0; padding: var(--sp-1) 0; }
+  .seg-tabla td.seg-celda { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+  .seg-tabla td.seg-celda::before { content: attr(data-label); flex: 0 0 64px; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+  .seg-tabla--persona tbody th small { display: inline; margin-left: var(--sp-2); }
+}
+
+/* ── Bienvenida (core/bienvenida.js) ────────────────────────────────── */
+.bv-tarjeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5); padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-4); border-radius: var(--r-cont); background: var(--surface-1); box-shadow: inset 4px 0 0 var(--marca); }
+.bv-tarjeta-txt { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.bv-tarjeta-txt p { margin: 0; font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt-2); }
+.bv-barra { height: 8px; border-radius: var(--r-pill); background: var(--surface-3); overflow: hidden; flex: 1; min-width: 80px; }
+.bv-barra i { display: block; height: 100%; border-radius: inherit; background: var(--action-fill); }
+.bv-progreso { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.bv-paso-n, .bv-hechos { flex: none; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--txt-2); }
+.bv-lista { list-style: none; margin: 0 0 var(--sp-4); padding: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.bv-item { width: 100%; min-height: 48px; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border: 0; border-radius: var(--r-fila); background: transparent; color: var(--txt); text-align: left; cursor: pointer; font: 600 var(--fs-sm)/1.3 var(--font-ui); }
+.bv-item:hover { background: var(--surface-2); }
+.bv-item:focus-visible { outline: 2px solid var(--action); outline-offset: -2px; }
+.bv-item--on { background: var(--surface-3); box-shadow: inset 3px 0 0 var(--marca); }
+.bv-check { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: var(--r-pill); border: 2px solid var(--txt-muted); font: 600 var(--fs-xs)/1 var(--font-ui); color: var(--txt-2); }
+.bv-check svg { width: 16px; height: 16px; }
+.bv-item--hecho .bv-check { background: var(--action-fill); border-color: var(--action-fill); color: var(--action-on); }
+.bv-paso { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-card); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--trazo); }
+.bv-paso-d { margin: 0; font: 400 var(--fs-md)/1.5 var(--font-body); color: var(--txt); }
+.bv-rol-n { margin: 0; font: 700 var(--fs-lg)/1.1 var(--font-display); color: var(--txt); }
+.bv-ir { align-self: flex-start; }
+
+/* ── Reporte entre períodos y por actividad (core/reporte-equipo.js) ── */
+.req-hoja { display: flex; flex-direction: column; gap: var(--sp-5); }
+.req-sec { display: flex; flex-direction: column; gap: var(--sp-3); }
+.req-tabla td small, .req-tabla th small { display: block; margin-top: 2px; font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--txt-2); }
+.req-tabla td b { font: 700 var(--fs-md)/1.2 var(--font-display); color: var(--txt); }
+.req-sub { margin: var(--sp-4) 0 var(--sp-2); font: 700 var(--fs-md)/1.2 var(--font-display); color: var(--txt); }
+.req-sub small { font: 400 var(--fs-sm)/1 var(--font-body); color: var(--txt-2); }
+.req-acc { margin-top: var(--sp-2); }
+@media (max-width: 767px) {
+  .req-tabla th[scope="row"] { padding-top: var(--sp-3); }
+  .req-tabla td::before { content: attr(data-label); flex: 0 0 96px; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+  .req-tabla td { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); }
+  .req-tabla td small { flex: 1 0 100%; padding-left: 104px; margin-top: -4px; }
+}
+@media print {
+  body.imprimiendo-reporte .tab-content:not(#tab-reportes) { display: none !important; }
+  body.imprimiendo-reporte .rpt-hoja .seg-tabla-wrap { overflow: visible; }
+  body.imprimiendo-reporte .req-hoja { break-inside: auto; }
+  body.imprimiendo-reporte .req-sec { break-inside: avoid; }
+}
+
+/* ── Móvil: asistentes en hoja (nueva tarea, actividad, bienvenida) ──── */
+@media (pointer: coarse) {
+  .sel-chip-x { width: 44px; height: 44px; margin: -8px -6px -8px -4px; }
+  .sel-chip { padding-block: var(--sp-1); }
+}
+@media (max-width: 767px) {
+  .sel-lista { max-height: none; overflow: visible; }
+  .asig-box .tk-modal-acciones, .bv-box .tk-modal-acciones { flex-direction: row-reverse; flex-wrap: wrap; gap: var(--sp-2); }
+  .asig-box .tk-modal-acciones > *, .bv-box .tk-modal-acciones > * { width: auto; flex: 1 1 0; min-width: 0; padding-inline: var(--sp-3); }
+  .asig-box .tk-modal-acciones > .btn-save, .bv-box .tk-modal-acciones > .btn-save { flex: 1.6 1 0; }
+  .bv-box .tk-modal-acciones > .btn--texto { flex: 1 1 100%; }
+}
+@media (max-width: 480px) {
+  .asig-paso:not(.asig-paso--on) .asig-paso-t { display: none; }
+  .asig-paso:not(.asig-paso--on) { flex: 0 0 auto; }
+  .asig-paso--on { flex: 1; }
+}
+
+@media (max-width: 767px) {
+  .pref-fila { flex-wrap: wrap; row-gap: var(--sp-2); }
+  .pref-txt { flex: 1 1 calc(100% - 44px); }
+  .pref-acc { flex: 1 1 100%; justify-content: flex-end; }
+}
+.pref-agregar .cfg-select { background: var(--surface-2); }
+.bv-tarjeta-txt .bv-barra { flex: none; width: 100%; }
+
+@media (max-width: 767px) {
+  .bv-box .tk-modal-acciones { flex-direction: row-reverse; flex-wrap: wrap-reverse; }
+  .bv-box .tk-modal-acciones > .btn-save { flex: 1 1 100%; }
+  .bv-box .tk-modal-acciones > .tk-btn { flex: 1 1 0; }
+}
+
+/* ── Mi cuenta rediseñada: pestañas, una cosa a la vez ──────────────── */
+.cuenta-chips { margin: var(--sp-2) 0 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.cuenta-tabs { margin: 0 0 var(--sp-5); overflow-x: auto; }
+.cuenta-panel { max-width: 1080px; }
+.cuenta-panel[hidden] { display: none; }
+.cuenta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: var(--sp-6); align-items: start; }
+.cuenta-un-col { max-width: 640px; display: flex; flex-direction: column; gap: var(--sp-3); }
+.cuenta-un-col .cuenta-t:not(:first-child) { margin-top: var(--sp-5); }
+.cuenta-bloque .cuenta-t, .cuenta-un-col .cuenta-t { margin-bottom: var(--sp-3); }
+.cuenta-un-col .cuenta-salir { margin-top: var(--sp-5); }
+@media (max-width: 767px) { .cuenta-tabs .seg { min-width: max-content; } }
+
+/* ── Móvil: las tablas con plantilla por ID pasan a una sola columna ───────
+   admin.css fija `#usuarios-list .tbl-row { grid-template-columns: … }` (y roles y períodos) con un selector de ID, que gana a
+   la regla móvil de clases: la fila seguía en 5–6 columnas de 30 px y el texto se partía letra por letra. Se iguala la
+   especificidad (ID + :has) y, al ir después, esta regla manda. */
+@media (max-width: 767px) {
+  :is(#usuarios-list, #roles-list, #periodos-list) :is(.tbl-head, .tbl-row):is(*, :has(> div:nth-child(6)), :has(> .tbl-cell:nth-child(6))) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+  }
+  :is(#usuarios-list, #roles-list, #periodos-list) .tbl-row > * { min-width: 0; }
+}
+
+/* ── Móvil: filas de lista con texto + etiquetas + acciones (períodos, actividades, etiquetas, distritos…) ──
+   En una sola línea el texto quedaba en media columna (una palabra por renglón). El texto toma todo el ancho y las
+   etiquetas y las acciones bajan a su propia línea. */
+@media (max-width: 767px) {
+  .fila-aj:has(> .act-acc) { flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
+  .fila-aj:has(> .act-acc) > .fila-aj-txt { flex: 1 1 100%; min-width: 0; }
+  .fila-aj:has(> .act-acc) > .act-acc { margin-left: auto; }
+  .fila-aj.act-fila > .fila-aj-txt { flex: 1 1 calc(100% - 84px); }
+}
+
+/* ── Sin esquinas rectas ───────────────────────────────────────────────────
+   Tres bloques con fondo seguían en ángulo recto (marca.css: «no square corners»): la franja fija de período y pestañas del
+   perfil, el resumen del formulario de evaluar y la barra de acciones de los diálogos. */
+.perfil-barra { border-radius: var(--r-cont); }
+.v2-resumen { border-radius: var(--r-card); }
+.tk-modal-acciones { border-radius: 0 0 var(--r-modal) var(--r-modal); }

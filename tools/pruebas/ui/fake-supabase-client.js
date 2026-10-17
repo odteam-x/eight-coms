@@ -33,8 +33,21 @@
 
   const DB = {
     gestiones: [{ id: 1, nombre: '2026-2027', inicio: null, fin: null, activa: true, archivada: false, created_at: ahora() }],
-    roles: [{ id: 1, nombre: 'Fotografía', activo: true, orden: 1 }, { id: 2, nombre: 'Redacción', activo: true, orden: 2 },
-            { id: 3, nombre: 'Dirección', activo: true, orden: 3 }],
+    roles: [
+      { id: 1, nombre: 'Fotografía', activo: true, orden: 1, descripcion: 'Cubre los eventos y produce las imágenes del equipo.',
+        responsabilidades: 'Cobertura fotográfica de las jornadas\nSelección y edición básica de las fotos\nEntrega del material en el drive del equipo', requisitos: 'Cámara propia o acceso a una del equipo' },
+      { id: 2, nombre: 'Redacción', activo: true, orden: 2, descripcion: 'Escribe las notas y los textos de las publicaciones.',
+        responsabilidades: 'Notas de prensa de cada jornada\nTextos para redes sociales\nRevisión ortográfica del material', requisitos: '' },
+      { id: 3, nombre: 'Dirección', activo: true, orden: 3, descripcion: '', responsabilidades: '', requisitos: '' }],
+    // 0021: roles habilitados además del principal, y preferencias de cada persona
+    persona_roles: [{ persona_id: U.m2, rol_id: 2 }, { persona_id: U.m4, rol_id: 2 }],
+    preferencias_rol: [
+      { persona_id: U.m1, rol_id: 2, prioridad: 1, es_predeterminado: false },
+      { persona_id: U.m1, rol_id: 1, prioridad: 2, es_predeterminado: true },
+      { persona_id: U.m2, rol_id: 2, prioridad: 1, es_predeterminado: true },
+    ],
+    actividad_destinatarios: [{ actividad_id: 5, persona_id: U.m1 }, { actividad_id: 5, persona_id: U.m2 }],
+    bienvenida_estado: [],
     distritos: [{ id: '08-01', nombre: 'Distrito 08-01', activo: true }, { id: '08-02', nombre: 'Distrito 08-02', activo: true }],
     profiles: [
       { id: U.admin, nombre: 'Admin General', email: 'admin@x.cl', es_admin: true, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: true },
@@ -56,12 +69,13 @@
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
     calendario: [], config: [], periodo_participantes: [], trabajos_entregados: [],
-    etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Hito', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
+    etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
-      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, creada_por: U.admin },
-      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: 'Práctica de luz natural.', etiqueta_id: 3, fecha_inicio: dia(5), fecha_fin: null, distrito: null, creada_por: U.admin },
-      { id: 3, gestion_id: 1, titulo: 'Reunión del distrito 08-01', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(2), fecha_fin: null, distrito: '08-01', creada_por: U.sec },
-      { id: 4, gestion_id: 1, titulo: 'Reunión del distrito 08-02', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(3), fecha_fin: null, distrito: '08-02', creada_por: U.admin },
+      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, alcance: 'equipo', creada_por: U.admin },
+      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: 'Práctica de luz natural.', etiqueta_id: 3, fecha_inicio: dia(5), fecha_fin: null, distrito: null, alcance: 'equipo', creada_por: U.admin },
+      { id: 3, gestion_id: 1, titulo: 'Reunión del distrito 08-01', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(2), fecha_fin: null, distrito: '08-01', alcance: 'distrito', creada_por: U.sec },
+      { id: 4, gestion_id: 1, titulo: 'Reunión del distrito 08-02', descripcion: '', etiqueta_id: 4, fecha_inicio: dia(3), fecha_fin: null, distrito: '08-02', alcance: 'distrito', creada_por: U.admin },
+      { id: 5, gestion_id: 1, titulo: 'Ensayo del grupo A', descripcion: 'Solo para quienes presentan.', etiqueta_id: 2, fecha_inicio: dia(7), fecha_fin: null, distrito: '08-01', alcance: 'seleccion', creada_por: U.sec },
     ],
     criterios_v2,
     perfiles_rol: [
@@ -101,6 +115,24 @@
   T({ titulo: 'Fotos del taller', asignada_a: U.m3, estado: 'entregada', entregada_en: ahora(), entrega_nota: 'Subidas al drive', fecha_limite: dia(4), asignada_por: U.sec });
   T({ titulo: 'Nota de prensa jornada', asignada_a: U.r1, fecha_limite: dia(6) });
   T({ titulo: 'Tarea de otro distrito', asignada_a: U.m4, fecha_limite: dia(6) });
+  // 0021: algunas tareas llevan rol y actividad (para el reporte por actividad)
+  ['Cobertura de la jornada del sábado', 'Retratos del equipo', 'Banco de imágenes de marzo', 'Fotos del taller'].forEach(t => { const x = DB.tareas.find(r => r.titulo === t); x.actividad_id = 2; x.rol_id = 1; x.rol_excepcion = false; });
+  DB.tareas.find(r => r.titulo === 'Nota de prensa jornada').actividad_id = 1;
+
+  /* Bienvenida (0025): las personas «que ya existían» quedan omitidas, como hace la migración, para no abrir el
+     asistente en cada prueba. Con ?bv=1 nadie tiene fila (persona nueva: el asistente se abre solo);
+     con ?bv=2, la persona va por la mitad (retomar); con ?bv=3 todas «ya existían» y no han visto las Novedades. */
+  (() => {
+    const bv = new URLSearchParams(location.search).get('bv') || sessionStorage.getItem('fake_bv') || '0';
+    sessionStorage.setItem('fake_bv', bv);
+    if (bv === '1') return;
+    Object.entries(U).forEach(([k, id]) => {
+      const p = DB.profiles.find(x => x.id === id);
+      const perfil = p.es_admin ? 'admin' : p.tipo_miembro === 'secretario' ? 'secretario' : 'miembro';
+      DB.bienvenida_estado.push({ persona_id: id, perfil, origen: bv === '3' ? 'existente' : 'nuevo', version: 1, pasos_hechos: bv === '2' ? ['rol', 'cuenta'] : [], paso_actual: bv === '2' ? 'preferencias' : null,
+        omitida: bv !== '2' && bv !== '3', completada_en: null, created_at: ahora(), updated_at: ahora() });
+    });
+  })();
 
   /* ── Sesión simulada ── */
   const as = (new URLSearchParams(location.search).get('as')) || sessionStorage.getItem('fake_as') || 'admin';
@@ -110,6 +142,7 @@
   const esAdmin = () => !!me().es_admin;
   const esSec = () => me().tipo_miembro === 'secretario';
   const distritoIds = () => esSec() ? DB.profiles.filter(p => p.distrito === me().distrito).map(p => p.id) : [];
+  const permitidos = pid => { const pr = DB.profiles.find(x => x.id === pid); return [...new Set([pr?.rol_id, ...DB.persona_roles.filter(r => r.persona_id === pid).map(r => r.rol_id)].filter(x => x != null).map(Number))]; };
   const veTarea = t => esAdmin() || t.asignada_a === meId || (esSec() && distritoIds().includes(t.asignada_a));
 
   /* ── Motor de consultas ── */
@@ -132,7 +165,16 @@
     if (table === 'tarea_eventos') return rows.filter(e => veTarea(DB.tareas.find(t => t.id === e.tarea_id) || {}));
     if (table === 'evaluaciones' && !esAdmin()) return rows.filter(e => e.estado === 'publicado' && (e.evaluado_id === meId || (esSec() && distritoIds().includes(e.evaluado_id))));
     if (table === 'profiles' && !esAdmin()) return rows.filter(p => p.id === meId || (esSec() && p.distrito === me().distrito));
-    if (table === 'actividades' && !esAdmin()) return rows.filter(a => !a.distrito || a.distrito === me().distrito);
+    if (table === 'actividades' && !esAdmin()) return rows.filter(a => {
+      const al = a.alcance || (a.distrito ? 'distrito' : 'equipo');
+      if (al === 'equipo') return true;
+      if (al === 'distrito') return a.distrito === me().distrito;
+      const dest = DB.actividad_destinatarios.filter(d => d.actividad_id === a.id).map(d => d.persona_id);
+      return a.creada_por === meId || dest.includes(meId) || (esSec() && (a.distrito === me().distrito || dest.some(p => distritoIds().includes(p))));
+    });
+    if (table === 'actividad_destinatarios' && !esAdmin()) return rows.filter(d => d.persona_id === meId || (esSec() && distritoIds().includes(d.persona_id)) || DB.actividades.find(a => a.id === d.actividad_id)?.creada_por === meId);
+    if ((table === 'persona_roles' || table === 'preferencias_rol') && !esAdmin()) return rows.filter(r => r.persona_id === meId || (esSec() && distritoIds().includes(r.persona_id)));
+    if (table === 'bienvenida_estado') return rows.filter(r => esAdmin() || r.persona_id === meId);
     return rows;
   }
 
@@ -226,6 +268,12 @@
         Object.assign(p, { id: seq.tarea++, origen: p.asignada_a === meId ? 'propia' : 'asignada', asignada_por: meId, estado: 'asignada', fecha_limite_original: p.fecha_limite || null,
           entrega_url: null, entrega_nota: null, revision_nota: null, bloqueo_motivo: null, entregada_en: null, aprobada_en: null, rondas_revision: 0,
           criterios: p.criterios || [], prioridad: p.prioridad || 'normal', descripcion: p.descripcion || '', created_at: ahora(), updated_at: ahora() });
+        // 0021: el rol de la tarea debe estar entre los permitidos de la persona (la administración puede salirse: queda marcado)
+        p.rol_excepcion = false; p.rol_id = p.rol_id ?? null; p.actividad_id = p.actividad_id ?? null;
+        if (p.rol_id != null) {
+          const perm = permitidos(p.asignada_a);
+          if (!perm.includes(Number(p.rol_id))) { if (esAdmin()) p.rol_excepcion = true; else throw new Error('Esa persona no tiene permitido ese rol: pide a la administracion que se lo habilite o elige otro.'); }
+        }
         rows.push(p); DB.tarea_eventos.push({ id: seq.ev++, tarea_id: p.id, actor_id: meId, tipo: 'creada', a: 'asignada', motivo: p.origen, created_at: ahora() });
         return p;
       }
@@ -280,6 +328,7 @@
         if (prev) { Object.assign(prev, p, { updated_at: ahora() }); return prev; }
         Object.assign(p, { id: seq.eval++, created_at: ahora(), updated_at: ahora() }); rows.push(p); return p;
       }
+      if (this.t === 'persona_roles') { if (!esAdmin()) throw new Error('new row violates row-level security policy for table "persona_roles"'); rows.push(p); return p; }
       if (this.t === 'periodos_evaluacion') { Object.assign(p, { id: 'aaaaaaaa-0000-0000-0000-0000000000' + (10 + rows.length), created_at: ahora(), activo: false, modelo: p.modelo || 'legacy' }); rows.push(p); return p; }
       if (!('id' in p)) p.id = (rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0)) + 1;
       rows.push(p); return p;
@@ -357,8 +406,112 @@
     id: x.id, tipo: x.tipo, datos: x.datos, ref_id: 'ref-' + x.id,
     creada: new Date(Date.now() - x.min * 60000).toISOString(), leida_en: _leidasAv().includes(x.id) ? ahora() : null,
   }));
+  const hoyISO = dia(0);
+  const nombreRol = id => DB.roles.find(r => r.id === id)?.nombre ?? null;
   const RPC = {
     hay_gestion_abierta: () => true,
+    // ── 0021 ──
+    personas_asignables: ({ p_periodo, p_rol }) => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      if (!esAdmin() && !esSec()) return [];
+      return DB.profiles.filter(p => !p.es_admin && p.aprobado !== false && (esAdmin() || (p.id !== meId && distritoIds().includes(p.id)))).map(p => {
+        const pr = DB.preferencias_rol.find(x => x.persona_id === p.id && x.rol_id === p_rol);
+        const mias = DB.tareas.filter(t => t.asignada_a === p.id && t.periodo_id === p_periodo);
+        return { persona_id: p.id, nombre: p.nombre, email: p.email, distrito: p.distrito, tipo_miembro: p.tipo_miembro, rol_id: p.rol_id, rol_nombre: nombreRol(p.rol_id),
+          activo_periodo: !DB.periodo_participantes.some(x => x.periodo_id === p_periodo && x.user_id === p.id && x.activo === false),
+          permitido: p_rol == null ? null : permitidos(p.id).includes(Number(p_rol)), prioridad: p_rol == null ? null : (pr?.prioridad ?? null),
+          predeterminado: p_rol == null ? null : !!pr?.es_predeterminado,
+          tareas_abiertas: mias.filter(t => ['asignada', 'en_curso', 'devuelta', 'bloqueada'].includes(t.estado)).length,
+          tareas_vencidas: mias.filter(t => ['asignada', 'en_curso', 'devuelta'].includes(t.estado) && t.fecha_limite && t.fecha_limite < hoyISO).length };
+      }).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    },
+    guardar_preferencias_rol: ({ p_roles, p_predeterminado }) => {
+      const roles = [...new Set(p_roles || [])];
+      if (roles.length > 8) throw new Error('Puedes elegir hasta 8 roles de preferencia.');
+      if (p_predeterminado != null && !roles.includes(p_predeterminado)) throw new Error('El rol predeterminado debe ser uno de tus roles de preferencia.');
+      if (p_predeterminado != null && !permitidos(meId).includes(p_predeterminado)) throw new Error('El rol predeterminado debe estar entre los roles que tienes permitidos.');
+      DB.preferencias_rol = DB.preferencias_rol.filter(x => x.persona_id !== meId);
+      roles.forEach((r, i) => DB.preferencias_rol.push({ persona_id: meId, rol_id: r, prioridad: i + 1, es_predeterminado: p_predeterminado != null && r === p_predeterminado }));
+      return null;
+    },
+    // ── 0024 ──
+    guardar_actividad: a => {
+      if (!esAdmin() && !esSec()) throw new Error('Solo la administracion y las secretarias crean actividades.');
+      if (!['equipo', 'distrito', 'seleccion'].includes(a.p_alcance)) throw new Error('Alcance no valido.');
+      const personas = [...new Set(a.p_personas || [])];
+      if (a.p_alcance === 'seleccion') {
+        if (!personas.length) throw new Error('Elige al menos una persona.');
+        if (!esAdmin() && personas.some(p => !distritoIds().includes(p))) throw new Error('Solo puedes elegir personas de tu distrito.');
+      }
+      if (a.p_alcance === 'equipo' && !esAdmin()) throw new Error('Solo la administracion crea actividades para todo el equipo.');
+      if (a.p_alcance === 'distrito' && !esAdmin() && a.p_distrito !== me().distrito) throw new Error('Solo puedes crear actividades de tu distrito.');
+      if (a.p_fin && a.p_fin < a.p_inicio) throw new Error('new row for relation "actividades" violates check constraint "actividades_check"');
+      const fila = { gestion_id: 1, titulo: a.p_titulo, descripcion: a.p_descripcion || '', etiqueta_id: a.p_etiqueta, fecha_inicio: a.p_inicio, fecha_fin: a.p_fin, alcance: a.p_alcance,
+        distrito: a.p_alcance === 'equipo' ? null : a.p_alcance === 'distrito' ? a.p_distrito : (esAdmin() ? null : me().distrito) };
+      let id = a.p_id;
+      if (id) { const x = DB.actividades.find(r => r.id === id); if (!x) throw new Error('La actividad no existe.'); if (!esAdmin() && x.distrito !== me().distrito) throw new Error('No puedes editar esta actividad.'); Object.assign(x, fila); }
+      else { id = DB.actividades.reduce((m, r) => Math.max(m, r.id), 0) + 1; DB.actividades.push({ id, ...fila, creada_por: meId }); }
+      DB.actividad_destinatarios = DB.actividad_destinatarios.filter(d => d.actividad_id !== id);
+      if (a.p_alcance === 'seleccion') personas.forEach(p => DB.actividad_destinatarios.push({ actividad_id: id, persona_id: p }));
+      return id;
+    },
+    // ── 0025 ──
+    seguimiento_global: ({ p_gestion }) => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      const quienes = DB.profiles.filter(p => !p.es_admin && p.aprobado !== false && (esAdmin() || p.id === meId || (esSec() && distritoIds().includes(p.id))));
+      const filas = [];
+      DB.periodos_evaluacion.filter(p => p.gestion_id === Number(p_gestion ?? 1)).forEach((per, i) => {
+        const res = per.modelo === 'v2' ? resultados(per.id, esAdmin()) : [];
+        quienes.forEach(q => {
+          const r = res.find(x => x.evaluado_id === q.id);
+          const ev = DB.evaluaciones.find(e => e.periodo_id === per.id && e.evaluado_id === q.id);
+          const cl = per.modelo !== 'v2' && ev ? Object.values(ev.puntajes).reduce((s, v) => s + (Number(v) || 0), 0) + (Number(ev.bono_ext) || 0) : null;
+          const tk = DB.tareas.filter(t => t.periodo_id === per.id && t.asignada_a === q.id);
+          const asig = tk.filter(t => t.origen === 'asignada');
+          const conPlazo = asig.filter(t => t.entregada_en && t.fecha_limite);
+          let estado = 'sin_evaluar';
+          if (per.modelo === 'v2') estado = r ? r.estado : (ev ? (esAdmin() ? 'borrador' : 'sin_publicar') : 'sin_evaluar');
+          else if (ev) estado = ev.estado === 'publicado' ? 'publicado' : (esAdmin() ? 'borrador' : 'sin_publicar');
+          filas.push({ persona_id: q.id, nombre: q.nombre, distrito: q.distrito, rol_id: r?.rol_id ?? q.rol_id, rol_nombre: nombreRol(r?.rol_id ?? q.rol_id), periodo_id: per.id, periodo_nombre: per.nombre, periodo_orden: i + 1,
+            modelo: per.modelo, periodo_activo: !!per.activo, participa: !DB.periodo_participantes.some(x => x.periodo_id === per.id && x.user_id === q.id && x.activo === false), estado_eval: estado,
+            nucleo: r?.nucleo ?? null, tecnico: r?.tecnico ?? null, individual: r?.individual ?? null, general: r?.general ?? null,
+            total_clasico: ev && (ev.estado === 'publicado' || esAdmin()) ? cl : null,
+            tareas_total: tk.length, tareas_abiertas: tk.filter(t => ['asignada', 'en_curso', 'devuelta', 'bloqueada'].includes(t.estado)).length,
+            tareas_vencidas: asig.filter(t => !t.entregada_en && ['asignada', 'en_curso'].includes(t.estado) && t.fecha_limite && t.fecha_limite < hoyISO).length,
+            tareas_aprobadas: tk.filter(t => t.estado === 'aprobada').length, con_plazo: conPlazo.length,
+            a_tiempo: conPlazo.filter(t => t.entregada_en.slice(0, 10) <= t.fecha_limite).length,
+            puntos_suma: tk.filter(t => t.estado === 'aprobada' && t.puntos != null).reduce((s, t) => s + t.puntos, 0), puntos_n: tk.filter(t => t.estado === 'aprobada' && t.puntos != null).length });
+        });
+      });
+      return filas.sort((a, b) => (a.rol_nombre || '~').localeCompare(b.rol_nombre || '~', 'es') || a.nombre.localeCompare(b.nombre, 'es') || a.periodo_orden - b.periodo_orden);
+    },
+    reporte_actividades: () => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      const ver = p => esAdmin() || p.id === meId || (esSec() && distritoIds().includes(p.id));
+      const filas = [];
+      DB.actividades.filter(a => a.gestion_id === 1).forEach(a => {
+        const tk = DB.tareas.filter(t => t.actividad_id === a.id && ver(DB.profiles.find(p => p.id === t.asignada_a)));
+        const base = { actividad_id: a.id, titulo: a.titulo, fecha_inicio: a.fecha_inicio, fecha_fin: a.fecha_fin, alcance: a.alcance, etiqueta: DB.etiquetas.find(e => e.id === a.etiqueta_id)?.nombre ?? null };
+        if (!tk.length) { if (esAdmin() || (esSec() && (a.alcance === 'equipo' || a.distrito === me().distrito))) filas.push({ ...base, persona_id: null, nombre: null, distrito: null, rol_nombre: null, asignadas: 0, entregadas: 0, con_plazo: 0, a_tiempo: 0, aprobadas: 0, vencidas: 0, puntos_suma: 0, puntos_n: 0 }); return; }
+        [...new Set(tk.map(t => t.asignada_a))].forEach(pid => {
+          const pr = DB.profiles.find(p => p.id === pid), mis = tk.filter(t => t.asignada_a === pid), asig = mis.filter(t => t.origen === 'asignada'), cp = asig.filter(t => t.entregada_en && t.fecha_limite);
+          filas.push({ ...base, persona_id: pid, nombre: pr.nombre, distrito: pr.distrito, rol_nombre: nombreRol(pr.rol_id), asignadas: asig.length, entregadas: asig.filter(t => t.entregada_en).length,
+            con_plazo: cp.length, a_tiempo: cp.filter(t => t.entregada_en.slice(0, 10) <= t.fecha_limite).length, aprobadas: mis.filter(t => t.estado === 'aprobada').length,
+            vencidas: asig.filter(t => !t.entregada_en && ['asignada', 'en_curso'].includes(t.estado) && t.fecha_limite && t.fecha_limite < hoyISO).length,
+            puntos_suma: mis.filter(t => t.estado === 'aprobada' && t.puntos != null).reduce((s, t) => s + t.puntos, 0), puntos_n: mis.filter(t => t.estado === 'aprobada' && t.puntos != null).length });
+        });
+      });
+      return filas;
+    },
+    bienvenida_guardar: a => {
+      const perfil = esAdmin() ? 'admin' : esSec() ? 'secretario' : 'miembro';
+      const prev = DB.bienvenida_estado.find(x => x.persona_id === meId);
+      const fila = { persona_id: meId, perfil, origen: prev?.origen ?? 'nuevo', version: 1, pasos_hechos: [...new Set(a.p_pasos || [])], paso_actual: a.p_actual ?? null, omitida: !!a.p_omitir,
+        completada_en: a.p_terminar ? (prev?.completada_en || ahora()) : (prev?.completada_en ?? null), created_at: prev?.created_at || ahora(), updated_at: ahora() };
+      if (prev) Object.assign(prev, fila); else DB.bienvenida_estado.push(fila);
+      return null;
+    },
+    bienvenida_reiniciar: () => { DB.bienvenida_estado = DB.bienvenida_estado.filter(x => x.persona_id !== meId); return null; },
     mis_notificaciones: ({ p_limite = 40, p_antes = null }) => {
       if (!meId) throw new Error('Se requiere sesion.');
       let l = _misAvisos().sort((x, y) => y.creada.localeCompare(x.creada));
@@ -393,6 +546,7 @@
     rpc: async (n, a) => { try { if (!RPC[n]) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${n}` } }; return { data: RPC[n](a || {}), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } },
     auth: {
       getSession: async () => ({ data: { session: { user: { id: meId, email: me().email, user_metadata: {} } } } }),
+      getUser: async () => ({ data: { user: { id: meId, email: me().email } }, error: null }),
       signOut: async () => ({}), signUp: async ({ email }) => (String(email).includes('existe') ? { data: null, error: { message: 'User already registered' } } : { data: { user: { email } }, error: null }), onAuthStateChange: cb => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
     storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },

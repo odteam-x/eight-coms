@@ -73,7 +73,7 @@ const Calendario = (() => {
       const ini = deIso(x.fecha_inicio), fin = deIso(x.fecha_fin || x.fecha_inicio);
       for (let d = new Date(ini); d <= fin && d - ini < 1000 * 3600 * 24 * 120; d.setDate(d.getDate() + 1)) {
         eventos.push({ fecha: iso(d), tipo: 'actividad', cls: 'act', tono: tonoDe(x.etiqueta_id), etiquetaId: x.etiqueta_id ?? null,
-          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito });
+          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.alcance === 'seleccion' ? 'Personas elegidas' : x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito });
       }
     }
     S.eventos = eventos;
@@ -208,37 +208,15 @@ const Calendario = (() => {
     const v2 = (Store.periodos() || []).filter(esPeriodoV2);
     return v2.find(p => p.activo) || v2[0] || null;
   }
-  function _formActividad(x = {}, fechaIni = '') {
-    const etqs = S.etiquetas || [];
-    const alcance = S.esAdmin
-      ? [{ v: '', l: 'Todo el equipo' }, ...(S.distritos || []).map(d => ({ v: d.id, l: d.nombre }))]
-      : [{ v: S.miDistrito || '', l: 'Mi distrito' }];
-    return [
-      { id: 'titulo', tipo: 'texto', label: 'Título', req: true, valor: x.titulo || '', ph: 'Ej.: Capacitación de edición de video' },
-      { id: 'descripcion', tipo: 'area', label: 'Descripción (opcional)', valor: x.descripcion || '', filas: 2 },
-      { id: 'etiqueta', tipo: 'select', label: 'Etiqueta', valor: x.etiqueta_id || '', opciones: [{ v: '', l: 'Sin etiqueta' }, ...etqs.map(e => ({ v: e.id, l: e.nombre }))] },
-      { id: 'ini', tipo: 'fecha', label: 'Desde', valor: x.fecha_inicio || fechaIni },
-      { id: 'fin', tipo: 'fecha', label: 'Hasta (opcional, si dura varios días)', valor: x.fecha_fin || '' },
-      { id: 'alcance', tipo: 'select', label: 'Para quién', valor: x.distrito || '', opciones: alcance },
-    ];
-  }
-  async function _guardarActividad(x, v) {
-    if (!(v.titulo || '').trim()) return 'Escribe un título.';
-    if (!v.ini) return 'Elige la fecha.';
-    if (v.fin && v.fin < v.ini) return 'La fecha final no puede ser anterior a la inicial.';
-    const r = await API.saveActividad({ id: x.id, titulo: v.titulo, descripcion: v.descripcion, etiqueta_id: v.etiqueta ? Number(v.etiqueta) : null, fecha_inicio: v.ini, fecha_fin: v.fin, distrito: v.alcance || null });
-    if (!r.ok) return r.error;
-    showToast(x.id ? 'Actividad actualizada' : 'Actividad creada', 'ok');
-    await _cargar(); _pintar();
-    return null;
-  }
+  const _abrirForm = (x, f) => ActividadForm.abrir({ actividad: x, fecha: f, admin: S.esAdmin, miDistrito: S.miDistrito, distritos: S.distritos, etiquetas: S.etiquetas,
+    onGuardado: () => _cargar().then(_pintar) });
   function actividad(f) {
     if (!S || !puedeCrearAct()) return;
-    Tareas.abrirModal({ titulo: 'Nueva actividad', campos: _formActividad({}, f), confirmar: 'Crear', onConfirm: v => _guardarActividad({}, v) });
+    _abrirForm(null, f);
   }
   function editarAct(id) {
     const x = (S?.actividades || []).find(a => String(a.id) === String(id)); if (!x || !puedeEditarAct(x)) return;
-    Tareas.abrirModal({ titulo: 'Editar actividad', campos: _formActividad(x), confirmar: 'Guardar', onConfirm: v => _guardarActividad(x, v) });
+    _abrirForm(x, '');
   }
   function borrarAct(id) {
     const x = (S?.actividades || []).find(a => String(a.id) === String(id)); if (!x || !puedeEditarAct(x)) return;

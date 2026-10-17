@@ -155,7 +155,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   for (const [m, portalJs, rutaAyuda] of [['miembro', 'user.js', 'ayuda/miembro.html'], ['secretario', 'secretario.js', 'ayuda/secretario.html'], ['admin', 'admin.js', 'ayuda/admin.html']]) {
     const h = fs.readFileSync(ROOT + 'ayuda/' + m + '.html', 'utf8');
     const ids = [...h.matchAll(/<section id="([a-z-]+)"/g)].map(x => x[1]);
-    ok(ids.length >= 8 && ids.includes('acceso') && ids.includes('avisos') && ids.includes('cuenta') && ids.includes('aun-no') && ids.includes('permisos') && ids.includes('faq'), 'ayuda/' + m + '.html: tiene acceso, avisos, cuenta, «lo que aún no hace», permisos y preguntas frecuentes (' + ids.length + ' secciones)');
+    ok(ids.length >= 8 && ids.includes('acceso') && ids.includes('avisos') && ids.includes('cuenta') && ids.includes('proximamente') && ids.includes('permisos') && ids.includes('faq'), 'ayuda/' + m + '.html: tiene acceso, avisos, cuenta, «Próximamente», permisos y preguntas frecuentes (' + ids.length + ' secciones)');
     ok([...h.matchAll(/<li><a href="#([a-z-]+)">/g)].every(x => ids.includes(x[1])) && /<nav class="ay-toc"/.test(h), 'ayuda/' + m + '.html: el índice enlaza solo a secciones que existen');
     ok([...h.matchAll(/src="img\/([a-z-]+\.jpg)"/g)].every(x => fs.existsSync(ROOT + 'ayuda/img/' + x[1])), 'ayuda/' + m + '.html: todas las capturas existen');
     ok((h.match(/<ol class="pasos">/g) || []).length >= 4 && /class="faq"/.test(h), 'ayuda/' + m + '.html: procedimientos con pasos numerados y preguntas frecuentes');
@@ -165,7 +165,12 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/AYUDA_URL/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')) && /Ayuda y manual de uso/.test(fs.readFileSync(ROOT + 'core/rail.js', 'utf8')), 'Mi cuenta, el menú lateral y la hoja «Más» enlazan el manual');
   ok(fs.existsSync(ROOT + 'ayuda/ayuda.css') && fs.existsSync(ROOT + 'tools/generar-manuales.mjs'), 'existen ayuda.css y el generador');
   const man = fs.readFileSync(ROOT + 'ayuda/miembro.html', 'utf8') + fs.readFileSync(ROOT + 'ayuda/secretario.html', 'utf8') + fs.readFileSync(ROOT + 'ayuda/admin.html', 'utf8');
-  ok(/todavía no existen|aún no puedes elegirlos/.test(man), 'los manuales dicen expresamente lo que todavía no existe (roles de preferencia, roles por actividad)');
+  ok(/Próximamente/.test(man) && !/Lo que aún no hace|todavía no existen|aún no puedes elegirlos/.test(man), 'los manuales presentan lo pendiente como «Próximamente», no como «no disponible»');
+  // Cada captura de computadora tiene su par de celular, y el manual elige la que corresponde al dispositivo.
+  const pcs = fs.readdirSync(ROOT + 'ayuda/img').filter(f => /-pc\.jpg$/.test(f));
+  ok(pcs.length >= 20 && pcs.every(f => fs.existsSync(ROOT + 'ayuda/img/' + f.replace('-pc.jpg', '.jpg'))), 'ayuda/img: ' + pcs.length + ' capturas de computadora, cada una con su versión de celular');
+  ok(/captura--dual/.test(man) && /media="\(min-width: 900px\)" srcset="img\/[a-z-]+-pc\.jpg"/.test(man) && /captura--dual/.test(fs.readFileSync(ROOT + 'ayuda/ayuda.css', 'utf8')), 'los manuales usan <picture>: vista de PC desde 900 px y de celular en pantallas chicas');
+  ok(/Novedades del portal/.test(man) && /bienvenida/.test(man), 'los manuales explican los dos recorridos (bienvenida y novedades)');
 }
 
 // ── Eliminar borradores ───────────────────────────────────────────────────
@@ -214,6 +219,132 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/pat-\$\{typeof Fondo !== 'undefined' \? Fondo\.clase\(persona\)/.test(fs.readFileSync(ROOT + 'core/inicio.js', 'utf8')) && /Fondo\.clase\(p\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'Inicio y Mi perfil pintan el fondo elegido');
   const m30 = fs.readFileSync(ROOT + 'supabase/migrations/0030_fondo_perfil.sql', 'utf8');
   ok(/fondo IS NULL OR fondo BETWEEN 1 AND 7/.test(m30), 'migración 0030: solo 1–7 o NULL');
+}
+
+
+// ── Evolución integral: roles y preferencias, selector, nueva tarea, actividades, seguimiento, bienvenida, reportes ──
+{
+  const vm = (await import('node:vm')).default;
+  const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  const acciones = new Set([...cfg.matchAll(/\n\s{2}([a-zA-Z0-9]+):\s/g)].map(m => m[1]));
+  const simples = new Set([...cfg.match(/_ACCIONES_SIMPLES = new Set\(\[([\s\S]*?)\]\)/)[1].matchAll(/'([A-Za-z0-9]+)'/g)].map(m => m[1]));
+  const nuevos = ['core/selector.js', 'core/asignar.js', 'core/preferencias.js', 'core/actividad-form.js', 'core/seguimiento.js', 'core/bienvenida.js', 'core/reporte-equipo.js'];
+  const todoJs = ['config.js', 'api.js', 'admin.js', 'admin-personas.js', 'admin-reportes.js', 'admin-actividades.js', 'core/tareas.js', 'core/calendario.js', 'core/cuenta.js', ...nuevos].map(f => fs.readFileSync(ROOT + f, 'utf8')).join('\n');
+
+  console.log('\n[evolución integral: archivos, acciones y marcado]');
+  for (const f of [...nuevos, 'evolucion.css', 'supabase/migrations/0021_roles_preferencias.sql', 'supabase/migrations/0024_actividades_alcance.sql', 'supabase/migrations/0025_seguimiento_bienvenida.sql',
+                   'tools/pruebas/sql-0021.mjs', 'tools/pruebas/sql-0024.mjs', 'tools/pruebas/sql-0025.mjs']) ok(fs.existsSync(ROOT + f), 'existe ' + f);
+  for (const f of nuevos) {
+    const t = fs.readFileSync(ROOT + f, 'utf8');
+    ok(!/\son[a-z]+\s*=\s*["']/i.test(t.replace(/data-on[a-z]+/g, '')), f + ': sin handlers inline (todo por data-act)');
+    const act = [...new Set([...t.matchAll(/data-act="([A-Za-z0-9]+)"/g)].map(m => m[1]))].filter(a => a !== 'fn');
+    const faltan = act.filter(a => !acciones.has(a));
+    ok(!faltan.length, f + ': todas sus data-act están en ACCIONES' + (faltan.length ? ' (faltan: ' + faltan.join(', ') + ')' : ''));
+    const sim = [...new Set([...t.matchAll(/data-(?:change|input)="([A-Za-z0-9]+)"/g)].map(m => m[1]))];
+    const noPerm = sim.filter(a => !simples.has(a));
+    ok(!noPerm.length, f + ': sus data-change / data-input están en la lista blanca' + (noPerm.length ? ' (faltan: ' + noPerm.join(', ') + ')' : ''));
+  }
+  for (const n of [...simples].filter(n => /^(sel|asig|actf|seg|gestionRol)/.test(n))) ok(new RegExp('function ' + n + '\\b').test(todoJs), 'existe la función global ' + n + '() de la lista blanca');
+  ok(/'Selector'|const Selector/.test(fs.readFileSync(ROOT + 'core/selector.js', 'utf8')), 'selector: componente reutilizable');
+  const portales = {
+    'admin.html': ['selector', 'asignar', 'actividad-form', 'seguimiento', 'reporte-equipo', 'bienvenida', 'preferencias'],
+    'secretario.html': ['selector', 'asignar', 'actividad-form', 'seguimiento', 'reporte-equipo', 'bienvenida', 'preferencias'],
+    'user.html': ['seguimiento', 'bienvenida', 'preferencias'],
+  };
+  for (const [p, scripts] of Object.entries(portales)) {
+    const h = fs.readFileSync(ROOT + p, 'utf8');
+    for (const s of scripts) ok(h.includes(`<script src="core/${s}.js"></script>`), `${p}: carga core/${s}.js`);
+    ok(/premium\.css[\s\S]*evolucion\.css[\s\S]*movil\.css/.test(h), p + ': evolucion.css va después de premium.css y antes de movil.css');
+  }
+  ok(/id="tab-seguimiento"/.test(fs.readFileSync(ROOT + 'admin.html', 'utf8')) && /id="tab-seguimiento"/.test(fs.readFileSync(ROOT + 'secretario.html', 'utf8')) && /id="tab-reportes"/.test(fs.readFileSync(ROOT + 'secretario.html', 'utf8')), 'pestañas Seguimiento (admin y secretaría) y Reportes (secretaría)');
+  ok(/id="bv-slot"/.test(fs.readFileSync(ROOT + 'admin.html', 'utf8')) && /id="bv-slot"/.test(fs.readFileSync(ROOT + 'core/inicio.js', 'utf8')), 'la tarjeta «Primeros pasos» tiene su hueco en el Panel y en Inicio');
+  const css = fs.readFileSync(ROOT + 'evolucion.css', 'utf8');
+  ok(!/#[0-9a-fA-F]{3,8}\b/.test(css.replace(/\/\*[\s\S]*?\*\//g, '')), 'evolucion.css: ningún hex (solo tokens)');
+  ok(/@media \(max-width: 767px\)/.test(css) && /\.seg-celda::before/.test(css), 'evolucion.css: las tablas pasan a tarjetas en celular');
+  const ui = fs.readFileSync(ROOT + 'core/ui.js', 'utf8');
+  ok(/function lineasDeTexto/.test(ui), 'core/ui.js: lineasDeTexto');
+
+  console.log('\n[roles, preferencias y asignación: reglas del frontend]');
+  const api = fs.readFileSync(ROOT + 'api.js', 'utf8');
+  ok(/rolesAmpliados/.test(api) && /if \(rol_id != null\) fila\.rol_id/.test(api) && /if \(actividad_id != null\) fila\.actividad_id/.test(api), 'api.js: rol_id y actividad_id solo viajan si hay valor (se puede desplegar antes de 0021)');
+  ok(/descripcion !== undefined/.test(api) && /responsabilidades !== undefined/.test(api) && /requisitos !== undefined/.test(api), 'api.js: los textos del rol solo se envían si se mandan');
+  ok(!/!!puntaje/.test(todoJs), 'no hay !!puntaje: el 0 es un puntaje válido y se compara con != null');
+  const asig = fs.readFileSync(ROOT + 'core/asignar.js', 'utf8');
+  ok(/nivel: 'error'/.test(asig) && /E\.c\.esAdmin/.test(asig) && /rol_excepcion|excepción/.test(asig), 'asignar: la secretaría tiene un bloqueo y la administración un aviso de excepción');
+  ok(/duplicad|mismo título/.test(asig) && /SOBRECARGA/.test(asig) && /No participa/.test(asig), 'asignar: valida duplicado, sobrecarga y participación');
+  ok(/c\.revisor && typeof Asignar/.test(fs.readFileSync(ROOT + 'core/tareas.js', 'utf8')), 'tareas.js: quien revisa usa el flujo nuevo; la iniciativa propia conserva el formulario simple');
+  const pref = fs.readFileSync(ROOT + 'core/preferencias.js', 'utf8');
+  ok(/predeterminado\(id\)[\s\S]{0,120}habilitado\(id\)/.test(pref) && /no te dan permisos|no te da permisos/.test(pref), 'preferencias: el predeterminado exige un rol habilitado y se dice que la preferencia no es un permiso');
+  ok(/!_p\.es_admin/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')), 'Mi cuenta: la administración (que no se evalúa) no ve «Mis preferencias de rol»');
+
+  console.log('\n[componentes con lógica, en un contexto con stubs]');
+  const ctx = { escHtml, initials: n => String(n).split(' ').map(x => x[0]).join(''), renderIconos() {}, document: { addEventListener() {} }, HTMLInputElement: class {}, console,
+                fmtNum: (v, d = 1) => v == null ? '—' : Number(v).toFixed(d), fechaCortaISO: x => x, showToast() {} };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(ROOT + 'core/selector.js', 'utf8') + ';globalThis.__S = Selector;', ctx);
+  vm.runInContext(fs.readFileSync(ROOT + 'core/reporte-equipo.js', 'utf8') + ';globalThis.__R = ReporteEquipo;', ctx);
+  const Sel = ctx.__S, Rep = ctx.__R;
+  const gente = [
+    { persona_id: 'a', nombre: 'Ana', distrito: '08-01', rol_nombre: 'Foto' }, { persona_id: 'b', nombre: 'Beto', distrito: '08-01', rol_nombre: 'Foto' },
+    { persona_id: 'c', nombre: 'Carla', distrito: '08-02', rol_nombre: 'Redacción' }, { persona_id: 'd', nombre: 'Diego', distrito: '08-02', rol_nombre: 'Foto' },
+  ];
+  const eqs = Sel.equiposDe(gente.map(p => ({ id: p.persona_id, distrito: p.distrito, rol_nombre: p.rol_nombre })));
+  ok(eqs.some(e => e.id === 'distrito:08-01' && e.miembros.length === 2) && eqs.some(e => e.id === 'rol:Foto' && e.miembros.length === 3), 'Selector.equiposDe: un equipo por distrito y por rol');
+  ok(!eqs.some(e => e.id === 'rol:Redacción'), 'un equipo de una sola persona no es un equipo');
+  ok(Sel.equiposDe([{ id: 'x', distrito: 'Distrito 08-01' }, { id: 'y', distrito: 'Distrito 08-01' }])[0].nombre === 'Distrito 08-01', 'el nombre del distrito no repite la palabra «Distrito»');
+  let cambios = 0;
+  const s = Sel.crear({ id: 't', personas: gente, equipos: eqs, onCambio: () => cambios++ });
+  s.toggle('e:rol:Foto');
+  ok(JSON.stringify(s.seleccion().sort()) === '["a","b","d"]', 'elegir un equipo agrega a sus miembros');
+  s.toggle('e:rol:Foto');
+  ok(s.seleccion().length === 0, 'volver a pulsarlo los quita a todos');
+  s.toggle('p:c'); s.toggle('e:distrito:08-02');
+  ok(JSON.stringify(s.seleccion().sort()) === '["c","d"]', 'una persona ya elegida no se duplica al elegir su equipo');
+  s.quitar('c');
+  ok(s.seleccion().join() === 'd' && cambios >= 4, 'quitar y el aviso de cambio funcionan');
+  s.ninguna();
+  const lim = Sel.crear({ id: 'l', personas: gente, equipos: eqs, max: 2 });
+  lim.toggle('e:rol:Foto');
+  ok(lim.seleccion().length === 2, 'el máximo de personas se respeta');
+  const rowsP = [
+    { periodo_id: 'p1', periodo_nombre: 'PE1', periodo_orden: 1, modelo: 'legacy', periodo_activo: false, participa: true, estado_eval: 'publicado', total_clasico: 20, individual: null, con_plazo: 0, a_tiempo: 0, tareas_vencidas: 0, tareas_total: 0, rol_nombre: 'Foto' },
+    { periodo_id: 'p2', periodo_nombre: 'PE2', periodo_orden: 2, modelo: 'v2', periodo_activo: true, participa: true, estado_eval: 'publicado', individual: 80, total_clasico: null, con_plazo: 2, a_tiempo: 1, tareas_vencidas: 1, tareas_total: 3, rol_nombre: 'Foto' },
+    { periodo_id: 'p2', periodo_nombre: 'PE2', periodo_orden: 2, modelo: 'v2', periodo_activo: true, participa: true, estado_eval: 'publicado', individual: 60, total_clasico: null, con_plazo: 1, a_tiempo: 1, tareas_vencidas: 0, tareas_total: 1, rol_nombre: 'Foto' },
+    { periodo_id: 'p2', periodo_nombre: 'PE2', periodo_orden: 2, modelo: 'v2', periodo_activo: true, participa: true, estado_eval: 'borrador', individual: 99, total_clasico: null, con_plazo: 0, a_tiempo: 0, tareas_vencidas: 0, tareas_total: 0, rol_nombre: 'Foto' },
+    { periodo_id: 'p2', periodo_nombre: 'PE2', periodo_orden: 2, modelo: 'v2', periodo_activo: true, participa: false, estado_eval: 'sin_evaluar', individual: null, total_clasico: null, con_plazo: 0, a_tiempo: 0, tareas_vencidas: 0, tareas_total: 0, rol_nombre: 'Foto' },
+  ];
+  const pp = Rep.porPeriodo(rowsP);
+  ok(pp.length === 2 && pp[0].nombre === 'PE1' && pp[1].nombre === 'PE2', 'porPeriodo: un renglón por período, en orden');
+  ok(pp[1].participan === 3 && pp[1].publicadas === 2, 'PE2: participan 3 (quien no participa no cuenta) y 2 publicadas → «2 de 3»');
+  ok(pp[1].promedio === 70 && pp[1].n === 2, 'el promedio solo usa resultados PUBLICADOS (el borrador de 99 no entra): (80 + 60) / 2');
+  ok(pp[1].con_plazo === 3 && pp[1].a_tiempo === 2 && pp[1].vencidas === 1, 'numerador y denominador de «a tiempo» se suman por separado (2 de 3)');
+  ok(pp[0].promedio === 20, 'la rúbrica clásica tiene su propio promedio y no se mezcla con la de roles');
+  const htmlP = Rep.periodosHTML(rowsP);
+  ok(htmlP.includes('2 de 3 personas') && htmlP.includes('2 de 3 entregas con plazo') && htmlP.includes('sobre 100'), 'periodosHTML dice «2 de 3 personas», «2 de 3 entregas con plazo» y la escala');
+  ok(Rep.periodosHTML([{ ...rowsP[0], con_plazo: 0, a_tiempo: 0 }]).includes('—'), 'un denominador en 0 se muestra «—», nunca 0 %');
+  ok(!/<script/i.test(Rep.periodosHTML([{ ...rowsP[0], periodo_nombre: '<script>x</script>' }])), 'periodosHTML escapa el nombre del período');
+  const filasA = [
+    { actividad_id: 1, titulo: 'Jornada', fecha_inicio: '2026-11-02', alcance: 'equipo', persona_id: 'a', asignadas: 2, entregadas: 2, con_plazo: 2, a_tiempo: 1, aprobadas: 1, vencidas: 0, puntos_suma: 8, puntos_n: 1 },
+    { actividad_id: 1, titulo: 'Jornada', fecha_inicio: '2026-11-02', alcance: 'equipo', persona_id: 'b', asignadas: 1, entregadas: 0, con_plazo: 0, a_tiempo: 0, aprobadas: 0, vencidas: 1, puntos_suma: 0, puntos_n: 0 },
+    { actividad_id: 2, titulo: 'Sin tareas', fecha_inicio: '2026-12-01', alcance: 'equipo', persona_id: null, asignadas: 0, entregadas: 0, con_plazo: 0, a_tiempo: 0, aprobadas: 0, vencidas: 0, puntos_suma: 0, puntos_n: 0 },
+  ];
+  const pa = Rep.porActividad(filasA);
+  ok(pa.length === 2 && pa[1].titulo === 'Jornada' && pa[1].asignadas === 3 && pa[1].entregadas === 2 && pa[1].personas === 2, 'porActividad: suma las filas por persona (3 asignadas, 2 entregadas, 2 personas)');
+  ok(pa[0].personas === 0 && Rep.actividadesHTML(filasA).includes('Sin tareas vinculadas todavía'), 'una actividad sin tareas se dice como tal');
+  ok(Rep.actividadesHTML(filasA).includes('2 de 3 asignadas') && Rep.actividadesHTML(filasA).includes('1 de 2 con plazo') && Rep.actividadesHTML(filasA).includes('1 de 2 entregadas'), 'actividadesHTML: «2 de 3 asignadas», «1 de 2 con plazo», «1 de 2 entregadas»');
+  ok(Rep.csvPeriodos(rowsP).split('\n')[0].includes('Entregas con plazo') && Rep.csvActividades(filasA).split('\n')[0].includes('Tareas asignadas'), 'los CSV traen numerador y denominador en columnas separadas');
+
+  console.log('\n[migraciones: idempotentes y sin pérdida de datos]');
+  for (const f of ['0021_roles_preferencias', '0024_actividades_alcance', '0025_seguimiento_bienvenida', '0026_etiqueta_evento']) {
+    const sql = fs.readFileSync(ROOT + 'supabase/migrations/' + f + '.sql', 'utf8');
+    ok(/^BEGIN;/m.test(sql) && /^COMMIT;/m.test(sql), f + ': en una sola transacción');
+    ok(!/DROP TABLE(?! IF EXISTS)[^;]*;/.test(sql.replace(/^--.*$/gm, '')), f + ': no borra tablas con datos (el deshacer va comentado)');
+    ok(!/auth\.uid\(\) IS NOT NULL AND/.test(sql), f + ': ninguna guardia al revés (auth.uid() IS NOT NULL AND …)');
+    const defs = [...sql.replace(/^--.*$/gm, '').matchAll(/CREATE (?:OR REPLACE )?FUNCTION public\.(\w+)\(/g)].map(m => m[1]);
+    const revocadas = new Set([...sql.matchAll(/REVOKE EXECUTE ON FUNCTION public\.([\w,.\s()A-Z\[\]]+?) FROM/g)].flatMap(m => m[1].split(/\)\s*,\s*public\./)).map(x => x.replace(/^public\./, '').replace(/\(.*$/, '').trim()));
+    const sinRevocar = defs.filter(d => !revocadas.has(d));
+    ok(!sinRevocar.length, f + ': todas las funciones nuevas revocan EXECUTE a PUBLIC' + (sinRevocar.length ? ' (faltan: ' + sinRevocar.join(', ') + ')' : ''));
+  }
 }
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);

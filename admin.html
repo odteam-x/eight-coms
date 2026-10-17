@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="marca.css">
   <link rel="stylesheet" href="premium.css">
+  <link rel="stylesheet" href="evolucion.css">
   <link rel="stylesheet" href="movil.css" media="(max-width: 767px)">
 </head>
 <body>
@@ -52,6 +53,7 @@
       <h1 class="pantalla-t">Panel</h1>
       <p>Cómo va el período de un vistazo: avance, distribución, diferencias entre roles y evolución.</p>
     </div>
+    <div id="bv-slot"></div>
     <div class="eval-pe-bar">
       <span class="eval-pe-lbl">Período</span>
       <div class="eval-pe-btns" id="ov-pe-btns">
@@ -215,6 +217,16 @@
     <div id="act-body"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
+  <!-- ── TAB: SEGUIMIENTO (todos los períodos, por rol) ── -->
+  <div id="tab-seguimiento" class="atab-content">
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Seguimiento</h1>
+      <p>Todas las personas en todos los períodos de la gestión, agrupadas por rol: cómo va cada evaluación, su resultado y los hechos de sus tareas.</p>
+    </div>
+    <div class="filtros-fila" id="seg-controles"></div>
+    <div id="seguimiento-host"></div>
+  </div>
+
   <!-- ── TAB: DISTRITOS ── -->
   <div id="tab-distritos" class="atab-content">
     <div class="pantalla-cab">
@@ -313,6 +325,15 @@
     <div class="modal-title" id="modal-rol-title">Nuevo rol</div>
     <input type="hidden" id="mrol-id">
     <div class="field"><label for="mrol-nombre">Nombre</label><input class="cfg-inp" type="text" id="mrol-nombre" placeholder="Ej: Filmmaker"></div>
+    <div id="mrol-textos">
+      <div class="field"><label for="mrol-desc">Qué hace este rol</label>
+        <textarea class="cfg-inp cfg-textarea" id="mrol-desc" rows="2" maxlength="1000" placeholder="Una o dos frases: para qué existe el rol en el equipo."></textarea></div>
+      <div class="field"><label for="mrol-resp">Responsabilidades</label>
+        <textarea class="cfg-inp cfg-textarea" id="mrol-resp" rows="4" maxlength="2000" placeholder="Una por línea. Se muestran al asignar una tarea con este rol y en Mi cuenta."></textarea></div>
+      <div class="field"><label for="mrol-req">Requisitos</label>
+        <textarea class="cfg-inp cfg-textarea" id="mrol-req" rows="3" maxlength="1000" placeholder="Qué necesita quien asuma este rol (equipo, herramientas, experiencia)."></textarea></div>
+    </div>
+    <p class="cfg-hint" id="mrol-sin-0021" hidden>La descripción, las responsabilidades y los requisitos necesitan la migración 0021 en la base de datos.</p>
     <div class="field" style="display:flex;align-items:center;gap:10px">
       <label style="margin:0" for="mrol-activo">Activo</label>
       <input type="checkbox" id="mrol-activo" checked style="width:auto">
@@ -561,11 +582,18 @@
 <script src="core/ui.js"></script>
 <script src="core/rubrica.js"></script>
 <script src="core/tareas.js"></script>
+<script src="core/selector.js"></script>
+<script src="core/asignar.js"></script>
+<script src="core/actividad-form.js"></script>
 <script src="core/personas.js"></script>
 <script src="core/perfil.js"></script>
 <script src="core/calendario.js"></script>
 <script src="core/cuenta.js"></script>
 <script src="core/fondo.js"></script>
+<script src="core/bienvenida.js"></script>
+<script src="core/seguimiento.js"></script>
+<script src="core/reporte-equipo.js"></script>
+<script src="core/preferencias.js"></script>
 <script src="core/notificaciones.js"></script>
 <script src="core/buscador.js"></script>
 <script src="core/rail.js"></script>

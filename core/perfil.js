@@ -496,7 +496,9 @@ const Perfil = (() => {
         </table></div>
       </section>` : '';
 
-    cuerpo.innerHTML = `<div class="pf-grid pf-grid--1">${bloqueV2}${bloqueLg}</div>`;
+    cuerpo.innerHTML = `<div class="pf-grid pf-grid--1">${bloqueV2}${bloqueLg}<div id="pf-seg-${uid}"></div></div>`;
+    // Todos los períodos con el estado de cada evaluación y los hechos de tareas (0025); sin la migración, no aparece.
+    if (typeof Seguimiento !== 'undefined') Seguimiento.persona(document.getElementById(`pf-seg-${uid}`), inst.persona.id);
     if (v2.length >= 2) graficoEvolucionV2(idV2, v2.map(i => ({ pe: i.periodo.pe, individual: i.fila.individual, general: i.fila.general })));
     if (legacy.length >= 2) graficoEvolucion(idLg, legacy.map(i => ({ pe: i.periodo.pe, total: i.total })), MAX);
   }

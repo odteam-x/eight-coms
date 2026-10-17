@@ -163,9 +163,49 @@ async function gestionAprobar(id, aprobado) { await updateUserAprobado(id, aprob
 async function gestionParticipante(id, eraInactivo) { await toggleParticipante(id, eraInactivo); invalidarPersonasRes(); _refrescarGestion(); }
 function borrarDesdePerfil(id) { cerrarPanel(); confirmDeleteUser(id); }
 
+/** «Roles permitidos» (0021): el rol principal + los que la administración habilita. Las PREFERENCIAS de la persona
+ *  se muestran aparte y solo para informar: no conceden ni quitan nada. */
+async function rolesPermitidosHTML(u) {
+  if (!API.rolesAmpliados(_roles)) {
+    return `<section class="pf-card" aria-labelledby="gp-h-roles"><h3 class="pf-h" id="gp-h-roles">Roles permitidos</h3>
+      <p class="gp-s">Habilitar más de un rol por persona necesita la migración 0021 en la base de datos.</p></section>`;
+  }
+  const [extra, pref] = await Promise.all([API.getPersonaRoles(u.id), API.getPreferenciasRol(u.id)]);
+  if (extra.noDisponible) return '';
+  const hab = new Set(extra.rows.map(r => Number(r.rol_id)));
+  const nombre = id => _roles.find(r => Number(r.id) === Number(id))?.nombre || '—';
+  const candidatos = _roles.filter(r => r.activo && Number(r.id) !== Number(u.rol_id));
+  const prefs = pref.rows || [];
+  return `<section class="pf-card" aria-labelledby="gp-h-roles" id="gp-roles-permitidos" data-persona="${escHtml(u.id)}">
+      <h3 class="pf-h" id="gp-h-roles">Roles permitidos</h3>
+      <p class="gp-s">Además de su rol principal (<b>${escHtml(u.roles?.nombre || 'sin rol')}</b>), esta persona puede recibir trabajo de los roles que marques.
+        Un rol no marcado solo se le puede asignar la administración, como excepción visible.</p>
+      ${candidatos.length ? `<div class="gp-checks" role="group" aria-label="Roles que puede asumir además del principal">${candidatos.map(r => `
+        <label class="tk-check"><input type="checkbox" value="${escHtml(r.id)}"${hab.has(Number(r.id)) ? ' checked' : ''} data-change="gestionRolPermitido"><span>${escHtml(r.nombre)}</span></label>`).join('')}</div>`
+        : '<p class="gp-s">No hay otros roles activos.</p>'}
+      <div class="gp-pref">
+        <div class="gp-t">Lo que prefiere esta persona</div>
+        ${prefs.length ? `<ol class="gp-pref-lista">${prefs.map(p => `<li>${escHtml(nombre(p.rol_id))}${p.es_predeterminado ? ' <span class="etiqueta etq-azul">Predeterminado</span>' : ''}${Number(p.rol_id) === Number(u.rol_id) || hab.has(Number(p.rol_id)) ? '' : ' <span class="etiqueta etq-gris">No habilitado</span>'}</li>`).join('')}</ol>`
+          : '<p class="gp-s">Todavía no eligió preferencias.</p>'}
+        <p class="gp-s">Las preferencias informan; no son una restricción ni un permiso.</p>
+      </div>
+    </section>`;
+}
+/** data-change de cada casilla de «Roles permitidos»: guarda el conjunto completo. */
+async function gestionRolPermitido(el) {
+  const sec = el.closest('#gp-roles-permitidos'); if (!sec) return;
+  const marcados = [...sec.querySelectorAll('input[type=checkbox]:checked')].map(i => Number(i.value));
+  sec.querySelectorAll('input').forEach(i => { i.disabled = true; });
+  const r = await API.setPersonaRoles(sec.dataset.persona, marcados);
+  if (!r.ok) showToast('No se pudo guardar: ' + r.error, 'error');
+  else showToast('Roles permitidos actualizados', 'ok');
+  _refrescarGestion();
+}
+
 async function renderGestionPersona(cuerpo, ctx) {
   const u = _users.find(x => String(x.id) === String(ctx.persona.id));
   if (!u) { cuerpo.innerHTML = '<div class="empty-box"><div class="empty-txt">Esta persona ya no existe.</div></div>'; return; }
+  const rolesPermitidos = await rolesPermitidosHTML(u);
   const nombre = u.nombre || u.email;
   const aprobado = u.aprobado !== false;
   const inactivo = _inactivosPE.has(u.id);
@@ -203,6 +243,8 @@ async function renderGestionPersona(cuerpo, ctx) {
           <option value="miembro"${u.tipo_miembro === 'miembro' ? ' selected' : ''}>Miembro</option>
           <option value="secretario"${u.tipo_miembro === 'secretario' ? ' selected' : ''}>Secretario</option></select>`)}
       </section>
+
+      ${rolesPermitidos}
 
       ${pe ? `<section class="pf-card" aria-labelledby="gp-h-pe">
         <h3 class="pf-h" id="gp-h-pe">Participación en ${escHtml(pe.nombre)}</h3>

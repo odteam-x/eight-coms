@@ -216,8 +216,12 @@ const API = {
   },
 
   // ── ADMIN: roles ─────────────────────────────────────────────────
-  async saveRol({ id, nombre, activo = true, orden = 99 }) {
+  async saveRol({ id, nombre, activo = true, orden = 99, descripcion, responsabilidades, requisitos }) {
     const p = { nombre: nombre.trim(), activo, orden };
+    // Los tres textos (migración 0021) solo viajan si se mandan: antes de 0021 la columna no existe.
+    if (descripcion !== undefined) p.descripcion = String(descripcion || '').trim();
+    if (responsabilidades !== undefined) p.responsabilidades = String(responsabilidades || '').trim();
+    if (requisitos !== undefined) p.requisitos = String(requisitos || '').trim();
     const { error } = id
       ? await SB.from('roles').update(p).eq('id', id)
       : await SB.from('roles').insert(p);
@@ -474,6 +478,44 @@ const API = {
     const { error } = await SB.from('actividades').delete().eq('id', id);
     return { ok: !error, error: error?.message };
   },
+  /**
+   * Crea o edita una actividad con su alcance (migración 0024): 'equipo' | 'distrito' | 'seleccion'.
+   * Si 0024 no está aplicada, 'equipo' y 'distrito' siguen guardándose como antes; 'seleccion' avisa
+   * de que hace falta la migración (no se puede fingir que se envió solo a algunas personas).
+   */
+  async guardarActividad({ id = null, titulo, descripcion = '', etiqueta_id = null, fecha_inicio, fecha_fin = null, alcance = 'equipo', distrito = null, personas = [] }) {
+    const { data, error } = await SB.rpc('guardar_actividad', {
+      p_id: id, p_gestion: await _gid(), p_titulo: String(titulo || '').trim(), p_descripcion: descripcion || '',
+      p_etiqueta: etiqueta_id || null, p_inicio: fecha_inicio, p_fin: fecha_fin || null,
+      p_alcance: alcance, p_distrito: alcance === 'distrito' ? distrito : null, p_personas: alcance === 'seleccion' ? personas : null,
+    });
+    if (!error) return { ok: true, id: data };
+    if (this._rpcAusente(error)) {
+      if (alcance === 'seleccion') return { ok: false, noDisponible: true, error: 'Elegir personas concretas necesita la migración 0024 en la base de datos.' };
+      return this.saveActividad({ id, titulo, descripcion, etiqueta_id, fecha_inicio, fecha_fin, distrito: alcance === 'distrito' ? distrito : null });
+    }
+    return { ok: false, error: error.message };
+  },
+  /** ¿Está aplicada la migración 0024 (alcance por personas)? Se sabe llamando a guardar_actividad con un alcance
+   *  inválido: si la función existe responde con un error de validación; si no, «function not found». */
+  _alcance: null,
+  async alcanceDisponible() {
+    if (this._alcance != null) return this._alcance;
+    try {
+      const { error } = await SB.rpc('guardar_actividad', { p_id: null, p_gestion: null, p_titulo: '', p_descripcion: '', p_etiqueta: null, p_inicio: null, p_fin: null, p_alcance: '?', p_distrito: null, p_personas: null });
+      this._alcance = !this._rpcAusente(error);
+    } catch { this._alcance = false; }
+    return this._alcance;
+  },
+  /** Destinatarias de actividades por selección (RLS: creadora, administración, secretaría del distrito). */
+  async getDestinatariosActividad(ids = []) {
+    if (!ids.length) return { ok: true, porActividad: {} };
+    const { data, error } = await SB.from('actividad_destinatarios').select('actividad_id, persona_id').in('actividad_id', ids);
+    if (error) return { ok: false, noDisponible: this._sinTabla(error), error: error.message, porActividad: {} };
+    const por = {};
+    for (const r of data ?? []) (por[r.actividad_id] ||= []).push(r.persona_id);
+    return { ok: true, porActividad: por };
+  },
 
   async saveCalEvento(ev) {
     const { id, ...p } = ev;
@@ -631,10 +673,12 @@ const API = {
     return { ok: true, tareas: data ?? [] };
   },
 
-  async crearTarea({ periodo_id, titulo, descripcion = '', asignada_a, prioridad = 'normal', fecha_limite = null, criterios = [] }) {
-    const { data, error } = await SB.from('tareas')
-      .insert({ periodo_id, titulo, descripcion, asignada_a, prioridad, fecha_limite: fecha_limite || null, criterios })
-      .select().single();
+  async crearTarea({ periodo_id, titulo, descripcion = '', asignada_a, prioridad = 'normal', fecha_limite = null, criterios = [], rol_id = null, actividad_id = null }) {
+    const fila = { periodo_id, titulo, descripcion, asignada_a, prioridad, fecha_limite: fecha_limite || null, criterios };
+    // rol_id y actividad_id existen desde 0021: solo se mandan si hay valor, para no romper antes de aplicarla.
+    if (rol_id != null) fila.rol_id = rol_id;
+    if (actividad_id != null) fila.actividad_id = actividad_id;
+    const { data, error } = await SB.from('tareas').insert(fila).select().single();
     return error ? { ok: false, error: error.message } : { ok: true, tarea: data };
   },
 
@@ -1002,5 +1046,89 @@ const API = {
   async marcarNotifTodas() {
     const { data, error } = await SB.rpc('notif_marcar_todas');
     return error ? { ok: false, error: error.message } : { ok: true, n: Number(data) || 0 };
+  },
+
+  /* ══ Roles operativos, permitidos y preferencias (migración 0021) ═══════════════════════════════
+   * Los roles FUNCIONALES (admin / secretario / miembro) no se tocan aquí. Un rol operativo es lo que la
+   * persona hace en el equipo. `permitidos` = el principal + los que la administración habilitó.
+   * `preferencias` = lo que la persona quiere, en orden: informa a quien asigna, nunca restringe. */
+  /** ¿Los roles ya traen descripción/responsabilidades/requisitos? (0021 aplicada). */
+  rolesAmpliados(roles) { return Array.isArray(roles) && roles.length > 0 && 'responsabilidades' in roles[0]; },
+
+  async getPersonaRoles(personaId = null) {
+    let q = SB.from('persona_roles').select('persona_id, rol_id');
+    if (personaId) q = q.eq('persona_id', personaId);
+    const { data, error } = await q;
+    if (error) return { ok: false, noDisponible: this._sinTabla(error), error: error.message, rows: [] };
+    return { ok: true, rows: data ?? [] };
+  },
+  /** Reemplaza los roles EXTRA habilitados de una persona (solo administración; lo impone RLS). */
+  async setPersonaRoles(personaId, rolIds) {
+    const quiere = new Set((rolIds || []).map(Number));
+    const act = await this.getPersonaRoles(personaId);
+    if (!act.ok) return { ok: false, error: act.error, noDisponible: act.noDisponible };
+    const tiene = new Set(act.rows.map(r => Number(r.rol_id)));
+    const quitar = [...tiene].filter(r => !quiere.has(r));
+    const poner = [...quiere].filter(r => !tiene.has(r));
+    if (quitar.length) {
+      const { error } = await SB.from('persona_roles').delete().eq('persona_id', personaId).in('rol_id', quitar);
+      if (error) return { ok: false, error: error.message };
+    }
+    if (poner.length) {
+      const { error } = await SB.from('persona_roles').insert(poner.map(rol_id => ({ persona_id: personaId, rol_id })));
+      if (error) return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  },
+  async getPreferenciasRol(personaId = null) {
+    let q = SB.from('preferencias_rol').select('persona_id, rol_id, prioridad, es_predeterminado').order('prioridad');
+    if (personaId) q = q.eq('persona_id', personaId);
+    const { data, error } = await q;
+    if (error) return { ok: false, noDisponible: this._sinTabla(error), error: error.message, rows: [] };
+    return { ok: true, rows: data ?? [] };
+  },
+  async guardarPreferenciasRol(roles, predeterminado = null) {
+    const { error } = await SB.rpc('guardar_preferencias_rol', { p_roles: roles, p_predeterminado: predeterminado });
+    return error ? { ok: false, error: error.message, noDisponible: this._rpcAusente(error) } : { ok: true };
+  },
+  /** Quién puede recibir una asignación (administración: todas; secretaría: su distrito), con compatibilidad,
+   *  preferencia y carga ya calculadas por la base. `rolId` opcional: calcula la compatibilidad con ese rol. */
+  async getPersonasAsignables(periodoId, rolId = null) {
+    const { data, error } = await SB.rpc('personas_asignables', { p_periodo: periodoId || null, p_rol: rolId || null });
+    if (error) return { ok: false, noDisponible: this._rpcAusente(error), error: error.message, rows: [] };
+    return { ok: true, rows: data ?? [] };
+  },
+
+  /* ══ Seguimiento global y bienvenida (migración 0025) ═══════════════════════════════════════ */
+  /** Una fila por persona × período. Quién ve a quién lo decide la base (administración: todas; secretaría: su
+   *  distrito; miembro: la suya). `gestionId` null = la gestión que se está viendo. */
+  async getSeguimientoGlobal(gestionId = null) {
+    const g = gestionId ?? await _gid();
+    const { data, error } = await SB.rpc('seguimiento_global', { p_gestion: g });
+    if (error) return { ok: false, noDisponible: this._rpcAusente(error), error: error.message, rows: [] };
+    return { ok: true, rows: data ?? [] };
+  },
+  /** Hechos de las tareas por actividad y por persona (reporte_actividades, 0025; necesita también 0021 y 0024). */
+  async getReporteActividades(gestionId = null) {
+    const g = gestionId ?? await _gid();
+    const { data, error } = await SB.rpc('reporte_actividades', { p_gestion: g });
+    if (error) return { ok: false, noDisponible: this._rpcAusente(error) || /actividad_id|alcance/.test(error.message || ''), error: error.message, rows: [] };
+    return { ok: true, rows: data ?? [] };
+  },
+  async getBienvenida() {
+    const { data: u } = await SB.auth.getUser();
+    const id = u?.user?.id;
+    if (!id) return { ok: false, error: 'Sin sesión.' };
+    const { data, error } = await SB.from('bienvenida_estado').select('*').eq('persona_id', id).maybeSingle();
+    if (error) return { ok: false, noDisponible: this._sinTabla(error), error: error.message };
+    return { ok: true, estado: data };
+  },
+  async guardarBienvenida({ pasos = [], actual = null, omitir = false, terminar = false }) {
+    const { error } = await SB.rpc('bienvenida_guardar', { p_pasos: pasos, p_actual: actual, p_omitir: omitir, p_terminar: terminar });
+    return error ? { ok: false, error: error.message, noDisponible: this._rpcAusente(error) } : { ok: true };
+  },
+  async reiniciarBienvenida() {
+    const { error } = await SB.rpc('bienvenida_reiniciar');
+    return error ? { ok: false, error: error.message } : { ok: true };
   },
 };

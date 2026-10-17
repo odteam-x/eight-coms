@@ -18,12 +18,15 @@ const Reportes = (() => {
     { k: 'criterio', t: 'Por competencia',   ico: 'bar-chart-2' },
     { k: 'personas', t: 'Detalle por persona', ico: 'user' },
     { k: 'tareas',   t: 'Evidencia de tareas', ico: 'list-checks', v2: true },
+    { k: 'periodos', t: 'Entre períodos',    ico: 'trending-up' },
+    { k: 'actividad', t: 'Por actividad',    ico: 'calendar-days' },
     { k: 'sin',      t: 'Sin evaluar',       ico: 'user-x' },
   ];
   const E = { periodoId: null, alcance: 'todo', valor: '', sec: new Set(['resumen', 'ranking', 'rol', 'criterio', 'sin']) };
   let _d = null;           // datos del período
   let _tareas = {};        // por persona, solo períodos por roles
   let _sinEv = [];
+  let _seg = null, _act = null;   // seguimiento_global y reporte_actividades (0025); null = no disponible
 
   const NIV = { sex: 'Excelente', sbu: 'Bueno', spr: 'En proceso', sba: 'Bajo' };
   const f1 = n => n == null ? '—' : (Math.round(n * 10) / 10).toString().replace('.', ',');
@@ -89,6 +92,9 @@ const Reportes = (() => {
     const inact = new Set((part || []).filter(r => !r.activo).map(r => r.user_id));
     const conRes = new Set(_d.filas.map(f => f.id));
     _sinEv = _users.filter(u => !u.es_admin && u.aprobado !== false && !inact.has(u.id) && !conRes.has(u.id));
+    // Cortes entre períodos y por actividad: dependen de la migración 0025 (y 0021/0024); sin ellas, su sección lo explica.
+    const [sg, ac] = await Promise.all([API.getSeguimientoGlobal(), API.getReporteActividades()]);
+    _seg = sg.ok ? sg.rows : null; _act = ac.ok ? ac.rows : null;
     pintarControles();
     pintar();
   }
@@ -99,6 +105,28 @@ const Reportes = (() => {
     if (E.alcance === 'rol') f = f.filter(x => x.rolNombre === E.valor);
     if (E.alcance === 'persona') f = f.filter(x => x.id === E.valor);
     return [...f].sort((a, b) => b.score - a.score);
+  }
+
+  /** Filas de seguimiento / actividad dentro del alcance elegido (la base ya entregó solo lo que esta persona puede ver). */
+  function dentroDelAlcance(rows) {
+    if (E.alcance === 'todo') return rows;
+    const dNom = d => (typeof _distritoNombre === 'function' ? _distritoNombre(d) : d) || 'Sin distrito';
+    return rows.filter(r => r.persona_id && (E.alcance === 'persona' ? r.persona_id === E.valor
+      : E.alcance === 'rol' ? (r.rol_nombre || 'Sin rol') === E.valor : dNom(r.distrito) === E.valor));
+  }
+  const NOTA_0025 = 'Este corte necesita la migración 0025 (y las 0021 y 0024 para las actividades) en la base de datos.';
+  function secPeriodos() {
+    if (!_seg) return bloque('Entre períodos', `<p class="cfg-hint">${escHtml(NOTA_0025)}</p>`);
+    return bloque('Entre períodos', `${ReporteEquipo.periodosHTML(dentroDelAlcance(_seg))}
+      <div class="no-print req-acc"><button type="button" class="btn--texto" data-act="repCsvPeriodos"><i data-lucide="download"></i>Descargar este cuadro (CSV)</button></div>
+      <details class="seg-como"><summary>¿Cómo se calcula?</summary>${ReporteEquipo.DEFINICIONES}</details>`,
+      'Cada período de la gestión; los de rúbrica por roles y los de la clásica no se promedian entre sí.');
+  }
+  function secActividad() {
+    if (!_act) return bloque('Por actividad', `<p class="cfg-hint">${escHtml(NOTA_0025)}</p>`);
+    return bloque('Por actividad', `${ReporteEquipo.actividadesHTML(dentroDelAlcance(_act))}
+      <div class="no-print req-acc"><button type="button" class="btn--texto" data-act="repCsvActividad"><i data-lucide="download"></i>Descargar este cuadro (CSV)</button></div>`,
+      'Las tareas vinculadas a cada actividad: cuántas se asignaron, entregaron, aprobaron y cuántas están vencidas.');
   }
 
   const nivelK = s => nivelV2(s).key;
@@ -175,8 +203,8 @@ const Reportes = (() => {
     const p = periodoSel();
     const fs = filtradas();
     const alc = E.alcance === 'todo' ? 'Todo el equipo' : E.alcance === 'persona' ? (_d.filas.find(f => f.id === E.valor)?.nombre || '') : `${E.alcance === 'rol' ? 'Rol' : 'Distrito'}: ${E.valor}`;
-    const orden = ['resumen', 'ranking', 'rol', 'criterio', 'personas', 'tareas', 'sin'];
-    const fn = { resumen: secResumen, ranking: secRanking, rol: secRol, criterio: secCriterio, personas: secPersonas, tareas: secTareas, sin: secSin };
+    const orden = ['resumen', 'ranking', 'rol', 'criterio', 'personas', 'tareas', 'periodos', 'actividad', 'sin'];
+    const fn = { resumen: secResumen, ranking: secRanking, rol: secRol, criterio: secCriterio, personas: secPersonas, tareas: secTareas, periodos: secPeriodos, actividad: secActividad, sin: secSin };
     body.innerHTML = `
       <article class="rpt-hoja" aria-label="Vista previa del reporte">
         <header class="rpt-hoja-cab">
@@ -218,7 +246,9 @@ const Reportes = (() => {
     else if (el?.id === 'rep-valor') { E.valor = el.value; }
     pintarControles(); pintar();
   }
-  return { abrir, setPeriodo, toggleSeccion, cambio, csv, pdf };
+  const csvPeriodos = () => { if (_seg) ReporteEquipo.descargar('reporte-periodos.csv', ReporteEquipo.csvPeriodos(dentroDelAlcance(_seg))); };
+  const csvActividad = () => { if (_act) ReporteEquipo.descargar('reporte-actividades.csv', ReporteEquipo.csvActividades(dentroDelAlcance(_act))); };
+  return { abrir, setPeriodo, toggleSeccion, cambio, csv, pdf, csvPeriodos, csvActividad };
 })();
 
 /** data-change="repCambio" (lista blanca de config.js) */

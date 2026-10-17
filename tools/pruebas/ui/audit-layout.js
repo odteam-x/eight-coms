@@ -39,7 +39,10 @@
         out.overflow.push(sel(el) + ' ' + Math.round(r.left) + '→' + Math.round(r.right));
       if (el.matches('button,a[href],[role=button],[role=tab],input:not([type=hidden]),select,textarea,summary')) {
         const enTexto = el.tagName === 'A' && el.closest('p,li,span,small') && el.parentElement.childNodes.length > 1;
-        if ((r.height < 44 || r.width < 44) && !enTexto)
+        // Una casilla o radio dentro de un <label> grande: el objetivo táctil es el label entero.
+        const lbl = el.matches('input[type=checkbox],input[type=radio]') && el.closest('label');
+        const enLabel = lbl && lbl.getBoundingClientRect().height >= 44 && lbl.getBoundingClientRect().width >= 44;
+        if ((r.height < 44 || r.width < 44) && !enTexto && !enLabel)
           out.small.push(sel(el) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height) + ' "' + (el.getAttribute('aria-label') || el.textContent.trim()).slice(0, 20) + '"');
         if (!nombre(el)) out.noname.push(sel(el));
       }

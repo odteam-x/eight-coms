@@ -142,6 +142,8 @@ async function initUI() {
     initScrollEffects();
     registrarBuscador();
     _uiMontada = true;
+    // Bienvenida (0025): se abre sola la primera vez y después se retoma desde Inicio o Mi cuenta.
+    Bienvenida.iniciar({ perfil: CU, tipo: 'miembro', ir: tab => switchTab(tab, null) });
   }
 
   buildPEBars();

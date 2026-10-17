@@ -226,6 +226,8 @@ async function initUI() {
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
           { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
+          { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
+          { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),
       ],
     });
@@ -238,6 +240,8 @@ async function initUI() {
       acciones: isSecretario() ? [{ act: 'perfilNuevaTarea', etiqueta: 'Nueva tarea', icono: 'plus-circle' }] : [] });
     registrarBuscador();
     _uiMontada = true;
+    // Bienvenida (0025): se abre sola la primera vez y después se retoma desde Inicio o Mi cuenta.
+    Bienvenida.iniciar({ perfil: CU, tipo: isSecretario() ? 'secretario' : 'miembro', ir: tab => switchTab(tab, null) });
   }
 
   renderCalendario();
@@ -670,16 +674,16 @@ function renderLineaTiempo() {
 /* ── TABS ── */
 /* Se aceptan los nombres viejos por si queda algún enlace guardado. */
 const _ALIAS_TAB = {
-  miscore:'perfil', scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', evaluacion:'perfil',
+  miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes' };
 
 function switchTab(tab, btn) {
   const original = tab;
   tab = _ALIAS_TAB[tab] || tab;
   // El distrito y las tareas son solo del secretario.
-  if ((tab === 'distrito' || tab === 'tareas') && !isSecretario()) tab = 'inicio';
+  if ((tab === 'distrito' || tab === 'tareas' || tab === 'seguimiento' || tab === 'reportes') && !isSecretario()) tab = 'inicio';
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
 
   // El Historial de antes es ahora la pestaña Evolución del perfil, y el
@@ -690,6 +694,8 @@ function switchTab(tab, btn) {
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
+  if (tab === 'reportes') ReporteEquipo.montar(document.getElementById('reportes-host'));
+  if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: isSecretario() ? 'secretario' : 'miembro', personas: personasDelDistrito(), distrito: CU.distrito });

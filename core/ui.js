@@ -489,3 +489,8 @@ function lineaTiempoHTML(periodos, { peActual = null } = {}) {
   }).join('');
   return `<ol class="lt">${bloques}</ol>`;
 }
+
+/** Un texto de varias líneas → lista de líneas no vacías (responsabilidades de un rol, requisitos…). */
+function lineasDeTexto(t) {
+  return String(t ?? '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+}

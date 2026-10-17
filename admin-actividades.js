@@ -12,12 +12,12 @@
  */
 const Actividades = (() => {
   const TONOS = [['coral', 'Coral'], ['violeta', 'Violeta'], ['verde', 'Verde'], ['ambar', 'Ámbar'], ['cian', 'Cian'], ['azul', 'Azul'], ['rojo', 'Rojo'], ['gris', 'Gris']];
-  let E = [], A = [], disponible = true, filtro = '';
+  let E = [], A = [], disponible = true, filtro = '', DEST = {};
   const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   const fecha = f => { const [a, m, d] = String(f).slice(0, 10).split('-').map(Number); return `${d} ${MES[m - 1]} ${a}`; };
   const hoy = () => new Date().toISOString().slice(0, 10);
   const etq = id => E.find(e => String(e.id) === String(id));
-  const etiquetaHTML = id => { const e = etq(id); return `<span class="etiqueta" style="--etq:var(--etq-${e ? escHtml(e.tono) : 'gris'})">${escHtml(e ? e.nombre : 'Sin etiqueta')}</span>`; };
+  const etiquetaHTML = id => { const e = etq(id); return `<span class="etiqueta" style="--etq:var(--etq-${e ? escHtml(e.tono) : 'gris'})">${escHtml(e ? e.nombre : 'Sin tipo')}</span>`; };
 
   async function abrir() {
     const host = document.getElementById('act-body'); if (!host) return;
@@ -25,6 +25,9 @@ const Actividades = (() => {
     const [et, ac] = await Promise.all([API.getEtiquetas(), API.getActividades()]);
     disponible = ac.disponible !== false && et.disponible !== false;
     E = et.rows || []; A = ac.rows || [];
+    // Cuántas personas tiene cada actividad «por selección» (0024). Si la tabla no existe, queda sin recuento.
+    const sel = A.filter(a => a.alcance === 'seleccion').map(a => a.id);
+    DEST = sel.length ? (await API.getDestinatariosActividad(sel)).porActividad || {} : {};
     pintar();
   }
 
@@ -44,7 +47,7 @@ const Actividades = (() => {
         <div class="act-fecha"><b>${escHtml(fecha(a.fecha_inicio).split(' ')[0])}</b><span>${escHtml(fecha(a.fecha_inicio).split(' ')[1])}</span></div>
         <div class="fila-aj-txt">
           <div class="fila-aj-t">${escHtml(a.titulo)}</div>
-          <div class="fila-aj-d">${a.fecha_fin && a.fecha_fin !== a.fecha_inicio ? `${escHtml(fecha(a.fecha_inicio))} – ${escHtml(fecha(a.fecha_fin))} · ` : ''}${a.distrito ? escHtml(dNombre(a.distrito)) : 'Todo el equipo'}${a.descripcion ? ' · ' + escHtml(a.descripcion) : ''}</div>
+          <div class="fila-aj-d">${a.fecha_fin && a.fecha_fin !== a.fecha_inicio ? `${escHtml(fecha(a.fecha_inicio))} – ${escHtml(fecha(a.fecha_fin))} · ` : ''}${alcanceTxt(a, dNombre)}${a.descripcion ? ' · ' + escHtml(a.descripcion) : ''}</div>
         </div>
         ${etiquetaHTML(a.etiqueta_id)}
         <div class="act-acc">
@@ -57,7 +60,7 @@ const Actividades = (() => {
       <div class="act-chips" role="group" aria-label="Filtrar por etiqueta">
         <button type="button" class="eval-chip${!filtro ? ' on' : ''}" data-act="actFiltro" data-arg="" aria-pressed="${!filtro}">Todas <b>${A.length}</b></button>
         ${E.map(e => `<button type="button" class="eval-chip${filtro === String(e.id) ? ' on' : ''}" data-act="actFiltro" data-arg="${e.id}" aria-pressed="${filtro === String(e.id)}"><span class="punto" style="--etq:var(--etq-${escHtml(e.tono)})"></span>${escHtml(e.nombre)} <b>${A.filter(a => a.etiqueta_id === e.id).length}</b></button>`).join('')}
-        <button type="button" class="btn--texto" data-act="actEtiquetas">Administrar etiquetas</button>
+        <button type="button" class="btn--texto" data-act="actEtiquetas">Administrar tipos (etiquetas)</button>
       </div>
       ${grupo('Próximas', prox, 'No hay actividades próximas. Crea una con «Nueva actividad».')}
       <div style="height:var(--sec-main)"></div>
@@ -65,28 +68,16 @@ const Actividades = (() => {
     renderIconos(host);
   }
 
-  function campos(x = {}) {
-    return [
-      { id: 'titulo', tipo: 'texto', label: 'Título', req: true, valor: x.titulo || '', ph: 'Ej.: Jornada de cierre' },
-      { id: 'descripcion', tipo: 'area', label: 'Descripción (opcional)', valor: x.descripcion || '', filas: 2 },
-      { id: 'etiqueta', tipo: 'select', label: 'Etiqueta', valor: x.etiqueta_id || '', opciones: [{ v: '', l: 'Sin etiqueta' }, ...E.map(e => ({ v: e.id, l: e.nombre }))] },
-      { id: 'ini', tipo: 'fecha', label: 'Desde', valor: x.fecha_inicio || hoy() },
-      { id: 'fin', tipo: 'fecha', label: 'Hasta (opcional, si dura varios días)', valor: x.fecha_fin || '' },
-      { id: 'alcance', tipo: 'select', label: 'Para quién', valor: x.distrito || '', opciones: [{ v: '', l: 'Todo el equipo' }, ..._distritos.map(d => ({ v: d.id, l: d.nombre }))] },
-    ];
+  /** «Para quién» de una actividad en palabras (la lista y el calendario dicen lo mismo). */
+  function alcanceTxt(a, dNombre) {
+    const al = a.alcance || (a.distrito ? 'distrito' : 'equipo');
+    if (al === 'seleccion') { const n = (DEST[a.id] || []).length; return n ? `${n} persona${n === 1 ? '' : 's'} elegida${n === 1 ? '' : 's'}` : 'Personas elegidas'; }
+    return al === 'distrito' ? escHtml(dNombre(a.distrito)) : 'Todo el equipo';
   }
-  async function guardar(x, v) {
-    if (!(v.titulo || '').trim()) return 'Escribe un título.';
-    if (!v.ini) return 'Elige la fecha.';
-    if (v.fin && v.fin < v.ini) return 'La fecha final no puede ser anterior a la inicial.';
-    const r = await API.saveActividad({ id: x.id, titulo: v.titulo, descripcion: v.descripcion, etiqueta_id: v.etiqueta ? Number(v.etiqueta) : null, fecha_inicio: v.ini, fecha_fin: v.fin, distrito: v.alcance || null });
-    if (!r.ok) return r.error;
-    showToast(x.id ? 'Actividad actualizada' : 'Actividad creada', 'ok');
-    await abrir();
-    return null;
-  }
-  function nueva() { if (!disponible) return; Tareas.abrirModal({ titulo: 'Nueva actividad', campos: campos(), confirmar: 'Crear', onConfirm: v => guardar({}, v) }); }
-  function editar(id) { const x = A.find(a => String(a.id) === String(id)); if (x) Tareas.abrirModal({ titulo: 'Editar actividad', campos: campos(x), confirmar: 'Guardar', onConfirm: v => guardar(x, v) }); }
+
+  const formulario = (actividad = null) => ActividadForm.abrir({ actividad, admin: true, distritos: _distritos, etiquetas: E, onGuardado: abrir });
+  function nueva() { if (!disponible) return; formulario(); }
+  function editar(id) { const x = A.find(a => String(a.id) === String(id)); if (x) formulario(x); }
   function borrar(id) {
     const x = A.find(a => String(a.id) === String(id)); if (!x) return;
     Tareas.abrirModal({ titulo: 'Eliminar actividad', confirmar: 'Eliminar', campos: [{ id: 'i', tipo: 'info', texto: '«' + x.titulo + '» dejará de verse en el calendario de todos.' }],

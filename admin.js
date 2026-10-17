@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
+        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
@@ -119,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderRoles();
   renderPeriodos();
   renderCriterios();
+  Bienvenida.iniciar({ perfil: CU, tipo: 'admin', ir: tab => switchTab(tab, null) });
   renderRubrica();
   renderPerfiles();
   renderCalendario();
@@ -1227,6 +1229,7 @@ function renderRoles() {
             <button type="button" class="btn-icon btn-icon--danger" data-act="borrarRol" data-arg="${r.id}" title="Eliminar rol" aria-label="Eliminar rol ${escHtml(r.nombre)}"><i data-lucide="trash-2"></i></button>
           </div>
         </div>
+        ${rolTextosHTML(r)}
         ${v2 && r.activo ? (vigente ? `
           <div class="rol-perfil">
             <div class="rol-perfil-t"><strong>Perfil vigente · versión ${vigente.version}</strong>
@@ -1240,6 +1243,21 @@ function renderRoles() {
   renderIconos(el);
 }
 
+/** Lo que significa el rol (0021): descripción siempre visible; responsabilidades y requisitos plegados
+ *  (el detalle baja la carga sin esconder lo que hace falta para decidir). Sin texto, un aviso suave para el admin. */
+function rolTextosHTML(r) {
+  if (!API.rolesAmpliados(_roles)) return '';
+  const lista = t => `<ul class="rol-lista">${lineasDeTexto(t).map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>`;
+  if (!r.descripcion && !r.responsabilidades && !r.requisitos) {
+    return `<p class="rol-sin-texto">Sin descripción todavía. Escríbela en «Editar rol»: se muestra al asignar tareas y en Mi cuenta.</p>`;
+  }
+  return `<div class="rol-textos">
+    ${r.descripcion ? `<p class="rol-desc">${escHtml(r.descripcion)}</p>` : ''}
+    ${r.responsabilidades ? acordeonHTML({ id: 'rol-resp-' + r.id, titulo: 'Responsabilidades', cuerpo: lista(r.responsabilidades), extra: 'acordeon--compacto' }) : ''}
+    ${r.requisitos ? acordeonHTML({ id: 'rol-req-' + r.id, titulo: 'Requisitos', cuerpo: lista(r.requisitos), extra: 'acordeon--compacto' }) : ''}
+  </div>`;
+}
+
 /** Busca el rol por id en vez de recibir nombre y activo por argumento:
     así el botón solo necesita data-arg con el id. */
 function showRolModal(id) {
@@ -1247,6 +1265,13 @@ function showRolModal(id) {
   document.getElementById('mrol-id').value     = r.id || '';
   document.getElementById('mrol-nombre').value = r.nombre || '';
   document.getElementById('mrol-activo').checked = r.activo !== false;
+  // Descripción, responsabilidades y requisitos (0021): si la migración no está, el bloque se oculta y se explica.
+  const amp = API.rolesAmpliados(_roles);
+  document.getElementById('mrol-textos').hidden = !amp;
+  document.getElementById('mrol-sin-0021').hidden = amp;
+  document.getElementById('mrol-desc').value = r.descripcion || '';
+  document.getElementById('mrol-resp').value = r.responsabilidades || '';
+  document.getElementById('mrol-req').value  = r.requisitos || '';
   setEl('modal-rol-title', r.id ? 'Editar rol' : 'Nuevo rol');
   document.getElementById('mrol-err').textContent = '';
   openModal('modal-rol');
@@ -1259,7 +1284,12 @@ async function saveRol() {
   const err    = document.getElementById('mrol-err');
   if (!nombre) { err.textContent = 'Escribe un nombre.'; return; }
 
-  const res = await API.saveRol({ id: id ? Number(id) : null, nombre, activo });
+  const textos = API.rolesAmpliados(_roles) ? {
+    descripcion: document.getElementById('mrol-desc').value,
+    responsabilidades: document.getElementById('mrol-resp').value,
+    requisitos: document.getElementById('mrol-req').value,
+  } : {};
+  const res = await API.saveRol({ id: id ? Number(id) : null, nombre, activo, ...textos });
   if (!res.ok) { err.textContent = res.error; return; }
 
   showToast(id ? 'Rol actualizado' : 'Rol creado', 'ok');
@@ -2426,7 +2456,7 @@ function montarTareas() {
 const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
-  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes', seguimiento:'seguimiento',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
@@ -2511,6 +2541,7 @@ function switchTabAdminHooks(tab) {
     Store.marcarCargado('overview'); loadOverview();
   }
   if (tab === 'reportes') Reportes.abrir();
+  if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'admin' }); }
 }
 
 function switchTab(tab, btn) {

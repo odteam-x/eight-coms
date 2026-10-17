@@ -32,6 +32,15 @@ const Tareas = (() => {
   /** Un contexto por contenedor: la página del secretario monta dos listas. */
   const ctxs = new Map();
 
+  /** Nombres de los roles (0021: cada tarea puede llevar el rol con el que se hace). Se piden una sola vez por página. */
+  const rolesNom = new Map();
+  let rolesPedidos = false;
+  async function cargarRoles() {
+    if (rolesPedidos) return;
+    rolesPedidos = true;
+    try { (await API.getRoles(false)).forEach(r => rolesNom.set(Number(r.id), r.nombre)); } catch { rolesPedidos = false; }
+  }
+
   /* ── Fechas (sin desfase de zona: se parten a mano, como mesDe en config.js) ── */
   const fechaCorta = iso => {
     if (!iso) return '';
@@ -109,6 +118,8 @@ const Tareas = (() => {
         </header>
         <div class="tk-meta">
           ${c.revisor && nombre ? `<span class="tk-persona">${escHtml(nombre)}</span>` : ''}
+          ${t.rol_id != null && rolesNom.has(Number(t.rol_id)) ? `<span class="tk-tag" title="Rol con el que se hace este trabajo">Rol: ${escHtml(rolesNom.get(Number(t.rol_id)))}</span>` : ''}
+          ${t.rol_excepcion ? '<span class="tk-tag tk-tag--alta" title="La administración asignó un rol que la persona no tiene habilitado">Excepción de rol</span>' : ''}
           ${t.origen === 'propia' ? '<span class="tk-tag" title="La creó la propia persona. Cuenta como iniciativa cuando otra persona la aprueba.">Iniciativa propia</span>' : ''}
           ${t.prioridad !== 'normal' ? `<span class="tk-tag tk-tag--${t.prioridad}">Prioridad ${PRIORIDAD[t.prioridad].toLowerCase()}</span>` : ''}
           ${plazoHTML(t)}
@@ -187,7 +198,7 @@ const Tareas = (() => {
     renderCargando(c.el);
     c._abort?.abort();
     const ctrl = c._abort = new AbortController();
-    const res = await API.getTareas({ periodoId: c.periodoId, userId: c.soloPersona || (c.revisor ? null : c.yo), signal: ctrl.signal });
+    const [res] = await Promise.all([API.getTareas({ periodoId: c.periodoId, userId: c.soloPersona || (c.revisor ? null : c.yo), signal: ctrl.signal }), cargarRoles()]);
     if (res.aborted) return;
     if (!res.ok) {
       if (res.noDisponible) c.onNoDisponible?.();
@@ -355,6 +366,11 @@ const Tareas = (() => {
   }
 
   function modalNueva(c) {
+    // Quien revisa (administración / secretaría) usa el flujo completo: roles por persona, equipos, validaciones.
+    if (c.revisor && typeof Asignar !== 'undefined') {
+      c.onCreadas = () => cargar(c);
+      return Asignar.abrir(c);
+    }
     const campos = [
       ...((c.periodos || []).length > 1 ? [{ id: 'periodo', tipo: 'select', label: 'Período de la tarea', valor: c.periodoId,
         opciones: c.periodos.map(p => ({ v: p.id, l: p.pe + (p.nombre && p.nombre !== p.pe ? ' · ' + p.nombre : '') })),
@@ -484,6 +500,7 @@ const Tareas = (() => {
     const linea = e => {
       const m = e.motivo ? ` — «${escHtml(e.motivo)}»` : '';
       if (e.tipo === 'creada') return `Creada (${e.motivo === 'propia' ? 'iniciativa propia' : 'asignada'})`;
+      if (e.tipo === 'rol') return `Rol ${escHtml(e.de || 'sin rol')} → ${escHtml(e.a || 'sin rol')}`;
       if (e.tipo === 'prorroga') return `Plazo ${escHtml(fechaCorta(e.de) || 'sin fecha')} → ${escHtml(fechaCorta(e.a))}${m}`;
       return `${escHtml((ESTADOS[e.de] || {}).txt || e.de)} → ${escHtml((ESTADOS[e.a] || {}).txt || e.a)}${m}`;
     };

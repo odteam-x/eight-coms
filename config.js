@@ -83,6 +83,12 @@ const _ACCIONES_SIMPLES = new Set([
   'guardarCriterio2', 'vistaCriterio2',
   // tareas (core/tareas.js)
   'tkFiltroPersona', 'tkConfirmar',
+  // roles permitidos en Personas → Gestión (0021)
+  'gestionRolPermitido',
+  // selector de personas y nueva tarea
+  'selBuscar', 'asigRol', 'asigAck', 'asigCrit', 'actfDistrito',
+  // seguimiento global
+  'segBuscar', 'segFiltro',
 ]);
 
 const ACCIONES = {
@@ -93,6 +99,7 @@ const ACCIONES = {
     if (typeof f === 'function') f();
   },
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
+  cuentaTab:        (arg)         => Cuenta.tab(arg),
   instalarApp:      ()            => Pwa.instalar(),
   abrirAvisos:      ()            => Notif.abrir(),
   fondoElegir:      (arg)         => Fondo.elegir(Number(arg)),
@@ -105,6 +112,35 @@ const ACCIONES = {
   avisosMas:        ()            => Notif.mas(),
   cuentaDesdeHoja:  ()            => { cerrarHoja(); switchTab('cuenta', null); },
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
+  // Mis preferencias de rol (core/preferencias.js)
+  prefMover:     (a, el) => Preferencias.mover(Number(a), Number(el.dataset.arg2)),
+  prefQuitar:    (a)     => Preferencias.quitar(Number(a)),
+  prefAgregar:   ()      => Preferencias.agregar(),
+  prefPred:      (a)     => Preferencias.predeterminado(a),
+  prefGuardar:   (a, el) => Preferencias.guardar(el),
+  // Selector de personas y equipos (core/selector.js) y Nueva tarea (core/asignar.js)
+  selToggle:     (a, el) => Selector.de(a)?.toggle(el.dataset.arg2),
+  selFiltro:     (a, el) => Selector.de(a)?.setFiltro(el.dataset.arg2),
+  selQuitar:     (a, el) => Selector.de(a)?.quitar(el.dataset.arg2),
+  selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
+  selNinguna:    (a)     => Selector.de(a)?.ninguna(),
+  asigSiguiente: ()      => Asignar.siguiente(),
+  asigAtras:     ()      => Asignar.atras(),
+  asigSugerir:   ()      => Asignar.sugerir(),
+  // Bienvenida (core/bienvenida.js)
+  bvAbrir:       ()      => Bienvenida.abrir(),
+  bvPaso:        (a)     => Bienvenida.irA(a),
+  bvHecho:       ()      => Bienvenida.hecho(),
+  bvAtras:       ()      => Bienvenida.atras(),
+  bvOmitir:      ()      => Bienvenida.omitir(),
+  bvIr:          (a)     => Bienvenida.ir(a),
+  bvReiniciar:   ()      => Bienvenida.reiniciar(),
+  repCsvPeriodos:  ()    => Reportes.csvPeriodos(),
+  repCsvActividad: ()    => Reportes.csvActividad(),
+  repEqCsv:        (a)   => ReporteEquipo.csv(a),
+  repEqPdf:        ()    => ReporteEquipo.imprimir(),
+  actfGuardar:   ()      => ActividadForm.guardar(),
+  actfAlcance:   (a)     => ActividadForm.alcance(a),
   cuentaCambiarPass:   (a, el) => Cuenta.cambiarPass(el),
   salir:            ()            => (typeof logout === 'function' ? logout() : Auth.logout()),
   tab:              (arg, el)     => switchTab(arg, el),
