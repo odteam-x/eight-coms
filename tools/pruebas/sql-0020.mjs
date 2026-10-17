@@ -49,6 +49,8 @@ await db.exec(`
   INSERT INTO profiles(id,nombre,rol_id,distrito) VALUES ('${M1}','M1',${rolFoto},'08-01'),('${M2}','M2',${rolFoto},'08-01'),
          ('${uid(3)}','M3',${rolFoto},'08-01'),('${uid(4)}','M4',${rolFoto},'08-01');
   INSERT INTO periodos_evaluacion(gestion_id,nombre,modelo) VALUES (${G},'PE1','v2'),(${G},'PE2','v2');
+  -- PE2 es posterior a PE1 de verdad: dos filas del mismo INSERT pueden empatar en created_at (reloj de PGlite) y la prueba dependía de la suerte.
+  UPDATE periodos_evaluacion SET created_at = created_at + interval '1 minute' WHERE nombre = 'PE2';
 `);
 const PE = (await q(`SELECT id FROM periodos_evaluacion WHERE nombre='PE1'`))[0].id;
 const PE2 = (await q(`SELECT id FROM periodos_evaluacion WHERE nombre='PE2'`))[0].id;

@@ -39,7 +39,7 @@ const PanelAdmin = (() => {
         const r = porId[e.evaluado_id]; if (!r) return null;
         const pj = parseJSON(e.puntajes);
         const comp = {};
-        nucleo.forEach(c => { if (pj[c.key] != null) comp[c.key] = { nombre: c.nombre, v: (Number(pj[c.key]) - 1) / 4 * 100 }; });
+        nucleo.forEach(c => { if (pj[c.key] != null) comp[c.key] = { nombre: c.nombre, v: pctPuntajeV2(pj[c.key], rangoPuntajeV2(c, r.escala)) }; });
         return { id: e.evaluado_id, score: Number(r.individual ?? 0), rolNombre: r.rol_nombre || '', comp, nucleo: r.nucleo, tecnico: r.tecnico };
       }).filter(Boolean);
     } else {

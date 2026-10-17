@@ -879,7 +879,7 @@ body.gestion-archivada [aria-disabled="true"] {
   display:flex; align-items:center; gap:var(--sp-2); min-width:0;
   padding:var(--sp-2); margin-bottom:var(--sp-3); border-radius: var(--r-md);
 }
-.rail-logo { width:40px; height:40px; object-fit:contain; flex:0 0 auto; }
+.rail-logo { width:48px; height:48px; object-fit:contain; flex:0 0 auto; }
 .rail-marca-txt {
   font-family:var(--font-display); font-size:var(--fs-md); font-weight:700;
   text-transform:uppercase; letter-spacing:.04em; color:var(--txt);
@@ -1496,8 +1496,10 @@ select:-webkit-autofill {
   letter-spacing: 1px;
   color: var(--txt-2);
 }
-.bb-hoja-logo, .modal-logo { width: 28px; height: 28px; object-fit: contain; flex: 0 0 auto; }
-.modal-marca { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
+.bb-hoja-logo { width: 28px; height: 28px; object-fit: contain; flex: 0 0 auto; }
+/* El isotipo de los diálogos es la firma de la pantalla de entrada: 72 px, cuadrado. */
+.modal-logo { width: 72px; height: 72px; object-fit: contain; flex: 0 0 auto; }
+.modal-marca { display: flex; justify-content: center; margin-bottom: var(--sp-4); }
 
 /* Casilla del selector de entrada. */
 .ent-omitir {

@@ -75,6 +75,8 @@ const _ACCIONES_SIMPLES = new Set([
   // selector de entrada del admin
   'entrarConSeleccion', 'entrarConPeriodoActivo', 'restablecerEntrada',
   'onCambioGestionEntrada',
+  // rúbrica v2: puntos por peso (barra + número)
+  'puntosInputV2',
   // rúbrica v2: perfiles por rol
   'showPerfilModal', 'savePerfil', 'actualizarSumaPerfil', 'cambiarRolPerfil',
   // criterios dinámicos (0020)
@@ -92,6 +94,13 @@ const ACCIONES = {
   },
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
   instalarApp:      ()            => Pwa.instalar(),
+  abrirAvisos:      ()            => Notif.abrir(),
+  puntosPaso:       (arg, el)     => puntosPasoV2(arg, el),
+  avisoIr:          (arg)         => Notif.ir(arg),
+  avisosFiltro:     (arg)         => Notif.filtro(arg),
+  avisosTodas:      ()            => Notif.todas(),
+  avisosMas:        ()            => Notif.mas(),
+  cuentaDesdeHoja:  ()            => { cerrarHoja(); switchTab('cuenta', null); },
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
   cuentaCambiarPass:   (a, el) => Cuenta.cambiarPass(el),
   salir:            ()            => (typeof logout === 'function' ? logout() : Auth.logout()),

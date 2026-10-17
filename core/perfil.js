@@ -232,25 +232,27 @@ const Perfil = (() => {
     const f = item.fila;
     const perfil = perfilesV2().find(x => String(x.id) === String(f.perfil_id));
     const ap = criteriosAplicables(perfil, catalogoV2(), { conservar: Object.keys(item.puntajes || {}) });
+    // Cada criterio puntúa en su propio rango (1–5, o 0 a su peso en las evaluaciones nuevas): se ordena por el
+    // porcentaje dentro de ese rango, nunca por el número crudo (30 de 30 no es lo mismo que 3 de 5).
     const lista = [...ap.nucleo, ...ap.tecnicos]
-      .map(c => ({ c, v: Number(item.puntajes[c.key]) }))
-      .filter(x => Number.isFinite(x.v) && x.v >= 1);
+      .map(c => { const r = rangoPuntajeV2(c, f.escala), v = Number(item.puntajes[c.key]); return { c, v, r, p: pctPuntajeV2(v, r) }; })
+      .filter(x => item.puntajes[x.c.key] != null && Number.isFinite(x.v) && x.v >= x.r.min && x.r.max > x.r.min);
     const T = _pos(inst);
     if (lista.length < 2) {
       return `<p class="pf-vacio">Todavía no hay suficientes criterios puntuados para comparar.</p>`;
     }
-    const max = Math.max(...lista.map(x => x.v)), min = Math.min(...lista.map(x => x.v));
+    const max = Math.max(...lista.map(x => x.p)), min = Math.min(...lista.map(x => x.p));
     if (max === min) {
-      return `<p class="pf-vacio">Todos los criterios tienen el mismo puntaje (${max} de 5): no hay un punto que destaque sobre otro.</p>`;
+      return `<p class="pf-vacio">Todos los criterios están en el mismo punto de su escala (${Math.round(max)} %): no hay un punto que destaque sobre otro.</p>`;
     }
-    const orden = [...lista].sort((a, b) => b.v - a.v || (b.c.peso ?? 0) - (a.c.peso ?? 0));
-    const altos = orden.filter(x => x.v > min).slice(0, 3);
-    const bajos = [...orden].reverse().filter(x => x.v < max && !altos.includes(x)).slice(0, 3);
+    const orden = [...lista].sort((a, b) => b.p - a.p || (b.c.peso ?? 0) - (a.c.peso ?? 0));
+    const altos = orden.filter(x => x.p > min).slice(0, 3);
+    const bajos = [...orden].reverse().filter(x => x.p < max && !altos.includes(x)).slice(0, 3);
     const fila = x => `
       <li class="pf-crit">
         <span class="pf-crit-n">${escHtml(x.c.nombre)}</span>
-        <span class="pf-crit-v">${x.v}<small>/5</small></span>
-        <span class="barra-track pf-crit-barra"><span class="barra-fill" style="width:${pctPuntajeV2(x.v)}%"></span></span>
+        <span class="pf-crit-v">${x.v}<small>/${x.r.max}</small></span>
+        <span class="barra-track pf-crit-barra"><span class="barra-fill" style="width:${x.p}%"></span></span>
       </li>`;
     return `
       <div class="pf-dos">
@@ -340,9 +342,9 @@ const Perfil = (() => {
   }
 
   /* ── Criterios ─────────────────────────────────────────────────────── */
-  function _barraV2(c, v, previo, com) {
-    const tiene = Number.isFinite(v) && v >= 1;
-    const hayPrev = Number.isFinite(previo) && previo >= 1;
+  function _barraV2(c, v, previo, com, r = { min: 1, max: 5 }, rPrev = r) {
+    const tiene = Number.isFinite(v) && v >= r.min;
+    const hayPrev = Number.isFinite(previo) && previo >= rPrev.min;
     return `
       <div class="cbar pf-cbar">
         <div class="cbar-top">
@@ -350,13 +352,13 @@ const Perfil = (() => {
             ${c.peso != null ? `<div class="cbar-tag" style="color:var(--criterio-txt)">Peso ${c.peso}</div>` : ''}
             <div class="cbar-name">${escHtml(c.nombre)}</div>
           </div>
-          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene ? v : '—'}<span>/5</span></div>
+          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene ? v : '—'}<span>/${r.max}</span></div>
         </div>
         <div class="cbar-track pf-track">
-          <div class="cbar-fill" style="width:${tiene ? pctPuntajeV2(v) : 0}%;background:var(--criterio)"></div>
-          ${hayPrev ? `<span class="pf-prev" style="left:${pctPuntajeV2(previo)}%" title="Período anterior: ${previo}"></span>` : ''}
+          <div class="cbar-fill" style="width:${tiene ? pctPuntajeV2(v, r) : 0}%;background:var(--criterio)"></div>
+          ${hayPrev ? `<span class="pf-prev" style="left:${pctPuntajeV2(previo, rPrev)}%" title="Período anterior: ${previo} de ${rPrev.max}"></span>` : ''}
         </div>
-        ${hayPrev ? `<div class="pf-prev-txt">Período anterior: ${previo} de 5</div>` : ''}
+        ${hayPrev ? `<div class="pf-prev-txt">Período anterior: ${previo} de ${rPrev.max}</div>` : ''}
         ${com ? `<div class="cbar-feedback"><span class="cbar-fb-txt">${escHtml(com)}</span></div>` : ''}
         <details class="v2-det"><summary>¿Cómo se puntúa?</summary>${descriptoresHTML(c)}</details>
       </div>`;
@@ -373,9 +375,9 @@ const Perfil = (() => {
       const T = _pos(inst);
       cuerpo.innerHTML = `
         <h3 class="pf-h">Núcleo transversal</h3>
-        <div class="v2-bars">${ap.nucleo.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key])).join('')}</div>
+        <div class="v2-bars">${ap.nucleo.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key], rangoPuntajeV2(c, f.escala), rangoPuntajeV2(c, prev?.fila?.escala))).join('')}</div>
         <h3 class="pf-h">Criterios técnicos · ${escHtml(f.rol_nombre || 'el rol')}</h3>
-        <div class="v2-bars">${ap.tecnicos.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key])).join('')}</div>
+        <div class="v2-bars">${ap.tecnicos.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key], rangoPuntajeV2(c, f.escala), rangoPuntajeV2(c, prev?.fila?.escala))).join('')}</div>
         ${registroHTML(ap.registro, item.respuestas, item.comentarios)}
         ${ap.fuera.length ? `<p class="v2-fuera"><strong>No se evalúan ${ap.fuera.length} criterios</strong>
           (no son parte del rol y no entran al cálculo): ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}.</p>` : ''}`;

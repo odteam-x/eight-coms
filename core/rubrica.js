@@ -31,8 +31,23 @@ const esPeriodoV2 = p => p?.modelo === 'v2';
 const fmtV2 = n => (n == null || Number.isNaN(Number(n)))
   ? '—' : String(Math.round(Number(n) * 10) / 10);
 
-/** Un puntaje 1–5 como porcentaje de barra (1 → 0 %, 5 → 100 %). */
-const pctPuntajeV2 = s => Math.max(0, Math.min(100, ((Number(s) || 1) - 1) / 4 * 100));
+/** Núcleo en «pesos» (0023): 0 a 10 por criterio, todos pesan igual. */
+const ESCALA_NUCLEO_V2 = 10;
+
+/**
+ * Rango de puntaje de un criterio según CÓMO se guardó la evaluación.
+ *   'cinco' (historia, y todo antes de 0023): 1 a 5.
+ *   'pesos' (evaluaciones nuevas): técnico de 0 a su peso en el perfil; núcleo de 0 a 10.
+ * Solo presentación: el cálculo oficial es resultados_periodo().
+ */
+function rangoPuntajeV2(c, escala) {
+  if (escala !== 'pesos') return { min: 1, max: 5 };
+  return { min: 0, max: c?.tipo === 'nucleo' ? ESCALA_NUCLEO_V2 : (Number(c?.peso) || 0) };
+}
+
+/** Un puntaje como porcentaje de barra dentro de SU rango (por defecto 1–5: 1 → 0 %, 5 → 100 %). */
+const pctPuntajeV2 = (s, r = { min: 1, max: 5 }) =>
+  r.max > r.min ? Math.max(0, Math.min(100, ((Number(s) || r.min) - r.min) / (r.max - r.min) * 100)) : 0;
 
 
 /* ══ CATÁLOGO Y PERFILES ═══════════════════════════════════════════════ */
@@ -167,8 +182,9 @@ function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, respuestas = {
     </div>`;
 
   const barra = c => {
+    const r = rangoPuntajeV2(c, fila?.escala);
     const v = Number(puntajes[c.key]);
-    const tiene = Number.isFinite(v) && v >= 1;
+    const tiene = puntajes[c.key] != null && Number.isFinite(v) && v >= r.min;
     const com = comentarios?.[c.key];
     return `
       <div class="cbar">
@@ -177,9 +193,9 @@ function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, respuestas = {
             ${c.peso != null ? `<div class="cbar-tag" style="color:var(--criterio-txt)">PESO ${c.peso}</div>` : ''}
             <div class="cbar-name">${escHtml(c.nombre)}</div>
           </div>
-          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene ? v : '—'}<span>/5</span></div>
+          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene ? v : '—'}<span>/${r.max}</span></div>
         </div>
-        <div class="cbar-track"><div class="cbar-fill" style="width:${tiene ? pctPuntajeV2(v) : 0}%;background:var(--criterio)"></div></div>
+        <div class="cbar-track"><div class="cbar-fill" style="width:${tiene ? pctPuntajeV2(v, r) : 0}%;background:var(--criterio)"></div></div>
         ${com ? `<div class="cbar-feedback"><span class="cbar-fb-txt">${escHtml(com)}</span></div>` : ''}
         <details class="v2-det"><summary>¿Cómo se puntúa?</summary>${descriptoresHTML(c)}</details>
       </div>`;

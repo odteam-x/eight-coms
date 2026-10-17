@@ -16,7 +16,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(ROOT + 'core/rubrica.js', 'utf8') + `
-;globalThis.__x = { nivelV2, fmtV2, pctPuntajeV2, perfilVigenteDe, criteriosAplicables, resultadoV2HTML, rankingV2HTML, esPeriodoV2, clavesAplicables };`, ctx);
+;globalThis.__x = { nivelV2, fmtV2, pctPuntajeV2, rangoPuntajeV2, ESCALA_NUCLEO_V2, perfilVigenteDe, criteriosAplicables, resultadoV2HTML, rankingV2HTML, esPeriodoV2, clavesAplicables };`, ctx);
 const X = ctx.__x;
 
 console.log('[niveles y formato]');
@@ -25,6 +25,14 @@ ok(X.nivelV2(67).label === 'Bueno' && X.nivelV2(66.9).label === 'En Proceso', '6
 ok(X.nivelV2(37).label === 'En Proceso' && X.nivelV2(36.9).label === 'Bajo', '37 = En Proceso');
 ok(X.fmtV2(87.5) === '87.5' && X.fmtV2(50) === '50' && X.fmtV2(null) === '—' && X.fmtV2(33.333) === '33.3', 'formato de números');
 ok(X.pctPuntajeV2(1) === 0 && X.pctPuntajeV2(5) === 100 && X.pctPuntajeV2(3) === 50, 'barra 1–5 → 0–100 %');
+// Puntos por peso (0023): cada criterio puntúa en SU rango
+const rc = X.rangoPuntajeV2({ tipo: 'tecnico', peso: 30 }, 'cinco'), rp = X.rangoPuntajeV2({ tipo: 'tecnico', peso: 30 }, 'pesos'), rn = X.rangoPuntajeV2({ tipo: 'nucleo' }, 'pesos');
+ok(rc.min === 1 && rc.max === 5, 'escala «cinco»: 1 a 5 sin importar el peso');
+ok(rp.min === 0 && rp.max === 30, 'escala «pesos»: técnico de 0 a su peso (30)');
+ok(rn.min === 0 && rn.max === 10 && X.ESCALA_NUCLEO_V2 === 10, 'escala «pesos»: núcleo de 0 a 10');
+ok(X.pctPuntajeV2(15, rp) === 50 && X.pctPuntajeV2(0, rp) === 0 && X.pctPuntajeV2(30, rp) === 100, 'barra en «pesos»: 15 de 30 = 50 %, 0 = 0 %, 30 = 100 %');
+ok(X.pctPuntajeV2(9, { min: 0, max: 10 }) === 90 && X.pctPuntajeV2(5, { min: 0, max: 0 }) === 0, 'sin rango válido la barra queda vacía (no divide por cero)');
+ok(X.rangoPuntajeV2({ tipo: 'tecnico', peso: 30 }, undefined).max === 5, 'sin escala informada (datos anteriores a 0023) se lee como 1 a 5');
 
 console.log('\n[perfil vigente y criterios aplicables]');
 const cat = [

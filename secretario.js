@@ -211,7 +211,7 @@ async function initUI() {
   if (!_uiMontada) {
     const sec = isSecretario();
     initNav({
-      marca: 'EIGHT CREATORS',
+      marca: 'EIGHT CREATORS', portal: sec ? 'secretario' : 'miembro',
       badge: sec ? 'SECRETARIO' : 'CREATOR',
       activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user,

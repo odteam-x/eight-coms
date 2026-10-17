@@ -944,4 +944,42 @@ const API = {
     if (e2) return { ok: false, error: e2.message };
     return { ok: true, url };
   },
+
+  /** ¿La base ya puntúa por peso (migración 0023)? Se sabe porque resultados_periodo() trae la columna `escala`.
+   *  Mientras no lo sepamos con certeza se evalúa de 1 a 5, que funciona con y sin 0023. */
+  _escalaPorPeso: false,
+  escalaPorPeso() { return API._escalaPorPeso; },
+  async probarEscala() {
+    // Nunca debe romper la carga del panel: ante cualquier fallo se asume 1–5, que funciona con y sin 0023.
+    try {
+      const { error } = await SB.from('evaluaciones').select('escala').limit(1);
+      API._escalaPorPeso = !error;
+    } catch { API._escalaPorPeso = false; }
+    return API._escalaPorPeso;
+  },
+
+  /* ── Avisos dentro de la plataforma (migración 0022) ─────────────────────
+   * La campana lee la misma cola que los correos (0019). Si 0022 aún no está aplicada, la función
+   * no existe: se devuelve noDisponible y la interfaz lo explica en vez de fingir que no hay avisos. */
+  _rpcAusente(error) {
+    return /Could not find the function|does not exist|PGRST202|42883/i.test((error?.code || '') + ' ' + (error?.message || ''));
+  },
+  async getNotificaciones({ limite = 40, antes = null } = {}) {
+    const { data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes });
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
+    return { ok: true, data: data ?? [] };
+  },
+  async getNotifNoLeidas() {
+    const { data, error } = await SB.rpc('notif_no_leidas');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
+    return { ok: true, n: Number(data) || 0 };
+  },
+  async marcarNotifLeida(id) {
+    const { error } = await SB.rpc('notif_marcar_leida', { p_id: id });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+  async marcarNotifTodas() {
+    const { data, error } = await SB.rpc('notif_marcar_todas');
+    return error ? { ok: false, error: error.message } : { ok: true, n: Number(data) || 0 };
+  },
 };

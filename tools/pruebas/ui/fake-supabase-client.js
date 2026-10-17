@@ -82,7 +82,7 @@
   const redPts = v => ({ narrativa: v, ortografia: v, revision: v, planificacion: v });
   const addEval = (periodo, ev, pts, estado = 'publicado', perfil = null) => DB.evaluaciones.push({
     id: seq.eval++, periodo_id: periodo, evaluado_id: ev, evaluador_id: U.admin, puntajes: pts, bono_ext: 0, comentarios: {},
-    estado, modelo: DB.periodos_evaluacion.find(p => p.id === periodo).modelo, perfil_id: perfil, created_at: ahora(), updated_at: ahora() });
+    estado, modelo: DB.periodos_evaluacion.find(p => p.id === periodo).modelo, perfil_id: perfil, escala: 'cinco', created_at: ahora(), updated_at: ahora() });
   // PE1 legacy
   [U.m1, U.m2, U.m3].forEach((u, i) => addEval(P.pe1, u, { pla: 3 + (i % 2), rev: 3, edi: 4, dis: 3, flu: 2, nar: 3, eje: 4 }));
   // PE2 v2
@@ -183,6 +183,7 @@
     range(a, b) { this.rng = [a, b]; return this; }
     limit(n) { this.lim = n; return this; }
     abortSignal() { return this; }
+    limit() { return this; }
     maybeSingle() { this.one = 'maybe'; return this; }
     single() { this.one = 'one'; return this; }
     then(res, rej) { return this._run().then(res, rej); }
@@ -263,8 +264,16 @@
             const faltan = DB.criterios_v2.filter(c => c.activo && c.obligatorio && c.tipo_campo !== 'escala' && !(c.key in p.respuestas));
             if (faltan.length) throw new Error('No se puede publicar: faltan por completar: ' + faltan.map(c => c.nombre).join(', ') + '.');
           }
-          for (const [k, v] of Object.entries(p.puntajes)) if (!Number.isInteger(v) || v < 1 || v > 5) throw new Error(`El puntaje de "${k}" debe ser un entero de 1 a 5.`);
+          p.escala = prev ? prev.escala : 'pesos';   // 0023: la fija el servidor
           const prof = DB.profiles.find(x => x.id === p.evaluado_id); p.perfil_id = prev?.perfil_id ?? DB.perfiles_rol.find(x => x.rol_id === prof.rol_id)?.id ?? null;
+          for (const [k, v] of Object.entries(p.puntajes)) {
+            if (!Number.isInteger(v)) throw new Error('El puntaje de "' + k + '" debe ser un numero entero.');
+            if (p.escala === 'cinco') { if (v < 1 || v > 5) throw new Error('El puntaje de "' + k + '" debe ser un entero de 1 a 5.'); }
+            else {
+              const max = NUCLEO.some(x => x[0] === k) ? 10 : (DB.perfil_criterios.find(x => x.perfil_id === p.perfil_id && x.criterio_key === k)?.peso || 0);
+              if (v < 0 || v > max) throw new Error('El puntaje de "' + k + '" debe ser un entero de 0 a ' + max + '.');
+            }
+          }
           if (!p.perfil_id) throw new Error('No hay un perfil de evaluacion vigente para ese rol en este periodo.');
           if (p.estado === 'publicado') { const need = [...NUCLEO.map(x => x[0]), ...DB.perfil_criterios.filter(x => x.perfil_id === p.perfil_id).map(x => x.criterio_key)].filter(k => !(k in p.puntajes)); if (need.length) throw new Error('No se puede publicar: faltan por puntuar: ' + need.join(', ') + '.'); }
         }
@@ -296,12 +305,13 @@
     const evs = DB.evaluaciones.filter(e => e.periodo_id === pid && e.modelo === 'v2' && (e.estado === 'publicado' || (esAdmin() && borradores)));
     const filas = evs.map(e => {
       const prof = DB.profiles.find(x => x.id === e.evaluado_id), pf = DB.perfiles_rol.find(x => x.id === e.perfil_id);
-      const nuc = NUCLEO.map(([k]) => e.puntajes[k]).filter(v => v != null).map(v => (v - 1) / 4 * 100);
+      const cinco = e.escala !== 'pesos';
+      const nuc = NUCLEO.map(([k]) => e.puntajes[k]).filter(v => v != null).map(v => cinco ? (v - 1) / 4 * 100 : v / 10 * 100);
       const pesos = DB.perfil_criterios.filter(x => x.perfil_id === e.perfil_id).filter(x => e.puntajes[x.criterio_key] != null);
       const sp = pesos.reduce((a, x) => a + x.peso, 0);
-      const tec = sp ? pesos.reduce((a, x) => a + x.peso * ((e.puntajes[x.criterio_key] - 1) / 4 * 100), 0) / sp : null;
+      const tec = sp ? pesos.reduce((a, x) => a + x.peso * (cinco ? (e.puntajes[x.criterio_key] - 1) / 4 * 100 : e.puntajes[x.criterio_key] / x.peso * 100), 0) / sp : null;
       return { evaluado_id: e.evaluado_id, nombre: prof.nombre, distrito: prof.distrito, rol_id: pf.rol_id, rol_nombre: DB.roles.find(r => r.id === pf.rol_id).nombre, perfil_id: e.perfil_id, estado: e.estado,
-        nucleo: nuc.length ? nuc.reduce((a, b) => a + b, 0) / nuc.length : null, tecnico: tec };
+        nucleo: nuc.length ? nuc.reduce((a, b) => a + b, 0) / nuc.length : null, tecnico: tec, escala: e.escala || 'cinco' };
     });
     filas.forEach(f => {
       const par = filas.filter(x => x.rol_id === f.rol_id); f.n_rol = par.length;
@@ -329,8 +339,35 @@
     });
     return Object.values(por);
   }
+  // ── Avisos de la campana (migración 0022): datos de ejemplo, el estado leído se guarda en sessionStorage ──
+  const AVISOS = [
+    { id: 1, roles: ['m', 'sec'], tipo: 'tarea_devuelta', datos: { tarea: 'Retratos del equipo', revisor: 'Secretaría', observacion: 'Falta la versión vertical.' }, min: 120 },
+    { id: 2, roles: ['m', 'sec'], tipo: 'tarea_asignada', datos: { tarea: 'Cobertura de la jornada', asignador: 'Administración', fecha_limite: '25/10/2026', prioridad: 'media' }, min: 300 },
+    { id: 3, roles: ['m', 'sec', 'admin'], tipo: 'actividad_nueva', datos: { actividad: 'Jornada de creadores', fecha: '19/10/2026', etiqueta: 'Jornada' }, min: 60 * 26 },
+    { id: 4, roles: ['m'], tipo: 'nota_publicada', datos: { periodo: 'PE1' }, min: 60 * 24 * 9 },
+    { id: 5, roles: ['admin', 'sec'], tipo: 'entrega_por_revisar', datos: { tarea: 'Reel de la semana', persona: 'Ana Fotógrafa', entregada: '16/10/2026', a_tiempo: 'Sí' }, min: 30 },
+    { id: 6, roles: ['admin'], tipo: 'solicitud_acceso', datos: { persona: 'Keiry Polonia', correo: 'keiry@ejemplo.cl' }, min: 90 },
+    { id: 7, roles: ['admin'], tipo: 'evaluaciones_sin_publicar', datos: { periodo: 'PE2', pendientes: 3, cierre: '27/10/2026' }, min: 60 * 5 },
+  ];
+  const _rolAv = as === 'admin' ? 'admin' : (as === 'sec' ? 'sec' : 'm');
+  const _llaveAv = 'fake_av_leidas_' + as;
+  const _leidasAv = () => { try { return JSON.parse(sessionStorage.getItem(_llaveAv) || '[]'); } catch { return []; } };
+  const _guardaLeidasAv = (v) => { try { sessionStorage.setItem(_llaveAv, JSON.stringify(v)); } catch { /* */ } };
+  const _misAvisos = () => AVISOS.filter(x => x.roles.includes(_rolAv)).map(x => ({
+    id: x.id, tipo: x.tipo, datos: x.datos, ref_id: 'ref-' + x.id,
+    creada: new Date(Date.now() - x.min * 60000).toISOString(), leida_en: _leidasAv().includes(x.id) ? ahora() : null,
+  }));
   const RPC = {
     hay_gestion_abierta: () => true,
+    mis_notificaciones: ({ p_limite = 40, p_antes = null }) => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      let l = _misAvisos().sort((x, y) => y.creada.localeCompare(x.creada));
+      if (p_antes) l = l.filter(x => x.creada < p_antes);
+      return l.slice(0, Math.max(1, Math.min(p_limite, 100)));
+    },
+    notif_no_leidas: () => { if (!meId) throw new Error('Se requiere sesion.'); return _misAvisos().filter(x => !x.leida_en).length; },
+    notif_marcar_leida: ({ p_id }) => { const v = _leidasAv(); if (!_misAvisos().some(x => x.id === p_id)) return false; if (!v.includes(p_id)) { v.push(p_id); _guardaLeidasAv(v); } return true; },
+    notif_marcar_todas: () => { const n = _misAvisos().filter(x => !x.leida_en); _guardaLeidasAv(_misAvisos().map(x => x.id)); return n.length; },
     set_periodo_activo: ({ p_id }) => { DB.periodos_evaluacion.forEach(p => p.activo = p.id === p_id); return null; },
     resultados_periodo: a => { if (!meId) throw new Error('Se requiere sesion.'); return resultados(a.p_periodo, a.p_borradores); },
     resumen_tareas_periodo: a => resumen(a.p_periodo),

@@ -321,8 +321,16 @@ function openModal(id) {
   }
 
   // Una X arriba a la derecha en todos los diálogos (ventanas de admin y de tareas/actividades).
-  const caja = m.querySelector('.modal-box, .tk-box');
-  if (caja && !caja.querySelector(':scope > .modal-x')) {
+  const caja = m.querySelector('.modal-box, .tk-box, .panel');
+  // En el celular los diálogos son hojas inferiores: llevan tirador y se cierran arrastrándolo (hojaArrastrable, core/ui.js).
+  if (caja && !caja.querySelector(':scope > .hoja-tirador')) {
+    const t = document.createElement('div');
+    t.className = 'hoja-tirador'; t.setAttribute('aria-hidden', 'true');
+    caja.prepend(t);
+    if (typeof hojaArrastrable === 'function') hojaArrastrable(caja, () => closeModal(id));
+  }
+  // El panel lateral ya trae su propia X en la cabecera.
+  if (caja && !caja.classList.contains('panel') && !caja.querySelector(':scope > .modal-x')) {
     const x = document.createElement('button');
     x.type = 'button'; x.className = 'modal-x';
     x.setAttribute('aria-label', 'Cerrar'); x.title = 'Cerrar';

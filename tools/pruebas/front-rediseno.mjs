@@ -119,5 +119,36 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(vj.headers.some(h => h.source === '/sw.js' && h.headers.some(x => /no-cache/.test(x.value))), 'vercel.json: sw.js sin caché');
 }
 
+// ── Diseño móvil, campana de avisos y escalas ─────────────────────────────
+{
+  for (const p of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
+    const t = fs.readFileSync(ROOT + p, 'utf8');
+    ok(/href="movil\.css" media="\(max-width: 767px\)"/.test(t), p + ': movil.css solo se aplica por debajo de 768 px (escritorio intacto)');
+  }
+  for (const p of ['user.html', 'secretario.html', 'admin.html']) {
+    ok(/<script src="core\/notificaciones\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/notificaciones.js');
+  }
+  const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  for (const a of ['abrirAvisos', 'avisoIr', 'avisosFiltro', 'avisosTodas', 'avisosMas', 'puntosPaso', 'cuentaDesdeHoja']) ok(new RegExp('\\b' + a + ':\\s').test(cfg), 'config.js: acción ' + a + ' registrada');
+  ok(/'puntosInputV2'/.test(cfg), 'config.js: puntosInputV2 está en la lista blanca de data-input');
+  const ui = fs.readFileSync(ROOT + 'core/ui.js', 'utf8');
+  for (const fn of ['hojaArrastrable', 'acordeonHTML', 'escalaHTML', 'escalaActualizar', 'puntosHTML', 'puntosActualizar']) ok(new RegExp('function ' + fn + '\\b').test(ui), 'core/ui.js: ' + fn);
+  const rail = fs.readFileSync(ROOT + 'core/rail.js', 'utf8');
+  ok(/Notif\.campanaHTML\('cab-btn'\)/.test(rail) && /Notif\.iniciar\(\)/.test(rail), 'rail.js: la campana está en la cabecera móvil y arranca el contador');
+  ok(/hojaArrastrable\(hoja\.querySelector\('\.bb-hoja-panel'\), cerrarHoja\)/.test(rail), 'rail.js: el tirador de «Más» se puede arrastrar de verdad');
+  ok(/_TITULOS_EXTRA/.test(rail), 'rail.js: la cabecera no repite la marca en pantallas fuera del menú (Mi cuenta)');
+  const nf = fs.readFileSync(ROOT + 'core/notificaciones.js', 'utf8');
+  for (const t of ['nota_publicada', 'tarea_asignada', 'tarea_vencida', 'entrega_por_revisar', 'solicitud_acceso', 'actividad_nueva', 'evaluaciones_sin_publicar']) ok(nf.includes(t + ':'), 'notificaciones.js: sabe presentar «' + t + '»');
+  const m19 = fs.readFileSync(ROOT + 'supabase/migrations/0019_notificaciones.sql', 'utf8');
+  const tipos = [...m19.match(/CHECK \(tipo IN \(([\s\S]*?)\)\)/)[1].matchAll(/'([a-z_]+)'/g)].map(x => x[1]);
+  ok(tipos.every(t => nf.includes(t + ':')), 'notificaciones.js cubre los ' + tipos.length + ' tipos de aviso de 0019 (ninguno cae en «Aviso» genérico)');
+  const css = fs.readFileSync(ROOT + 'premium.css', 'utf8') + fs.readFileSync(ROOT + 'movil.css', 'utf8');
+  ok(/\.campana-n\b/.test(css) && /\.aviso--nuevo\b/.test(css) && /\.acordeon\b/.test(css) && /\.escala-paso\b/.test(css) && /\.pts-rango\b/.test(css), 'CSS: campana, avisos, acordeón, escala y puntos por peso');
+  ok(fs.existsSync(ROOT + 'supabase/migrations/0022_notificaciones_app.sql') && fs.existsSync(ROOT + 'supabase/migrations/0023_puntuacion_por_peso.sql'), 'existen las migraciones 0022 y 0023');
+  const adm = fs.readFileSync(ROOT + 'admin.js', 'utf8');
+  ok(!/class="score-btn/.test(adm.replace(/const rows[\s\S]*?\n/, '')), 'admin.js: ya no hay hileras de botones numéricos (escala/puntos)');
+  ok(/\.pantalla-t \{ position: absolute/.test(fs.readFileSync(ROOT + 'movil.css', 'utf8')), 'movil.css: el título de pantalla no se repite bajo la cabecera (sigue para lectores de pantalla)');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

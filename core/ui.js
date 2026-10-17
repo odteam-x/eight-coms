@@ -222,6 +222,196 @@ function abrirPanel({ titulo = '', subtitulo = '' } = {}) {
 
 const cerrarPanel = () => closeModal(_PANEL_ID);
 
+/**
+ * Acordeón: tarjeta o sección que muestra su detalle al tocar la cabecera. Es un <details> nativo: teclado
+ * (Enter/Espacio) y lector de pantalla funcionan sin código. El estado abierto/cerrado se recuerda por id
+ * mientras dure la sesión de la pestaña, para que un repintado no lo cierre en la cara de la persona.
+ * No se usa para todo: solo donde ocultar el detalle reduce carga sin esconder lo que se necesita para decidir.
+ * @param {string} titulo / resumen  HTML ya escapado por quien llama
+ */
+const _acordeonAbierto = (() => { try { return JSON.parse(sessionStorage.getItem('ec-acordeones') || '{}'); } catch { return {}; } })();
+function acordeonHTML({ id, titulo, resumen = '', cuerpo = '', abierto = false, extra = '' }) {
+  const abre = id in _acordeonAbierto ? _acordeonAbierto[id] : abierto;
+  return `<details class="acordeon ${extra}" data-acordeon="${escHtml(id)}"${abre ? ' open' : ''}>
+    <summary><span class="acordeon-t"><b>${titulo}</b>${resumen ? `<small>${resumen}</small>` : ''}</span>
+      <i data-lucide="chevron-down" class="acordeon-chev" aria-hidden="true"></i></summary>
+    <div class="acordeon-cuerpo">${cuerpo}</div></details>`;
+}
+document.addEventListener('toggle', (e) => {
+  const d = e.target;
+  if (!(d instanceof HTMLElement) || !d.matches('details[data-acordeon]')) return;
+  _acordeonAbierto[d.dataset.acordeon] = d.open;
+  try { sessionStorage.setItem('ec-acordeones', JSON.stringify(_acordeonAbierto)); } catch { /* modo privado */ }
+}, true);
+
+/**
+ * Escala de puntaje: una barra con los valores del criterio como paradas numeradas.
+ * El valor se ve (número grande a la derecha, relleno de la barra hasta la parada elegida) y se puede
+ * elegir tocando el número directamente o arrastrando sobre la barra. La escala es la PROPIA del criterio
+ * (clásico 0–4, rúbrica por roles 1–5, distritos 0–7, bono 0–2) y, si el criterio tiene peso, se muestra.
+ * Solo presenta y devuelve la elección: ningún puntaje se calcula aquí (la fórmula vive en la base).
+ * Cada parada es un botón con data-act: el despachador de config.js y el handler de cada pantalla no cambian.
+ *
+ * @param {number} min/max    extremos de la escala (enteros)
+ * @param {number|null} valor elegido, o null si aún no hay
+ * @param {string} accion     nombre en ACCIONES; recibe data-arg = key y data-arg2 = valor
+ *                            (si key es null: data-arg = valor, como la acción `bono`)
+ * @param {string} nombre     para el nombre accesible
+ * @param {number|string} [peso] peso del criterio en su perfil (solo se muestra)
+ * @param {boolean} [bloqueado]
+ */
+function escalaHTML({ min, max, valor = null, accion, key = null, nombre = '', peso = null, bloqueado = false }) {
+  const n = max - min + 1;
+  const vals = Array.from({ length: n }, (_, i) => min + i);
+  const f = valor == null ? 0 : (valor - min) / (max - min);
+  const pasos = vals.map(v => {
+    const cls = valor != null && v === valor ? ' on' : (valor != null && v < valor ? ' pasado' : '');
+    const datos = key == null ? `data-arg="${v}"` : `data-arg="${escHtml(key)}" data-arg2="${v}"`;
+    return `<button type="button" class="escala-paso${cls}" data-act="${escHtml(accion)}" ${datos} data-v="${v}"
+      aria-pressed="${valor === v}" aria-label="${v} de ${max}${nombre ? ' en ' + escHtml(nombre) : ''}"${bloqueado ? ' disabled' : ''}>${v}</button>`;
+  }).join('');
+  return `<div class="escala" role="group" aria-label="Puntaje${nombre ? ' de ' + escHtml(nombre) : ''}, de ${min} a ${max}"
+      data-min="${min}" data-max="${max}"${valor != null ? ` data-valor="${valor}"` : ''} style="--n:${n};--f:${f}">
+    <div class="escala-cab">
+      <span class="escala-hint">Escala ${min} a ${max}${peso != null && peso !== '' ? ` · peso ${escHtml(peso)}` : ''}</span>
+      <span class="escala-valor" aria-live="polite"><b>${valor ?? '–'}</b><small>de ${max}</small></span>
+    </div>
+    <div class="escala-barra"><span class="escala-linea" aria-hidden="true"></span><span class="escala-relleno" aria-hidden="true"></span>${pasos}</div>
+  </div>`;
+}
+
+/** Repinta una escala tras elegir (o quitar, valor = null) un valor. No recorre el formulario entero. */
+function escalaActualizar(grupo, valor) {
+  if (!grupo) return;
+  const min = Number(grupo.dataset.min), max = Number(grupo.dataset.max);
+  if (valor == null) delete grupo.dataset.valor; else grupo.dataset.valor = String(valor);
+  grupo.style.setProperty('--f', valor == null ? 0 : (valor - min) / (max - min));
+  grupo.querySelectorAll('.escala-paso').forEach(b => {
+    const v = Number(b.dataset.v), on = valor != null && v === valor;
+    b.classList.toggle('on', on);
+    b.classList.toggle('pasado', valor != null && v < valor);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  const num = grupo.querySelector('.escala-valor b');
+  if (num) num.textContent = valor == null ? '–' : String(valor);
+}
+
+/* Arrastrar sobre la barra elige la parada más cercana. Un toque simple lo resuelve el clic nativo del botón
+   (por eso solo se actúa tras mover más de 6 px); al arrastrar se «pulsa» la parada, así que cada pantalla
+   guarda el valor por su camino de siempre. */
+(() => {
+  let barra = null, x0 = 0, movio = false;
+  const cercana = (b, x) => {
+    let mejor = null, d = 1e9;
+    b.querySelectorAll('.escala-paso:not(:disabled)').forEach(p => {
+      const r = p.getBoundingClientRect(), dx = Math.abs(x - (r.left + r.width / 2));
+      if (dx < d) { d = dx; mejor = p; }
+    });
+    return mejor;
+  };
+  document.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest?.('.escala-barra');
+    if (!b) return;
+    barra = b; x0 = e.clientX; movio = false;
+  });
+  document.addEventListener('pointermove', (e) => {
+    if (!barra) return;
+    if (!movio && Math.abs(e.clientX - x0) < 6) return;
+    movio = true;
+    const p = cercana(barra, e.clientX);
+    const g = barra.closest('.escala');
+    if (p && g && g.dataset.valor !== p.dataset.v) p.click();
+  });
+  const fin = () => { barra = null; };
+  document.addEventListener('pointerup', fin);
+  document.addEventListener('pointercancel', fin);
+})();
+
+/**
+ * Puntos por peso (rúbrica por roles, evaluaciones nuevas — migración 0023).
+ * Cada criterio puntúa de 0 hasta SU peso: con peso 30 la barra va de 0 a 30. Se mueve arrastrando la barra, con
+ * − / + (de uno en uno) o escribiendo el número. Sin tocar nada el criterio queda «sin puntuar» (no vale 0 y
+ * queda fuera del cálculo); vaciar el número lo devuelve a ese estado. Solo presenta y devuelve la elección:
+ * la base valida el rango y calcula.
+ * @param {number} max          peso del criterio (técnico) o 10 (núcleo)
+ * @param {number|null} valor
+ * @param {string} key          clave del criterio
+ * @param {string} accionPaso   nombre en ACCIONES para − / + (recibe data-arg = key, data-arg2 = ±1)
+ * @param {string} entrada      nombre en la lista blanca de config.js para barra y número (data-input / data-change)
+ */
+function puntosHTML({ max, valor = null, key, nombre = '', peso = null, accionPaso, entrada, bloqueado = false }) {
+  const f = valor == null ? 0 : valor / max;
+  const medio = Math.round(max / 2);
+  const marcas = [...new Set([0, medio, max])].map(n => `<span>${n}</span>`).join('');
+  const nom = nombre ? ' de ' + escHtml(nombre) : '';
+  const dis = bloqueado ? ' disabled' : '';
+  return `<div class="pts${valor == null ? ' pts--vacio' : ''}" data-max="${max}" data-key="${escHtml(key)}" style="--f:${f}">
+    <div class="pts-cab">
+      <span class="escala-hint">Escala 0 a ${max}${peso != null && peso !== '' ? ` · peso ${escHtml(peso)}` : ''}</span>
+      <label class="pts-num"><span class="sr-only">Puntaje${nom}</span>
+        <input type="number" inputmode="numeric" min="0" max="${max}" step="1" value="${valor ?? ''}" placeholder="–"
+          data-input="${escHtml(entrada)}" data-change="${escHtml(entrada)}" aria-label="Puntaje${nom}, de 0 a ${max}"${dis}>
+        <small>de ${max}</small></label>
+    </div>
+    <div class="pts-ctl">
+      <button type="button" class="pts-paso" data-act="${escHtml(accionPaso)}" data-arg="${escHtml(key)}" data-arg2="-1" aria-label="Bajar un punto${nom}"${dis}>−</button>
+      <input type="range" class="pts-rango" min="0" max="${max}" step="1" value="${valor ?? 0}" data-input="${escHtml(entrada)}"
+        aria-label="Puntaje${nom}, de 0 a ${max}" aria-valuetext="${valor == null ? 'sin puntuar' : valor + ' de ' + max}"${dis}>
+      <button type="button" class="pts-paso" data-act="${escHtml(accionPaso)}" data-arg="${escHtml(key)}" data-arg2="1" aria-label="Subir un punto${nom}"${dis}>+</button>
+    </div>
+    <div class="pts-pie"><span class="pts-marcas" aria-hidden="true">${marcas}</span><span class="pts-sin" aria-live="polite">${valor == null ? 'Sin puntuar' : ''}</span></div>
+  </div>`;
+}
+
+/** Repinta una barra de puntos tras fijar (o quitar, valor = null) el valor. `origen` = el control que lo causó. */
+function puntosActualizar(grupo, valor, origen = null) {
+  if (!grupo) return;
+  const max = Number(grupo.dataset.max);
+  grupo.style.setProperty('--f', valor == null ? 0 : valor / max);
+  grupo.classList.toggle('pts--vacio', valor == null);
+  const rango = grupo.querySelector('.pts-rango'), num = grupo.querySelector('.pts-num input'), sin = grupo.querySelector('.pts-sin');
+  if (rango && origen !== rango) rango.value = valor == null ? 0 : valor;
+  if (rango) rango.setAttribute('aria-valuetext', valor == null ? 'sin puntuar' : `${valor} de ${max}`);
+  if (num && origen !== num) num.value = valor == null ? '' : String(valor);
+  if (sin) sin.textContent = valor == null ? 'Sin puntuar' : '';
+}
+
+/**
+ * Tirador REAL de una hoja inferior: arrastrar hacia abajo cierra (más de 110 px, o un gesto rápido
+ * de más de 40 px); soltar antes la devuelve a su sitio. Solo se enlaza en hojas que de verdad se
+ * pueden cerrar así: una hoja sin este enlace no debe mostrar tirador. Funciona con ratón, tacto y lápiz
+ * (Pointer Events) y no sustituye al botón X ni a Escape, que siguen siendo la vía accesible.
+ * @param {HTMLElement} caja     el panel que se desplaza
+ * @param {Function}    cerrar   qué hacer al soltar pasado el umbral
+ */
+function hojaArrastrable(caja, cerrar) {
+  const tirador = caja?.querySelector(':scope > .hoja-tirador, :scope > .bb-hoja-tirador');
+  if (!tirador || tirador.dataset.arrastrable) return;
+  tirador.dataset.arrastrable = '1';
+  let y0 = null, dy = 0, t0 = 0;
+  const soltar = () => {
+    if (y0 === null) return;
+    const rapido = dy / Math.max(1, performance.now() - t0) > 0.6;
+    const cierra = dy > 110 || (dy > 40 && rapido);
+    caja.classList.remove('arrastrando');
+    caja.style.transform = '';
+    y0 = null; dy = 0;
+    if (cierra) cerrar();
+  };
+  tirador.addEventListener('pointerdown', (e) => {
+    y0 = e.clientY; t0 = performance.now(); dy = 0;
+    tirador.setPointerCapture?.(e.pointerId);
+    caja.classList.add('arrastrando');
+  });
+  tirador.addEventListener('pointermove', (e) => {
+    if (y0 === null) return;
+    dy = Math.max(0, e.clientY - y0);
+    caja.style.transform = `translateY(${dy}px)`;
+  });
+  tirador.addEventListener('pointerup', soltar);
+  tirador.addEventListener('pointercancel', soltar);
+}
+
 
 /* ══ FECHAS Y LÍNEA DE TIEMPO ══════════════════════════════════════════
  * Los períodos traen cuatro fechas (inicio, fin de trabajo, entrega de

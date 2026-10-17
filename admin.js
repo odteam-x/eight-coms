@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!CU) return;
 
   initNav({
-    marca: 'EIGHT CREATORS', badge: 'ADMIN', activo: 'overview', calTab: 'agenda',
+    marca: 'EIGHT CREATORS', badge: 'ADMIN', portal: 'admin', inicio: 'overview', activo: 'overview', calTab: 'agenda',
     // Cabecera de cuenta de la hoja móvil, donde viven salir y el
     // selector de gestión: el rail no existe por debajo de 768px.
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
@@ -141,6 +141,7 @@ async function loadAllData() {
     API.getDistritos(),
     API.getCriteriosV2(),
     API.getPerfiles(),
+    API.probarEscala(),
   ]);
   _users      = users;
   _roles      = roles;
@@ -410,9 +411,8 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
-        <div class="score-btns">
-          ${[0,1,2,3,4].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            data-act="puntaje" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
+        <div class="escala-wrap">
+          ${escalaHTML({ min: 0, max: 4, valor: puntajes[c.key] ?? null, accion: 'puntaje', key: c.key, nombre: c.label })}
           <input type="hidden" id="sc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="com-${c.key}"
@@ -454,9 +454,8 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
 
       <div class="eval-extras">
         <label class="eval-extra-label">Bono de excelencia (0–2)</label>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${[0,1,2].map(v => `<button class="score-btn${bono===v?' active':''}"
-            data-act="bono" data-arg="${v}" style="--sc:var(--sex)">${v}</button>`).join('')}
+        <div class="escala-wrap">
+          ${escalaHTML({ min: 0, max: 2, valor: bono, accion: 'bono', key: null, nombre: 'bono de excelencia' })}
           <input type="hidden" id="sc-bono" value="${bono}">
         </div>
       </div>
@@ -486,14 +485,12 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
 
 function setScore(key, val, btn) {
   document.getElementById(`sc-${key}`).value = val;
-  btn.closest('.score-btns').querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  escalaActualizar(btn.closest('.escala'), val);
 }
 
 function setBono(val, btn) {
   document.getElementById('sc-bono').value = val;
-  btn.closest('div').querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  escalaActualizar(btn.closest('.escala'), val);
 }
 
 async function saveEvaluacion(estado, evaluadoId) {
@@ -598,7 +595,12 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
   const respGuardadas = parseJSON(ev?.respuestas);
   const ap = criteriosAplicables(perfil, _criteriosV2, { conservar: [...Object.keys(guardado), ...Object.keys(respGuardadas)] });
   const escalas = [...ap.nucleo, ...ap.tecnicos];
+  // Escala: 'cinco' si la evaluación ya existe guardada de 1 a 5 (historia); en cualquier otro caso 'pesos'
+  // (de 0 al peso del criterio; núcleo de 0 a 10). La base la fija en el primer guardado (migración 0023);
+  // sin 0023 aplicada la columna no existe y se sigue evaluando de 1 a 5.
+  const escalaForm = API.escalaPorPeso() ? (ev?.escala === 'cinco' ? 'cinco' : 'pesos') : 'cinco';
   _formV2 = {
+    escala: escalaForm,
     evaluadoId, perfilId: perfil.id,
     claves: escalas.map(c => c.key),
     // Lo obligatorio es lo que bloquea la publicación; lo opcional sin responder se omite (nunca vale 0).
@@ -608,18 +610,22 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
     respuestas: { ...respGuardadas },
   };
 
+  // Control de puntaje de un criterio, según la escala de ESTA evaluación.
+  const controlPuntajeV2 = c => {
+    const v = _formV2.puntajes[c.key] ?? null;
+    if (_formV2.escala === 'cinco') return escalaHTML({ min: 1, max: 5, valor: v, accion: 'puntajeV2', key: c.key, nombre: c.nombre, peso: c.peso });
+    const max = c.tipo === 'nucleo' ? ESCALA_NUCLEO_V2 : Number(c.peso) || 0;
+    if (!max) return '<p class="v2-nota v2-nota--regla" role="alert">Este criterio no tiene peso en el perfil: no se puede puntuar.</p>';
+    return puntosHTML({ max, valor: v, key: c.key, nombre: c.nombre, peso: c.tipo === 'nucleo' ? null : c.peso, accionPaso: 'puntosPaso', entrada: 'puntosInputV2' });
+  };
+
   const fila = c => `
     <div class="v2-crit">
       <div class="v2-crit-head">
         <div class="v2-crit-nombre">${escHtml(c.nombre)}${c.obligatorio === false ? ' <span class="etiqueta etq-gris">Opcional</span>' : ''}${c.activo === false ? ' <span class="etiqueta etq-gris">Desactivado</span>' : ''}</div>
-        ${c.peso != null ? `<div class="v2-crit-peso">Peso ${c.peso}</div>` : ''}
       </div>
       ${c.descripcion ? `<p class="v2-crit-desc">${escHtml(c.descripcion)}</p>` : ''}
-      <div class="v2-score" role="group" aria-label="Puntaje de ${escHtml(c.nombre)}">
-        ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="${_formV2.puntajes[c.key] === n ? 'active' : ''}"
-          data-act="puntajeV2" data-arg="${escHtml(c.key)}" data-arg2="${n}"
-          aria-pressed="${_formV2.puntajes[c.key] === n}">${n}</button>`).join('')}
-      </div>
+      ${controlPuntajeV2(c)}
       <details class="v2-det"><summary>Descriptores 1 · 3 · 5</summary>${descriptoresHTML(c)}</details>
       <input class="cfg-inp eval-com-inp" type="text" id="com-${escHtml(c.key)}" aria-label="Comentario sobre ${escHtml(c.nombre)}"
         placeholder="Comentario (opcional)" value="${escHtml(coms[c.key] || '')}">
@@ -711,17 +717,41 @@ function setScoreV2(key, n, btn) {
   if (!_formV2) return;
   if (_formV2.puntajes[key] === n) delete _formV2.puntajes[key];
   else _formV2.puntajes[key] = n;
-  btn.closest('.v2-score').querySelectorAll('button').forEach(b => {
-    const on = Number(b.dataset.arg2) === _formV2.puntajes[key];
-    b.classList.toggle('active', on);
-    b.setAttribute('aria-pressed', String(on));
-  });
+  escalaActualizar(btn.closest('.escala'), _formV2.puntajes[key] ?? null);
   actualizarProgresoV2();
+}
+
+/* ── Puntos por peso (0023): barra, número y − / + ───────────────────────────────────────────── */
+function _fijarPuntosV2(g, key, v, origen) {
+  if (!_formV2) return;
+  if (v == null) delete _formV2.puntajes[key]; else _formV2.puntajes[key] = v;
+  puntosActualizar(g, v, origen);
+  actualizarProgresoV2();
+}
+/** data-input / data-change de la barra y del número. El número vacío deja el criterio sin puntuar. */
+function puntosInputV2(el, ev) {
+  const g = el.closest('.pts'); if (!g) return;
+  const max = Number(g.dataset.max);
+  let v;
+  if (el.type === 'number') {
+    if (el.value === '') v = null;
+    else { v = Math.round(Number(el.value)); if (!Number.isFinite(v)) return; v = Math.max(0, Math.min(max, v)); }
+    _fijarPuntosV2(g, g.dataset.key, v, ev?.type === 'change' ? null : el);   // al soltar, el número queda normalizado
+  } else {
+    _fijarPuntosV2(g, g.dataset.key, Number(el.value), el);
+  }
+}
+/** − / +: de un punto en un punto; sin puntuar, «+» empieza en 1 y «−» en 0. */
+function puntosPasoV2(key, el) {
+  const g = el.closest('.pts'); if (!g || !_formV2) return;
+  const max = Number(g.dataset.max), d = Number(el.dataset.arg2), cur = _formV2.puntajes[key];
+  const sig = cur == null ? (d > 0 ? 1 : 0) : Math.max(0, Math.min(max, cur + d));
+  _fijarPuntosV2(g, key, Math.min(sig, max), null);
 }
 
 /** ¿Tiene respuesta este requerido? Escala: puntaje; texto: lo escrito; el resto: lo elegido. */
 function _requeridoCumplido(k) {
-  if (_formV2.claves.includes(k)) return !!_formV2.puntajes[k];
+  if (_formV2.claves.includes(k)) return _formV2.puntajes[k] != null;   // en «pesos» el 0 es un puntaje válido
   const c = (_formV2.registro || []).find(x => x.key === k);
   if (c && tipoCampoDe(c) === 'texto') return !!(document.getElementById('reg-' + k)?.value || '').trim();
   return _formV2.respuestas[k] !== undefined;
@@ -1804,9 +1834,8 @@ function renderDistEvalForm(ev, distId, historial = []) {
         <div class="eval-crit-label">${escHtml(c.label)}</div>
       </div>
       <div class="eval-crit-inputs">
-        <div class="score-btns">
-          ${[0,1,2,3,4,5,6,7].map(v => `<button class="score-btn${(puntajes[c.key]??-1)===v?' active':''}"
-            data-act="puntajeDist" data-arg="${c.key}" data-arg2="${v}" style="--sc:var(--criterio)">${v}</button>`).join('')}
+        <div class="escala-wrap">
+          ${escalaHTML({ min: 0, max: 7, valor: puntajes[c.key] ?? null, accion: 'puntajeDist', key: c.key, nombre: c.label })}
           <input type="hidden" id="dsc-${c.key}" value="${puntajes[c.key]??0}">
         </div>
         <input class="cfg-inp eval-com-inp" type="text" id="dcom-${c.key}"
@@ -1864,8 +1893,7 @@ function renderDistEvalForm(ev, distId, historial = []) {
 
 function setDistScore(key, val, btn) {
   document.getElementById(`dsc-${key}`).value = val;
-  btn.closest('.score-btns').querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  escalaActualizar(btn.closest('.escala'), val);
 }
 
 async function saveDistEval(estado, distId) {

@@ -39,6 +39,8 @@ function initNav(cfg) {
   renderRail();
   renderCabeceraMovil();
   renderBottomBar();
+  // Campana de avisos: se configura con el portal y arranca el contador (core/notificaciones.js).
+  if (typeof Notif !== 'undefined') { Notif.configurar({ portal: cfg.portal || 'miembro', inicio: cfg.inicio || 'inicio' }); Notif.iniciar(); }
   let colapsado = false;
   try { colapsado = localStorage.getItem(RAIL_COLAPSO_KEY) === '1'; }
   catch { /* localStorage bloqueado (modo privado / cookies off) */ }
@@ -63,7 +65,7 @@ function renderRail() {
   marca.setAttribute('aria-label', 'Ir al inicio');
   marca.innerHTML =
     '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
-    '<img src="logo.png" alt="" class="rail-logo" width="40" height="40"></picture>' +
+    '<img src="logo.png" alt="" class="rail-logo" width="48" height="48"></picture>' +
     '<span class="rail-marca-col">' +
     `<span class="rail-marca-txt">${escHtml(_railCfg.marca || '')}</span>` +
     (_railCfg.badge ? `<span class="rail-badge">${escHtml(_railCfg.badge)}</span>` : '') + '</span>';
@@ -119,6 +121,7 @@ function renderRail() {
       </div>
     </button>
     <div class="rail-acciones">
+      ${typeof Notif !== 'undefined' ? Notif.campanaHTML('campana--rail rail-item rail-item--sec').replace('</button>', '<span class="rail-txt">Avisos</span></button>') : ''}
       <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema" data-tip="Cambiar tema">
         <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
       </button>
@@ -181,14 +184,24 @@ function renderCabeceraMovil() {
   cab.className = 'cab-movil';
   cab.innerHTML =
     '<picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp">' +
-    '<img src="logo.png" alt="" class="cab-movil-logo" width="32" height="32"></picture>' +
-    `<span class="cab-movil-seccion" id="cab-movil-seccion">${escHtml(_railCfg.marca || '')}</span>`;
+    '<img src="logo.png" alt="" class="cab-movil-logo" width="44" height="44"></picture>' +
+    '<div class="cab-titulos">' +
+      `<span class="cab-marca">${escHtml(_railCfg.marca || '')}</span>` +
+      `<span class="cab-movil-seccion" id="cab-movil-seccion">${escHtml(_tituloDe(_railCfg.activo))}</span>` +
+    '</div>' +
+    '<div class="cab-acciones">' +
+      '<button type="button" class="cab-btn" data-act="abrirBuscador" aria-label="Buscar personas y secciones"><i data-lucide="search" aria-hidden="true"></i></button>' +
+      (typeof Notif !== 'undefined' ? Notif.campanaHTML('cab-btn') : '') +
+    '</div>';
   document.body.insertBefore(cab, document.body.firstChild);
+  renderIconos(cab);
 }
 
 /** Nombre de la sección en curso, para la cabecera móvil. */
+// Pantallas que no son un destino del menú (se llega desde la hoja «Más» o la cuenta).
+const _TITULOS_EXTRA = { cuenta: 'Mi cuenta' };
 function _tituloDe(tab) {
-  return _items().find(i => i.tab === tab)?.etiqueta || _railCfg?.marca || '';
+  return _items().find(i => i.tab === tab)?.etiqueta || _TITULOS_EXTRA[tab] || _railCfg?.marca || '';
 }
 
 /* ══ BARRA INFERIOR (móvil) ════════════════════════════════════════════ */
@@ -268,21 +281,25 @@ function _montarHoja(items) {
         '<img src="logo.png" alt="" class="bb-hoja-logo" width="28" height="28"></picture>' +
         `<span>${escHtml(_railCfg?.marca || '')}</span>` +
       '</div>' +
-      '<div class="bb-hoja-cuenta">' +
+      '<button type="button" class="bb-hoja-cuenta" data-act="cuentaDesdeHoja" aria-label="Abrir Mi cuenta">' +
         '<div class="avatar" id="av-hoja">?</div>' +
         '<div class="bb-hoja-quien">' +
           `<div class="bb-hoja-nombre" id="uname-hoja">${escHtml(pie.nombre || '—')}</div>` +
           (pie.badge ? `<div class="bb-hoja-badge">${escHtml(pie.badge)}</div>` : '') +
+          '<div class="bb-hoja-ver">Mi cuenta y foto</div>' +
         '</div>' +
-      '</div>' +
+        '<i data-lucide="chevron-right" class="rail-ico" aria-hidden="true"></i>' +
+      '</button>' +
 
       // ── Destinos sobrantes ──
-      (destinos ? `<div class="bb-hoja-grupo">${destinos}</div>` : '') +
+      (destinos ? `<div class="bb-hoja-grupo bb-hoja-destinos">${destinos}</div>` : '') +
 
       // ── Acciones de cuenta: siempre presentes ──
       '<div class="bb-hoja-sep" role="separator"></div>' +
-      '<div class="bb-hoja-grupo">' +
+      '<div class="bb-hoja-grupo bb-hoja-acciones">' +
         '<span id="gestion-switch-movil" class="bb-hoja-gestion" hidden></span>' +
+        (_railCfg?.ayuda ? `<a class="bb-hoja-item" href="${escHtml(_railCfg.ayuda)}"><i data-lucide="book-open" class="rail-ico"></i>Ayuda y manual de uso</a>` : '') +
+        '<button class="bb-hoja-item" data-act="instalarApp" id="bb-instalar"><i data-lucide="smartphone" class="rail-ico"></i>Instalar en tu celular</button>' +
         '<button class="bb-hoja-item" data-act="fn" data-arg="toggleTheme">' +
           '<i data-lucide="sun-moon" class="rail-ico"></i>Cambiar tema</button>' +
         '<button class="bb-hoja-item bb-hoja-item--salir" data-act="salir">' +
@@ -295,6 +312,8 @@ function _montarHoja(items) {
   hoja.addEventListener('click', e => { if (e.target === hoja) cerrarHoja(); });
   document.body.appendChild(hoja);
   renderIconos(hoja);
+  // El tirador es real: arrastrarlo hacia abajo cierra la hoja (core/ui.js).
+  if (typeof hojaArrastrable === 'function') hojaArrastrable(hoja.querySelector('.bb-hoja-panel'), cerrarHoja);
 }
 
 /* openModal/closeModal en vez de classList: la hoja contiene ahora una
@@ -307,6 +326,9 @@ function abrirHoja() {
   const av = document.getElementById('av-hoja');
   const src = document.getElementById('av-desktop');
   if (av && src) av.innerHTML = src.innerHTML;
+  // «Instalar» solo se ofrece si la app aún no está instalada.
+  const inst = document.getElementById('bb-instalar');
+  if (inst) inst.hidden = typeof Pwa !== 'undefined' && Pwa.instalada();
   openModal('bb-hoja');
 }
 
@@ -321,7 +343,11 @@ function marcarActivo(tab) {
   // Solo los destinos: data-act="tab". El botón de tema también lleva
   // data-arg y no debe poder quedar marcado como activo.
   const seccion = document.getElementById('cab-movil-seccion');
-  if (seccion) seccion.textContent = _tituloDe(tab);
+  if (seccion) {
+    seccion.textContent = _tituloDe(tab);
+    // Si el título coincidiera con la marca no se repite: la marca pequeña se oculta.
+    document.getElementById('cab-movil')?.classList.toggle('cab--sin-marca', seccion.textContent === (_railCfg?.marca || ''));
+  }
 
   document.querySelectorAll('.rail-item[data-act="tab"], .bb-item[data-act="tab"]').forEach(b => {
     const on = b.dataset.arg === tab;
