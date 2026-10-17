@@ -19,4 +19,9 @@
 @media (max-width: 767px) {
   #contenido > .derechos { padding-bottom: calc(var(--sp-7) + 72px); }
 }
+/* Celular: el pie del inicio de sesión queda fijo abajo, a la vista sin desplazarse; el formulario reserva ese espacio. */
+@media (max-width: 859px) {
+  .derechos--login { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: var(--sp-2) var(--sp-4) max(var(--sp-2), env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--trazo); }
+  body:has(.derechos--login) { padding-bottom: 76px; }
+}
 @media print { .derechos { display: none; }}
