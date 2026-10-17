@@ -5,9 +5,9 @@
  * y sirve datos de Supabase con permisos por persona, así que cachear scripts o respuestas mostraría
  * versiones viejas o datos de otra sesión. Solo se guarda offline.html y el icono.
  * Sube VERSION si cambias este archivo o offline.html. */
-const VERSION = 'ec-v1';
+const VERSION = 'ec-v2';
 const OFFLINE = '/offline.html';
-const PRECACHE = [OFFLINE, '/icono-192.png'];
+const PRECACHE = [OFFLINE, '/favicon-64.png', '/icono-redondo-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
