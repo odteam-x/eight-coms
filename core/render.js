@@ -135,6 +135,7 @@ function renderBannerSoloLectura(gestion) {
 /* Acciones del despachador que ESCRIBEN. Deshabilitar por clase no basta:
    `display:none` oculta el botón pero el despachador sigue vivo. */
 const _ACCIONES_ESCRITURA = new Set([
+  'borrarEval', 'borrarBorradores',
   'saveCal','saveRol','savePeriodo','saveCriterioEntry','saveRubricaEntry',
   'showCalModal','showRolModal','showPeriodoModal','showCriterioModal',
   'showRubricaModal','showAbrirGestionModal','confirmarAbrirGestion',

@@ -1217,3 +1217,8 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 
 /* Enlaces (no botones) que se ven como el resto del menú y de los ajustes. */
 a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }
+
+/* Eliminar borradores: acción destructiva, con --alert (nunca solo color: lleva icono y texto). */
+.btn-draft--borrar, .btn-texto--peligro { display: inline-flex; align-items: center; gap: 8px; color: var(--alert); }
+.btn-draft--borrar { border-color: color-mix(in srgb, var(--alert) 45%, transparent); margin-right: auto; }
+.btn-draft--borrar svg, .btn-texto--peligro svg, .btn-draft--borrar i, .btn-texto--peligro i { width: 20px; height: 20px; }

@@ -168,5 +168,17 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/todavía no existen|aún no puedes elegirlos/.test(man), 'los manuales dicen expresamente lo que todavía no existe (roles de preferencia, roles por actividad)');
 }
 
+// ── Eliminar borradores ───────────────────────────────────────────────────
+{
+  const api = fs.readFileSync(ROOT + 'api.js', 'utf8'), adm = fs.readFileSync(ROOT + 'admin.js', 'utf8'), cfg = fs.readFileSync(ROOT + 'config.js', 'utf8'), rnd = fs.readFileSync(ROOT + 'core/render.js', 'utf8');
+  ok(/async deleteBorrador\(/.test(api) && /async deleteBorradores\(/.test(api), 'api.js: deleteBorrador y deleteBorradores');
+  ok((api.match(/\.eq\('estado', 'borrador'\)\.select\('id'\)/g) || []).length === 2, 'api.js: las dos eliminaciones filtran estado = borrador (una publicada no se puede borrar desde aquí)');
+  ok(/data-act="borrarEval"/.test(adm) && /ev\?\.estado === 'borrador'/.test(adm), 'admin.js: el botón «Eliminar borrador» solo aparece si la evaluación es un borrador');
+  ok(/data-act="borrarBorradores"/.test(adm) && /cuenta\.borrador \?/.test(adm), 'admin.js: el botón masivo solo aparece si hay borradores');
+  ok(/borrarEval:\s*\(arg\)\s*=>\s*borrarBorradorEval/.test(cfg) && /borrarBorradores:\s*\(\)\s*=>\s*borrarBorradoresEval/.test(cfg), 'config.js: acciones registradas');
+  ok(/'borrarEval', 'borrarBorradores'/.test(rnd), 'render.js: los botones se desactivan en una gestión archivada');
+  ok(/Tareas\.abrirModal\(\{\s*titulo: 'Eliminar borrador'/.test(adm) && /Las evaluaciones publicadas no se tocan/.test(adm), 'admin.js: pide confirmación y dice que lo publicado no se toca');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

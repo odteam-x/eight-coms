@@ -393,6 +393,19 @@ const API = {
     return data;
   },
 
+  /** Borra el borrador de UNA persona en un período. Nunca toca una evaluación publicada (filtro estado = 'borrador'). */
+  async deleteBorrador(periodoId, evaluadoId) {
+    const { data, error } = await SB.from('evaluaciones').delete()
+      .eq('periodo_id', periodoId).eq('evaluado_id', evaluadoId).eq('estado', 'borrador').select('id');
+    return error ? { ok: false, error: error.message } : { ok: true, n: (data || []).length };
+  },
+  /** Borra todos los borradores de un período. Las publicadas no se tocan. */
+  async deleteBorradores(periodoId) {
+    const { data, error } = await SB.from('evaluaciones').delete()
+      .eq('periodo_id', periodoId).eq('estado', 'borrador').select('id');
+    return error ? { ok: false, error: error.message } : { ok: true, n: (data || []).length };
+  },
+
   async upsertEvaluacion({ periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext, comentarios, respuestas = null, estado = 'borrador' }) {
     const { data, error } = await SB
       .from('evaluaciones')

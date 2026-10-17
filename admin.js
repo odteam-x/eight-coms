@@ -333,6 +333,7 @@ function renderEvalUserList() {
       <div class="eval-grupo"><span class="eval-grupo-t">Estado</span><div class="eval-chips">
         ${chip('evalFiltro', '', 'Todas', todos.length, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
       </div></div>
+      ${cuenta.borrador ? `<div class="eval-grupo"><button type="button" class="btn-texto btn-texto--peligro" data-act="borrarBorradores"><i data-lucide="trash-2" aria-hidden="true"></i>${cuenta.borrador === 1 ? 'Eliminar el borrador' : 'Eliminar los ' + cuenta.borrador + ' borradores'}</button></div>` : ''}
       ${atajosVisibles.length ? `<div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
         ${atajosVisibles.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
       </div></div>` : ''}`;
@@ -476,11 +477,54 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
+             ${ev?.estado === 'borrador' ? `<button class="btn-draft btn-draft--borrar" data-act="borrarEval" data-arg="${evaluadoId}"><i data-lucide="trash-2" aria-hidden="true"></i>Eliminar borrador</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Guardar borrador</button>
              <button class="btn-save btn-publish" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Publicar evaluación</button>
            </div>`
       }
     </div>`;
+}
+
+/* ── Eliminar borradores ───────────────────────────────────────────────────────────────────
+ * Solo borradores: la consulta filtra estado = 'borrador', así que una evaluación publicada no se puede borrar
+ * desde aquí aunque el botón se manipule. Los borradores no avisan a nadie, no hay nada más que limpiar. */
+async function _trasBorrar(userIdParaRehacer) {
+  await loadEvalPEData();
+  if (userIdParaRehacer) await selectEvalUser(userIdParaRehacer);
+  else { _selectedEvalUser = null; const a = document.getElementById('eval-form-area'); if (a) a.innerHTML = ''; }
+}
+
+function borrarBorradorEval(userId) {
+  const u = _users.find(x => x.id === userId);
+  if (!_activePE || !u) return;
+  Tareas.abrirModal({
+    titulo: 'Eliminar borrador', confirmar: 'Eliminar borrador',
+    campos: [{ id: 'i', tipo: 'info', texto: `Se borra el borrador de ${u.nombre} en ${_activePE.nombre}: puntajes y comentarios. No se puede deshacer. Si ya estaba publicado no se toca.` }],
+    onConfirm: async () => {
+      const r = await API.deleteBorrador(_activePE.id, userId);
+      if (!r.ok) return r.error;
+      showToast(r.n ? 'Borrador eliminado' : 'No había un borrador para eliminar (puede que ya esté publicado)', r.n ? 'success' : 'info');
+      await _trasBorrar(userId);
+      return null;
+    },
+  });
+}
+
+function borrarBorradoresEval() {
+  if (!_activePE) return;
+  const n = _evalPECache.filter(e => e.estado === 'borrador').length;
+  if (!n) { showToast('No hay borradores en este período.', 'info'); return; }
+  Tareas.abrirModal({
+    titulo: 'Eliminar borradores', confirmar: n === 1 ? 'Eliminar 1 borrador' : `Eliminar ${n} borradores`,
+    campos: [{ id: 'i', tipo: 'info', texto: `Se borran los ${n} borradores de ${_activePE.nombre} (puntajes y comentarios). Las evaluaciones publicadas no se tocan. No se puede deshacer.` }],
+    onConfirm: async () => {
+      const r = await API.deleteBorradores(_activePE.id);
+      if (!r.ok) return r.error;
+      showToast(r.n === 1 ? '1 borrador eliminado' : `${r.n} borradores eliminados`, 'success');
+      await _trasBorrar(null);
+      return null;
+    },
+  });
 }
 
 function setScore(key, val, btn) {
@@ -685,6 +729,7 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
         : `<div class="eval-actions">
+             ${ev?.estado === 'borrador' ? `<button class="btn-draft btn-draft--borrar" data-act="borrarEval" data-arg="${evaluadoId}"><i data-lucide="trash-2" aria-hidden="true"></i>Eliminar borrador</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Guardar borrador</button>
              <button class="btn-save btn-publish" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Publicar evaluación</button>
            </div>`}
