@@ -358,7 +358,7 @@ SELECT cron.schedule('notif_enviar', '*/5 * * * *', $job$
   SELECT net.http_post(
     url     := 'https://owfmorjlymoxqrzhadnf.supabase.co/functions/v1/enviar-notificaciones',
     headers := jsonb_build_object('Content-Type', 'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93Zm1vcmpseW1veHFyemhhZG5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNzA2MzIsImV4cCI6MjA5NzY0NjYzMn0.T6j0MwRW2ast2Szl7AhW0LJRIvX7sNbOYvJ7JSUvHU'),
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93Zm1vcmpseW1veHFyemhhZG5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNzA2MzIsImV4cCI6MjA5NzY0NjYzMn0.T6j0MwRW2ast2Szl7AhW0LJRIvFX7sNbOYvJ7JSUvHU'),
     body    := '{}'::jsonb)
   WHERE EXISTS (SELECT 1 FROM public.notificaciones
                  WHERE enviada_en IS NULL AND intentos < 5 AND enviar_despues <= NOW())
