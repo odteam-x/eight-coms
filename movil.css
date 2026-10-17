@@ -152,3 +152,21 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 /* Cabeceras de grupos plegables (p. ej. los roles en Distrito) y rótulos pequeños de tarjetas de resumen. */
 .v2-rol > summary { min-height: var(--m-ctrl-sec); padding-block: var(--sp-3); display: flex; align-items: center; }
 .dist-scard-lbl, .dist-scard-sub { font-size: var(--fs-xs); }
+
+/* ── Avisos como hoja inferior que mide lo que contiene ─────────────────────────────────────
+   Antes ocupaba toda la pantalla aunque hubiera tres avisos. Ahora: altura de su contenido, tope 82 dvh,
+   esquinas superiores redondeadas, tirador arrastrable, barra de filtros fija arriba al desplazar. */
+.panel--hoja { height: auto; max-height: 82dvh; border-radius: var(--r-cont) var(--r-cont) 0 0; overflow: hidden; }
+.panel--hoja .panel-cab { padding: 0 var(--m-gutter) var(--sp-3); border-bottom: 0; align-items: center; background: transparent; }
+.panel--hoja .panel-cab::after { display: none; }
+.panel--hoja .panel-titulo { font-size: var(--fs-xl); text-transform: none; letter-spacing: 0; }
+.panel--hoja .panel-sub { font-size: var(--fs-sm); }
+.panel--hoja .panel-cuerpo { padding: 0 var(--m-gutter) max(var(--sp-5), env(safe-area-inset-bottom)); }
+.panel--hoja .hoja-tirador { margin-bottom: var(--sp-1); }
+.panel--hoja .avisos-barra { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: var(--sp-2) 0 var(--sp-2); margin: 0; box-shadow: 0 8px 8px -8px var(--bg); }
+.panel--hoja .avisos-grupo { margin-left: var(--sp-1); }
+.panel--hoja .aviso { min-height: 72px; }
+.panel--hoja .aviso-t { font-size: var(--fs-md); }
+.panel--hoja .aviso-d { font-size: var(--fs-sm); }
+.panel--hoja .aviso-h { font-size: var(--fs-xs); }
+.panel--hoja .aviso-estado { min-height: 180px; justify-content: center; }

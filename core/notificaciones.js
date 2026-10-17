@@ -170,7 +170,7 @@ const Notif = (() => {
   }
 
   function abrir() {
-    const cuerpo = abrirPanel({ titulo: 'Avisos', subtitulo: 'Lo que pasó en tu cuenta' });
+    const cuerpo = abrirPanel({ titulo: 'Avisos', subtitulo: 'Lo que pasó en tu cuenta', compacto: true });
     cuerpo.innerHTML = '<div id="avisos-cuerpo" class="avisos"></div>';
     _solo = false; _lista = []; _hayMas = false;
     _cargar(false);

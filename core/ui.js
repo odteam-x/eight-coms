@@ -184,7 +184,7 @@ function animarEntrada(raiz) {
  */
 const _PANEL_ID = 'panel-lateral';
 
-function abrirPanel({ titulo = '', subtitulo = '' } = {}) {
+function abrirPanel({ titulo = '', subtitulo = '', compacto = false } = {}) {
   let ov = document.getElementById(_PANEL_ID);
   if (!ov) {
     ov = document.createElement('div');
@@ -208,6 +208,8 @@ function abrirPanel({ titulo = '', subtitulo = '' } = {}) {
     document.body.appendChild(ov);
     renderIconos(ov);
   }
+  // compacto = hoja inferior que mide lo que su contenido (avisos); sin él, el panel ocupa toda la altura (perfiles).
+  ov.querySelector('.panel').classList.toggle('panel--hoja', !!compacto);
   document.getElementById('panel-lateral-titulo').textContent = titulo;
   const sub = document.getElementById('panel-lateral-sub');
   sub.textContent = subtitulo;
