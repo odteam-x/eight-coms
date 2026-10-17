@@ -173,7 +173,7 @@ const API = {
     const desde = pagina * porPagina;
     const { data, error, count } = await SB
       .from('profiles')
-      .select('*, roles(id, nombre)', { count: 'exact' })
+      .select('*, roles!profiles_rol_id_fkey(id, nombre)', { count: 'exact' })
       .order('nombre')
       .range(desde, desde + porPagina - 1);
     if (error) { console.warn('[API.getAllUsers]', error.message); return []; }
@@ -332,7 +332,7 @@ const API = {
   async getPerfiles() {
     const g = await _gid();
     let q = SB.from('perfiles_rol')
-      .select('id, rol_id, version, vigente_desde_periodo, created_at, roles(nombre), perfil_criterios(criterio_key, peso)')
+      .select('id, rol_id, version, vigente_desde_periodo, created_at, roles!perfiles_rol_rol_id_fkey(nombre), perfil_criterios(criterio_key, peso)')
       .order('rol_id').order('version');
     if (g != null) q = q.eq('gestion_id', g);
     const { data, error } = await q;
