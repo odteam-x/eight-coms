@@ -104,6 +104,7 @@ const ACCIONES = {
   mostrarReset:     ()            => showResetForm(),
   volverLogin:      ()            => backToLogin(),
   resetPaso1:       ()            => resetStep1(),
+  modoAcceso:       (arg)         => setModoAcceso(arg),
 
   /* ── Navegación: rail y barra inferior (core/rail.js) ── */
   railColapso:   ()    => alternarColapso(),

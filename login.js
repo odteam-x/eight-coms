@@ -276,3 +276,47 @@ async function verifyAndResetPassword() {
   var dest = profile?.es_admin ? 'admin.html' : (profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
   setTimeout(function() { window.location.replace(dest); }, 2000);
 }
+
+/* ── Entrar / Crear cuenta en una sola página ──────────────────────────
+ * Antes "Crear cuenta" abría registro.html y toda la pantalla se recargaba. Ahora son
+ * dos paneles de la misma página: el selector desliza un indicador, el formulario que
+ * sale se desplaza y se desvanece mientras entra el otro, y el texto de marca se cruza.
+ * Todo el movimiento está en CSS (login.css) y se anula con prefers-reduced-motion.
+ * El panel inactivo lleva `inert`: ni se enfoca con Tab ni lo lee un lector de pantalla.
+ * #registro en la URL abre el registro (registro.html redirige ahí).
+ */
+function setModoAcceso(modo, opciones) {
+  modo = modo === 'registro' ? 'registro' : 'login';
+  const op = opciones || {};
+  const layout = document.querySelector('.login-layout');
+  if (!layout || layout.dataset.modo === modo && !op.forzar) return;
+  layout.dataset.modo = modo;
+  document.getElementById('pane-login').inert = modo !== 'login';
+  document.getElementById('pane-registro').inert = modo !== 'registro';
+  for (const m of ['login', 'registro']) {
+    const t = document.getElementById('tab-' + m);
+    t.setAttribute('aria-selected', String(m === modo));
+    t.tabIndex = m === modo ? 0 : -1;
+  }
+  document.title = modo === 'registro' ? 'EIGHT CREATORS LABs — Registro' : 'EIGHT CREATORS LABs — Portal';
+  if (!op.sinHash) history.replaceState(null, '', location.pathname + location.search + (modo === 'registro' ? '#registro' : ''));
+  // En pantallas táctiles no se enfoca: abriría el teclado y taparía el formulario recién cambiado.
+  if (!op.sinFoco && !matchMedia('(pointer: coarse)').matches) {
+    const primero = document.querySelector(modo === 'registro' ? '#r-nombre' : '#li-user');
+    primero?.focus({ preventScroll: true });
+  }
+}
+
+(function iniciarModoAcceso() {
+  const desdeHash = () => location.hash === '#registro' ? 'registro' : 'login';
+  if (desdeHash() === 'registro') setModoAcceso('registro', { sinFoco: true, sinHash: true });
+  window.addEventListener('hashchange', () => setModoAcceso(desdeHash(), { sinHash: true }));
+  // Flechas izquierda/derecha entre pestañas, como en cualquier selector de pestañas
+  document.querySelector('.login-seg')?.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const nuevo = document.querySelector('.login-layout').dataset.modo === 'login' ? 'registro' : 'login';
+    setModoAcceso(nuevo, { sinFoco: true });
+    document.getElementById('tab-' + nuevo).focus();
+  });
+})();

@@ -32,12 +32,13 @@ Rama `feat/ui-rediseno`. Medida sobre el DOM real con el simulador (`tools/prueb
 | 17 | Media | **Rail**: los ítems de Configuración medían lo que su texto (113–167 px) y el hover dibujaba una píldora distinta en cada uno | Corregido: todos 195 px |
 | 18 | Media | **Línea de tiempo de Períodos**: una barra coral a todo el ancho sin escala | Rehecha: eje de meses, pistas para períodos que se pisan, rango de fechas en el tramo, marca «Hoy» |
 | 19 | Baja | Login móvil: «EIGHT» sangrado respecto de «CREATORS / LABs» por un espacio duro de `login.css` | Corregido |
+| 20 | Alta | **Acceso y registro eran dos páginas**: «Crear cuenta» recargaba otra pantalla; en escritorio el panel de marca (lista de tres puntos) obligaba a deslizar para ver información secundaria | Una sola página con transición animada entre Entrar y Crear cuenta; escritorio sin scroll (verificado a 1440×800, 1366×600 y 1536×674); móvil con cabecera de marca de una línea |
 
 ## Inventario de pantallas (rutas)
 
 | Ruta | Pestañas / vistas |
 |---|---|
-| `index.html`, `registro.html` | Login, recuperación de contraseña, registro |
+| `index.html` | Entrar, recuperación de contraseña y Crear cuenta (`#registro`) en una sola página; `registro.html` solo redirige |
 | `user.html` | Inicio · Mi perfil (4 sub-pestañas) · Calendario · Entregas · Mi cuenta |
 | `secretario.html` | Lo anterior + Distrito (Personas / Ranking de distritos) · Tareas del distrito |
 | `admin.html` | Panel · Evaluar · Tareas · Personas · Calendario · Reportes · Configuración: Períodos, Actividades, Rúbrica, Roles y perfiles, Distritos, Gestiones · Mi cuenta · modal de entrada (gestión/período) |

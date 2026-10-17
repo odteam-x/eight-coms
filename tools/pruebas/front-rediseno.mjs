@@ -73,5 +73,26 @@ for (const f of ['user.html', 'secretario.html', 'admin.html']) {
   ok(!/class="btn-cfg-add"[^>]*>\s*(<i[^>]*><\/i>)?\s*\+? ?Nuev[oa] (rol|período|actividad)/.test(h), 'admin.html: «Nuevo rol/período/actividad» son acción primaria (.btn-save)');
 }
 
+console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
+{
+  const h = fs.readFileSync(ROOT + 'index.html', 'utf8');
+  const ids = [...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  const dup = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
+  ok(h.includes('id="login-form"') && h.includes('id="register-form"'), 'index.html: formulario de acceso y de registro en la misma página');
+  ok(h.includes('role="tablist"') && h.includes('id="pane-login"') && h.includes('id="pane-registro"'), 'index.html: selector con roles de pestaña y dos paneles');
+  ok(/id="pane-registro"[^>]*\binert\b/.test(h), 'index.html: el panel inactivo parte con inert');
+  ok(!dup.length, `index.html: ids únicos${dup.length ? ' (repetidos: ' + dup.join(', ') + ')' : ''}`);
+  ok(!/\son[a-z]+\s*=/i.test(h.replace(/data-on[a-z]+/g, '')), 'index.html: sin handlers inline');
+  ok(!/href="registro\.html"/.test(h), 'index.html: ya no enlaza a registro.html');
+  ok(/login\.js[\s\S]*registro\.js/.test(h), 'index.html: login.js carga antes que registro.js (aporta cargando())');
+  const reg = fs.readFileSync(ROOT + 'registro.html', 'utf8');
+  ok(/http-equiv="refresh"[^>]*index\.html#registro/.test(reg) && !/<script/.test(reg), 'registro.html: solo redirige a index.html#registro');
+  const rj = fs.readFileSync(ROOT + 'registro.js', 'utf8');
+  ok(!/function cargando/.test(rj) && !/function authErrEs\b/.test(rj), 'registro.js: no redefine cargando() ni authErrEs() de login.js');
+  ok(/#register-form \.btn-pass-toggle/.test(rj), 'registro.js: el ojo de contraseña solo se engancha en el formulario de registro');
+  const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  ok(/modoAcceso:\s*\(arg\)\s*=>\s*setModoAcceso/.test(cfg), 'config.js: acción modoAcceso registrada');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

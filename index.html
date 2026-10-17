@@ -28,7 +28,7 @@
 
 <button class="theme-toggle theme-toggle-fixed" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema"><i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span></button>
 
-<div class="login-layout">
+<div class="login-layout" data-modo="login">
 
   <!-- Panel izquierdo: identidad de marca -->
   <div class="login-panel-brand">
@@ -40,7 +40,10 @@
     <div class="login-brand-center">
       <p class="login-hero-tag">Sistema de Evaluación · CELIDER 08</p>
       <h1 class="login-hero-h1">EIGHT<em>CREATORS</em><span class="login-hero-labs">LABs</span></h1>
-      <p class="login-hero-desc">Portal de desempeño para el equipo creativo de CELIDER 08 Santiago.</p>
+      <p class="login-hero-desc">
+        <span class="login-hero-desc-m" data-m="login">Portal de desempeño para el equipo creativo de CELIDER 08 Santiago.</span>
+        <span class="login-hero-desc-m" data-m="registro">Crea tu cuenta para acceder al portal de desempeño del equipo creativo.</span>
+      </p>
       <ul class="login-puntos">
         <li><strong>Tu evaluación, criterio por criterio</strong><span>Qué se mide y cómo llegar al siguiente nivel.</span></li>
         <li><strong>Tareas y fechas en un solo calendario</strong><span>Lo que toca entregar y cuándo.</span></li>
@@ -53,10 +56,13 @@
 
   <!-- Panel derecho: formulario -->
   <div class="login-panel-form">
-    <nav class="login-seg" aria-label="Acceso al portal">
-      <a href="index.html" aria-current="page">Entrar</a>
-      <a href="registro.html">Crear cuenta</a>
-    </nav>
+    <div class="login-seg" role="tablist" aria-label="Acceso al portal">
+      <button type="button" role="tab" id="tab-login" class="login-seg-btn" aria-selected="true" aria-controls="pane-login" data-act="modoAcceso" data-arg="login">Entrar</button>
+      <button type="button" role="tab" id="tab-registro" class="login-seg-btn" aria-selected="false" aria-controls="pane-registro" tabindex="-1" data-act="modoAcceso" data-arg="registro">Crear cuenta</button>
+    </div>
+
+    <div class="login-stage">
+    <section id="pane-login" class="login-pane" role="tabpanel" aria-labelledby="tab-login">
     <form id="login-form" class="login-form-inner" novalidate autocomplete="on">
       <div class="login-form-header">
         <h2 class="login-form-title">Iniciar sesión</h2>
@@ -86,7 +92,7 @@
         <a href="#" data-act="mostrarReset">Olvidé mi contraseña</a>
       </div>
       <div class="login-aux">
-        ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+        ¿No tienes cuenta? <a href="#registro" data-act="modoAcceso" data-arg="registro">Regístrate aquí</a>
       </div>
     </form>
 
@@ -151,6 +157,58 @@
         <a href="#" data-act="volverLogin"><i data-lucide="arrow-left"></i> Volver al inicio de sesión</a>
       </div>
     </div>
+    </section>
+
+    <section id="pane-registro" class="login-pane" role="tabpanel" aria-labelledby="tab-registro" inert>
+    <form id="register-form" class="login-form-inner" novalidate autocomplete="on">
+      <div class="login-form-header">
+        <h2 class="login-form-title">Crear cuenta</h2>
+        <p class="login-form-sub">El administrador asignará tu rol y distrito, y activará tu acceso.</p>
+      </div>
+
+      <div class="field">
+        <label for="r-nombre">Nombre completo</label>
+        <input type="text" id="r-nombre" placeholder="Tu nombre" autocomplete="name" required aria-required="true">
+      </div>
+      <div class="field">
+        <label for="r-email">Email</label>
+        <input type="email" id="r-email" placeholder="tu@email.com" autocomplete="email" required aria-required="true">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="r-pass">Contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="r-pass" placeholder="Mín. 8 caracteres" autocomplete="new-password" required aria-required="true" minlength="8">
+            <button type="button" class="btn-pass-toggle" id="pass-toggle-1" aria-label="Mostrar contraseña">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
+          <div class="pass-meter" id="pass-meter" data-nivel="0" hidden>
+            <div class="pass-meter-track" role="presentation"><div class="pass-meter-fill"></div></div>
+            <p class="pass-meter-txt" id="pass-meter-txt" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="r-pass2">Confirmar contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="r-pass2" placeholder="Repite la contraseña" autocomplete="new-password" required aria-required="true" minlength="8">
+            <button type="button" class="btn-pass-toggle" id="pass-toggle-2" aria-label="Mostrar contraseña">
+              <i data-lucide="eye" class="pass-eye"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-reg"><span class="btn-login-txt">Crear cuenta</span></button>
+      <div class="login-err" id="r-err" role="alert" aria-live="polite"></div>
+      <div class="login-ok" id="r-ok" role="status" aria-live="polite">
+        ¡Cuenta creada! Un administrador debe aprobarla y asignarte rol y distrito
+        antes de que puedas entrar al portal. Te avisaremos cuando esté lista.
+      </div>
+      <div class="login-link">¿Ya tienes cuenta? <a href="#login" data-act="modoAcceso" data-arg="login">Inicia sesión</a></div>
+    </form>
+    </section>
+    </div>
   </div>
 
 </div>
@@ -163,5 +221,6 @@
 <script src="auth.js"></script>
 <script src="api.js"></script>
 <script src="login.js"></script>
+<script src="registro.js"></script>
 </body>
 </html>

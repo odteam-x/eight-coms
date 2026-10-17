@@ -11,7 +11,8 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
   doRegister();
 });
 
-document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
+// Solo los del formulario de registro: login.js ya gestiona los suyos (si no, cada clic los alterna dos veces).
+document.querySelectorAll('#register-form .btn-pass-toggle').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var inp = this.closest('.pass-wrap').querySelector('input');
     var isPass = inp.type === 'password';
@@ -30,24 +31,9 @@ document.querySelectorAll('.btn-pass-toggle').forEach(function(btn) {
 // Esos tres campos los asigna el admin desde el panel; el perfil lo crea el
 // trigger on_auth_user_created del servidor con valores fijos.
 
-/** Spinner dentro del propio botón (mismo comportamiento que en login.js). */
-function cargando(btn, activo, texto) {
-  const t = btn.querySelector('.btn-login-txt') || btn;
-  btn.disabled = activo;
-  btn.setAttribute('aria-busy', activo ? 'true' : 'false');
-  btn.querySelector('.spin')?.remove();
-  if (activo) {
-    if (!btn.dataset.txtOriginal) btn.dataset.txtOriginal = t.textContent;
-    t.textContent = texto || 'Enviando…';
-    const sp = document.createElement('span');
-    sp.className = 'spin';
-    btn.prepend(sp);
-  } else if (btn.dataset.txtOriginal) {
-    t.textContent = btn.dataset.txtOriginal;
-  }
-}
+/* cargando(btn, activo, texto) lo define login.js: las dos formas viven ahora en la misma página. */
 
-function authErrEs(msg) {
+function authErrRegistro(msg) {
   if (!msg) return 'Ocurrió un error. Intenta de nuevo.';
   const m = msg.toLowerCase();
   if (m.includes('rate limit') || m.includes('too many') || m.includes('request rate'))
@@ -130,7 +116,7 @@ async function doRegister() {
 
   cargando(btn, false);
 
-  if (!res.ok) { err.textContent = authErrEs(res.error); err.classList.add('visible'); return; }
+  if (!res.ok) { err.textContent = authErrRegistro(res.error); err.classList.add('visible'); return; }
   ok.classList.add('visible');
   btn.style.display = 'none';
 }

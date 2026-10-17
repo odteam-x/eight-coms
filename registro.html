@@ -2,112 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#002247">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0; url=index.html#registro">
+  <link rel="canonical" href="index.html#registro">
+  <meta name="robots" content="noindex">
   <title>EIGHT CREATORS LABs — Registro</title>
-  <meta name="description" content="Crea tu cuenta en el portal de desempeño EIGHT CREATORS — CELIDER 08 Santiago.">
-  <meta property="og:title" content="EIGHT CREATORS LABs — Registro">
-  <meta property="og:description" content="Crea tu cuenta en el sistema de evaluación de desempeño de CELIDER 08 Santiago.">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="192x192" href="icono-192.png">
-  <link rel="apple-touch-icon" href="icono-192.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
-  <script src="core/theme.js"></script>
-  <link rel="stylesheet" href="shared.css">
-  <link rel="stylesheet" href="login.css">
-  <link rel="stylesheet" href="marca.css">
-  <link rel="stylesheet" href="premium.css">
 </head>
 <body>
-<button class="theme-toggle theme-toggle-fixed" id="theme-toggle" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema">
-  <i data-lucide="sun" class="icon-sun"></i><i data-lucide="moon" class="icon-moon"></i><span class="theme-icon" hidden></span>
-</button>
-
-<div class="login-layout">
-  <div class="login-panel-brand">
-    <div class="login-brand-top">
-      <picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp"><img src="logo.png" alt="CELIDER 08" class="logo-img" width="72" height="72"></picture>
-    </div>
-    <div class="login-brand-center">
-      <p class="login-hero-tag">Sistema de Evaluación · CELIDER 08</p>
-      <h1 class="login-hero-h1">EIGHT<em>CREATORS</em><span class="login-hero-labs">LABs</span></h1>
-      <p class="login-hero-desc">Crea tu cuenta para acceder al portal de desempeño del equipo creativo.</p>
-      <ul class="login-puntos">
-        <li><strong>Tu evaluación, criterio por criterio</strong><span>Qué se mide y cómo llegar al siguiente nivel.</span></li>
-        <li><strong>Tareas y fechas en un solo calendario</strong><span>Lo que toca entregar y cuándo.</span></li>
-        <li><strong>Resultados al cierre de cada período</strong><span>Con tu evolución frente a los anteriores.</span></li>
-      </ul>
-    </div>
-    <div class="login-brand-foot">Eight Creators LABs · CELIDER 08 Santiago · 2026</div>
-  </div>
-
-  <div class="login-panel-form">
-    <nav class="login-seg" aria-label="Acceso al portal">
-      <a href="index.html">Entrar</a>
-      <a href="registro.html" aria-current="page">Crear cuenta</a>
-    </nav>
-    <form id="register-form" class="login-form-inner" novalidate autocomplete="on">
-      <div class="login-form-header">
-        <h2 class="login-form-title">Crear cuenta</h2>
-        <p class="login-form-sub">El administrador asignará tu rol y distrito, y activará tu acceso.</p>
-      </div>
-
-      <div class="field">
-        <label for="r-nombre">Nombre completo</label>
-        <input type="text" id="r-nombre" placeholder="Tu nombre" autocomplete="name" required aria-required="true">
-      </div>
-      <div class="field">
-        <label for="r-email">Email</label>
-        <input type="email" id="r-email" placeholder="tu@email.com" autocomplete="email" required aria-required="true">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="r-pass">Contraseña</label>
-          <div class="pass-wrap">
-            <input type="password" id="r-pass" placeholder="Mín. 8 caracteres" autocomplete="new-password" required aria-required="true" minlength="8">
-            <button type="button" class="btn-pass-toggle" id="pass-toggle-1" aria-label="Mostrar contraseña">
-              <i data-lucide="eye" class="pass-eye"></i>
-            </button>
-          </div>
-          <div class="pass-meter" id="pass-meter" data-nivel="0" hidden>
-            <div class="pass-meter-track" role="presentation"><div class="pass-meter-fill"></div></div>
-            <p class="pass-meter-txt" id="pass-meter-txt" aria-live="polite"></p>
-          </div>
-        </div>
-        <div class="field">
-          <label for="r-pass2">Confirmar contraseña</label>
-          <div class="pass-wrap">
-            <input type="password" id="r-pass2" placeholder="Repite la contraseña" autocomplete="new-password" required aria-required="true" minlength="8">
-            <button type="button" class="btn-pass-toggle" id="pass-toggle-2" aria-label="Mostrar contraseña">
-              <i data-lucide="eye" class="pass-eye"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <button type="submit" class="btn-login" id="btn-reg"><span class="btn-login-txt">Crear cuenta</span></button>
-      <div class="login-err" id="r-err" role="alert" aria-live="polite"></div>
-      <div class="login-ok" id="r-ok" role="status" aria-live="polite">
-        ¡Cuenta creada! Un administrador debe aprobarla y asignarte rol y distrito
-        antes de que puedas entrar al portal. Te avisaremos cuando esté lista.
-      </div>
-      <div class="login-link">¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast" role="alert" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="core/iconos.js"></script>
-<script src="config.js"></script>
-<script src="supabase-client.js"></script>
-<script src="api.js"></script>
-<script src="registro.js"></script>
+  <p>El registro ahora está en la página de acceso. <a href="index.html#registro">Ir a crear cuenta</a>.</p>
 </body>
 </html>

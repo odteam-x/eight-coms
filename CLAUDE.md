@@ -29,8 +29,8 @@ Vercel config is in `vercel.json` (security headers only). Note that `vercel.jso
 
 | File | Role gate | JS logic |
 |------|-----------|----------|
-| `index.html` | None (login page) | `login.js` — login, password reset, recovery detection via `onAuthStateChange('PASSWORD_RECOVERY')` |
-| `registro.html` | None | `registro.js` — registration form + password strength meter |
+| `index.html` | None (login **and** registration) | `login.js` — login, password reset, recovery detection, and the Entrar / Crear cuenta switch (`setModoAcceso`); `registro.js` — registration form + password strength meter |
+| `registro.html` | None | only redirects to `index.html#registro` (old links keep working) |
 | `user.html` | `Auth.requireRole('miembro')` | `user.js` — member dashboard (scores, feedback, rubrica, calendario) |
 | `secretario.html` | `Auth.requireAnyRole(['secretario','miembro'])` | `secretario.js` — secretary view (adds ranking, district management) |
 | `admin.html` | `Auth.requireAuth(true)` | `admin.js` — full admin panel (users, roles, periodos, evaluaciones, criterios, rubrica, calendario, config) |
@@ -120,7 +120,9 @@ The CSP is now enforcing. If a page ever needs a new external origin, add it to 
 
 ### Login and registration (Phase 7)
 
-`index.html` and `registro.html` share **`login.css`** — the same layout used to live in two `<style>` blocks that had already diverged.
+**Entrar and Crear cuenta are one page** (`index.html`): two panels (`#pane-login`, `#pane-registro`) switched by `setModoAcceso()` — the selector indicator slides, the leaving form slides out and fades while the other enters, and the brand text crosses over (all CSS, off under `prefers-reduced-motion`). The inactive panel carries `inert`. `#registro` in the URL opens registration. `login.js` loads before `registro.js` (it provides `cargando()`); never redefine a global in both. **On desktop it must fit the window height without scrolling** (brand list compacts and then hides by height; sizes scale with `vh`); on mobile the brand is a one-line header.
+
+`login.css` carries the shared layout (it used to live in two `<style>` blocks that had diverged); the motion and fit-to-screen rules are at the end of `premium.css`.
 
 - Two panels **42 / 58**, brand side on solid `--navy-900`, form capped at `400px`, single column below `860px`. `body { overflow:hidden }` is gone: it blocked scrolling with the virtual keyboard open.
 - Inputs are **16px**; anything smaller makes iOS zoom on focus and knocks the page sideways.
