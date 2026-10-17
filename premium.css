@@ -815,7 +815,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 :where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
   box-shadow: 0 0 0 1px var(--trazo), var(--shadow-sm);
 }
-:where([data-theme="light"]) :is(.search-inp, .cfg-inp, .cfg-select, .cfg-textarea, .field input, .field select, .field textarea, .tk-campo, select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="date"], input[type="url"], input[type="number"]) {
+:where([data-theme="light"]) :is(.search-inp, .cfg-inp, .cfg-select, .cfg-textarea, .field input, .field select, .field textarea, select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="date"], input[type="url"], input[type="number"]) {
   box-shadow: inset 0 0 0 1px var(--campo-borde);
 }
 :where([data-theme="light"]) :is(input[type="checkbox"], input[type="radio"]) { box-shadow: none; }
@@ -944,3 +944,60 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .login-aviso-acc .btn-login { width: auto; margin: 0; padding-inline: var(--sp-6); }
 /* clip, no hidden: con hidden el navegador podía desplazar el panel en horizontal al enfocar un campo (la luz de fondo lo ensancha) */
 .login-panel-form { overflow-x: clip; }
+
+/* ═══ Criterios dinámicos (0020): gestión del catálogo, modal y campos de registro ═════════════ */
+.crit2-barra { align-items: center; margin-bottom: var(--sp-5); }
+.crit2-barra .cfg-hint { flex: 1 1 320px; margin: 0; }
+.rub-crit-wrap { position: relative; }
+.rub-crit-wrap + .rub-crit-wrap { border-top: 1px solid var(--trazo); }
+.rub-crit-wrap .rub-crit > summary.fila-aj { border-top: 0; }
+.rub-crit--off .fila-aj-t { color: var(--txt-2); }
+.rub-crit--off { opacity: .85; }
+.rub-crit-wrap--gestion .rub-crit > summary { padding-right: calc(var(--sp-5) + 36px + 5 * 44px); }
+.rub-acc { position: absolute; top: 50%; right: calc(var(--sp-5) + 30px); transform: translateY(-50%); display: flex; gap: 0; }
+.rub-acc .btn-icon:disabled { opacity: .35; cursor: default; }
+.rub-opc { margin: 0; padding-left: 1.2em; color: var(--txt-2); display: grid; gap: 2px; }
+@media (max-width: 760px) {
+  .rub-crit-wrap--gestion .rub-crit > summary { padding-right: var(--sp-5); }
+  .rub-acc { position: static; transform: none; justify-content: flex-end; padding: 0 var(--sp-4) var(--sp-3); }
+}
+.crit2-opc { font-weight: 400; color: var(--txt-2); }
+.crit2-tipos { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-width: 0; }
+.crit2-tipos legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); margin-bottom: var(--sp-2); padding: 0; }
+.crit2-tipos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--sp-2); }
+.crit2-tipo { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); border: 1px solid var(--trazo); cursor: pointer; }
+.crit2-tipo:has(input:checked) { border-color: var(--data); background: var(--surface-2); }
+.crit2-tipo:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+.crit2-tipo input { margin-top: 3px; width: 20px; height: 20px; accent-color: var(--action-fill); flex: none; }
+.crit2-tipo strong { display: block; font-family: var(--font-ui); font-weight: 600; }
+.crit2-tipo small, .crit2-check small { display: block; color: var(--txt-2); font-size: var(--fs-sm); line-height: 1.35; margin-top: 2px; }
+.crit2-check { display: flex; gap: var(--sp-3); align-items: flex-start; margin: 0 0 var(--sp-3); cursor: pointer; }
+.crit2-check input { margin-top: 3px; width: 20px; height: 20px; accent-color: var(--action-fill); flex: none; }
+.crit2-check strong { font-family: var(--font-ui); font-weight: 600; }
+.mpf-pesos-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3); }
+.mpf-pesos-cab label { flex: 1 1 260px; margin: 0; }
+.v2-peso-fila label small { display: block; font-weight: 400; color: var(--txt-2); font-size: var(--fs-xs); line-height: 1.3; margin-top: 2px; }
+.v2-crit-desc { margin: 0 0 var(--sp-2); color: var(--txt-2); font-size: var(--fs-sm); line-height: 1.4; }
+.v2-score--sino { max-width: 220px; }
+.v2-opciones { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.v2-registro { margin: 0 0 var(--sp-4); display: grid; gap: 1px; background: var(--trazo); border-radius: var(--r-fila); overflow: hidden; }
+.v2-registro-fila { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); justify-content: space-between; padding: var(--sp-3) var(--sp-4); background: var(--surface-1); }
+.v2-registro dt { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); }
+.v2-registro dd { margin: 0; color: var(--txt); overflow-wrap: anywhere; }
+/* `.field label` (display:block) ganaba a las tarjetas de tipo: se sube la especificidad. */
+.crit2-tipos .crit2-tipo, .modal-box .crit2-check { display: flex; gap: var(--sp-3); align-items: flex-start; margin-bottom: 0; }
+.modal-box .crit2-check { margin-bottom: var(--sp-3); }
+.crit2-tipos .crit2-tipo > span, .crit2-check > span { display: block; min-width: 0; }
+.crit2-tipos .crit2-tipo small, .crit2-check small { display: block; font-weight: 400; font-family: var(--font-body); }
+
+/* ═══ Diálogos: X para cerrar arriba a la derecha ═══════════════════════════════════════════
+   Sticky + float: se queda a la vista aunque el diálogo desplace su contenido, y el título
+   se acomoda a su lado. (Antes `.tk-campo` llevaba un anillo del tema claro que dibujaba una
+   caja cuadrada alrededor de cada campo: era un contenedor, no un campo.) */
+.modal-box, .tk-box { position: relative; }
+.modal-x { position: sticky; top: 0; float: right; z-index: 3; width: 44px; height: 44px; margin: calc(var(--sp-2) * -1) calc(var(--sp-2) * -1) 0 var(--sp-3);
+  display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--trazo); background: var(--surface-1); color: var(--txt-2); cursor: pointer; }
+.modal-x:hover { background: var(--surface-3); color: var(--txt); }
+.modal-x:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.modal-x i, .modal-x svg { width: 20px; height: 20px; }
+.modal-box .modal-title, .tk-box .modal-title { padding-right: 8px; }

@@ -142,7 +142,8 @@ const _ACCIONES_ESCRITURA = new Set([
   'borrarCriterio','borrarPeriodo','borrarRol','borrarRubrica','borrarTrabajo',
   'modalCal','modalCriterio','modalPeriodo','modalRol','modalRubrica',
   'bono','puntaje','puntajeDist','guardarEval','guardarDist',
-  'puntajeV2','showPerfilModal','savePerfil','modalPerfil','cambiarRolPerfil',
+  'puntajeV2','campoV2','showPerfilModal','savePerfil','modalPerfil','cambiarRolPerfil',
+  'crit2Nuevo','crit2Editar','crit2Alternar','crit2Borrar','crit2Mover','guardarCriterio2',
   'participante','aprobarUser',
   'onCambioDistritoUsuario','onCambioTipoUsuario','onCambioRolUsuario',
   'onCambioAdminUsuario','handleAvatarUpload',
@@ -317,6 +318,18 @@ function openModal(id) {
   if (titulo) {
     if (!titulo.id) titulo.id = id + '-titulo';
     m.setAttribute('aria-labelledby', titulo.id);
+  }
+
+  // Una X arriba a la derecha en todos los diálogos (ventanas de admin y de tareas/actividades).
+  const caja = m.querySelector('.modal-box, .tk-box');
+  if (caja && !caja.querySelector(':scope > .modal-x')) {
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'modal-x';
+    x.setAttribute('aria-label', 'Cerrar'); x.title = 'Cerrar';
+    x.dataset.act = 'cerrarModal'; x.dataset.arg = id;
+    x.innerHTML = '<i data-lucide="x"></i>';
+    caja.prepend(x);
+    if (typeof renderIconos === 'function') renderIconos(x);
   }
 
   _modalAbierto = m;
