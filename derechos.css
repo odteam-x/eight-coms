@@ -1,0 +1,22 @@
+/* Derechos reservados — pie de página en las cuatro pantallas. Poppins solo aquí (el resto del sitio usa las tres familias de la marca). */
+.derechos {
+  font-family: 'Poppins', var(--font-ui, sans-serif);
+  font-weight: 400;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  text-align: center;
+  color: var(--txt-muted);
+  padding: var(--sp-5) var(--sp-4);
+  margin: 0;
+}
+.derechos b { font-weight: 600; color: var(--txt-2); }
+#contenido > .derechos { margin-top: var(--sp-6); }
+/* Inicio de sesión: el pie queda al fondo del panel del formulario, sin empujar la altura de la pantalla. */
+.login-form-panel > .derechos, .login-split > .derechos { position: static; }
+@media (min-width: 860px) {
+  .derechos--login { position: fixed; right: 0; bottom: 0; width: 58%; padding: var(--sp-3) var(--sp-4); pointer-events: none; }
+}
+@media (max-width: 767px) {
+  #contenido > .derechos { padding-bottom: calc(var(--sp-7) + 72px); }
+}
+@media print { .derechos { display: none; }}
