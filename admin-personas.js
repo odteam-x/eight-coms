@@ -144,7 +144,7 @@ async function renderPersonasCards() {
       rol: u.roles?.nombre || (u.tipo_miembro === 'secretario' ? 'Secretario' : 'Sin rol'),
       distrito: u.distrito ? _distritoNombre(u.distrito) : '',
       valor: r?.valor ?? null, max: r?.max, color: r?.color, nivel: r?.nivel, chips,
-      estado: u.es_admin ? 'No se evalúa' : 'Sin evaluar',
+      estado: u.es_admin ? 'No se evalúa' : (_inactivosPE.has(u.id) && r?.valor == null ? 'Inactiva en este período' : 'Sin evaluar'),
     };
   });
   el.innerHTML = rosterHTML(personas, q || dist ? 'Sin resultados.' : 'Sin usuarios.');

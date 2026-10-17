@@ -302,16 +302,18 @@ function renderEvalUserList() {
   const todos = nonAdmins.map(u => {
     const ev = evalMap[u.id];
     const score = v2 ? (_resV2[u.id]?.individual ?? -1) : (ev ? calcScorePuntajes(ev.puntajes, ev.bono_ext) : -1);
-    return { ...u, ev, score, estado: ev?.estado || 'pendiente' };
+    // Quien está desactivado en este período y no tiene evaluación no es un «pendiente»: no cuenta por evaluar.
+    const inactivo = !ev && _evalInactivos.has(u.id);
+    return { ...u, ev, score, inactivo, estado: ev?.estado || (inactivo ? 'inactivo' : 'pendiente') };
   }).sort((a, b) => {
-    const order = { publicado: 0, borrador: 1, pendiente: 2 };
+    const order = { publicado: 0, borrador: 1, pendiente: 2, inactivo: 3 };
     const d = (order[a.estado] ?? 2) - (order[b.estado] ?? 2);
     return d !== 0 ? d : b.score - a.score;
   });
 
-  const cuenta = { publicado: 0, borrador: 0, pendiente: 0 };
+  const cuenta = { publicado: 0, borrador: 0, pendiente: 0, inactivo: 0 };
   todos.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
-  const hechos = cuenta.publicado, total = todos.length;
+  const hechos = cuenta.publicado, total = todos.length - cuenta.inactivo;   // sin los desactivados del período
   const atajos = _EVAL_ATAJOS.filter(f => v2 || !f.v2);
   const cuentaAtajo = Object.fromEntries(atajos.map(f => [f.id, todos.filter(f.test).length]));
   if (_evalFlag && !atajos.some(f => f.id === _evalFlag)) _evalFlag = '';
@@ -328,7 +330,7 @@ function renderEvalUserList() {
         <div class="eval-resumen-bar" role="img" aria-label="${hechos} de ${total} evaluaciones publicadas"><i style="width:${total ? Math.round(hechos / total * 100) : 0}%"></i></div>
       </div>
       <div class="eval-grupo"><span class="eval-grupo-t">Estado</span><div class="eval-chips">
-        ${chip('evalFiltro', '', 'Todas', total, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
+        ${chip('evalFiltro', '', 'Todas', todos.length, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
       </div></div>
       ${atajosVisibles.length ? `<div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
         ${atajosVisibles.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
@@ -345,7 +347,7 @@ function renderEvalUserList() {
   el.innerHTML = `<div class="eval-users-grid">
     ${lista.map(u => {
       const estadoCls = u.estado === 'publicado' ? 'estado--publicado' : u.estado === 'borrador' ? 'estado--borrador' : 'estado--none';
-      const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : 'Pendiente';
+      const estadoTxt = u.estado === 'publicado' ? 'Publicado' : u.estado === 'borrador' ? 'Borrador' : u.estado === 'inactivo' ? 'Inactivo' : 'Pendiente';
       if (u.estado === 'publicado') rank++;
       const medal = u.estado === 'publicado' ? medallaHTML(rank) : '';
       const pct = u.score >= 0 ? Math.round(u.score / MAX * 100) : 0;
@@ -2226,7 +2228,11 @@ async function renderResumenV2(el, periodo) {
   const res = await API.getResultadosV2(periodo.id);
   if (!res.ok) { renderError(el, res.error, () => renderResumenV2(el, periodo)); return; }
   const rows = res.rows;
-  const total = _users.filter(u => !u.es_admin).length;
+  const part = await API.getParticipantes(periodo.id).catch(() => []);
+  const inactivos = new Set(part.filter(r => !r.activo).map(r => r.user_id));
+  const conResultado = new Set(rows.map(r => r.evaluado_id));
+  // Un desactivado sin resultado no cuenta como pendiente; si tiene resultado, cuenta como evaluado.
+  const total = _users.filter(u => !u.es_admin && (!inactivos.has(u.id) || conResultado.has(u.id))).length;
   const prom = rows.length ? rows.reduce((s, r) => s + (r.individual || 0), 0) / rows.length : null;
   const top  = rows.length ? Math.max(...rows.map(r => r.individual ?? 0)) : null;
   const kpi = (lbl, val, color) => `
@@ -2397,6 +2403,7 @@ function renderRptPEBar() {
   ).join('');
 }
 
+let _rptInactivos = new Set();
 async function selectRptPE(periodoId, _btn) {
   _rptPE = _periodos.find(p => p.id == periodoId) || null;
   document.querySelectorAll('#rpt-pe-btns .rpt-pe-btn').forEach(b => b.classList.remove('eval-pe-btn--active', 'active'));
@@ -2405,6 +2412,7 @@ async function selectRptPE(periodoId, _btn) {
     document.getElementById('rpt-body').innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
     _rptEvals[periodoId] = await API.getEvaluacionesByPE(periodoId);
   }
+  try { _rptInactivos = new Set((await API.getParticipantes(periodoId)).filter(r => !r.activo).map(r => r.user_id)); } catch { _rptInactivos = new Set(); }
   renderAdminReport();
 }
 
@@ -2426,7 +2434,9 @@ function renderAdminReport() {
 
   const nonAdmins  = _users.filter(u => !u.es_admin);
   const evaluated  = scored.length;
-  const unevaluated = Math.max(0, nonAdmins.length - evaluated);
+  // Los desactivados del período que no tienen evaluación no son «sin evaluar».
+  const porEvaluar = nonAdmins.filter(u => !_rptInactivos.has(u.id) || scored.some(s => s.user.id === u.id));
+  const unevaluated = Math.max(0, porEvaluar.length - evaluated);
   const avgScore   = evaluated ? (scored.reduce((s, e) => s + e.score, 0) / evaluated).toFixed(1) : '—';
   const topScore   = evaluated ? Math.max(...scored.map(e => e.score)) : '—';
 
@@ -2489,7 +2499,7 @@ function renderAdminReport() {
     </div>`;
   }).join('');
 
-  const unevalList = nonAdmins.filter(u => !scored.find(s => s.user.id === u.id));
+  const unevalList = porEvaluar.filter(u => !scored.find(s => s.user.id === u.id));
 
   el.innerHTML = `
   <div class="rpt-page" id="rpt-print-area">
