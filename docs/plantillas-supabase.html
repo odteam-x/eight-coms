@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plantillas de correo para Supabase</title>
+<style>
+  :root{color-scheme:dark;--bg:#061326;--s1:#0A1D38;--s2:#10264A;--txt:#F3F8FF;--txt2:#A7E8FF;--trazo:#1B3A66;--coral:#FF6063;--navy:#002247}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.55 'Segoe UI',Helvetica,Arial,sans-serif;padding:24px 16px 80px}
+  main{max-width:880px;margin:0 auto}h1{font-size:2rem;line-height:1.1;margin:0 0 8px}h2{font-size:1.3rem;margin:0 0 4px;display:flex;gap:10px;align-items:center}
+  p{color:#C9DBEE}.n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--coral);color:var(--navy);font-weight:700;font-size:.95rem}
+  table{width:100%;border-collapse:collapse;background:var(--s1);border-radius:16px;overflow:hidden;margin:16px 0 32px}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--trazo);font-size:.95rem}th{color:var(--txt2);font-weight:600}tr:last-child td{border-bottom:0}a{color:var(--txt2)}
+  .tpl{background:var(--s1);border-radius:24px;padding:20px 20px 8px;margin:0 0 24px}.donde{margin:0 0 16px;font-size:.9rem}
+  .campo{margin:0 0 16px}.et{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600;margin-bottom:6px}
+  button{background:var(--coral);color:var(--navy);border:0;border-radius:999px;padding:10px 18px;font:600 .9rem 'Segoe UI',Arial,sans-serif;cursor:pointer;min-height:40px}
+  button.ok{background:var(--txt2)}
+  pre{margin:0;padding:14px 16px;background:var(--s2);border-radius:14px;max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-all;font:12.5px/1.45 Consolas,Menlo,monospace;color:#DCEBFA}
+  .smtp td:first-child{color:var(--txt2);font-weight:600;width:34%}
+</style></head><body><main>
+<h1>Plantillas de correo para Supabase</h1>
+<p>Panel del proyecto <b>eight coms</b> → <b>Authentication → Emails → Templates</b>. En cada fila: pega el asunto en <i>Subject</i>, abre la pestaña <b>Source</b> en <i>Message body</i>, borra lo que haya, pega el HTML y pulsa <b>Save</b>.</p>
+<table><thead><tr><th>#</th><th>Fila en Supabase</th><th>Asunto (Subject)</th></tr></thead><tbody><tr><td>1</td><td><a href="#confirmacion">Confirm sign up</a></td><td>Confirma tu correo en EIGHT CREATORS LABs</td></tr><tr><td>2</td><td><a href="#invitacion">Invite user</a></td><td>Te invitaron a EIGHT CREATORS LABs</td></tr><tr><td>3</td><td><a href="#enlace_magico">Magic link or OTP</a></td><td>Tu enlace para entrar</td></tr><tr><td>4</td><td><a href="#cambio_correo">Change email address</a></td><td>Confirma tu nuevo correo</td></tr><tr><td>5</td><td><a href="#recuperacion">Reset password</a></td><td>Restablece tu contraseña</td></tr><tr><td>6</td><td><a href="#reautenticacion">Reauthentication</a></td><td>Tu código de confirmación</td></tr></tbody></table>
+
+  <section class="tpl" id="confirmacion">
+    <h2><span class="n">1</span> Confirm sign up</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Confirm sign up</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-confirmacion">Copiar asunto</button></div><pre id="s-confirmacion">Confirma tu correo en EIGHT CREATORS LABs</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-confirmacion">Copiar HTML</button></div><pre id="h-confirmacion">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Confirma tu correo&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;Un clic para activar tu registro.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Confirma tu correo&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Gracias por registrarte. Confirma que este correo es tuyo para terminar tu solicitud.&lt;/p&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Después, la administración revisará y aprobará tu acceso al portal. Te avisaremos por correo.&lt;/p&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"&gt;&lt;tr&gt;&lt;td style="background:#FF6063;border-radius:999px"&gt;
+        &lt;a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px"&gt;Confirmar mi correo&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+       &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1"&gt;Si el botón no funciona, copia este enlace en tu navegador:&lt;br&gt;&lt;a href="{{ .ConfirmationURL }}" style="color:#A7E8FF;word-break:break-all"&gt;{{ .ConfirmationURL }}&lt;/a&gt;&lt;/p&gt;
+      &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#8FB3D1"&gt;Si no fuiste tú, ignora este mensaje: no se creará nada.&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+
+  <section class="tpl" id="invitacion">
+    <h2><span class="n">2</span> Invite user</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Invite user</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-invitacion">Copiar asunto</button></div><pre id="s-invitacion">Te invitaron a EIGHT CREATORS LABs</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-invitacion">Copiar HTML</button></div><pre id="h-invitacion">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Te invitaron al portal&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;Acepta la invitación y crea tu contraseña.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Te invitaron al portal&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Te abrieron una cuenta en el portal de evaluación de CELIDER 08 Santiago.&lt;/p&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Acepta la invitación y elige tu contraseña para entrar.&lt;/p&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"&gt;&lt;tr&gt;&lt;td style="background:#FF6063;border-radius:999px"&gt;
+        &lt;a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px"&gt;Aceptar la invitación&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+       &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1"&gt;Si el botón no funciona, copia este enlace en tu navegador:&lt;br&gt;&lt;a href="{{ .ConfirmationURL }}" style="color:#A7E8FF;word-break:break-all"&gt;{{ .ConfirmationURL }}&lt;/a&gt;&lt;/p&gt;
+      
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+
+  <section class="tpl" id="enlace_magico">
+    <h2><span class="n">3</span> Magic link or OTP</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Magic link or OTP</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-enlace_magico">Copiar asunto</button></div><pre id="s-enlace_magico">Tu enlace para entrar</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-enlace_magico">Copiar HTML</button></div><pre id="h-enlace_magico">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Entra al portal&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;Entra sin contraseña.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Entra al portal&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Usa este enlace para iniciar sesión como &lt;b&gt;{{ .Email }}&lt;/b&gt;. Es de un solo uso.&lt;/p&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"&gt;&lt;tr&gt;&lt;td style="background:#FF6063;border-radius:999px"&gt;
+        &lt;a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px"&gt;Iniciar sesión&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+       &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1"&gt;Si el botón no funciona, copia este enlace en tu navegador:&lt;br&gt;&lt;a href="{{ .ConfirmationURL }}" style="color:#A7E8FF;word-break:break-all"&gt;{{ .ConfirmationURL }}&lt;/a&gt;&lt;/p&gt;
+      &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#8FB3D1"&gt;Si no lo pediste, ignóralo.&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+
+  <section class="tpl" id="cambio_correo">
+    <h2><span class="n">4</span> Change email address</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Change email address</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-cambio_correo">Copiar asunto</button></div><pre id="s-cambio_correo">Confirma tu nuevo correo</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-cambio_correo">Copiar HTML</button></div><pre id="h-cambio_correo">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Confirma tu nuevo correo&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;Cambiarás el correo con el que entras.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Confirma tu nuevo correo&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Pediste cambiar el correo de tu cuenta de &lt;b&gt;{{ .Email }}&lt;/b&gt; a &lt;b&gt;{{ .NewEmail }}&lt;/b&gt;.&lt;/p&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"&gt;&lt;tr&gt;&lt;td style="background:#FF6063;border-radius:999px"&gt;
+        &lt;a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px"&gt;Confirmar el cambio&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+       &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1"&gt;Si el botón no funciona, copia este enlace en tu navegador:&lt;br&gt;&lt;a href="{{ .ConfirmationURL }}" style="color:#A7E8FF;word-break:break-all"&gt;{{ .ConfirmationURL }}&lt;/a&gt;&lt;/p&gt;
+      &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#8FB3D1"&gt;Si no fuiste tú, cambia tu contraseña de inmediato.&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+
+  <section class="tpl" id="recuperacion">
+    <h2><span class="n">5</span> Reset password</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Reset password</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-recuperacion">Copiar asunto</button></div><pre id="s-recuperacion">Restablece tu contraseña</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-recuperacion">Copiar HTML</button></div><pre id="h-recuperacion">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Restablece tu contraseña&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;El enlace caduca pronto.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Restablece tu contraseña&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Recibimos una solicitud para cambiar la contraseña de &lt;b&gt;{{ .Email }}&lt;/b&gt;.&lt;/p&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Pulsa el botón y elige una nueva. El enlace es de un solo uso y caduca en una hora.&lt;/p&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"&gt;&lt;tr&gt;&lt;td style="background:#FF6063;border-radius:999px"&gt;
+        &lt;a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px"&gt;Elegir nueva contraseña&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+       &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1"&gt;Si el botón no funciona, copia este enlace en tu navegador:&lt;br&gt;&lt;a href="{{ .ConfirmationURL }}" style="color:#A7E8FF;word-break:break-all"&gt;{{ .ConfirmationURL }}&lt;/a&gt;&lt;/p&gt;
+      &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#8FB3D1"&gt;Si no pediste el cambio, ignora este mensaje: tu contraseña sigue igual.&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+
+  <section class="tpl" id="reautenticacion">
+    <h2><span class="n">6</span> Reauthentication</h2>
+    <p class="donde">Authentication → Emails → Templates → <b>Reauthentication</b></p>
+    <div class="campo"><div class="et">Subject <button data-c="s-reautenticacion">Copiar asunto</button></div><pre id="s-reautenticacion">Tu código de confirmación</pre></div>
+    <div class="campo"><div class="et">Message body (pestaña Source) <button data-c="h-reautenticacion">Copiar HTML</button></div><pre id="h-reautenticacion">&lt;!doctype html&gt;
+&lt;html lang="es"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;meta name="color-scheme" content="dark light"&gt;&lt;meta name="supported-color-schemes" content="dark light"&gt;
+&lt;title&gt;Tu código&lt;/title&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#061326"&gt;
+&lt;div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326"&gt;Úsalo para confirmar el cambio.&lt;/div&gt;
+&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"&gt;&lt;tr&gt;&lt;td align="center" style="padding:32px 16px"&gt;
+  &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden"&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;&lt;td style="background:#002247;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#005286;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#0087F1;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#00CBFF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#A7E8FF;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;td style="background:#FF6063;height:6px;font-size:0;line-height:0"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="background:#002247;padding:28px 36px 26px"&gt;
+      &lt;table role="presentation" cellpadding="0" cellspacing="0"&gt;&lt;tr&gt;
+        &lt;td style="padding-right:14px"&gt;&lt;img src="https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"&gt;&lt;/td&gt;
+        &lt;td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1"&gt;Eight Creators Labs&lt;br&gt;&lt;span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none"&gt;CELIDER 08 Santiago&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;&lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:32px 36px 8px"&gt;
+      &lt;h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF"&gt;Tu código&lt;/h1&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;Escribe este código para confirmar la acción que estás haciendo:&lt;/p&gt;
+      &lt;p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF"&gt;&lt;span style="display:inline-block;margin:4px 0;padding:12px 24px;background:#10264A;border-radius:16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;font-weight:700;letter-spacing:.2em;color:#A7E8FF"&gt;{{ .Token }}&lt;/span&gt;&lt;/p&gt;
+      
+      &lt;p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#8FB3D1"&gt;Si no fuiste tú, ignora este mensaje.&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td style="padding:20px 36px 28px;border-top:1px solid #1B3A66"&gt;
+      &lt;p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1"&gt;Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.&lt;br&gt;&lt;a href="https://eight-coms.vercel.app" style="color:#A7E8FF"&gt;eight-coms.vercel.app&lt;/a&gt;&lt;/p&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+  </section>
+<section class="tpl">
+  <h2>Antes: SMTP propio</h2>
+  <p class="donde">Authentication → Emails → <b>SMTP Settings</b> → Enable custom SMTP</p>
+  <table class="smtp"><tbody>
+    <tr><td>Sender email</td><td>creatorscelider08sti@gmail.com</td></tr>
+    <tr><td>Sender name</td><td>EIGHT CREATORS LABs</td></tr>
+    <tr><td>Host</td><td>smtp.gmail.com</td></tr>
+    <tr><td>Port</td><td>465</td></tr>
+    <tr><td>Username</td><td>creatorscelider08sti@gmail.com</td></tr>
+    <tr><td>Password</td><td>la contraseña de aplicación de 16 letras (la que creaste en Google)</td></tr>
+  </tbody></table>
+</section>
+</main>
+<script>
+document.querySelectorAll('button[data-c]').forEach(function(b){b.addEventListener('click',function(){
+  var t=document.getElementById(b.dataset.c).textContent;
+  var fin=function(){var o=b.textContent;b.textContent='¡Copiado!';b.classList.add('ok');setTimeout(function(){b.textContent=o;b.classList.remove('ok')},1500)};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(fin)}
+  else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();fin()}
+})});
+</script></body></html>

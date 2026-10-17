@@ -43,3 +43,16 @@ La migración 0019 (cola de avisos + recordatorios diarios) y la Edge Function `
 
 ## 6. Probar
 Reset password con un correo real; debe llegar con la plantilla nueva. Revisa también la carpeta de spam la primera vez.
+
+## 7. Puente de Google Apps Script (envío desde tu cuenta de Google)
+Gmail SMTP desde las funciones de Supabase puede ser bloqueado por Google (error 534). El puente evita contraseñas y bloqueos por IP: un script dentro de tu cuenta recibe cada aviso y lo envía con tu Gmail.
+
+1. https://script.google.com → **Nuevo proyecto**. Borra el contenido y pega `supabase/apps-script/Code.gs`.
+2. **Configuración del proyecto** (engranaje) → **Propiedades del script** → **Agregar propiedad**: nombre `SECRETO`, valor una clave larga al azar (30+ caracteres, letras y números). Guárdala: la usarás otra vez en el paso 4.
+3. **Implementar → Nueva implementación** → tipo **Aplicación web** → *Ejecutar como*: **Yo** → *Quién tiene acceso*: **Cualquier persona** → **Implementar**. Autoriza los permisos (Google avisará que la app no está verificada: *Configuración avanzada → Ir a … (no seguro)*; es tu propio script). Copia la **URL de la aplicación web** (termina en `/exec`).
+4. En Supabase → **Edge Functions → Secrets** añade:
+   - `APPS_SCRIPT_URL` = la URL `/exec`
+   - `APPS_SCRIPT_SECRET` = la misma clave del paso 2
+5. Prueba: la función usa el puente en cuanto existen esos dos secretos (y deja de usar SMTP).
+
+Límite de Google: ~100 destinatarios por día en una cuenta personal, ~1500 en Workspace. Quien tenga la URL y la clave puede enviar correos desde tu cuenta: no las compartas.
