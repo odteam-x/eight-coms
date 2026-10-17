@@ -393,7 +393,8 @@
         Debe ser posterior a cualquier período en el que ese rol ya tenga evaluaciones: cambiar pesos hacia atrás movería rankings sin que nadie haya sido evaluado de nuevo.
       </div>
     </div>
-    <div class="field"><label>Pesos de los criterios técnicos <span style="font-weight:400;color:var(--txt-2)">(deja vacío lo que no aplique a este rol)</span></label></div>
+    <div class="field mpf-pesos-cab"><label>Pesos de los criterios técnicos <span style="font-weight:400;color:var(--txt-2)">(deja vacío lo que no aplique a este rol)</span></label>
+      <button type="button" class="btn-out" data-act="crit2Nuevo" data-arg="tecnico"><i data-lucide="plus"></i>Crear criterio</button></div>
     <div id="mpf-pesos" class="v2-pesos"></div>
     <div class="v2-resumen" aria-live="polite"><span>Suma: <b id="mpf-suma">0</b> / 100 · <span id="mpf-estado"></span></span></div>
     <div class="modal-actions">
@@ -401,6 +402,47 @@
       <button class="btn-out" data-act="cerrarModal" data-arg="modal-perfil">Cancelar</button>
     </div>
     <div class="modal-err" id="mpf-err"></div>
+  </div>
+</div>
+
+<!-- MODAL: CRITERIO DE LA RÚBRICA POR ROLES (0020) -->
+<div class="modal-overlay" id="modal-crit2" style="display:none" data-act="cerrarModalFondo" data-arg="modal-crit2">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-title" id="modal-crit2-title">Nuevo criterio</div>
+    <input type="hidden" id="mc2-id">
+    <div class="field"><label for="mc2-nombre">Nombre</label>
+      <input class="cfg-inp" type="text" id="mc2-nombre" maxlength="80" placeholder="Ej.: Trato con el público" autocomplete="off"></div>
+    <div class="field"><label for="mc2-desc">Descripción <span class="crit2-opc">(opcional)</span></label>
+      <textarea class="cfg-inp cfg-textarea" id="mc2-desc" rows="2" maxlength="500" placeholder="Qué se observa en este criterio y por qué importa"></textarea></div>
+    <fieldset class="field crit2-tipos"><legend>Tipo de campo</legend>
+      <div class="crit2-tipos-grid" role="radiogroup" aria-label="Tipo de campo">
+        <label class="crit2-tipo"><input type="radio" name="mc2-tc" value="escala" data-change="vistaCriterio2" checked><span><strong>Escala 1–5</strong><small>Un puntaje con anclas de conducta. Entra en el cálculo.</small></span></label>
+        <label class="crit2-tipo"><input type="radio" name="mc2-tc" value="si_no" data-change="vistaCriterio2"><span><strong>Sí / No</strong><small>Una respuesta de registro. No puntúa.</small></span></label>
+        <label class="crit2-tipo"><input type="radio" name="mc2-tc" value="opcion" data-change="vistaCriterio2"><span><strong>Opciones</strong><small>Una opción de una lista. No puntúa.</small></span></label>
+        <label class="crit2-tipo"><input type="radio" name="mc2-tc" value="texto" data-change="vistaCriterio2"><span><strong>Texto</strong><small>Una nota libre (hasta 1000 caracteres). No puntúa.</small></span></label>
+      </div>
+    </fieldset>
+    <div class="field"><label for="mc2-grupo">Se aplica a</label>
+      <select class="cfg-inp cfg-select" id="mc2-grupo">
+        <option value="nucleo">Todos los roles (competencia común)</option>
+        <option value="tecnico">Solo los roles que lo pesen en su perfil (competencia del rol)</option>
+      </select></div>
+    <div class="field" id="mc2-opc-field" hidden><label for="mc2-opciones">Opciones <span class="crit2-opc">(una por línea, de 2 a 12)</span></label>
+      <textarea class="cfg-inp cfg-textarea" id="mc2-opciones" rows="4" placeholder="Presencial&#10;Remota&#10;Mixta"></textarea></div>
+    <div id="mc2-anclas">
+      <div class="field"><label for="mc2-d1">Nivel 1 — qué se ve <span class="crit2-opc">(opcional)</span></label><textarea class="cfg-inp cfg-textarea" id="mc2-d1" rows="2"></textarea></div>
+      <div class="field"><label for="mc2-d3">Nivel 3</label><textarea class="cfg-inp cfg-textarea" id="mc2-d3" rows="2"></textarea></div>
+      <div class="field"><label for="mc2-d5">Nivel 5</label><textarea class="cfg-inp cfg-textarea" id="mc2-d5" rows="2"></textarea></div>
+      <p class="modal-hint">El 2 y el 4 son intermedios y no llevan descripción propia.</p>
+    </div>
+    <label class="crit2-check"><input type="checkbox" id="mc2-obl" checked><span><strong>Obligatorio para publicar</strong><small id="mc2-obl-ayuda"></small></span></label>
+    <label class="crit2-check"><input type="checkbox" id="mc2-act" checked><span><strong>Activo</strong><small>Si lo desactivas, no se ofrece en evaluaciones nuevas; lo ya evaluado se conserva.</small></span></label>
+    <div class="v2-nota" id="mc2-uso" role="note" hidden></div>
+    <div class="modal-actions">
+      <button class="btn-save" data-act="fn" data-arg="guardarCriterio2">Guardar</button>
+      <button class="btn-out" data-act="cerrarModal" data-arg="modal-crit2">Cancelar</button>
+    </div>
+    <div class="modal-err" id="mc2-err" role="alert"></div>
   </div>
 </div>
 
@@ -523,6 +565,7 @@
 <script src="api.js"></script>
 <script src="admin.js"></script>
 <script src="admin-personas.js"></script>
+<script src="admin-criterios.js"></script>
 <script src="admin-panel.js"></script>
 <script src="admin-reportes.js"></script>
 <script src="admin-actividades.js"></script>

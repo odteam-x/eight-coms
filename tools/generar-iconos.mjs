@@ -24,6 +24,11 @@ const MAPA = {
   'medal-gold':'medal-2','medal':'medal','crown':'vip-crown','pie-chart':'pie-chart-2','radar':'radar','funnel':'filter-3','label':'price-tag-3',
   'grid-heat':'grid','id-card':'profile','graduation':'graduation-cap','swap':'arrow-left-right','drag':'draggable','calendar-range':'calendar-2',
   'file-add':'file-add','flag-2':'flag-2','notes':'sticky-note','shield-user':'user-star','bookmark':'bookmark','group-2':'team','mail':'mail',
+  // nuevos (criterios dinámicos, preferencias, asignación, notificaciones, onboarding, manuales)
+  'chevron-up':'arrow-up-s','arrow-up':'arrow-up','arrow-down':'arrow-down','book-open':'book-open','question':'question','rocket':'rocket-2',
+  'check-double':'check-double','file-excel':'file-excel-2','file-pdf':'file-pdf-2','timeline':'timeline-view','compass':'compass-3','user-add':'user-add',
+  'user-settings':'user-settings','lightbulb':'lightbulb','heart':'heart','list-ordered':'list-ordered','line-chart':'line-chart','file-download':'file-download',
+  'checkbox':'checkbox-blank','team':'team','at':'at','scales':'scales-3','history-2':'history','mail-open':'mail-open','notification-off':'notification-off',
 };
 // variantes rellenas (estado activo, medallas): clave nueva = nombre + '-fill'
 const RELLENAS = ['home-5','dashboard','calendar','trophy','medal','medal-2','star','user','group','bookmark','flag','notification-3','checkbox-circle','clipboard'];

@@ -34,7 +34,7 @@ const PanelAdmin = (() => {
     if (v2) {
       const res = await API.getResultadosV2(p.id);
       const porId = Object.fromEntries((res.rows || []).map(r => [r.evaluado_id, r]));
-      const nucleo = _criteriosV2.filter(c => c.tipo === 'nucleo');
+      const nucleo = _criteriosV2.filter(c => c.tipo === 'nucleo' && tipoCampoDe(c) === 'escala');   // los campos de registro no puntúan
       filas = pub.map(e => {
         const r = porId[e.evaluado_id]; if (!r) return null;
         const pj = parseJSON(e.puntajes);

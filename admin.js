@@ -595,19 +595,26 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
     return;
   }
 
-  const ap = criteriosAplicables(perfil, _criteriosV2);
+  const respGuardadas = parseJSON(ev?.respuestas);
+  const ap = criteriosAplicables(perfil, _criteriosV2, { conservar: [...Object.keys(guardado), ...Object.keys(respGuardadas)] });
+  const escalas = [...ap.nucleo, ...ap.tecnicos];
   _formV2 = {
     evaluadoId, perfilId: perfil.id,
-    claves: [...ap.nucleo, ...ap.tecnicos].map(c => c.key),
+    claves: escalas.map(c => c.key),
+    // Lo obligatorio es lo que bloquea la publicación; lo opcional sin responder se omite (nunca vale 0).
+    requeridas: [...escalas, ...ap.registro].filter(c => c.obligatorio !== false && c.activo !== false).map(c => c.key),
+    registro: ap.registro,
     puntajes: Object.fromEntries(Object.entries(guardado).map(([k, v]) => [k, Number(v)])),
+    respuestas: { ...respGuardadas },
   };
 
   const fila = c => `
     <div class="v2-crit">
       <div class="v2-crit-head">
-        <div class="v2-crit-nombre">${escHtml(c.nombre)}</div>
+        <div class="v2-crit-nombre">${escHtml(c.nombre)}${c.obligatorio === false ? ' <span class="etiqueta etq-gris">Opcional</span>' : ''}${c.activo === false ? ' <span class="etiqueta etq-gris">Desactivado</span>' : ''}</div>
         ${c.peso != null ? `<div class="v2-crit-peso">Peso ${c.peso}</div>` : ''}
       </div>
+      ${c.descripcion ? `<p class="v2-crit-desc">${escHtml(c.descripcion)}</p>` : ''}
       <div class="v2-score" role="group" aria-label="Puntaje de ${escHtml(c.nombre)}">
         ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="${_formV2.puntajes[c.key] === n ? 'active' : ''}"
           data-act="puntajeV2" data-arg="${escHtml(c.key)}" data-arg2="${n}"
@@ -617,6 +624,24 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
       <input class="cfg-inp eval-com-inp" type="text" id="com-${escHtml(c.key)}" aria-label="Comentario sobre ${escHtml(c.nombre)}"
         placeholder="Comentario (opcional)" value="${escHtml(coms[c.key] || '')}">
     </div>`;
+
+  // Campos de registro (sí/no, opciones, texto): se guardan en la evaluación, no puntúan.
+  const campo = c => {
+    const t = tipoCampoDe(c), v = _formV2.respuestas[c.key];
+    const cab = `<div class="v2-crit-head"><div class="v2-crit-nombre">${escHtml(c.nombre)}${c.obligatorio === false ? ' <span class="etiqueta etq-gris">Opcional</span>' : ''}</div></div>
+      ${c.descripcion ? `<p class="v2-crit-desc">${escHtml(c.descripcion)}</p>` : ''}`;
+    let ctl;
+    if (t === 'si_no') {
+      ctl = `<div class="v2-score v2-score--sino" role="group" aria-label="${escHtml(c.nombre)}">${[[true, 'Sí'], [false, 'No']].map(([val, l]) => `
+        <button type="button" class="${v === val ? 'active' : ''}" data-act="campoV2" data-arg="${escHtml(c.key)}" data-arg2="${val}" aria-pressed="${v === val}">${l}</button>`).join('')}</div>`;
+    } else if (t === 'opcion') {
+      ctl = `<div class="v2-opciones" role="group" aria-label="${escHtml(c.nombre)}">${(c.opciones || []).map((o, i) => `
+        <button type="button" class="eval-chip${v === o ? ' on' : ''}" data-act="campoV2" data-arg="${escHtml(c.key)}" data-arg2="${i}" aria-pressed="${v === o}">${escHtml(o)}</button>`).join('')}</div>`;
+    } else {
+      ctl = `<textarea class="cfg-inp eval-com-inp" id="reg-${escHtml(c.key)}" rows="2" maxlength="1000" aria-label="${escHtml(c.nombre)}" placeholder="Escribe aquí…">${escHtml(v || '')}</textarea>`;
+    }
+    return `<div class="v2-crit">${cab}${ctl}</div>`;
+  };
 
   const r = _resV2[evaluadoId];
   const resumen = r ? `
@@ -635,6 +660,7 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
       ${ap.nucleo.map(fila).join('')}
       <div class="v2-form-sec">Criterios técnicos de ${escHtml(evaluado?.roles?.nombre || 'su rol')}<small>Solo se compara con quienes tienen el mismo rol. Ordenados por peso.</small></div>
       ${ap.tecnicos.map(fila).join('')}
+      ${ap.registro.length ? `<div class="v2-form-sec">Registro de la evaluación<small>Datos que se guardan con la evaluación y no puntúan.</small></div>${ap.registro.map(campo).join('')}` : ''}
       <p class="v2-fuera"><strong>No se evalúan (${ap.fuera.length}):</strong> ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}. No aparecen en este formulario y no entran al denominador.</p>
 
       <div class="eval-extras">
@@ -693,22 +719,54 @@ function setScoreV2(key, n, btn) {
   actualizarProgresoV2();
 }
 
+/** ¿Tiene respuesta este requerido? Escala: puntaje; texto: lo escrito; el resto: lo elegido. */
+function _requeridoCumplido(k) {
+  if (_formV2.claves.includes(k)) return !!_formV2.puntajes[k];
+  const c = (_formV2.registro || []).find(x => x.key === k);
+  if (c && tipoCampoDe(c) === 'texto') return !!(document.getElementById('reg-' + k)?.value || '').trim();
+  return _formV2.respuestas[k] !== undefined;
+}
+
 function actualizarProgresoV2() {
   const el = document.getElementById('v2-progreso'); if (!el || !_formV2) return;
-  const hechos = _formV2.claves.filter(k => _formV2.puntajes[k]).length;
-  const faltan = _formV2.claves.length - hechos;
+  const req = _formV2.requeridas;
+  const hechos = req.filter(_requeridoCumplido).length;
+  const faltan = req.length - hechos;
   el.innerHTML = faltan
-    ? `<b>${hechos}</b> de ${_formV2.claves.length} criterios · <span class="v2-faltan">faltan ${faltan} para poder publicar</span>`
-    : `<b>${hechos}</b> de ${_formV2.claves.length} criterios · completa`;
+    ? `<b>${hechos}</b> de ${req.length} obligatorios · <span class="v2-faltan">faltan ${faltan} para poder publicar</span>`
+    : `<b>${hechos}</b> de ${req.length} obligatorios · completo`;
+}
+
+/** Clic en un campo de registro: pulsar de nuevo el elegido lo deja sin responder. */
+function setCampoV2(key, raw, btn) {
+  if (!_formV2) return;
+  const c = (_formV2.registro || []).find(x => x.key === key); if (!c) return;
+  const val = tipoCampoDe(c) === 'si_no' ? raw === 'true' : (c.opciones || [])[Number(raw)];
+  if (_formV2.respuestas[key] === val) delete _formV2.respuestas[key];
+  else _formV2.respuestas[key] = val;
+  btn.parentElement.querySelectorAll('button').forEach(b => {
+    const bv = tipoCampoDe(c) === 'si_no' ? b.dataset.arg2 === 'true' : (c.opciones || [])[Number(b.dataset.arg2)];
+    const on = _formV2.respuestas[key] === bv;
+    b.classList.toggle('active', on); b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  actualizarProgresoV2();
 }
 
 async function saveEvaluacionV2(estado, evaluadoId) {
   if (!_formV2 || _formV2.evaluadoId !== evaluadoId) return;
-  const faltan = _formV2.claves.filter(k => !_formV2.puntajes[k]);
+  const faltan = _formV2.requeridas.filter(k => !_requeridoCumplido(k));
   if (estado === 'publicado' && faltan.length) {
-    showToast(`No se puede publicar: faltan ${faltan.length} criterio${faltan.length === 1 ? '' : 's'} por puntuar.`, 'error');
+    const nombres = faltan.map(k => _criteriosV2.find(c => c.key === k)?.nombre || k);
+    showToast(`No se puede publicar: faltan ${faltan.length} obligatorio${faltan.length === 1 ? '' : 's'} (${nombres.slice(0, 3).join(', ')}${nombres.length > 3 ? '…' : ''}).`, 'error');
     return;
   }
+  // Texto libre: se lee al guardar; sí/no y opciones ya están en _formV2.respuestas.
+  const respuestas = { ..._formV2.respuestas };
+  (_formV2.registro || []).filter(c => tipoCampoDe(c) === 'texto').forEach(c => {
+    const v = (document.getElementById('reg-' + c.key)?.value || '').trim();
+    if (v) respuestas[c.key] = v; else delete respuestas[c.key];
+  });
   const comentarios = {};
   _formV2.claves.forEach(k => {
     const v = document.getElementById(`com-${k}`)?.value.trim();
@@ -721,6 +779,8 @@ async function saveEvaluacionV2(estado, evaluadoId) {
   const res = await API.upsertEvaluacion({
     periodo_id: _activePE.id, evaluado_id: evaluadoId, evaluador_id: CU.id,
     puntajes: _formV2.puntajes, bono_ext: 0, comentarios, estado,
+    // Solo con 0020 aplicada: sin la columna, mandarla haría fallar el guardado.
+    respuestas: API.v2Dinamico(_criteriosV2) ? respuestas : null,
   });
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
@@ -2116,8 +2176,11 @@ function renderRubricaTab() {
   renderCatalogoV2();
 }
 
-/** Competencias comunes y del rol, con sus anclas 1-3-5 a un clic. */
-function renderCatalogoV2() {
+/** Competencias comunes y del rol, con sus anclas 1-3-5 a un clic; con 0020, también gestión (admin-criterios.js). */
+function renderCatalogoV2() { CriteriosAdmin.pintar(); }
+
+/* La versión de solo lectura anterior a 0020 ya no se usa: se conserva el nombre por si algo la referencia. */
+function _renderCatalogoV2Antiguo() {
   const cat = document.getElementById('catalogo-v2'); if (!cat) return;
   if (!v2Disponible() || !_criteriosV2.length) {
     renderVacio(cat, 'La rúbrica por roles aún no está activada en la base de datos (migración 0015).');
@@ -2153,12 +2216,7 @@ function showPerfilModal(rolId) {
     .map(p => `<option value="${p.id}">${escHtml(p.nombre)}</option>`).join('');
   if (sugerido) document.getElementById('mpf-desde').value = sugerido.id;
 
-  document.getElementById('mpf-pesos').innerHTML = _criteriosV2.filter(c => c.tipo === 'tecnico').map(c => `
-    <div class="v2-peso-fila">
-      <label for="mpf-w-${escHtml(c.key)}">${escHtml(c.nombre)}</label>
-      <input class="cfg-inp" type="number" min="0" max="100" step="1" inputmode="numeric"
-        id="mpf-w-${escHtml(c.key)}" data-key="${escHtml(c.key)}" data-input="actualizarSumaPerfil" placeholder="0">
-    </div>`).join('');
+  document.getElementById('mpf-pesos').innerHTML = CriteriosAdmin.pesosHTML();
   document.getElementById('mpf-err').textContent = '';
   cambiarRolPerfil();
   openModal('modal-perfil');

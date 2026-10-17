@@ -285,6 +285,45 @@ const API = {
     return data ?? [];
   },
 
+  /** ¿Está aplicada 0020 (criterios dinámicos)? Se deduce de que el catálogo traiga `tipo_campo`. */
+  v2Dinamico(catalogo) { return Array.isArray(catalogo) && catalogo.some(c => 'tipo_campo' in c); },
+
+  /**
+   * Crea o edita un criterio del catálogo (0020). La base valida de verdad (nombre, opciones, tipo,
+   * lo que ya se usó) y sus mensajes ya vienen redactados: se devuelven tal cual.
+   */
+  async saveCriterioV2(c) {
+    const g = await _gid();
+    const fila = {
+      nombre: c.nombre, descripcion: c.descripcion ?? '', tipo: c.tipo, tipo_campo: c.tipo_campo || 'escala',
+      opciones: c.tipo_campo === 'opcion' ? (c.opciones || []) : [],
+      obligatorio: c.obligatorio !== false, activo: c.activo !== false,
+      desc_1: c.desc_1 ?? '', desc_3: c.desc_3 ?? '', desc_5: c.desc_5 ?? '',
+    };
+    if (c.id) {
+      const { data, error } = await SB.from('criterios_v2').update(fila).eq('id', c.id).select().maybeSingle();
+      if (error) return { ok: false, error: error.message };
+      return data ? { ok: true, criterio: data } : { ok: false, error: 'No tienes permiso para editar este criterio.' };
+    }
+    const { data, error } = await SB.from('criterios_v2').insert({ ...fila, gestion_id: g }).select().single();
+    return error ? { ok: false, error: error.message } : { ok: true, criterio: data };
+  },
+
+  /** Solo prospera si el criterio nunca se usó; si no, la base explica que solo se desactiva. */
+  async deleteCriterioV2(id) {
+    const { data, error } = await SB.from('criterios_v2').delete().eq('id', id).select('id');
+    if (error) return { ok: false, error: error.message };
+    return data?.length ? { ok: true } : { ok: false, error: 'No se pudo eliminar el criterio.' };
+  },
+
+  /** Cambia el orden de un criterio intercambiándolo con su vecino. */
+  async moverCriterioV2(a, b) {
+    const r1 = await SB.from('criterios_v2').update({ orden: b.orden }).eq('id', a.id);
+    if (r1.error) return { ok: false, error: r1.error.message };
+    const r2 = await SB.from('criterios_v2').update({ orden: a.orden }).eq('id', b.id);
+    return r2.error ? { ok: false, error: r2.error.message } : { ok: true };
+  },
+
   /** Perfiles por rol con sus pesos. Todas las versiones. */
   async getPerfiles() {
     const g = await _gid();
@@ -354,11 +393,13 @@ const API = {
     return data;
   },
 
-  async upsertEvaluacion({ periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext, comentarios, estado = 'borrador' }) {
+  async upsertEvaluacion({ periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext, comentarios, respuestas = null, estado = 'borrador' }) {
     const { data, error } = await SB
       .from('evaluaciones')
       .upsert(
-        { periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext: bono_ext ?? 0, comentarios, estado },
+        { periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext: bono_ext ?? 0, comentarios, estado,
+          // solo si 0020 está aplicada: sin la columna, mandarla haría fallar el guardado
+          ...(respuestas ? { respuestas } : {}) },
         { onConflict: 'periodo_id,evaluado_id' }
       )
       .select()
@@ -810,7 +851,7 @@ const API = {
       // exactamente los mismos ids que targetIds. Un join por fila para
       // repetir un dato que ya está en memoria.
       const { data: evsRaw, error: evErr } = await SB.from('evaluaciones')
-        .select('evaluado_id, puntajes, comentarios, bono_ext')
+        .select('*')   // * y no una lista: así el portal no falla si 0020 (respuestas) aún no está aplicada
         .eq('estado', 'publicado')
         .eq('periodo_id', periodoId)
         .in('evaluado_id', targetIds)
@@ -834,6 +875,7 @@ const API = {
           distrito: info.distrito || '',
           ext:      Number(ev.bono_ext) || 0,
           puntajes: parseJSON(ev.puntajes),
+          respuestas: parseJSON(ev.respuestas),
         });
         if (ev.comentarios) {
           const coms = parseJSON(ev.comentarios);

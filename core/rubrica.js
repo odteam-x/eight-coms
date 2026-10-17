@@ -63,16 +63,40 @@ function perfilVigenteDe(rolId, periodoId, perfiles = perfilesV2(), periodos = S
  * puntúa y no entra al denominador: un criterio que no aplica se excluye,
  * nunca vale cero.
  */
-function criteriosAplicables(perfil, catalogo = catalogoV2()) {
-  const nucleo = catalogo.filter(c => c.tipo === 'nucleo' && c.activo !== false)
+function criteriosAplicables(perfil, catalogo = catalogoV2(), { conservar = [] } = {}) {
+  // `conservar`: claves que la evaluación ya contiene. Un criterio desactivado después se sigue mostrando
+  // donde ya tiene un valor (historia), pero no se ofrece en evaluaciones nuevas (0020).
+  const guardadas = new Set(conservar);
+  const vigente   = c => c.activo !== false || guardadas.has(c.key);
+  const escala    = c => (c.tipo_campo || 'escala') === 'escala';
+  const nucleo = catalogo.filter(c => c.tipo === 'nucleo' && escala(c) && vigente(c))
                          .sort((a, b) => a.orden - b.orden);
+  // Campos de registro (sí/no, opciones, texto): comunes a todos los roles, no puntúan.
+  const registro = catalogo.filter(c => c.tipo === 'nucleo' && !escala(c) && vigente(c))
+                           .sort((a, b) => a.orden - b.orden);
   const pesos  = Object.fromEntries((perfil?.perfil_criterios || []).map(x => [x.criterio_key, x.peso]));
   const tecnicos = catalogo
-    .filter(c => c.tipo === 'tecnico' && pesos[c.key] != null)
+    .filter(c => c.tipo === 'tecnico' && pesos[c.key] != null && vigente(c))
     .map(c => ({ ...c, peso: pesos[c.key] }))
     .sort((a, b) => b.peso - a.peso || a.orden - b.orden);
-  const fuera = catalogo.filter(c => c.tipo === 'tecnico' && pesos[c.key] == null);
-  return { nucleo, tecnicos, fuera };
+  const fuera = catalogo.filter(c => c.tipo === 'tecnico' && pesos[c.key] == null && c.activo !== false);
+  return { nucleo, tecnicos, fuera, registro };
+}
+
+/* ══ TIPOS DE CAMPO (0020) ═════════════════════════════════════════════ */
+const TIPOS_CAMPO = {
+  escala: { etiqueta: 'Escala 1–5',  ayuda: 'Un puntaje con anclas de conducta. Entra en el cálculo.' },
+  si_no:  { etiqueta: 'Sí / No',     ayuda: 'Una respuesta de registro. No puntúa.' },
+  opcion: { etiqueta: 'Opciones',    ayuda: 'Una opción de una lista. No puntúa.' },
+  texto:  { etiqueta: 'Texto',       ayuda: 'Una nota libre de hasta 1000 caracteres. No puntúa.' },
+};
+const tipoCampoDe = c => (TIPOS_CAMPO[c?.tipo_campo] ? c.tipo_campo : 'escala');
+
+/** Una respuesta de registro como texto legible. */
+function respuestaTxt(c, v) {
+  if (v == null || v === '') return '—';
+  if (tipoCampoDe(c) === 'si_no') return v === true ? 'Sí' : 'No';
+  return String(v);
 }
 
 /** Claves de todo lo puntuable para un perfil. */
@@ -130,8 +154,8 @@ function notaRolV2HTML(fila, propio = true) {
  *   comentarios : { clave: texto }  (opcional)
  *   perfil      : perfil_rol con perfil_criterios
  */
-function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, perfil }) {
-  const ap = criteriosAplicables(perfil);
+function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, respuestas = {}, perfil }) {
+  const ap = criteriosAplicables(perfil, catalogoV2(), { conservar: [...Object.keys(puntajes || {}), ...Object.keys(respuestas || {})] });
 
   const nota = notaRolV2HTML(fila);
 
@@ -173,10 +197,21 @@ function resultadoV2HTML({ fila, puntajes = {}, comentarios = {}, perfil }) {
     <div class="v2-bars">${ap.nucleo.map(barra).join('')}</div>
     <div class="desglose-label">Criterios técnicos · ${escHtml(fila.rol_nombre || 'tu rol')}</div>
     <div class="v2-bars">${ap.tecnicos.map(barra).join('')}</div>
+    ${registroHTML(ap.registro, respuestas, comentarios)}
     ${ap.fuera.length ? `<p class="v2-fuera"><strong>No se te evalúan estos ${ap.fuera.length} criterios</strong>
       (no son parte de tu rol y no entran a tu cálculo): ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}.</p>` : ''}`;
 }
 
+
+/** Campos de registro de una evaluación (solo lectura): lo que respondió quien evaluó. */
+function registroHTML(campos, respuestas = {}, comentarios = {}) {
+  const con = (campos || []).filter(c => respuestas?.[c.key] !== undefined);
+  if (!con.length) return '';
+  return `<div class="desglose-label">Registro de la evaluación</div>
+    <dl class="v2-registro">${con.map(c => `
+      <div class="v2-registro-fila"><dt>${escHtml(c.nombre)}${c.activo === false ? ' <small>(desactivado)</small>' : ''}</dt>
+        <dd>${escHtml(respuestaTxt(c, respuestas[c.key]))}</dd></div>`).join('')}</dl>`;
+}
 
 /* ══ RANKINGS ══════════════════════════════════════════════════════════
  * Dos preguntas distintas, dos tablas distintas: mezclarlas en un solo
@@ -281,7 +316,7 @@ function miScoreV2({ contenido, miId, pe, periodo, calendario, contenedor }) {
   const fb  = (contenido.feedback || []).find(r => r.evaluado_id === miId)?.fb || {};
   const perfil = perfilesV2().find(p => String(p.id) === String(fila.perfil_id)) || null;
   contenedor.innerHTML = resultadoV2HTML({
-    fila, puntajes: mia?.puntajes || {}, comentarios: fb, perfil,
+    fila, puntajes: mia?.puntajes || {}, comentarios: fb, respuestas: mia?.respuestas || {}, perfil,
   });
 }
 

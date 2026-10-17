@@ -21,10 +21,15 @@
     ['recursos', 'Gestión y cuidado de recursos y equipos'], ['liderazgo', 'Liderazgo, delegación y desarrollo del equipo'],
     ['vision', 'Visión estratégica y alineación institucional'], ['voceria', 'Vocería y representación institucional'],
     ['mensaje', 'Claridad y consistencia del mensaje institucional']];
-  const criterios_v2 = [...NUCLEO.map(([k, n], i) => ({ id: i + 1, gestion_id: 1, key: k, nombre: n, tipo: 'nucleo', orden: i + 1, activo: true,
+  const NUEVAS = { descripcion: '', tipo_campo: 'escala', opciones: [], obligatorio: true, created_at: ahora(), created_by: null };
+  const criterios_v2 = [...NUCLEO.map(([k, n], i) => ({ ...NUEVAS, id: i + 1, gestion_id: 1, key: k, nombre: n, tipo: 'nucleo', orden: i + 1, activo: true,
       desc_1: 'Descriptor del nivel 1 de ' + n, desc_3: 'Descriptor del nivel 3 de ' + n, desc_5: 'Descriptor del nivel 5 de ' + n })),
-    ...TEC.map(([k, n], i) => ({ id: i + 6, gestion_id: 1, key: k, nombre: n, tipo: 'tecnico', orden: i + 6, activo: true,
+    ...TEC.map(([k, n], i) => ({ ...NUEVAS, id: i + 6, gestion_id: 1, key: k, nombre: n, tipo: 'tecnico', orden: i + 6, activo: true,
       desc_1: 'Descriptor del nivel 1 de ' + n, desc_3: 'Descriptor del nivel 3 de ' + n, desc_5: 'Descriptor del nivel 5 de ' + n }))];
+
+  criterios_v2.push(
+    { ...NUEVAS, id: 25, gestion_id: 1, key: 'modalidad', nombre: 'Modalidad de asistencia', descripcion: 'Cómo asistió a la jornada', tipo: 'nucleo', tipo_campo: 'opcion', opciones: ['Presencial', 'Remota', 'Mixta'], obligatorio: false, orden: 25, activo: true, desc_1: '', desc_3: '', desc_5: '' },
+    { ...NUEVAS, id: 26, gestion_id: 1, key: 'observaciones', nombre: 'Observaciones del evaluador', tipo: 'nucleo', tipo_campo: 'texto', obligatorio: false, orden: 26, activo: true, desc_1: '', desc_3: '', desc_5: '' });
 
   const DB = {
     gestiones: [{ id: 1, nombre: '2026-2027', inicio: null, fin: null, activa: true, archivada: false, created_at: ahora() }],
@@ -132,6 +137,22 @@
   }
 
   /* Reglas del servidor que la UI da por hechas (las de verdad están en SQL y probadas ahí). */
+  /** Reglas de criterios_v2_validar (0020), simplificadas: lo que la UI necesita para probar mensajes. */
+  function validarCriterio(p, rows) {
+    p.nombre = String(p.nombre || '').trim();
+    if (p.nombre.length < 1 || p.nombre.length > 80) throw new Error('El nombre del criterio debe tener entre 1 y 80 caracteres.');
+    if (String(p.descripcion || '').length > 500) throw new Error('La descripcion no puede superar 500 caracteres.');
+    p.tipo_campo = p.tipo_campo || 'escala'; p.descripcion = p.descripcion || ''; p.obligatorio = p.obligatorio !== false;
+    if (p.tipo_campo !== 'escala' && p.tipo !== 'nucleo') throw new Error('Los campos de registro (si/no, opciones, texto) son comunes a todos los roles: un criterio tecnico es siempre de escala.');
+    if (p.tipo_campo === 'opcion') {
+      const o = (p.opciones || []).map(x => String(x).trim());
+      if (o.length < 2 || o.length > 12) throw new Error('Un campo de opciones necesita entre 2 y 12 opciones.');
+      if (new Set(o.map(x => x.toLowerCase())).size !== o.length) throw new Error('Hay una opcion repetida.');
+      p.opciones = o;
+    } else p.opciones = [];
+  }
+  const criterioUsado = key => DB.perfil_criterios.some(x => x.criterio_key === key) || DB.evaluaciones.some(e => key in (e.puntajes || {}) || key in (e.respuestas || {}));
+
   function validarTarea(old, nuevo) {
     const receptor = old.asignada_a === meId, rev = esAdmin() || (esSec() && !receptor && distritoIds().includes(old.asignada_a));
     if (nuevo.estado !== old.estado) {
@@ -178,6 +199,10 @@
         } else if (this.op === 'delete') {
           const del = visibles(this.t, rows).filter(r => this.fs.every(f => f(r)));
           if (this.t === 'tareas') { const ok = del.filter(t => esAdmin() || (t.asignada_por === meId && t.estado === 'asignada')); ok.forEach(t => rows.splice(rows.indexOf(t), 1)); out = ok; }
+          else if (this.t === 'criterios_v2') {
+            const ok = del.filter(c => { if (criterioUsado(c.key)) throw new Error('El criterio ' + c.key + ' esta en uso: solo se puede desactivar.'); return true; });
+            ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok;
+          }
           else { del.forEach(r => rows.splice(rows.indexOf(r), 1)); out = del; }
         } else {
           out = visibles(this.t, rows).filter(r => this.fs.every(f => f(r)));
@@ -203,6 +228,14 @@
         rows.push(p); DB.tarea_eventos.push({ id: seq.ev++, tarea_id: p.id, actor_id: meId, tipo: 'creada', a: 'asignada', motivo: p.origen, created_at: ahora() });
         return p;
       }
+      if (this.t === 'criterios_v2') {
+        if (!esAdmin()) throw new Error('new row violates row-level security policy for table "criterios_v2"');
+        validarCriterio(p, rows);
+        const slug = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'criterio';
+        if (!p.key) { let b = slug(p.nombre), k = b, n = 1; while (rows.some(r => r.key === k)) k = b + '_' + (++n); p.key = k; }
+        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, r.id), 0) + 1, orden: p.orden || rows.reduce((m, r) => Math.max(m, r.orden), 0) + 1, created_by: meId, created_at: ahora() });
+        rows.push(p); return p;
+      }
       if (this.t === 'actividades' || this.t === 'etiquetas') {
         if (this.t === 'etiquetas' && !esAdmin()) throw new Error('new row violates row-level security policy for table "etiquetas"');
         if (this.t === 'actividades') {
@@ -216,7 +249,20 @@
         const per = DB.periodos_evaluacion.find(x => x.id === p.periodo_id);
         const prev = rows.find(r => r.periodo_id === p.periodo_id && r.evaluado_id === p.evaluado_id);
         p.modelo = per.modelo;
+        if (per.modelo !== 'v2') p.respuestas = {};
         if (per.modelo === 'v2') {
+          p.respuestas = p.respuestas || {};
+          for (const [k, v] of Object.entries(p.respuestas)) {
+            const c = DB.criterios_v2.find(x => x.key === k && x.tipo_campo !== 'escala');
+            if (!c) throw new Error('El campo "' + k + '" no aplica a esta evaluacion.');
+            if (c.tipo_campo === 'si_no' && typeof v !== 'boolean') throw new Error('La respuesta de "' + c.nombre + '" debe ser si o no.');
+            if (c.tipo_campo === 'opcion' && !c.opciones.includes(v)) throw new Error('La respuesta de "' + c.nombre + '" debe ser una de sus opciones.');
+            if (c.tipo_campo === 'texto' && (typeof v !== 'string' || !v.trim() || v.length > 1000)) throw new Error('La respuesta de "' + c.nombre + '" debe ser un texto de hasta 1000 caracteres.');
+          }
+          if (p.estado === 'publicado') {
+            const faltan = DB.criterios_v2.filter(c => c.activo && c.obligatorio && c.tipo_campo !== 'escala' && !(c.key in p.respuestas));
+            if (faltan.length) throw new Error('No se puede publicar: faltan por completar: ' + faltan.map(c => c.nombre).join(', ') + '.');
+          }
           for (const [k, v] of Object.entries(p.puntajes)) if (!Number.isInteger(v) || v < 1 || v > 5) throw new Error(`El puntaje de "${k}" debe ser un entero de 1 a 5.`);
           const prof = DB.profiles.find(x => x.id === p.evaluado_id); p.perfil_id = prev?.perfil_id ?? DB.perfiles_rol.find(x => x.rol_id === prof.rol_id)?.id ?? null;
           if (!p.perfil_id) throw new Error('No hay un perfil de evaluacion vigente para ese rol en este periodo.');
@@ -230,6 +276,12 @@
       rows.push(p); return p;
     }
     _update(r) {
+      if (this.t === 'criterios_v2') {
+        if (!esAdmin()) throw new Error('row-level security');
+        const n = { ...r, ...this.pl }; validarCriterio(n, DB.criterios_v2);
+        if (this.pl.tipo_campo && this.pl.tipo_campo !== r.tipo_campo && criterioUsado(r.key)) throw new Error('El criterio ' + r.key + ' esta en uso: no se cambia el tipo de campo.');
+        Object.assign(r, this.pl); return r;
+      }
       if (this.t === 'tareas') { const n = validarTarea(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
       if (this.t === 'actividades' && !esAdmin() && !(esSec() && r.distrito === me().distrito)) throw new Error('row-level security');
       Object.assign(r, this.pl); return r;

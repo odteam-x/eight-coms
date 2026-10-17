@@ -68,10 +68,11 @@ const Perfil = (() => {
       const visible = ev && (ev.estado === 'publicado' || verBorradores);
       const puntajes    = visible ? parseJSON(ev.puntajes)    : {};
       const comentarios = visible ? parseJSON(ev.comentarios) : {};
+      const respuestas  = visible ? parseJSON(ev.respuestas)  : {};   // campos de registro (0020)
 
       if (v2) {
         const fila = (r.rows || []).find(x => x.evaluado_id === persona.id) || null;
-        return { periodo, v2, fila, puntajes, comentarios };
+        return { periodo, v2, fila, puntajes, comentarios, respuestas };
       }
       if (!visible) return { periodo, v2, row: null };
       const row = { evaluado_id: persona.id, ext: Number(ev.bono_ext) || 0, puntajes };
@@ -230,7 +231,7 @@ const Perfil = (() => {
   function _lecturaRapidaHTML(inst, item) {
     const f = item.fila;
     const perfil = perfilesV2().find(x => String(x.id) === String(f.perfil_id));
-    const ap = criteriosAplicables(perfil);
+    const ap = criteriosAplicables(perfil, catalogoV2(), { conservar: Object.keys(item.puntajes || {}) });
     const lista = [...ap.nucleo, ...ap.tecnicos]
       .map(c => ({ c, v: Number(item.puntajes[c.key]) }))
       .filter(x => Number.isFinite(x.v) && x.v >= 1);
@@ -366,7 +367,7 @@ const Perfil = (() => {
     if (item?.v2 && item.fila) {
       const f = item.fila;
       const perfil = perfilesV2().find(x => String(x.id) === String(f.perfil_id));
-      const ap = criteriosAplicables(perfil);
+      const ap = criteriosAplicables(perfil, catalogoV2(), { conservar: [...Object.keys(item.puntajes || {}), ...Object.keys(item.respuestas || {})] });
       const prev = _previoV2(inst, inst.periodo.id);
       const pv = k => (prev ? Number(prev.puntajes[k]) : NaN);
       const T = _pos(inst);
@@ -375,6 +376,7 @@ const Perfil = (() => {
         <div class="v2-bars">${ap.nucleo.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key])).join('')}</div>
         <h3 class="pf-h">Criterios técnicos · ${escHtml(f.rol_nombre || 'el rol')}</h3>
         <div class="v2-bars">${ap.tecnicos.map(c => _barraV2(c, Number(item.puntajes[c.key]), pv(c.key), item.comentarios?.[c.key])).join('')}</div>
+        ${registroHTML(ap.registro, item.respuestas, item.comentarios)}
         ${ap.fuera.length ? `<p class="v2-fuera"><strong>No se evalúan ${ap.fuera.length} criterios</strong>
           (no son parte del rol y no entran al cálculo): ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}.</p>` : ''}`;
       return;
