@@ -70,6 +70,9 @@ const Cuenta = (() => {
               <span class="fila-aj-ind"><i data-lucide="sun-moon"></i></span>
             </button>
             <button type="button" class="fila-aj" id="cuenta-instalar" data-act="instalarApp"></button>
+            ${window.AYUDA_URL ? `<a class="fila-aj" href="${escHtml(window.AYUDA_URL)}">
+              <div class="fila-aj-txt"><div class="fila-aj-t">Ayuda y manual de uso</div><div class="fila-aj-d">Paso a paso de cada pantalla, en computadora y en celular.</div></div>
+              <span class="fila-aj-ind"><i data-lucide="book-open"></i></span></a>` : ''}
           </div>
 
           <div class="lista-aj cuenta-salir">

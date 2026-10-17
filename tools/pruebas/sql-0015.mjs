@@ -85,6 +85,8 @@ await db.exec(`UPDATE profiles SET tipo_miembro='secretario' WHERE id='${uid(1)}
 await db.exec(`INSERT INTO periodos_evaluacion(gestion_id,nombre,activo) VALUES (${g},'PE1',false)`);
 const pe = (await q(`SELECT id FROM periodos_evaluacion WHERE nombre='PE1'`))[0].id;
 await db.exec(`INSERT INTO periodos_evaluacion(gestion_id,nombre) VALUES (${g},'PE2')`);
+// PE2 es posterior a PE1 de verdad: dos inserciones seguidas pueden empatar en created_at (reloj de PGlite).
+await db.exec(`UPDATE periodos_evaluacion SET created_at = created_at + interval '1 minute' WHERE nombre='PE2'`);
 const pe2 = (await q(`SELECT id FROM periodos_evaluacion WHERE nombre='PE2'`))[0].id;
 
 console.log('\n[evaluaciones en período legacy: nada cambia]');

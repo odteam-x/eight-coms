@@ -211,21 +211,21 @@ async function initUI() {
   if (!_uiMontada) {
     const sec = isSecretario();
     initNav({
-      marca: 'EIGHT CREATORS', portal: sec ? 'secretario' : 'miembro',
+      marca: 'EIGHT CREATORS', portal: sec ? 'secretario' : 'miembro', ayuda: sec ? 'ayuda/secretario.html' : 'ayuda/miembro.html',
       badge: sec ? 'SECRETARIO' : 'CREATOR',
       activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user,
              badge: sec ? 'Secretario de Comunicaciones' : 'Creator' },
       grupos: [
         { titulo: sec ? 'Mi espacio' : '', items: [
-          { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
+          { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
-          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
+          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
-          { tab:'distrito', icono:'map',         etiqueta:'Distrito'  },
-          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas'    },
+          { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
+          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
         ]}] : []),
       ],
     });

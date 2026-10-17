@@ -148,3 +148,7 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .campana-n { font-size: .875rem; min-width: 24px; height: 24px; }
 
 .cab--sin-marca .cab-marca { display: none; }
+
+/* Cabeceras de grupos plegables (p. ej. los roles en Distrito) y rótulos pequeños de tarjetas de resumen. */
+.v2-rol > summary { min-height: var(--m-ctrl-sec); padding-block: var(--sp-3); display: flex; align-items: center; }
+.dist-scard-lbl, .dist-scard-sub { font-size: var(--fs-xs); }

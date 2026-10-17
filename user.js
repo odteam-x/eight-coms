@@ -126,7 +126,7 @@ async function initUI() {
 
   if (!_uiMontada) {
     initNav({
-      marca: 'EIGHT CREATORS', portal: 'miembro',
+      marca: 'EIGHT CREATORS', portal: 'miembro', ayuda: 'ayuda/miembro.html',
       activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user, badge: 'Creator' },
       grupos: [{ items: [

@@ -150,5 +150,23 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/\.pantalla-t \{ position: absolute/.test(fs.readFileSync(ROOT + 'movil.css', 'utf8')), 'movil.css: el título de pantalla no se repite bajo la cabecera (sigue para lectores de pantalla)');
 }
 
+// ── Manuales de uso ───────────────────────────────────────────────────────
+{
+  for (const [m, portalJs, rutaAyuda] of [['miembro', 'user.js', 'ayuda/miembro.html'], ['secretario', 'secretario.js', 'ayuda/secretario.html'], ['admin', 'admin.js', 'ayuda/admin.html']]) {
+    const h = fs.readFileSync(ROOT + 'ayuda/' + m + '.html', 'utf8');
+    const ids = [...h.matchAll(/<section id="([a-z-]+)"/g)].map(x => x[1]);
+    ok(ids.length >= 8 && ids.includes('acceso') && ids.includes('avisos') && ids.includes('cuenta') && ids.includes('aun-no') && ids.includes('permisos') && ids.includes('faq'), 'ayuda/' + m + '.html: tiene acceso, avisos, cuenta, «lo que aún no hace», permisos y preguntas frecuentes (' + ids.length + ' secciones)');
+    ok([...h.matchAll(/<li><a href="#([a-z-]+)">/g)].every(x => ids.includes(x[1])) && /<nav class="ay-toc"/.test(h), 'ayuda/' + m + '.html: el índice enlaza solo a secciones que existen');
+    ok([...h.matchAll(/src="img\/([a-z-]+\.jpg)"/g)].every(x => fs.existsSync(ROOT + 'ayuda/img/' + x[1])), 'ayuda/' + m + '.html: todas las capturas existen');
+    ok((h.match(/<ol class="pasos">/g) || []).length >= 4 && /class="faq"/.test(h), 'ayuda/' + m + '.html: procedimientos con pasos numerados y preguntas frecuentes');
+    ok(new RegExp("ayuda: [^\\n]*" + rutaAyuda.replace(/\./g, '\\.')).test(fs.readFileSync(ROOT + portalJs, 'utf8')), portalJs + ': enlaza el manual desde el portal (' + rutaAyuda + ')');
+    ok(!/<script/.test(h.replace(/<script src="\.\.\/core\/theme\.js"><\/script>/, '')), 'ayuda/' + m + '.html: sin scripts en línea (CSP)');
+  }
+  ok(/AYUDA_URL/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')) && /Ayuda y manual de uso/.test(fs.readFileSync(ROOT + 'core/rail.js', 'utf8')), 'Mi cuenta, el menú lateral y la hoja «Más» enlazan el manual');
+  ok(fs.existsSync(ROOT + 'ayuda/ayuda.css') && fs.existsSync(ROOT + 'tools/generar-manuales.mjs'), 'existen ayuda.css y el generador');
+  const man = fs.readFileSync(ROOT + 'ayuda/miembro.html', 'utf8') + fs.readFileSync(ROOT + 'ayuda/secretario.html', 'utf8') + fs.readFileSync(ROOT + 'ayuda/admin.html', 'utf8');
+  ok(/todavía no existen|aún no puedes elegirlos/.test(man), 'los manuales dicen expresamente lo que todavía no existe (roles de preferencia, roles por actividad)');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

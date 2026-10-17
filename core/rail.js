@@ -35,6 +35,7 @@ let _railCfg = null;
  */
 function initNav(cfg) {
   _railCfg = cfg;
+  window.AYUDA_URL = cfg.ayuda || '';   // la usa Mi cuenta para enlazar el manual
   document.body.classList.add('con-rail');
   renderRail();
   renderCabeceraMovil();
@@ -121,6 +122,7 @@ function renderRail() {
       </div>
     </button>
     <div class="rail-acciones">
+      ${_railCfg.ayuda ? `<a class="rail-item rail-item--sec" href="${escHtml(_railCfg.ayuda)}" aria-label="Ayuda y manual de uso" data-tip="Ayuda"><i data-lucide="book-open" class="rail-ico"></i><span class="rail-txt">Ayuda</span></a>` : ''}
       ${typeof Notif !== 'undefined' ? Notif.campanaHTML('campana--rail rail-item rail-item--sec').replace('</button>', '<span class="rail-txt">Avisos</span></button>') : ''}
       <button class="rail-item rail-item--sec" data-act="fn" data-arg="toggleTheme" aria-label="Cambiar tema" data-tip="Cambiar tema">
         <i data-lucide="sun-moon" class="rail-ico"></i><span class="rail-txt">Tema</span>
@@ -213,9 +215,12 @@ function renderBottomBar() {
   host.setAttribute('aria-label', 'Navegación');
 
   const todos = _items();
-  // Con más destinos que huecos, el último abre una hoja con el resto.
-  const directos = todos.length > BOTTOM_MAX ? todos.slice(0, BOTTOM_MAX - 1) : todos;
-  const resto    = todos.slice(directos.length);
+  // Con más destinos que huecos, el último abre una hoja con el resto. Un portal puede marcar `fav: true` los
+  // destinos de uso frecuente (p. ej. Distrito y Tareas de la secretaría) para que no queden dentro de «Más».
+  const favs = todos.filter(i => i.fav);
+  const directos = favs.length ? favs.slice(0, BOTTOM_MAX - 1)
+                 : (todos.length > BOTTOM_MAX ? todos.slice(0, BOTTOM_MAX - 1) : todos);
+  const resto    = todos.filter(i => !directos.includes(i));
 
   for (const it of directos) {
     const b = document.createElement('button');

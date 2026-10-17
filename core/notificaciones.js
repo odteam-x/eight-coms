@@ -39,6 +39,11 @@ const Notif = (() => {
     evaluaciones_sin_publicar: { icono: 'clipboard-list', t: () => 'Faltan evaluaciones por publicar', d: x => x.pendientes ? `${x.pendientes} pendientes en ${_t(x.periodo)}` : _t(x.periodo) },
   };
 
+  /* Categoría visual: el color del icono agrupa de un vistazo (tareas, evaluaciones, actividades, accesos). */
+  const _cat = (tipo) => /^(tarea_|plazo_|entrega_)/.test(tipo) ? 'tarea'
+    : /^nota_|^evaluaciones_/.test(tipo) ? 'nota'
+    : /^actividad_/.test(tipo) ? 'actividad' : 'acceso';
+
   /* Sección donde se resuelve cada aviso, por portal. Los nombres de pestaña son los de initNav de cada portal. */
   const DESTINOS = {
     miembro:    { nota_publicada: 'perfil', nota_corregida: 'perfil', acceso_aprobado: 'inicio',
@@ -96,14 +101,15 @@ const Notif = (() => {
     const x = a.datos || {};
     const sinLeer = !a.leida_en;
     const detalle = def.d(x);
-    return `<li><button type="button" class="aviso${sinLeer ? ' aviso--nuevo' : ''}" data-act="avisoIr" data-arg="${a.id}">
-      <span class="aviso-ico" aria-hidden="true"><i data-lucide="${escHtml(def.icono)}"></i></span>
+    return `<li class="aviso-li"><button type="button" class="aviso${sinLeer ? ' aviso--nuevo' : ''}" data-act="avisoIr" data-arg="${a.id}">
+      <span class="aviso-ico aviso-ico--${_cat(a.tipo)}" aria-hidden="true"><i data-lucide="${escHtml(def.icono)}"></i></span>
       <span class="aviso-txt">
-        <span class="aviso-t">${escHtml(def.t(x))}${sinLeer ? '<span class="sr-only"> (sin leer)</span>' : ''}</span>
+        <span class="aviso-fila">
+          <span class="aviso-t">${escHtml(def.t(x))}${sinLeer ? '<span class="sr-only"> (sin leer)</span>' : ''}</span>
+          <span class="aviso-h">${escHtml(timeAgo(a.creada))}</span>
+        </span>
         ${detalle ? `<span class="aviso-d">${escHtml(detalle)}</span>` : ''}
-        <span class="aviso-h">${escHtml(timeAgo(a.creada))}</span>
       </span>
-      ${sinLeer ? '<span class="aviso-punto" aria-hidden="true"></span>' : ''}
     </button></li>`;
   }
 
@@ -117,12 +123,14 @@ const Notif = (() => {
     }
     const lista = _solo ? _lista.filter(a => !a.leida_en) : _lista;
     const sinLeer = _lista.filter(a => !a.leida_en).length;
+    const sub = document.getElementById('panel-lateral-sub');
+    if (sub) { sub.textContent = sinLeer ? (sinLeer === 1 ? '1 aviso sin leer' : sinLeer + ' avisos sin leer') : 'Estás al día'; sub.hidden = false; }
     const barra = `<div class="avisos-barra">
       <div class="chip-row" role="group" aria-label="Filtrar avisos">
         <button type="button" class="chip${_solo ? '' : ' active'}" data-act="avisosFiltro" data-arg="todas" aria-pressed="${!_solo}">Todos</button>
         <button type="button" class="chip${_solo ? ' active' : ''}" data-act="avisosFiltro" data-arg="nuevas" aria-pressed="${_solo}">Sin leer${sinLeer ? ` (${sinLeer})` : ''}</button>
       </div>
-      <button type="button" class="btn-texto" data-act="avisosTodas"${sinLeer ? '' : ' disabled'}>Marcar todo como leído</button>
+      <button type="button" class="btn-texto avisos-todas" data-act="avisosTodas"${sinLeer ? '' : ' disabled'}><i data-lucide="check-double" aria-hidden="true"></i>Marcar todo</button>
     </div>`;
     if (!lista.length) {
       host.innerHTML = barra + `<div class="aviso-estado" role="status"><i data-lucide="${_solo ? 'check-double' : 'bell'}" aria-hidden="true"></i>

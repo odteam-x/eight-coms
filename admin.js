@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!CU) return;
 
   initNav({
-    marca: 'EIGHT CREATORS', badge: 'ADMIN', portal: 'admin', inicio: 'overview', activo: 'overview', calTab: 'agenda',
+    marca: 'EIGHT CREATORS', badge: 'ADMIN', portal: 'admin', ayuda: 'ayuda/admin.html', inicio: 'overview', activo: 'overview', calTab: 'agenda',
     // Cabecera de cuenta de la hoja móvil, donde viven salir y el
     // selector de gestión: el rail no existe por debajo de 768px.
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
