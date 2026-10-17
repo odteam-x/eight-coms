@@ -95,6 +95,7 @@ const ACCIONES = {
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
   instalarApp:      ()            => Pwa.instalar(),
   abrirAvisos:      ()            => Notif.abrir(),
+  fondoElegir:      (arg)         => Fondo.elegir(Number(arg)),
   borrarEval:       (arg)         => borrarBorradorEval(arg),
   borrarBorradores: ()            => borrarBorradoresEval(),
   puntosPaso:       (arg, el)     => puntosPasoV2(arg, el),

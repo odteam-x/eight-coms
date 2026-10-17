@@ -46,7 +46,7 @@ const Inicio = (() => {
   function _heroHTML(persona, periodo, proximo) {
     const estado = periodo ? estadoPeriodo(periodo) : null;
     return `
-      <section class="inicio-hero sup-marca pat-${_patron(persona.id)}" aria-labelledby="inicio-titulo">
+      <section class="inicio-hero sup-marca pat-${typeof Fondo !== 'undefined' ? Fondo.clase(persona) : _patron(persona.id)}" data-persona="${escHtml(persona.id)}" aria-labelledby="inicio-titulo">
         <div class="inicio-saludo">
           ${periodo ? `<span class="tag-marca">${escHtml(estado?.label || 'Período')} · ${escHtml(periodo.pe)}</span>` : ''}
           <h2 class="inicio-titulo" id="inicio-titulo">Hola, <span class="acento">${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</span></h2>
@@ -150,6 +150,7 @@ const Inicio = (() => {
     el.innerHTML = `
       ${_heroHTML(persona, periodo, proximos[0] || null)}
       <div class="inicio-cuerpo m-content">
+        <div id="bv-slot"></div>
         <div class="inicio-grid">
           <section class="pf-card pf-card--cian" aria-label="Tu evaluación">${_evaluacionHTML(persona, periodo, ev)}</section>
           <section class="pf-card" aria-label="Para atender">${_atenderHTML(periodo, datos)}</section>
@@ -158,6 +159,7 @@ const Inicio = (() => {
         </div>
       </div>`;
     animarEntrada(el);
+    if (typeof Bienvenida !== 'undefined') Bienvenida.pintarTarjeta();
     if (extra) await extra(document.getElementById('inicio-extra'), { periodo });
   }
 

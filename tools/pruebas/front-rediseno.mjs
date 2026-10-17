@@ -180,5 +180,41 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/Tareas\.abrirModal\(\{\s*titulo: 'Eliminar borrador'/.test(adm) && /Las evaluaciones publicadas no se tocan/.test(adm), 'admin.js: pide confirmación y dice que lo publicado no se toca');
 }
 
+// ── Favicon redondo y fondo de perfil elegible ────────────────────────────
+{
+  const { decodificar } = await import('../png-util.mjs');
+  for (const [arch, lado] of [['favicon-32.png', 32], ['favicon-64.png', 64], ['icono-redondo-192.png', 192], ['icono-redondo-512.png', 512]]) {
+    const im = decodificar(fs.readFileSync(ROOT + arch));
+    const a = (x, y) => im.px[(y * im.w + x) * 4 + 3];
+    ok(im.w === lado && im.h === lado && a(0, 0) === 0 && a(lado - 1, lado - 1) === 0 && a(lado >> 1, lado >> 1) === 255, arch + ': ' + lado + ' px, esquinas transparentes y centro opaco (redondo)');
+  }
+  const ico = fs.readFileSync(ROOT + 'favicon.ico');
+  ok(ico.readUInt16LE(2) === 1 && ico.readUInt16LE(4) === 3, 'favicon.ico: contiene 3 tamaños (16, 32, 48)');
+  for (const p of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
+    const t = fs.readFileSync(ROOT + p, 'utf8');
+    ok(/rel="icon" type="image\/png" sizes="32x32" href="favicon-32\.png"/.test(t) && !/rel="icon"[^>]*icono-192/.test(t), p + ': la pestaña usa el favicon redondo (no el cuadrado)');
+  }
+  const man = JSON.parse(fs.readFileSync(ROOT + 'manifest.webmanifest', 'utf8'));
+  ok(man.icons.filter(i => i.purpose === 'any').every(i => /redondo/.test(i.src)) && man.icons.filter(i => i.purpose === 'maskable').every(i => !/redondo/.test(i.src)), 'manifest: «any» redondo, «maskable» cuadrado a sangre');
+
+  // Fondo de perfil
+  const vm = (await import('node:vm')).default;
+  const ctx = { document: { getElementById: () => null, querySelectorAll: () => [] }, CSS: { escape: x => x }, API: {}, showToast() {}, renderIconos() {}, console };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(ROOT + 'core/fondo.js', 'utf8') + '\n;globalThis.__F = Fondo;', ctx);
+  const F = ctx.__F;
+  ok(F.N === 7, 'Fondo: siete patrones (los de la marca)');
+  ok(F.clase({ id: 'x', fondo: 1 }) === 0 && F.clase({ id: 'x', fondo: 7 }) === 6 && F.clase({ id: 'x', fondo: 4 }) === 3, 'Fondo.clase: el patrón elegido N es la clase pat-(N-1)');
+  const auto = F.clase({ id: 'abc' });
+  ok(auto >= 0 && auto < 7 && auto === F.clase({ id: 'abc', fondo: null }) && auto === F.clase({ id: 'abc', fondo: 0 }) && auto === F.clase({ id: 'abc', fondo: 9 }), 'Fondo.clase: sin elección (o inválida) usa el automático por id, estable');
+  const fh = fs.readFileSync(ROOT + 'core/fondo.js', 'utf8');
+  ok(/role="radiogroup"/.test(fh) && /role="radio"/.test(fh) && /aria-checked/.test(fh), 'Fondo: grupo de radios accesible');
+  ok(/updateMiFondo/.test(fs.readFileSync(ROOT + 'api.js', 'utf8')) && /fondoElegir:\s*\(arg\)\s*=>\s*Fondo\.elegir/.test(fs.readFileSync(ROOT + 'config.js', 'utf8')), 'api.js y config.js: updateMiFondo y la acción fondoElegir');
+  for (const p of ['user.html', 'secretario.html', 'admin.html']) ok(/<script src="core\/fondo\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/fondo.js');
+  ok(/pat-\$\{typeof Fondo !== 'undefined' \? Fondo\.clase\(persona\)/.test(fs.readFileSync(ROOT + 'core/inicio.js', 'utf8')) && /Fondo\.clase\(p\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'Inicio y Mi perfil pintan el fondo elegido');
+  const m30 = fs.readFileSync(ROOT + 'supabase/migrations/0030_fondo_perfil.sql', 'utf8');
+  ok(/fondo IS NULL OR fondo BETWEEN 1 AND 7/.test(m30), 'migración 0030: solo 1–7 o NULL');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

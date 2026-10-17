@@ -161,7 +161,7 @@ async function _personaPropia() {
   let rol_nombre = '';
   try { rol_nombre = (await API.getRoles(false)).find(r => String(r.id) === String(CU.rol_id))?.nombre || ''; }
   catch { /* sin nombre de rol el perfil sigue: el v2 lo trae en su fila */ }
-  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url,
+  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url, fondo: CU.fondo,
            rol_nombre, distrito: CU.distrito, tipo_miembro: CU.tipo_miembro };
 }
 

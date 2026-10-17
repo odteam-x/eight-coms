@@ -255,7 +255,7 @@ async function _personaPropia() {
   let rol_nombre = '';
   try { rol_nombre = (await API.getRoles(false)).find(r => String(r.id) === String(CU.rol_id))?.nombre || ''; }
   catch { /* sin nombre de rol el perfil sigue: el v2 lo trae en su fila */ }
-  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url,
+  return { id: CU.id, nombre: CU.name || CU.user, email: CU.email, avatar_url: CU.avatar_url, fondo: CU.fondo,
            rol_nombre, distrito: CU.distrito, tipo_miembro: CU.tipo_miembro };
 }
 
@@ -296,7 +296,7 @@ function registrarBuscador() {
 function personaDeDistrito(id) {
   const m = (_contenido?.districtMembers || []).find(x => String(x.id) === String(id));
   if (!m) return null;
-  return { id: m.id, nombre: m.nombre || m.email, email: m.email, avatar_url: m.avatar_url,
+  return { id: m.id, nombre: m.nombre || m.email, email: m.email, avatar_url: m.avatar_url, fondo: m.fondo,
            rol_nombre: m.roles?.nombre || '', distrito: m.distrito, tipo_miembro: m.tipo_miembro };
 }
 
@@ -609,7 +609,7 @@ async function renderRoster() {
   const scoreRows = getDistritoRows();
 
   const personas = miembros.map(m => {
-    const base = { id: m.id, nombre: m.nombre || m.email, avatar_url: m.avatar_url, rol: m.roles?.nombre || (m.tipo_miembro === 'secretario' ? 'Secretario' : 'Creator'),
+    const base = { id: m.id, nombre: m.nombre || m.email, avatar_url: m.avatar_url, fondo: m.fondo, rol: m.roles?.nombre || (m.tipo_miembro === 'secretario' ? 'Secretario' : 'Creator'),
                    soyYo: m.id === CU.id, chips: [], valor: null };
     if (v2) {
       const f = filas.find(r => r.evaluado_id === m.id);

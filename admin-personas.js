@@ -27,7 +27,7 @@ const _distritoNombre = id => _distritos.find(d => String(d.id) === String(id))?
 /** Una fila de _users → la «persona» que entiende core/perfil.js. */
 function personaDeUsuario(u) {
   return {
-    id: u.id, nombre: u.nombre || u.email, email: u.email, avatar_url: u.avatar_url,
+    id: u.id, nombre: u.nombre || u.email, email: u.email, avatar_url: u.avatar_url, fondo: u.fondo,
     rol_nombre: u.roles?.nombre || _roles.find(r => String(r.id) === String(u.rol_id))?.nombre || '',
     distrito: _distritoNombre(u.distrito), tipo_miembro: u.tipo_miembro,
   };
@@ -140,7 +140,7 @@ async function renderPersonasCards() {
     if (_inactivosPE.has(u.id)) chips.push({ txt: 'Inactiva en el período', icono: 'pause' });
     if (r?.borrador) chips.push({ txt: 'Borrador', icono: 'file-pen' });
     return {
-      id: u.id, nombre: u.nombre || u.email, avatar_url: u.avatar_url,
+      id: u.id, nombre: u.nombre || u.email, avatar_url: u.avatar_url, fondo: u.fondo,
       rol: u.roles?.nombre || (u.tipo_miembro === 'secretario' ? 'Secretario' : 'Sin rol'),
       distrito: u.distrito ? _distritoNombre(u.distrito) : '',
       valor: r?.valor ?? null, max: r?.max, color: r?.color, nivel: r?.nivel, chips,

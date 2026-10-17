@@ -40,7 +40,7 @@ const Perfil = (() => {
 
   const _fmt = (n, d = 1) => fmtNum(n, d);
   /** 0–6: qué patrón de la marca lleva la cabecera de esta persona. */
-  const _patronDe = id => [...String(id || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % 7;
+  const _patronDe = p => (typeof Fondo !== 'undefined' ? Fondo.clase(p) : [...String(p?.id || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % 7);
   const _tipo = p => (p.tipo_miembro === 'secretario' ? 'Secretario' : 'Creator');
 
   /** Quién habla: «tu»/«tus» para uno mismo, «su»/«sus» para quien supervisa. */
@@ -175,7 +175,7 @@ const Perfil = (() => {
 
     const H = inst.panel ? 'h3' : 'h2';
     return `
-      <header class="perfil-cab sup-marca pat-${_patronDe(p.id)}">
+      <header class="perfil-cab sup-marca pat-${_patronDe(p)}" data-persona="${escHtml(p.id)}">
         <div class="perfil-id">
           ${_avatarHTML(inst)}
           <div class="perfil-id-txt">

@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Pruebas de las migraciones y de la UI. NO forma parte del sitio: el sitio sigue sin build ni npm.",
   "scripts": {
-    "sql": "node sql-0015.mjs && node sql-0015.mjs --con-0020 && node sql-0016.mjs && node sql-0017.mjs && node sql-0018.mjs && node sql-0020.mjs && node sql-0022.mjs && node sql-0023.mjs",
+    "sql": "node sql-0015.mjs && node sql-0015.mjs --con-0020 && node sql-0016.mjs && node sql-0017.mjs && node sql-0018.mjs && node sql-0020.mjs && node sql-0022.mjs && node sql-0023.mjs && node sql-0030.mjs",
     "front": "node front.mjs && node front-rediseno.mjs",
     "ui": "node ui/server.mjs",
     "todo": "npm run sql && npm run front"

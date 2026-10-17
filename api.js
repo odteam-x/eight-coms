@@ -393,6 +393,14 @@ const API = {
     return data;
   },
 
+  /** Fondo de la tarjeta de perfil: 1–7 (patrón de la marca) o null (automático). Lo escribe la propia persona (RLS: su fila).
+   *  Sin la migración 0030 la columna no existe: se devuelve noDisponible y la pantalla lo explica. */
+  async updateMiFondo(userId, fondo) {
+    const { error } = await SB.from('profiles').update({ fondo }).eq('id', userId);
+    if (!error) return { ok: true };
+    return { ok: false, error: error.message, noDisponible: /fondo|PGRST204|42703|schema cache/i.test((error.code || '') + ' ' + error.message) };
+  },
+
   /** Borra el borrador de UNA persona en un período. Nunca toca una evaluación publicada (filtro estado = 'borrador'). */
   async deleteBorrador(periodoId, evaluadoId) {
     const { data, error } = await SB.from('evaluaciones').delete()
@@ -828,7 +836,7 @@ const API = {
       // Miembros del distrito y evaluaciones del período van en paralelo.
       const pMiembros = esSecretario
         ? SB.from('profiles')
-            .select('id, nombre, email, distrito, tipo_miembro, avatar_url, roles:rol_id(nombre)')
+            .select('*, roles:rol_id(nombre)')
             .eq('distrito', profile.distrito)
             .abortSignal(signal)
         : Promise.resolve({ data: [], error: null });

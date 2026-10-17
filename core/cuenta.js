@@ -75,6 +75,8 @@ const Cuenta = (() => {
               <span class="fila-aj-ind"><i data-lucide="book-open"></i></span></a>` : ''}
           </div>
 
+          <div id="cuenta-fondo" class="cuenta-fondo"></div>
+
           <div class="lista-aj cuenta-salir">
             <button type="button" class="fila-aj" data-act="salir">
               <div class="fila-aj-txt"><div class="fila-aj-t">Cerrar sesión</div><div class="fila-aj-d">Sales de este dispositivo.</div></div>
@@ -107,6 +109,7 @@ const Cuenta = (() => {
         </section>
       </div>`;
     _pintarInstalar();
+    if (typeof Fondo !== 'undefined') Fondo.montar(host.querySelector('#cuenta-fondo'), _p);
     if (typeof renderIconos === 'function') renderIconos(host);
     // Enter dentro de un formulario no recarga ni envía: dispara su botón.
     host.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => {
