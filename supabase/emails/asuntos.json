@@ -11,7 +11,7 @@
     "nota_publicada": "Ya está publicada tu evaluación de {{periodo}}",
     "nota_corregida": "Se actualizó tu evaluación de {{periodo}}",
     "tarea_asignada": "Nueva tarea: {{tarea}}",
-    "tarea_por_vencer": "{{cuando}} vence: {{tarea}}",
+    "tarea_por_vencer": "Vence {{cuando}}: {{tarea}}",
     "tarea_vencida": "Tarea vencida: {{tarea}}",
     "tarea_devuelta": "Te devolvieron la tarea: {{tarea}}",
     "tarea_aprobada": "Aprobaron tu tarea: {{tarea}}",
@@ -22,7 +22,6 @@
     "acceso_aprobado": "Ya puedes entrar a EIGHT CREATORS LABs",
     "actividad_nueva": "Nueva actividad: {{actividad}}",
     "actividad_recordatorio": "Mañana: {{actividad}}",
-    "evaluaciones_sin_publicar": "Faltan evaluaciones por publicar en {{periodo}}",
-    "resumen_diario": "Tu resumen de hoy: {{total}} pendientes"
+    "evaluaciones_sin_publicar": "Faltan evaluaciones por publicar en {{periodo}}"
   }
 }
