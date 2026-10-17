@@ -196,6 +196,7 @@ const GRAFICOS = [
   ['--etq-azul', '3:1 punto de etiqueta'],
   ['--etq-rojo', '3:1 punto de etiqueta'],
   ['--etq-gris', '3:1 punto de etiqueta'],
+  ['--campo-borde', '3:1 borde de campo (WCAG 1.4.11)'],
 ];
 
 /* ══ EJECUCIÓN ═════════════════════════════════════════════════════════ */

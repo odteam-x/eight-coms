@@ -380,6 +380,19 @@ Study and rules: `docs/estudio-uiux-evaluacion.md`. New admin-only files share t
 - **Full criterion names everywhere** — never the 3-letter codes. **Evaluar** keeps its header fixed (period, search, role/district selects, status chips and shortcuts with counts) and each column scrolls on its own.
 - **Mi cuenta** (`core/cuenta.js`): photo, name, assigned data (read-only), theme, password, sign-out.
 
+### Auditoría de interfaz (octubre 2026)
+
+Informe y evidencia en `docs/auditoria-ui-oct-2026.md`. Reglas que salieron de ahí:
+
+- **Toda pestaña abre con `.pantalla-cab` + `h1.pantalla-t`** (título en minúsculas/título, nunca MAYÚSCULAS escritas a mano; `.ptitle` y `h2.tab-title` ya no se usan). La acción primaria de la pantalla (crear) va dentro, en `.pantalla-acc`, como `.btn-save`; exportar o volver son secundarios (`.btn-out`). `front-rediseno.mjs` lo comprueba.
+- **`.filtros-fila`** es la fila de filtros de Evaluar, Personas, Tareas y Distritos (período + búsqueda + selects). No improvises cajas con `style=""`.
+- **Un fondo opaco sobre `.amain`/`#contenido` tapa la luz ambiental** y dibuja un recuadro; las cabeceras no llevan fondo.
+- **`premium.css` carga el último**: lo que un `admin.css` o `shared.css` ya fijó (p. ej. el tope del contenido de `.amain`) se corrige ahí, no con `!important`.
+- Puntero grueso: chips, botones de icono, enlaces de tarjeta y botones del rail llegan a 44 px (`@media (pointer: coarse)` al final de `premium.css`).
+- `tools/pruebas/ui/audit-layout.js` mide overflow, objetivos táctiles, texto bajo `--fs-xs` y controles sin nombre en el DOM real (`__aud()`, `await __sweep([...tabs])`). Úsalo con `npm run ui` a 320/390/768/1024/1440/1920 antes de dar una pantalla por buena.
+- **Tema claro**: los contenedores (`.tarjeta`, `.pf-card`, `.lista-aj`, `.tk-card`…) llevan anillo `--trazo` + `--shadow-sm` y los campos `--campo-borde` (3:1) — ver el bloque «Tema claro» al final de `premium.css`. Un contenedor nuevo se añade a esa lista. Al revisar el tema claro, ojo: con el panel del navegador oculto las transiciones no terminan y se ven colores a medio cambiar; recarga con `localStorage ec-theme=light` en lugar de cambiar `data-theme` en caliente.
+- Producción (`eight-coms.vercel.app`) puede ir por detrás de la rama: compara huellas de `marca.css`/`premium.css` antes de afirmar que algo "ya está desplegado".
+
 ### Canonical components (phase 1 of the second redesign)
 
 `marca.css` ends with the components every screen must use: **six buttons** (`.btn--primario` coral, `--secundario` outline, `--texto`, `--peligro`, `--icono` circle, `--chip`; all historic classes — `btn-save`, `tk-btn`, `btn-cfg-add`, `cal2-btn`… — are mapped to them), **`.etiqueta`** (pill with a dot; `--etq-coral|violeta|verde|ambar|cian|azul|rojo|gris`, 8 tones measured at 3:1 in both themes by `tools/contraste.js` — the only colours allowed outside the brand ramp, for categories/calendar labels), **`.pantalla-cab`** (title + context + one primary action) and **`.tarjeta`** / **`.tarjeta--kpi`**. One primary per view. Study and rules: `docs/estudio-uiux-evaluacion.md`.

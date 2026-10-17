@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light">
+<title>Tienes una tarea nueva</title></head>
+<body style="margin:0;padding:0;background:#061326">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326">{{asignador}} te asignó una tarea.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"><tr><td align="center" style="padding:32px 16px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden">
+    <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#002247;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#005286;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#0087F1;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#00CBFF;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#A7E8FF;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#FF6063;height:6px;font-size:0;line-height:0">&nbsp;</td></tr></table></td></tr>
+    <tr><td style="padding:32px 36px 8px">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="padding-right:14px"><img src="https://eight-coms.vercel.app/logo.png" width="48" height="48" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"></td>
+        <td style="font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.01em;color:#F3F8FF;text-transform:uppercase;line-height:1.1">Eight Creators Labs<br><span style="font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:#A7E8FF;text-transform:none">CELIDER 08 Santiago</span></td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="padding:24px 36px 8px">
+      <h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF">Tienes una tarea nueva</h1>
+      <p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF">Hola {{nombre}}, <b>{{asignador}}</b> te asignó una tarea en <b>{{periodo}}</b>.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;background:#10264A;border-radius:16px">
+        <tr><td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Tarea</td>
+        <td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{tarea}}</td></tr>
+        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Fecha límite</td>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{fecha_limite}}</td></tr>
+        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Prioridad</td>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{prioridad}}</td></tr>
+      </table><table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="background:#FF6063;border-radius:999px">
+        <a href="{{enlace}}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px">Abrir la tarea</a></td></tr></table>
+       <p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1">Si el botón no funciona, copia este enlace en tu navegador:<br><a href="{{enlace}}" style="color:#A7E8FF;word-break:break-all">{{enlace}}</a></p>
+      
+    </td></tr>
+    <tr><td style="padding:20px 36px 28px;border-top:1px solid #1B3A66">
+      <p style="margin:0;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8FB3D1">Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.<br><a href="https://eight-coms.vercel.app" style="color:#A7E8FF">eight-coms.vercel.app</a></p>
+    </td></tr>
+  </table>
+</td></tr></table></body></html>

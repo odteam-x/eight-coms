@@ -58,14 +58,20 @@
   </div>
   <!-- TAB: MI CUENTA — core/cuenta.js -->
   <div id="tab-cuenta" class="atab-content">
-    <h2 class="ptitle">Mi cuenta</h2>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Mi cuenta</h1>
+      <p>Tu foto, tu nombre y cómo ves el portal. Los datos asignados los define la administración.</p>
+    </div>
     <div id="cuenta-host"></div>
   </div>
 
 
   <!-- ── TAB: CALENDARIO (todas las fechas y tareas) — core/calendario.js ── -->
   <div id="tab-agenda" class="atab-content">
-    <div class="ptitle">CALENDARIO</div>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Calendario</h1>
+      <p>Fechas de los períodos, actividades y tareas en un solo lugar. Elige un día para crear una actividad o asignar una tarea.</p>
+    </div>
     <div id="agenda-host"></div>
   </div>
 
@@ -77,11 +83,11 @@
         <h1 class="pantalla-t">Evaluación</h1>
         <p>Elige a una persona de la lista para puntuarla. La evidencia y las anclas de cada criterio están a la vista.</p>
       </div>
-      <div class="eval-pe-bar">
-        <span class="eval-pe-lbl">Período</span>
-        <div class="eval-pe-btns" id="eval-pe-btns"><div class="loading-box" style="height:32px"><span class="spin"></span></div></div>
-      </div>
-      <div class="eval-filtros">
+      <div class="eval-filtros filtros-fila">
+        <div class="eval-pe-bar">
+          <span class="eval-pe-lbl">Período</span>
+          <div class="eval-pe-btns" id="eval-pe-btns"><div class="loading-box" style="height:32px"><span class="spin"></span></div></div>
+        </div>
         <input class="search-inp" id="search-eval-users" aria-label="Buscar miembro" type="search" placeholder="Buscar por nombre o correo…" data-input="renderEvalUserList">
         <select class="cfg-inp cfg-select" id="eval-rol-filter" aria-label="Filtrar por rol" data-change="renderEvalUserList"><option value="">Todos los roles</option></select>
         <select class="cfg-inp cfg-select" id="eval-distrito-filter" aria-label="Filtrar por distrito" data-change="renderEvalUserList"><option value="">Todos los distritos</option></select>
@@ -99,35 +105,36 @@
 
   <!-- ── TAB: TAREAS ── -->
   <div id="tab-tareas" class="atab-content">
-    <div class="ptitle">TAREAS</div>
-    <div class="eval-pe-bar" style="justify-content:center">
-      <span class="eval-pe-lbl">Período:</span>
-      <div class="eval-pe-btns" id="tareas-pe-btns">
-        <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Tareas</h1>
+      <p>Asigna trabajo, revisa las entregas y deja constancia de los plazos. Lo que se hace aquí es la evidencia que verás al evaluar.</p>
+    </div>
+    <div class="filtros-fila">
+      <div class="eval-pe-bar">
+        <span class="eval-pe-lbl">Período</span>
+        <div class="eval-pe-btns" id="tareas-pe-btns">
+          <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+        </div>
       </div>
     </div>
-    <p class="cfg-hint" style="margin:8px 0 16px">Asigna trabajo, revisa las entregas y deja constancia de los plazos. Lo que se hace aquí es la evidencia que verás al evaluar.</p>
     <div id="tareas-lista"></div>
   </div>
 
   <!-- ── TAB: USUARIOS ── -->
   <div id="tab-usuarios" class="atab-content">
-    <div class="ptitle">PERSONAS</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Todas las personas registradas. Abre una tarjeta para ver su perfil y gestionar su rol, acceso y participación.</p>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="text" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
-        <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--faint);border-radius:var(--r-md);padding:0 10px;min-height:38px">
-          <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--muted);flex-shrink:0"></i>
-          <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios" style="border:none;background:none;padding:6px 0;font-size:.82rem;min-width:130px">
-            <option value="">Todos los distritos</option>
-          </select>
-        </div>
-      </div>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Personas</h1>
+      <p>Todas las personas registradas. Abre una tarjeta para ver su perfil y gestionar su rol, acceso y participación.</p>
     </div>
-    <div class="admin-pe-bar users-pe-bar">
-      <span class="pe-label">Período activo:</span>
-      <div class="users-pe-btns" id="users-pe-btns"></div>
+    <div class="filtros-fila">
+      <div class="admin-pe-bar users-pe-bar">
+        <span class="pe-label">Período activo</span>
+        <div class="users-pe-btns" id="users-pe-btns"></div>
+      </div>
+      <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="search" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
+      <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios">
+        <option value="">Todos los distritos</option>
+      </select>
     </div>
     <div id="personas-seg" class="personas-seg"></div>
     <div id="personas-cards"><div class="skel-wrap" aria-busy="true"><span class="sr-only">Cargando…</span></div></div>
@@ -138,7 +145,7 @@
   <div id="tab-roles" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Roles y perfiles</h1>
-      <div class="pantalla-acc"><button class="btn-cfg-add" data-act="fn" data-arg="showRolModal">+ Nuevo rol</button></div>
+      <div class="pantalla-acc"><button type="button" class="btn-save" data-act="fn" data-arg="showRolModal"><i data-lucide="plus"></i>Nuevo rol</button></div>
       <p>Cada rol se evalúa con las competencias comunes más las suyas, con pesos que suman 100. Un perfil que ya se usó no se edita: se crea una versión nueva que rige desde el período que elijas.</p>
     </div>
     <div class="cfg-toolbar"><input class="search-inp" id="search-roles" aria-label="Buscar rol" type="search" placeholder="Buscar rol…" data-input="renderRoles"></div>
@@ -149,7 +156,7 @@
   <div id="tab-periodos" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Períodos de evaluación</h1>
-      <div class="pantalla-acc"><button type="button" class="btn-cfg-add" data-act="fn" data-arg="showPeriodoModal"><i data-lucide="plus"></i>Nuevo período</button></div>
+      <div class="pantalla-acc"><button type="button" class="btn-save" data-act="fn" data-arg="showPeriodoModal"><i data-lucide="plus"></i>Nuevo período</button></div>
       <p>Cada período es un ciclo: se planifica, se evidencia, se evalúa y se publica. El período activo es el que todos ven por defecto.</p>
     </div>
     <div id="periodos-linea" class="per-linea" aria-label="Línea de tiempo de los períodos"></div>
@@ -190,23 +197,11 @@
     </section>
   </div>
 
-  <!-- ── TAB: PERFILES (rúbrica v2) ── -->
-  <div id="tab-perfiles" class="atab-content">
-    <div class="ptitle">PERFILES DE EVALUACIÓN</div>
-    <div class="cfg-toolbar">
-      <p class="cfg-hint">Cada rol se evalúa con el núcleo transversal más sus criterios técnicos, con pesos que suman 100. Un perfil que ya se usó no se edita: se crea una versión nueva que rige desde el período que elijas.</p>
-      <button class="btn-cfg-add" data-act="fn" data-arg="showPerfilModal">+ Nuevo perfil</button>
-    </div>
-    <div id="perfiles-list"><div class="loading-box"><span class="spin"></span></div></div>
-    <div class="section-label" style="margin-top:32px">Catálogo de criterios</div>
-    <div id="catalogo-v2" style="max-width:900px"></div>
-  </div>
-
   <!-- ── TAB: CALENDARIO ── -->
   <div id="tab-calendario" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Actividades</h1>
-      <div class="pantalla-acc"><button type="button" class="btn-cfg-add" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
+      <div class="pantalla-acc"><button type="button" class="btn-save" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
       <p>Capacitaciones, jornadas, reuniones y todo lo que pasa en el calendario. No dependen de los períodos; las fechas de cada período se editan en Períodos.</p>
     </div>
     <div class="cfg-toolbar"><input class="search-inp" id="search-actividades" aria-label="Buscar actividad" type="search" placeholder="Buscar actividad…" data-input="renderActividades"></div>
@@ -215,26 +210,28 @@
 
   <!-- ── TAB: DISTRITOS ── -->
   <div id="tab-distritos" class="atab-content">
-    <div class="ptitle">DISTRITOS</div>
-
-    <div class="eval-pe-bar" style="justify-content:center">
-      <span class="eval-pe-lbl">Período:</span>
-      <div class="eval-pe-btns" id="dist-pe-btns">
-        <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Distritos</h1>
+      <p>Ranking de los distritos en el período elegido y evaluación de cada uno.</p>
+    </div>
+    <div class="filtros-fila">
+      <div class="eval-pe-bar">
+        <span class="eval-pe-lbl">Período</span>
+        <div class="eval-pe-btns" id="dist-pe-btns">
+          <div class="loading-box" style="height:32px"><span class="spin"></span></div>
+        </div>
       </div>
+      <input class="search-inp" id="search-distritos" aria-label="Buscar distrito" type="search" placeholder="Buscar distrito…" data-input="buscarDistritos">
     </div>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-      <span class="section-label" style="margin-bottom:0">Ranking de distritos</span>
-      <input class="search-inp" id="search-distritos" aria-label="Buscar distrito" type="text" placeholder="Buscar distrito…" data-input="buscarDistritos" style="font-size:.8rem;padding:5px 12px;width:180px">
-    </div>
+    <h2 class="cuenta-t">Ranking de distritos</h2>
     <div id="dist-ranking">
       <div class="loading-box"><span class="spin"></span></div>
     </div>
 
-    <div style="margin:24px auto 10px;max-width:700px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span class="eval-pe-lbl">Evaluar distrito:</span>
-      <select class="cfg-inp cfg-select" id="dist-eval-select" aria-label="Distrito a evaluar" data-change="onDistSelectChange" style="max-width:240px">
+    <h2 class="cuenta-t" style="margin-top:var(--sec-main)">Evaluar un distrito</h2>
+    <div class="filtros-fila">
+      <label class="eval-pe-lbl" for="dist-eval-select">Distrito</label>
+      <select class="cfg-inp cfg-select" id="dist-eval-select" data-change="onDistSelectChange">
         <option value="">Seleccionar distrito...</option>
       </select>
     </div>
@@ -251,7 +248,7 @@
     <div class="pantalla-cab no-print">
       <h1 class="pantalla-t">Reportes</h1>
       <div class="pantalla-acc">
-        <button type="button" class="btn-cfg-add" data-act="repCsv"><i data-lucide="download"></i>Exportar CSV</button>
+        <button type="button" class="btn-out" data-act="repCsv"><i data-lucide="download"></i>Exportar CSV</button>
         <button type="button" class="btn-save btn-print-rpt" data-act="repPdf"><i data-lucide="printer"></i>Descargar PDF</button>
       </div>
       <p>Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.</p>
@@ -265,9 +262,9 @@
   <!-- ── TAB: GESTIONES ── -->
   <div id="tab-gestiones" class="atab-content">
     <div class="pantalla-cab"><h1 class="pantalla-t">Gestiones</h1>
+      <div class="pantalla-acc"><button type="button" class="btn-save" data-act="fn" data-arg="showAbrirGestionModal"><i data-lucide="plus"></i>Abrir gestión nueva</button></div>
       <p>Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario. Al abrir una nueva se archiva la anterior, que queda accesible en solo lectura.</p></div>
     <div class="cfg-toolbar">
-      <button class="btn-cfg-add" data-act="fn" data-arg="showAbrirGestionModal">+ Abrir gestión nueva</button>
       <!-- Sin esto, "No volver a mostrar" sería una puerta sin picaporte. -->
       <button class="btn-out" data-act="fn" data-arg="restablecerEntrada">Volver a mostrar el selector al entrar</button>
     </div>

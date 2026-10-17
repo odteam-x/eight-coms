@@ -367,7 +367,7 @@ function renderDistritoHeader() {
     el.innerHTML = `<div class="no-data-msg" role="note"><div class="no-data-txt">No tienes un distrito asignado. Pídele a la coordinación que te asigne uno.</div></div>`;
     return;
   }
-  el.innerHTML = `<h2 class="tab-title tab-title--mb">Distrito ${escHtml(nombre)}</h2>`;
+  el.innerHTML = `<div class="pantalla-cab"><h1 class="pantalla-t">Distrito ${escHtml(nombre)}</h1></div>`;
 }
 
 /* ── CAMBIO DE PERÍODO ─────────────────────────────────────────────────── */

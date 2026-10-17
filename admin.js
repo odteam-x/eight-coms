@@ -316,6 +316,8 @@ function renderEvalUserList() {
   const cuentaAtajo = Object.fromEntries(atajos.map(f => [f.id, todos.filter(f.test).length]));
   if (_evalFlag && !atajos.some(f => f.id === _evalFlag)) _evalFlag = '';
   const fAct = atajos.find(f => f.id === _evalFlag);
+  // Un atajo con cero personas no ayuda a nadie: solo se ofrece si tiene algo o está activo.
+  const atajosVisibles = atajos.filter(f => cuentaAtajo[f.id] > 0 || f.id === _evalFlag);
 
   const lista = todos.filter(u => (!_evalEstado || u.estado === _evalEstado) && (!fAct || fAct.test(u)));
   const chip = (act, id, txt, n, on, ico) => `<button type="button" class="eval-chip${on ? ' on' : ''}" data-act="${act}" data-arg="${id}" aria-pressed="${on}">${ico ? `<i data-lucide="${ico}"></i>` : ''}${escHtml(txt)} <b>${n}</b></button>`;
@@ -328,9 +330,9 @@ function renderEvalUserList() {
       <div class="eval-grupo"><span class="eval-grupo-t">Estado</span><div class="eval-chips">
         ${chip('evalFiltro', '', 'Todas', total, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
       </div></div>
-      <div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
-        ${atajos.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
-      </div></div>`;
+      ${atajosVisibles.length ? `<div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
+        ${atajosVisibles.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
+      </div></div>` : ''}`;
     renderIconos(host);
   }
 
@@ -356,12 +358,12 @@ function renderEvalUserList() {
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
           <div class="eval-ucard-meta">${sinRol ? '<span class="etiqueta etq-coral">Sin rol</span>' : escHtml(u.roles?.nombre || '—')} · ${escHtml(dist)}</div>
-          ${avisos ? `<div class="eval-ucard-avisos">${avisos}</div>` : ''}
+          <div class="eval-ucard-avisos"><span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>${avisos}</div>
         </div>
-        ${u.score >= 0 ? `<div class="eval-ucard-bar"><div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%;background:${colFill(u.score)}"></div></div></div>
-        <div class="eval-ucard-score" style="color:${colTxt(u.score)}">${v2 ? fmtV2(u.score) : u.score}</div>` : ''}
-        <span class="eval-estado-badge ${estadoCls}">${estadoTxt}</span>
-        <button type="button" class="eval-perfil" data-act="perfilVer" data-arg="${u.id}" aria-label="Ver perfil de ${escHtml(u.nombre)}" title="Ver perfil"><i data-lucide="user"></i></button>
+        <div class="eval-ucard-fin">
+          ${u.score >= 0 ? `<span class="eval-ucard-score" style="color:${colTxt(u.score)}">${v2 ? fmtV2(u.score) : u.score}</span>` : ''}
+          <button type="button" class="eval-perfil" data-act="perfilVer" data-arg="${u.id}" aria-label="Ver perfil de ${escHtml(u.nombre)}" title="Ver perfil"><i data-lucide="user"></i></button>
+        </div>
       </div>`;
     }).join('')}
   </div>`;
@@ -1182,19 +1184,52 @@ function renderPeriodos() {
   renderIconos(el);
 }
 
-/** Línea de tiempo: cada período como un tramo, con la marca de hoy. */
+/**
+ * Línea de tiempo: cada período como un tramo sobre un eje de meses, con la marca de hoy.
+ * Los tramos que se pisan van en pistas distintas; el eje deja aire a ambos lados para que
+ * un solo período no ocupe todo el ancho sin escala.
+ */
 function renderLineaPeriodos(todos) {
   const host = document.getElementById('periodos-linea'); if (!host) return;
   const con = todos.filter(p => p.fecha_inicio);
   if (con.length < 1) { host.innerHTML = ''; return; }
-  const t = f => new Date(String(f).slice(0, 10)).getTime();
+  const DIA = 86400000;
+  const t = f => new Date(String(f).slice(0, 10) + 'T00:00:00').getTime();
   const fin = p => p.fecha_jornada || p.fecha_entrega || p.fecha_fin_trabajo || p.fecha_inicio;
-  const min = Math.min(...con.map(p => t(p.fecha_inicio))), max = Math.max(...con.map(p => t(fin(p))), Date.now());
-  const span = Math.max(max - min, 86400000 * 30);
-  const pos = ms => Math.max(0, Math.min(100, (ms - min) / span * 100));
-  host.innerHTML = `<div class="per-linea-pista">
-      ${con.map((p, i) => { const l = pos(t(p.fecha_inicio)), w = Math.max(3, pos(t(fin(p))) - l); return `<div class="per-tramo${p.activo ? ' per-tramo--activo' : ''}" style="left:${l}%;width:${w}%;top:${(i % 2) * 34}px" title="${escHtml(p.nombre)}: ${escHtml(_fechaPer(p.fecha_inicio))} – ${escHtml(_fechaPer(fin(p)))}"><span>${escHtml(p.nombre)}</span></div>`; }).join('')}
-      <i class="per-hoy" style="left:${pos(Date.now())}%" title="Hoy"></i>
+  const ini0 = Math.min(...con.map(p => t(p.fecha_inicio)));
+  const fin0 = Math.max(...con.map(p => t(fin(p))), Date.now());
+  const aire = Math.max((fin0 - ini0) * 0.06, 10 * DIA);
+  let min = ini0 - aire, max = fin0 + aire;
+  if (max - min < 120 * DIA) { const falta = 120 * DIA - (max - min); min -= falta / 2; max += falta / 2; }
+  const span = max - min;
+  const pos = ms => (ms - min) / span * 100;
+  // pistas: cada tramo va en la primera donde no pisa a otro
+  const pistas = [];
+  const tramos = [...con].sort((x, y) => t(x.fecha_inicio) - t(y.fecha_inicio)).map(p => {
+    const ini = t(p.fecha_inicio), fn = Math.max(t(fin(p)), ini + DIA);
+    let k = pistas.findIndex(ult => ult <= ini);
+    if (k < 0) { k = pistas.length; pistas.push(0); }
+    pistas[k] = fn;
+    return { p, ini, fn, k };
+  });
+  const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const ticks = [];
+  for (let d = new Date(min); ; ) {
+    d = new Date(d.getFullYear(), d.getMonth() + (ticks.length ? 1 : 0), 1);
+    if (!ticks.length && d.getTime() < min) { d = new Date(d.getFullYear(), d.getMonth() + 1, 1); }
+    if (d.getTime() > max) break;
+    ticks.push({ ms: d.getTime(), txt: MESES[d.getMonth()] + (d.getMonth() === 0 || !ticks.length ? ' ' + d.getFullYear() : '') });
+    if (ticks.length > 60) break;
+  }
+  const hoy = Date.now();
+  host.innerHTML = `<div class="per-linea-pista" style="--pistas:${pistas.length}" role="img" aria-label="Línea de tiempo de los períodos con fechas">
+      ${ticks.map(k => `<i class="per-tick" style="left:${pos(k.ms)}%"></i><span class="per-mes" style="left:${pos(k.ms)}%">${escHtml(k.txt)}</span>`).join('')}
+      ${tramos.map(({ p, ini, fn, k }) => {
+        const l = pos(ini), w = Math.max(2, pos(fn) - l);
+        const rango = _fechaPer(p.fecha_inicio).replace(/ [0-9]{4}$/, '') + ' – ' + _fechaPer(fin(p)).replace(/ [0-9]{4}$/, '');
+        return `<div class="per-tramo${p.activo ? ' per-tramo--activo' : ''}" style="left:${l}%;width:${w}%;--pista:${k}" title="${escHtml(p.nombre)}: ${escHtml(_fechaPer(p.fecha_inicio))} – ${escHtml(_fechaPer(fin(p)))}"><b>${escHtml(p.nombre)}</b><span>${escHtml(rango)}</span></div>`;
+      }).join('')}
+      ${hoy >= min && hoy <= max ? `<i class="per-hoy" style="left:${pos(hoy)}%"></i><span class="per-hoy-t" style="left:${pos(hoy)}%">Hoy</span>` : ''}
     </div>`;
 }
 
@@ -2290,7 +2325,7 @@ async function renderGestiones() {
             <div class="tbl-cell tbl-muted">${g.activa ? 'en curso' : 'solo lectura'}</div>
             <div class="tbl-cell tbl-actions">
               <a class="btn-icon" href="admin.html?gestion=${encodeURIComponent(g.id)}"
-                 title="Ver esta gestión">${ICONS.search}</a>
+                 aria-label="Ver la gestión ${escHtml(g.nombre)}" title="Ver esta gestión">${ICONS.search}</a>
             </div>
           </div>`).join('')}
       </div>

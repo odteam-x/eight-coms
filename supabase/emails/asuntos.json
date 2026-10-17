@@ -1,0 +1,28 @@
+{
+  "auth": {
+    "confirmacion": "Confirma tu correo en EIGHT CREATORS LABs",
+    "recuperacion": "Restablece tu contraseña",
+    "enlace_magico": "Tu enlace para entrar",
+    "invitacion": "Te invitaron a EIGHT CREATORS LABs",
+    "cambio_correo": "Confirma tu nuevo correo",
+    "reautenticacion": "Tu código de confirmación"
+  },
+  "avisos": {
+    "nota_publicada": "Ya está publicada tu evaluación de {{periodo}}",
+    "nota_corregida": "Se actualizó tu evaluación de {{periodo}}",
+    "tarea_asignada": "Nueva tarea: {{tarea}}",
+    "tarea_por_vencer": "{{cuando}} vence: {{tarea}}",
+    "tarea_vencida": "Tarea vencida: {{tarea}}",
+    "tarea_devuelta": "Te devolvieron la tarea: {{tarea}}",
+    "tarea_aprobada": "Aprobaron tu tarea: {{tarea}}",
+    "plazo_movido": "Cambió el plazo de: {{tarea}}",
+    "entrega_por_revisar": "{{persona}} entregó: {{tarea}}",
+    "tarea_bloqueada": "Tarea bloqueada: {{tarea}}",
+    "solicitud_acceso": "Nueva solicitud de acceso: {{persona}}",
+    "acceso_aprobado": "Ya puedes entrar a EIGHT CREATORS LABs",
+    "actividad_nueva": "Nueva actividad: {{actividad}}",
+    "actividad_recordatorio": "Mañana: {{actividad}}",
+    "evaluaciones_sin_publicar": "Faltan evaluaciones por publicar en {{periodo}}",
+    "resumen_diario": "Tu resumen de hoy: {{total}} pendientes"
+  }
+}

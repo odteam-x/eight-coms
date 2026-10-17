@@ -385,6 +385,9 @@
 .login-form-title { letter-spacing: var(--tr-display); line-height: var(--lh-display); text-transform: none; }
 .field input { border-radius: var(--r-control); padding-inline: var(--sp-5); background: var(--surface-1); border-color: var(--trazo); }
 .field input:hover:not(:focus) { border-color: var(--border-hi); }
+/* Tema claro: el campo blanco sobre un fondo casi blanco necesita un borde de 3:1 (WCAG 1.4.11) */
+[data-theme="light"] .field input { border-color: var(--campo-borde); }
+[data-theme="light"] .field input:focus, [data-theme="light"] .field input:focus-visible { border-color: var(--action); }
 .btn-login { border-radius: var(--r-control); background: var(--brillo); text-transform: none; letter-spacing: 0; min-height: 52px; font-size: var(--fs-md); box-shadow: none; }
 .btn-login:hover:not(:disabled) { background: var(--brillo); filter: brightness(1.07); }
 .btn-login:active:not(:disabled) { transform: scale(.985); }

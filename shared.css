@@ -263,6 +263,7 @@
   --shadow-md:0 4px 16px rgba(0,34,71,.12);
   --shadow-lg:0 12px 40px rgba(0,34,71,.16);
   --trazo:        rgba(0,34,71,.12);
+  --campo-borde:  #6B84A0;      /* borde de campo: 3.87 sobre blanco, 3.56 sobre --bg, 3.04 sobre --surface-3 (WCAG 1.4.11) */
   --sombra-dura:  0 18px 40px -22px rgba(0,34,71,.35);
   --sombra-dura-hover: 0 24px 48px -20px rgba(0,104,201,.45);
   --vidrio: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.72));

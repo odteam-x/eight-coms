@@ -57,5 +57,21 @@ for (const [f, ids] of Object.entries(portales)) {
   ok(/core\/ui\.js/.test(h) && /perfil\.css/.test(h), `${f}: carga core/ui.js y perfil.css`);
 }
 
+console.log('\n[estructura de las pantallas: cabecera canónica, ids únicos, acciones]');
+for (const f of ['user.html', 'secretario.html', 'admin.html']) {
+  const h = fs.readFileSync(ROOT + f, 'utf8');
+  ok(!/class="ptitle/.test(h), `${f}: sin la cabecera antigua .ptitle (se usa .pantalla-cab con h1)`);
+  const ids = [...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  const dup = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
+  ok(!dup.length, `${f}: ids únicos${dup.length ? ' (repetidos: ' + dup.join(', ') + ')' : ''}`);
+}
+{
+  const h = fs.readFileSync(ROOT + 'admin.html', 'utf8');
+  const tabs = [...h.matchAll(/<div id="(tab-[a-z-]+)" class="atab-content">\s*(?:<!--[^>]*-->\s*)?<div class="([^"]+)"/g)];
+  const sinCab = tabs.filter(m => !/pantalla-cab|eval-fijo/.test(m[2])).map(m => m[1]);
+  ok(tabs.length >= 12 && !sinCab.length, `admin.html: todas las pestañas abren con la cabecera canónica${sinCab.length ? ' (faltan: ' + sinCab.join(', ') + ')' : ''}`);
+  ok(!/class="btn-cfg-add"[^>]*>\s*(<i[^>]*><\/i>)?\s*\+? ?Nuev[oa] (rol|período|actividad)/.test(h), 'admin.html: «Nuevo rol/período/actividad» son acción primaria (.btn-save)');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

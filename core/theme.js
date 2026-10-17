@@ -17,7 +17,7 @@
   function aplicar(t) {
     R.dataset.theme = t;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', t === 'light' ? '#F4F6F9' : '#0E0F12');
+    if (meta) meta.setAttribute('content', t === 'light' ? '#EEF7FC' : '#061326');
   }
 
   window.toggleTheme = function () {

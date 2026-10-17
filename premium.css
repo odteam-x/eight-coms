@@ -275,6 +275,8 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
   .login-panel-brand { padding: var(--sp-6) var(--sp-5); gap: var(--sp-5); }
   .login-puntos { display: none; }
   .login-hero-h1 { font-size: clamp(2.4rem, 12vw, 3.4rem); }
+  /* login.css los ponía en una línea con un espacio duro delante; aquí van en bloque y el espacio los sangraba 10 px */
+  .login-hero-h1 em::before, .login-hero-h1 .login-hero-labs::before { content: none; }
   .login-brand-foot { display: none; }
 }
 
@@ -616,10 +618,16 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 
 /* ── Períodos ──────────────────────────────────────────────────────────── */
 .per-linea { margin-bottom: var(--sp-5); }
-.per-linea-pista { position: relative; height: 82px; background: var(--surface-1); border-radius: var(--r-card); overflow: hidden; }
-.per-tramo { position: absolute; height: 30px; min-width: 40px; margin: 8px 0 0; border-radius: var(--r-control); background: var(--surface-3); display: flex; align-items: center; padding: 0 var(--sp-3); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; }
+.per-linea-pista { --h-pista: 40px; position: relative; height: calc(var(--pistas, 1) * (var(--h-pista) + 8px) + 52px); background: var(--surface-1); border-radius: var(--r-card); overflow: hidden; }
+.per-tick { position: absolute; top: 0; bottom: 24px; width: 1px; background: var(--trazo); }
+.per-mes { position: absolute; bottom: 4px; transform: translateX(6px); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); white-space: nowrap; text-transform: capitalize; }
+.per-tramo { position: absolute; top: calc(30px + var(--pista, 0) * (var(--h-pista) + 8px)); height: var(--h-pista); min-width: 56px; border-radius: var(--r-control); background: var(--surface-3); color: var(--txt); display: flex; align-items: center; gap: var(--sp-2); padding: 0 var(--sp-4); font-family: var(--font-ui); white-space: nowrap; overflow: hidden; }
+.per-tramo b { font-weight: 700; font-size: var(--fs-sm); }
+.per-tramo span { font-weight: 500; font-size: var(--fs-xs); color: var(--txt-2); overflow: hidden; text-overflow: ellipsis; }
 .per-tramo--activo { background: var(--brillo); color: var(--navy-900); }
-.per-hoy { position: absolute; top: 6px; bottom: 6px; width: 2px; background: var(--marca); border-radius: 2px; }
+.per-tramo--activo span { color: var(--navy-900); }
+.per-hoy { position: absolute; top: 24px; bottom: 24px; width: 2px; background: var(--marca); border-radius: 2px; transform: translateX(-1px); }
+.per-hoy-t { position: absolute; top: 6px; transform: translateX(-50%); padding: 2px var(--sp-3); border-radius: var(--r-control); background: var(--surface-3); color: var(--txt); box-shadow: inset 0 0 0 2px var(--marca); font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-xs); }
 .per-fila { align-items: center; flex-wrap: wrap; }
 .per-desc { font-family: var(--font-body); font-weight: 400; color: var(--txt-2); font-size: var(--fs-sm); margin-left: var(--sp-2); }
 .per-paso { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-width: 0; }
@@ -721,3 +729,118 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .cuenta-cols .fila-aj-txt { flex: 1 1 auto; min-width: 0; }
 .cuenta-campo .fila-aj-txt { width: 100%; }
 @media (max-width: 640px) { .cuenta-cab { grid-template-columns: auto minmax(0, 1fr); } .cuenta-cab-acc { grid-column: 1 / -1; grid-row: auto; } .cuenta-form { grid-template-columns: minmax(0, 1fr); } }
+
+/* ═══ Auditoría de interfaz (octubre 2026) ═════════════════════════════════
+   Solo correcciones sobre lo medido en el DOM real (tools/pruebas/ui/audit-layout.js):
+   cabecera de Evaluar que ocupaba el 58 % de la pantalla, rectángulo visible por un
+   degradado opaco, medalla que se salía de su columna, objetivos táctiles de 40 px,
+   y el contenido del admin capado a 1200 px en pantallas grandes. */
+
+/* Fila de filtros: la misma en Evaluar, Personas, Tareas y Distritos. */
+.filtros-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); }
+.filtros-fila .search-inp { flex: 1 1 260px; max-width: 420px; }
+.filtros-fila .cfg-select { flex: 0 1 220px; min-width: 160px; }
+.filtros-fila .eval-pe-bar, .filtros-fila .admin-pe-bar { margin: 0; }
+
+/* Evaluar: sin degradado opaco (tapaba la luz ambiental y dibujaba un recuadro) */
+.eval-fijo { background: none; }
+#tab-evaluar .pantalla-cab > p { max-width: none; }
+.eval-ucard-rank { width: auto; min-width: 48px; display: flex; justify-content: center; }
+.eval-ucard-meta { overflow-wrap: anywhere; }
+
+@media (min-width: 1100px) {
+  /* Cabecera compacta: período + filtros en una fila; progreso, estado y atajos en otra */
+  #tab-evaluar .eval-fijo { gap: var(--sp-3); padding-bottom: var(--sp-3); }
+  #tab-evaluar .eval-fijo .eval-filtros { align-items: center; }
+  .eval-chips-host { align-items: center; gap: var(--sp-3) var(--sp-6); }
+  .eval-chips-host .eval-resumen { flex: 0 0 260px; }
+  .eval-grupo { flex: 0 1 auto; flex-direction: row; align-items: center; gap: var(--sp-3); }
+  .eval-grupo-t { flex: none; }
+}
+@media (max-width: 639px) {
+  .filtros-fila .search-inp { flex: 1 1 100%; max-width: none; }
+  .filtros-fila .cfg-select { flex: 1 1 calc(50% - var(--sp-2)); min-width: 0; }
+  /* Los chips de filtro van en una sola fila desplazable: la lista queda a la vista */
+  .eval-chips-host { flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+  .eval-chips-host .eval-resumen { flex: none; }
+  .eval-chips-host .eval-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .eval-chips-host .eval-chips::-webkit-scrollbar { display: none; }
+  .eval-chips-host .eval-chip { flex: none; }
+}
+
+/* Contenido del admin: el tope de 1200 px de admin.css ganaba al de 1440 px de shared.css */
+@media (min-width: 1600px) { .amain { max-width: 1440px; } }
+
+/* Puntero grueso: todo objetivo táctil llega a 44 px (los chips y los iconos se quedaban en 40) */
+@media (pointer: coarse) {
+  .eval-chip, .tk-chip, .cal2-chip, .btn--chip, .chip { min-height: 44px; }
+  .btn--icono, .btn-icon, .btn-icon-del, .btn-icon--danger, .btn-pass-toggle { min-width: 44px; min-height: 44px; }
+  .eval-perfil { width: 44px; height: 44px; }
+  .pb { min-width: 44px; }
+  summary.rail-sep { min-height: 44px; }
+}
+
+/* Barra inferior: «Calendario» no cabe en 64 px con el relleno de 4 px */
+.bb-item { padding-inline: 2px; }
+.bb-txt { letter-spacing: -.01em; }
+.inicio-fecha-txt small { font-size: var(--fs-xs); }
+#tab-evaluar .eval-fijo > * { min-width: 0; }
+@media (max-width: 639px) {
+  .eval-grupo { flex: none; min-width: 0; width: 100%; }
+  .eval-chips-host .eval-chips { min-width: 0; max-width: 100%; }
+}
+@media (pointer: coarse) {
+  .tk-entrega a { display: inline-flex; align-items: center; min-height: 44px; }
+  .cal2-ver { min-height: 44px; }
+}
+/* Rail colapsado: el botón ocupa todo el ancho del rail (medía 35×44 y 24×44) */
+.rail-colapsado .rail-item { width: 100%; min-width: 44px; }
+@media (min-width: 768px) and (max-width: 1023px) { .rail .rail-item { width: 100%; min-width: 44px; } }
+
+/* Rail: todos los ítems miden lo mismo (los de Configuración se ajustaban a su texto y el hover
+   dibujaba una píldora distinta en cada uno). */
+.rail .rail-item, .rail .rail-grupo > .rail-item { width: 100%; box-sizing: border-box; }
+
+/* Evaluar, tarjeta de persona: medalla | nombre, rol y estado | puntaje y perfil.
+   El estado y los avisos van juntos bajo el nombre; el puntaje y el botón de perfil en la columna derecha. */
+.eval-ucard { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; column-gap: var(--sp-3); row-gap: 0; }
+.eval-ucard-rank { grid-column: 1; min-width: 0; }
+.eval-ucard-info { grid-column: 2; min-width: 0; }
+.eval-ucard-fin { grid-column: 3; display: flex; align-items: center; gap: var(--sp-3); }
+.eval-ucard-bar { display: none; }
+.eval-ucard-score { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; line-height: 1; min-width: 2ch; text-align: right; }
+.eval-ucard-avisos { align-items: center; }
+
+/* ═══ Tema claro: contenedores y campos que se perdían ═════════════════════
+   --surface-1 es blanco sobre un --bg casi blanco (1,1:1) y las tarjetas no llevaban
+   borde ni sombra, así que nada se distinguía; los campos blancos tampoco tenían
+   límite visible (WCAG 1.4.11 pide 3:1: --campo-borde). :where() deja la especificidad
+   en la de la clase, de modo que el foco (:focus-visible) y los estados activos ganan. */
+:where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
+  box-shadow: 0 0 0 1px var(--trazo), var(--shadow-sm);
+}
+:where([data-theme="light"]) :is(.search-inp, .cfg-inp, .cfg-select, .cfg-textarea, .field input, .field select, .field textarea, .tk-campo, select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="date"], input[type="url"], input[type="number"]) {
+  box-shadow: inset 0 0 0 1px var(--campo-borde);
+}
+:where([data-theme="light"]) :is(input[type="checkbox"], input[type="radio"]) { box-shadow: none; }
+
+/* ═══ Chips de filtro: una sola receta en Evaluar, Tareas y donde haya filtros ═══
+   Antes: Evaluar marcaba el elegido con un tinte azul pálido y Tareas con azul sólido.
+   Ahora el elegido va en el coral de acento, igual que el botón primario (texto --navy-900),
+   y el resto es contorno. El calendario conserva su leyenda de varias opciones a la vez. */
+.chip, .tk-chip, .eval-chip, .btn--chip {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: 40px; padding: 0 var(--sp-4); border-radius: var(--r-control);
+  background: transparent; border: 1px solid var(--trazo); color: var(--txt-2);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap;
+  transition: background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
+}
+.chip:hover, .tk-chip:hover, .eval-chip:hover, .btn--chip:hover { color: var(--txt); border-color: var(--data); background: var(--surface-2); }
+.chip b, .tk-chip b, .eval-chip b { margin-left: var(--sp-1); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--txt); }
+.chip.active, .chip[aria-pressed="true"], .tk-chip--on, .eval-chip.on, .btn--chip[aria-pressed="true"] {
+  background: var(--brillo); color: var(--navy-900); border-color: transparent;
+}
+.chip.active b, .chip[aria-pressed="true"] b, .tk-chip--on b, .eval-chip.on b { color: inherit; }
+.tk-chip--on:hover, .eval-chip.on:hover, .chip.active:hover { background: var(--brillo); color: var(--navy-900); filter: brightness(1.05); }
+.chip:focus-visible, .tk-chip:focus-visible, .eval-chip:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+@media (pointer: coarse) { .chip, .tk-chip, .eval-chip, .btn--chip { min-height: 44px; } }

@@ -78,7 +78,7 @@ ok(X.rankingV2HTML([]).includes('Aún no hay'), 'vacío con mensaje');
 // ── ids que usa el JS nuevo deben existir en admin.html ──
 console.log('\n[ids de admin.html]');
 const html2 = fs.readFileSync(ROOT + 'admin.html', 'utf8');
-for (const id of ['mpe-modelo', 'mpe-modelo-field', 'tab-perfiles', 'perfiles-list', 'catalogo-v2', 'modal-perfil',
+for (const id of ['mpe-modelo', 'mpe-modelo-field', 'catalogo-v2', 'modal-perfil',
   'modal-perfil-title', 'mpf-rol', 'mpf-desde', 'mpf-desde-field', 'mpf-pesos', 'mpf-suma', 'mpf-estado', 'mpf-err', 'rpt-body', 'ov-body']) {
   ok(html2.includes(`id="${id}"`), `#${id}`);
 }
