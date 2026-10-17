@@ -90,7 +90,11 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   const rj = fs.readFileSync(ROOT + 'registro.js', 'utf8');
   ok(!/function cargando/.test(rj) && !/function authErrEs\b/.test(rj), 'registro.js: no redefine cargando() ni authErrEs() de login.js');
   ok(/#register-form \.btn-pass-toggle/.test(rj), 'registro.js: el ojo de contraseña solo se engancha en el formulario de registro');
+  ok(/id="reset-aviso"[^>]*\bhidden\b/.test(h) && /Aquí eliges tu <strong>nueva<\/strong> contraseña/.test(h), 'index.html: aviso de «clave actual» y nota previa al envío del código');
+  const lj = fs.readFileSync(ROOT + 'login.js', 'utf8');
+  ok(/function esMismaClave/.test(lj) && /function resetErrEs/.test(lj) && !/Error al actualizar contraseña: ' \+/.test(lj), 'login.js: «misma contraseña» se explica y los errores del reinicio salen en español');
   const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  ok(/'entrarAlPortal'/.test(cfg), 'config.js: entrarAlPortal está en la lista blanca de acciones');
   ok(/modoAcceso:\s*\(arg\)\s*=>\s*setModoAcceso/.test(cfg), 'config.js: acción modoAcceso registrada');
 }
 

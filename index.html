@@ -133,6 +133,7 @@
             </button>
           </div>
         </div>
+        <p class="login-nota"><i data-lucide="info"></i><span>Aquí eliges tu <strong>nueva</strong> contraseña. Si la que escribes es la que ya usas, no necesitas restablecerla: <a href="#login" data-act="volverLogin">vuelve e inicia sesión</a>.</span></p>
         <button type="button" class="btn-login" id="btn-send-code" data-act="fn" data-arg="sendResetCode"><span class="btn-login-txt">Enviar código de verificación</span></button>
       </div>
 
@@ -151,6 +152,18 @@
         </div>
       </div>
 
+      <!-- La verificación ya dejó la sesión abierta: si la clave nueva es la actual, no hay nada que cambiar. -->
+      <div class="login-aviso" id="reset-aviso" role="status" aria-live="polite" hidden>
+        <i data-lucide="info"></i>
+        <div>
+          <strong>Esa ya es tu contraseña actual</strong>
+          <p>No hace falta cambiarla: tu código ya quedó verificado y puedes entrar con ella.</p>
+          <div class="login-aviso-acc">
+            <button type="button" class="btn-login" data-act="fn" data-arg="entrarAlPortal"><span class="btn-login-txt">Entrar al portal</span></button>
+            <button type="button" class="btn-texto" data-act="resetPaso1">Elegir otra contraseña</button>
+          </div>
+        </div>
+      </div>
       <div class="login-err" id="reset-err" role="alert" aria-live="polite"></div>
       <div class="login-ok" id="reset-ok" role="status" aria-live="polite"></div>
       <div class="login-aux">

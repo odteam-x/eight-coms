@@ -46,6 +46,11 @@ document.getElementById('pass-toggle').addEventListener('click', function() {
   if (profile) window.location.replace(profile.es_admin ? 'admin.html' : profile.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
 })();
 
+/** Portal que corresponde al perfil. */
+function destinoPortal(profile) {
+  return profile?.es_admin ? 'admin.html' : profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html';
+}
+
 const _loginThrottle = { attempts: 0, lockedUntil: 0 };
 const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_COOLDOWN_MS  = 60000;
@@ -146,6 +151,7 @@ var _resetEmail = '';
 var _resetPass  = '';
 
 function showResetForm() {
+  ocultarAviso();
   document.getElementById('login-form').style.display = 'none';
   document.getElementById('reset-form').style.display = 'block';
   document.getElementById('reset-step1').style.display = 'block';
@@ -158,17 +164,49 @@ function showResetForm() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+function ocultarAviso() { const a = document.getElementById('reset-aviso'); if (a) a.hidden = true; }
+
 function backToLogin() {
+  ocultarAviso();
   document.getElementById('reset-form').style.display = 'none';
   document.getElementById('login-form').style.display = 'block';
 }
 
 function resetStep1() {
+  ocultarAviso();
+  document.getElementById('btn-verify-code').style.display = '';
   document.getElementById('reset-step2').style.display = 'none';
   document.getElementById('reset-step1').style.display = 'block';
   document.getElementById('reset-err').classList.remove('visible');
   document.getElementById('reset-err').style.display = '';
   document.getElementById('reset-sub').textContent = 'Ingresa tus datos y te enviaremos un código de verificación';
+}
+
+/** Mensajes del reinicio de contraseña en español; Supabase los devuelve en inglés. */
+function resetErrEs(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (m.includes('rate limit') || m.includes('too many') || m.includes('security purposes') || m.includes('request rate'))
+    return 'Pediste demasiados códigos seguidos. Espera unos minutos e inténtalo de nuevo.';
+  if (m.includes('signups not allowed') || m.includes('user not found'))
+    return 'No existe una cuenta con ese correo.';
+  if (m.includes('weak') || m.includes('at least') || m.includes('too short'))
+    return 'La contraseña es muy débil. Usa al menos 8 caracteres con letras y números.';
+  if (m.includes('expired') || m.includes('invalid'))
+    return 'Código inválido o expirado. Pide uno nuevo.';
+  if (m.includes('network') || m.includes('fetch'))
+    return 'Sin conexión. Verifica tu internet e intenta de nuevo.';
+  return 'No pudimos completar el cambio. Inténtalo de nuevo en unos minutos.';
+}
+
+/** Supabase rechaza una clave igual a la actual: se explica y se ofrece entrar, no se pinta como fallo. */
+function esMismaClave(msg) {
+  const m = String(msg || '').toLowerCase();
+  return m.includes('different from the old password') || m.includes('same_password') || m.includes('same password');
+}
+
+async function entrarAlPortal() {
+  const profile = await Auth.getProfile(true);
+  window.location.replace(destinoPortal(profile));
 }
 
 async function sendResetCode() {
@@ -207,9 +245,7 @@ async function sendResetCode() {
   });
 
   if (res.error) {
-    err.textContent = res.error.message.includes('Signups not allowed')
-      ? 'No existe una cuenta con ese correo.'
-      : 'Error: ' + res.error.message;
+    err.textContent = resetErrEs(res.error.message);
     err.classList.add('visible');
     cargando(btn, false);
     return;
@@ -261,8 +297,17 @@ async function verifyAndResetPassword() {
   var updateRes = await SB.auth.updateUser({ password: _resetPass });
 
   if (updateRes.error) {
-    marcarError(err, 'Error al actualizar contraseña: ' + updateRes.error.message);
     cargando(btn, false);
+    if (esMismaClave(updateRes.error.message)) {
+      _resetPass = '';
+      document.getElementById('reset-step2').style.display = 'none';
+      btn.style.display = 'none';
+      document.getElementById('reset-sub').textContent = 'Tu código es correcto.';
+      document.getElementById('reset-aviso').hidden = false;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      return;
+    }
+    marcarError(err, resetErrEs(updateRes.error.message));
     return;
   }
 
@@ -273,7 +318,7 @@ async function verifyAndResetPassword() {
   ok.classList.add('visible');
 
   var profile = await Auth.getProfile(true);
-  var dest = profile?.es_admin ? 'admin.html' : (profile?.tipo_miembro === 'secretario' ? 'secretario.html' : 'user.html');
+  var dest = destinoPortal(profile);
   setTimeout(function() { window.location.replace(dest); }, 2000);
 }
 

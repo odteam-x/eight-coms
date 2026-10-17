@@ -64,7 +64,7 @@ const _ACCIONES_SIMPLES = new Set([
   'saveCal', 'saveRol', 'savePeriodo', 'saveCriterioEntry', 'saveRubricaEntry',
   'showCalModal', 'showRolModal', 'showPeriodoModal', 'showCriterioModal',
   'showRubricaModal', 'showAbrirGestionModal', 'confirmarAbrirGestion',
-  'executeDeleteUser', 'sendResetCode', 'verifyAndResetPassword',
+  'executeDeleteUser', 'sendResetCode', 'verifyAndResetPassword', 'entrarAlPortal',
   // buscadores y selectores de admin.html (data-input / data-change)
   'renderEvalUserList', 'repCambio', 'renderActividades', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
   'renderCriterios', 'renderRubrica', 'renderCalendario',
