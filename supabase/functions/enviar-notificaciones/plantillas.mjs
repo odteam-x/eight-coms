@@ -70,13 +70,13 @@ export const AUTH = {
     boton: { texto: 'Elegir nueva contraseña', url: '{{ .ConfirmationURL }}' },
     nota: 'Si no pediste el cambio, ignora este mensaje: tu contraseña sigue igual.',
   },
+  // La app entra y restablece contraseña con un CÓDIGO de 6 cifras (signInWithOtp + verifyOtp), no con un enlace.
   enlace_magico: {
-    asunto: 'Tu enlace para entrar',
-    preheader: 'Entra sin contraseña.',
-    titulo: 'Entra al portal',
-    parrafos: ['Usa este enlace para iniciar sesión como <b>{{ .Email }}</b>. Es de un solo uso.'],
-    boton: { texto: 'Iniciar sesión', url: '{{ .ConfirmationURL }}' },
-    nota: 'Si no lo pediste, ignóralo.',
+    asunto: 'Tu código de verificación: {{ .Token }}',
+    preheader: 'Escríbelo en el portal. Caduca en una hora.',
+    titulo: 'Tu código de verificación',
+    parrafos: ['Escribe este código en el portal para continuar con <b>{{ .Email }}</b>:', `<span style="display:inline-block;margin:4px 0 8px;padding:14px 28px;background:${C.fila};border-radius:16px;font-family:${FUENTE_TITULO};font-size:44px;font-weight:700;letter-spacing:.22em;color:${C.texto2}">{{ .Token }}</span>`, 'El código sirve una sola vez y caduca en una hora.'],
+    nota: 'Si no lo pediste tú, ignora este mensaje: nadie puede entrar sin el código.',
   },
   invitacion: {
     asunto: 'Te invitaron a EIGHT CREATORS LABs',

@@ -2,7 +2,7 @@
   "auth": {
     "confirmacion": "Confirma tu correo en EIGHT CREATORS LABs",
     "recuperacion": "Restablece tu contraseña",
-    "enlace_magico": "Tu enlace para entrar",
+    "enlace_magico": "Tu código de verificación: {{ .Token }}",
     "invitacion": "Te invitaron a EIGHT CREATORS LABs",
     "cambio_correo": "Confirma tu nuevo correo",
     "reautenticacion": "Tu código de confirmación"

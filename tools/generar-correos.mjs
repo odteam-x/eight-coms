@@ -8,7 +8,7 @@
 //   auth/   → Supabase Auth (Go templates: {{ .ConfirmationURL }}, {{ .Email }}…). Se pegan
 //             en Authentication → Emails → Templates.
 //   avisos/ → la Edge Function «enviar-notificaciones» (marcadores {{nombre}}, {{titulo}}…).
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, copyFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,5 +24,8 @@ for (const [grupo, tabla] of [['auth', AUTH], ['avisos', AVISOS]]) {
     indice[grupo][clave] = d.asunto;
   }
 }
+// La función de correos de acceso (auth-correo) lleva su propia copia de las plantillas.
+mkdirSync(join(RAIZ, '..', 'functions', 'auth-correo'), { recursive: true });
+copyFileSync(join(RAIZ, '..', 'functions', 'enviar-notificaciones', 'plantillas.mjs'), join(RAIZ, '..', 'functions', 'auth-correo', 'plantillas.mjs'));
 writeFileSync(join(RAIZ, 'asuntos.json'), JSON.stringify(indice, null, 2) + '\n');
 console.log(`ok: ${Object.keys(AUTH).length} de acceso, ${Object.keys(AVISOS).length} avisos → supabase/emails/`);

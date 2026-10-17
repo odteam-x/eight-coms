@@ -56,3 +56,13 @@ Gmail SMTP desde las funciones de Supabase puede ser bloqueado por Google (error
 5. Prueba: la función usa el puente en cuanto existen esos dos secretos (y deja de usar SMTP).
 
 Límite de Google: ~100 destinatarios por día en una cuenta personal, ~1500 en Workspace. Quien tenga la URL y la clave puede enviar correos desde tu cuenta: no las compartas.
+
+## 8. Correos de acceso por el mismo puente (Send Email Hook)
+El SMTP de Supabase Auth con Gmail falla igual que desde las funciones («Error sending magic link email»). La función `auth-correo` recibe esos correos y los envía por el puente. La app restablece la contraseña con un **código de 6 cifras** (`signInWithOtp` + `verifyOtp`), así que la plantilla «Magic link» muestra el código.
+
+1. Supabase → **Authentication → Auth Hooks** (o *Hooks*) → **Send Email** → *Enable* → tipo **HTTPS** → URL `https://owfmorjlymoxqrzhadnf.supabase.co/functions/v1/auth-correo`.
+2. Pulsa **Generate secret** y copia el valor `v1,whsec_…`. **Create/Save** el hook.
+3. En **Edge Functions → Secrets** añade `SEND_EMAIL_HOOK_SECRET` con ese valor.
+4. Prueba pidiendo el código de restablecimiento desde el login.
+
+Con el hook activo, el SMTP y las plantillas de *Authentication → Emails* dejan de usarse para estos correos (no hace falta pegarlas). La plantilla vive en `supabase/functions/auth-correo/plantillas.mjs`, copia de `enviar-notificaciones/plantillas.mjs` (`node tools/generar-correos.mjs` las sincroniza).
