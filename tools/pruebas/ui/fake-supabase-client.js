@@ -48,7 +48,7 @@
     ],
     actividad_destinatarios: [{ actividad_id: 5, persona_id: U.m1 }, { actividad_id: 5, persona_id: U.m2 }],
     bienvenida_estado: [],
-    distritos: [{ id: '08-01', nombre: 'Distrito 08-01', activo: true }, { id: '08-02', nombre: 'Distrito 08-02', activo: true }],
+    distritos: ['01','02','03','04','05','06','07','08','09','10'].map(n => ({ id: '08-' + n, nombre: 'Distrito 08-' + n, activo: true })).concat([{ id: 'EXT', nombre: 'Invitado Externo', activo: true }]),
     profiles: [
       { id: U.admin, nombre: 'Admin General', email: 'admin@x.cl', es_admin: true, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: true },
       { id: U.sec, nombre: 'Sofía Secretaria', email: 'sofia@x.cl', es_admin: false, tipo_miembro: 'secretario', distrito: '08-01', rol_id: 3, aprobado: true },
@@ -68,7 +68,7 @@
     ],
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
-    calendario: [], config: [], periodo_participantes: [], trabajos_entregados: [],
+    calendario: [], config: [], periodo_participantes: [{ periodo_id: P.pe3, user_id: U.m5, activo: false }], trabajos_entregados: [],
     etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
       { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, alcance: 'equipo', creada_por: U.admin },
@@ -86,7 +86,15 @@
       ...[['encuadre', 30], ['tecnico', 25], ['diseno', 20], ['planificacion', 15], ['revision', 10]].map(([k, p]) => ({ perfil_id: 1, criterio_key: k, peso: p })),
       ...[['narrativa', 35], ['ortografia', 25], ['revision', 20], ['planificacion', 20]].map(([k, p]) => ({ perfil_id: 2, criterio_key: k, peso: p })),
     ],
-    evaluaciones: [], evaluaciones_distrito: [], tareas: [], tarea_eventos: [],
+    // Evaluaciones de distrito de ejemplo (las 10 de la tabla de referencia). PE1 y PE2 publicados; PE3 con 9 distritos (08-07 sin evaluar, solo borrador).
+    evaluaciones: [], evaluaciones_distrito: (() => {
+      const T = { '08-05': [25, 21, 23], '08-08': [24, 17, 28], '08-09': [18, 25, 21], '08-10': [23, 19, 22], '08-01': [19, 15, 24], '08-06': [19, 21, 18], '08-04': [23, 18, 16], '08-03': [25, 15, 14], '08-02': [21, 13, 12], '08-07': [9, 11, null] };
+      const pj = t => { const b = Math.floor(t / 4), r = t - b * 4; return { cgo: b + (r > 0 ? 1 : 0), cct: b + (r > 1 ? 1 : 0), com: b + (r > 2 ? 1 : 0), cee: b }; };
+      let id = 1; const out = [];
+      for (const [d, v] of Object.entries(T)) v.forEach((t, i) => { if (t != null) out.push({ id: 'ed' + id++, periodo_id: [P.pe1, P.pe2, P.pe3][i], distrito_id: d, evaluador_id: U.admin, ig_stats: {}, puntajes: pj(t), comentarios: {}, estado: 'publicado', created_at: ahora(), updated_at: ahora() }); });
+      out.push({ id: 'ed' + id++, periodo_id: P.pe3, distrito_id: '08-07', evaluador_id: U.admin, ig_stats: {}, puntajes: pj(12), comentarios: {}, estado: 'borrador', created_at: ahora(), updated_at: ahora() });
+      return out;
+    })(), tareas: [], tarea_eventos: [],
     estadisticas_distrito: [],
   };
   let seq = { eval: 1, tarea: 1, ev: 1, perfil: 3 };

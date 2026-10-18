@@ -180,7 +180,7 @@ const PerfilPE = (() => {
    * `vigente()` dice si el panel sigue siendo el que está a la vista (otro cambio de pestaña lo invalida).
    */
   async function pintar(inst, cuerpo, vigente = () => true) {
-    const periodos = (Store.periodos() || []).slice();
+    const periodos = (inst.periodos || Store.periodos() || []).slice();
     if (!periodos.length) { renderVacio(cuerpo, 'Todavía no hay períodos creados.'); return; }
     renderCargando(cuerpo);
     const d = await cargar({ persona: inst.persona, serie: inst.serie, periodos });

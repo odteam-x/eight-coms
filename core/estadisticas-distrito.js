@@ -8,7 +8,6 @@
  *
  *   EstadisticasDistrito.montarSecretaria(host, { periodo, distrito })   formulario de la secretaría
  *   EstadisticasDistrito.bloqueAdminHTML(fila) / .animarBloqueAdmin(area)  lo que ve el admin dentro de la evaluación
- *   EstadisticasDistrito.resumenAdmin(host, periodo, distritos)           «N de M distritos enviaron»
  *   EstadisticasDistrito.igDeFila(fila)                                   cifras como texto para los campos de la evaluación
  *
  * Reglas que NO se negocian aquí (las impone la base, 0043): una secretaría solo escribe su distrito; en una gestión
@@ -298,9 +297,9 @@ const EstadisticasDistrito = (() => {
     return o;
   }
 
-  function bloqueAdminHTML(fila, { disponible = true } = {}) {
+  function bloqueAdminHTML(fila, { disponible = true, conBoton = true } = {}) {
     if (!disponible) return `<div class="ed-admin ed-admin--vacio"><p class="pf-vacio">La carga de estadísticas por la secretaría aún no está activada en la base de datos (migración 0043).</p></div>`;
-    if (!fila) return `<div class="ed-admin ed-admin--vacio"><div class="section-label">Estadísticas enviadas por la secretaría</div><p class="pf-vacio">La secretaría de este distrito todavía no las ha enviado para este período. Puedes escribirlas tú más abajo.</p></div>`;
+    if (!fila) return `<div class="ed-admin ed-admin--vacio"><div class="section-label">Estadísticas enviadas por la secretaría</div><p class="pf-vacio">La secretaría de este distrito todavía no las ha enviado para este período.${conBoton ? ' Puedes escribirlas tú más abajo.' : ''}</p></div>`;
     const cifras = CAMPOS.map(c => `<div class="ed-cifra"><span class="ed-cifra-l">${escHtml(c.label)}</span><span class="ed-cifra-v">${escHtml(fmt(fila[c.k], c))}</span></div>`).join('');
     return `<div class="ed-admin">
       <div class="section-label">Estadísticas enviadas por la secretaría</div>
@@ -309,7 +308,7 @@ const EstadisticasDistrito = (() => {
         <button type="button" class="ed-mini ed-mini--admin" data-act="estDist" data-arg="ver-admin" data-path="${escHtml(fila.captura_path)}" aria-label="Ver la captura de prueba, más grande"><img class="ed-admin-img" alt="Captura de prueba" hidden><span class="ed-mini-cargando">Cargando…</span></button>
         <div class="ed-cifras">${cifras}</div>
       </div>
-      <div class="ed-acciones"><button type="button" class="btn-out" data-act="estDist" data-arg="usar-admin"><i data-lucide="arrow-down" aria-hidden="true"></i>Usar estas cifras en la evaluación</button></div>
+      ${conBoton ? '<div class="ed-acciones"><button type="button" class="btn-out" data-act="estDist" data-arg="usar-admin"><i data-lucide="arrow-down" aria-hidden="true"></i>Usar estas cifras en la evaluación</button></div>' : ''}
     </div>`;
   }
 
@@ -332,24 +331,7 @@ const EstadisticasDistrito = (() => {
     showToast(n ? 'Cifras copiadas al formulario. Guarda la evaluación para conservarlas.' : 'No hay cifras que copiar.', n ? 'ok' : 'error');
   }
 
-  async function resumenAdmin(host, periodo, distritos) {
-    if (!host) return;
-    if (!periodo?.id) { host.innerHTML = ''; return; }
-    host.innerHTML = '<span class="ed-res-cargando">Cargando estadísticas enviadas…</span>';
-    const r = await API.getEstadisticasDistritosByPE(periodo.id);
-    if (!r.ok) { host.innerHTML = r.disponible ? '' : '<p class="pf-vacio">La carga de estadísticas por la secretaría aún no está activada en la base de datos (migración 0043).</p>'; return; }
-    const ids = new Set(r.data.map(x => x.distrito_id));
-    const lista = (distritos || []).filter(d => d.activo !== false && d.id !== 'EXT');
-    const faltan = lista.filter(d => !ids.has(d.id));
-    const enviados = lista.length - faltan.length;
-    host.innerHTML = `<div class="ed-resumen" role="status">
-      <span class="ed-res-n"><b>${enviados}</b> de ${lista.length}</span>
-      <span class="ed-res-t">distritos enviaron sus estadísticas de Instagram de <b>${escHtml(nombrePE(periodo))}</b>.</span>
-      ${faltan.length ? `<span class="ed-res-faltan">Faltan: ${faltan.map(d => `<span class="etiqueta etq-gris">${escHtml(d.nombre || d.id)}</span>`).join(' ')}</span>` : '<span class="ed-res-faltan">Están todos.</span>'}
-    </div>`;
-  }
-
-  return { CAMPOS, leer, fmt, montarSecretaria, campo, archivo, accion, igDeFila, bloqueAdminHTML, animarBloqueAdmin, recordarFilaAdmin, resumenAdmin, abrirVisor, cerrarVisor };
+  return { CAMPOS, leer, fmt, montarSecretaria, campo, archivo, accion, igDeFila, bloqueAdminHTML, animarBloqueAdmin, recordarFilaAdmin, abrirVisor, cerrarVisor };
 })();
 
 /* Entradas del despachador (config.js: data-change / data-input con lista blanca). */

@@ -58,11 +58,9 @@ for (const p of ['admin.html', 'secretario.html']) {
   ok(!/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/.test(h.replace(/<script type="application\/ld\+json"[\s\S]*?<\/script>/g, '')), p + ': ningún <script> en línea (CSP)');
 }
 ok(/id="dist-panel-estadisticas"[\s\S]*id="dist-estadisticas-cuerpo"/.test(rd('secretario.html')), 'secretario.html: panel «Estadísticas» en la pestaña Distrito');
-ok(/id="dist-est-resumen"/.test(rd('admin.html')), 'admin.html: lugar del resumen «N de M distritos»');
 const sec = rd('secretario.js');
 ok(/k: 'estadisticas'/.test(sec) && /montarEstadisticasDistrito/.test(sec) && /EstadisticasDistrito\.montarSecretaria/.test(sec), 'secretario.js: tercera sección y montaje con el período elegido');
-ok(/getEstadisticasDistrito\(_activePEDist\.id, distId\)/.test(adminSrc) && /EstadisticasDistrito\.bloqueAdminHTML/.test(adminSrc) && /resumenAdmin/.test(adminSrc), 'admin.js: el formulario de evaluación lee y muestra la entrega, y el ranking trae el resumen');
-ok(/tab === 'distritos'[\s\S]{0,160}resumenAdmin/.test(adminSrc), 'admin.js: el resumen se refresca al volver a la pestaña');
+ok(/getEstadisticasDistrito\(_activePEDist\.id, distId\)/.test(adminSrc) && /EstadisticasDistrito\.bloqueAdminHTML/.test(adminSrc), 'admin.js: el formulario de evaluación lee y muestra la entrega de la secretaría');
 const lista = cfg.slice(0, cfg.indexOf('const ACCIONES'));
 ok(lista.includes("'estDistArchivo'") && lista.includes("'estDistCampo'"), 'estDistArchivo y estDistCampo están en la lista blanca de data-input / data-change');
 ok(/^\s{2}estDist:\s+\(a, el\) => EstadisticasDistrito\.accion/m.test(cfg), 'ACCIONES.estDist existe');

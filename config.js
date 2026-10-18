@@ -70,7 +70,7 @@ const _ACCIONES_SIMPLES = new Set([
   'renderCriterios', 'renderRubrica', 'renderCalendario',
   // reporte general de todos los PE (core/reporte-general.js)
   'rgFiltro',
-  'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
+  'handleAvatarUpload',
   // selectores de la tabla de usuarios (llevaban onchange= inline)
   'onCambioDistritoUsuario', 'onCambioTipoUsuario',
   'onCambioRolUsuario', 'onCambioAdminUsuario',
@@ -94,7 +94,7 @@ const _ACCIONES_SIMPLES = new Set([
   // equipos (core/equipos.js)
   'eqFiltrar',
   // estadísticas de Instagram del distrito (core/estadisticas-distrito.js)
-  'estDistArchivo', 'estDistCampo',
+  'estDistArchivo', 'estDistCampo', 'distBuscar',
 ]);
 
 const ACCIONES = {
@@ -201,11 +201,6 @@ const ACCIONES = {
   irTab:        (a)             => goTab(a),
   rankTab:      (a)             => switchRankTab(a),
   abrirCerrar:  (a)             => document.getElementById(a)?.classList.toggle('open'),
-  elegirDistrito: (a)           => {
-    const s = document.getElementById('dist-eval-select');
-    if (s) { s.value = a; onDistSelectChange(); }
-  },
-
   // Un solo argumento
   borrarUsuario:  (a) => confirmDeleteUser(a),
   borrarCal:      (a) => deleteCal(a),
@@ -252,7 +247,8 @@ const ACCIONES = {
   guardarTrabajo: ()  => saveTrabajo(),
 
   // Barras de período del admin: (id, botón)
-  peDist:   (a, el) => selectDistPE(a, el),
+  dist:          (a, el) => (typeof DistritosAdmin !== 'undefined' ? DistritosAdmin.accion(a, el) : Distritos.accion(a, el)),   // admin: ranking y panel; secretaría: «Qué falta»
+  distPanelTab:  (a)     => DistritosAdmin.tab(a),
   peEval:   (a, el) => selectEvalPE(a, el),
   peOv:     (a, el) => selectOvPE(a, el),
   peRpt:    (a, el) => selectRptPE(a, el),

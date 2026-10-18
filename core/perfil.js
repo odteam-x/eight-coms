@@ -55,7 +55,7 @@ const Perfil = (() => {
    */
   async function _cargarSerie(inst) {
     const { persona, modo } = inst;
-    const periodos = Store.periodos() || [];
+    const periodos = inst.periodos;
     const verBorradores = modo === 'admin';
 
     const items = await Promise.all(periodos.map(async periodo => {
@@ -613,9 +613,11 @@ const Perfil = (() => {
    */
   async function montar({ el, persona, modo = 'propio', periodoId = null, panel = false, tab = 'resumen', onPeriodo = null, rubricaLegacy = null }) {
     if (!el || !persona) return;
-    const periodos = Store.periodos() || [];
+    // Un PE en el que ESTA persona no participó no existe en su perfil, lo mire ella, su secretaría o la administración.
+    const sinPart = new Set(await API.getPeriodosSinParticipar(persona.id));
+    const periodos = (Store.periodos() || []).filter(x => !sinPart.has(String(x.id)));
     const periodo = periodos.find(p => String(p.id) === String(periodoId))
-                 || Store.periodo() || periodos.find(p => p.activo) || periodos[periodos.length - 1];
+                 || periodos.find(p => String(p.id) === String(Store.periodoId())) || periodos.find(p => p.activo) || periodos[periodos.length - 1];
     if (!periodo) {
       renderVacio(el, 'Todavía no hay períodos creados.');
       return;
@@ -623,7 +625,7 @@ const Perfil = (() => {
 
     const id = el.id || 'perfil';
     if (!el.id) el.id = id;
-    const inst = { id, el, persona, modo, panel, periodo, tab, onPeriodo, rubricaLegacy, serie: [], tareas: new Map(), seq: 0 };
+    const inst = { id, el, persona, modo, panel, periodo, tab, onPeriodo, rubricaLegacy, periodos, serie: [], tareas: new Map(), seq: 0 };
     _inst.set(id, inst);
 
     el.innerHTML = esqueletoHTML('perfil');
@@ -654,7 +656,7 @@ const Perfil = (() => {
   }
 
   function _cambiarPeriodo(inst, pe) {
-    const p = (Store.periodos() || []).find(x => x.pe === pe);
+    const p = (inst.periodos || Store.periodos() || []).find(x => x.pe === pe);
     if (!p || String(p.id) === String(inst.periodo.id)) return;
     inst.periodo = p;
     syncPEBar(document.getElementById(`${inst.id}-pe`), pe);
@@ -681,7 +683,7 @@ const Perfil = (() => {
   function verPeriodo(pe, el) {
     const root = el?.closest?.('[data-perfil]') || document.querySelector('[data-perfil]');
     const inst = root && _inst.get(root.dataset.perfil);
-    const p = inst && (Store.periodos() || []).find(x => x.pe === pe);
+    const p = inst && (inst.periodos || Store.periodos() || []).find(x => x.pe === pe);
     if (!p) return;
     inst.periodo = p;
     inst.tab = 'resumen';
@@ -706,7 +708,7 @@ const Perfil = (() => {
   function sincronizar(pe) {
     for (const inst of _inst.values()) {
       if (inst.modo !== 'propio' || inst.panel || inst.periodo.pe === pe) continue;
-      const p = (Store.periodos() || []).find(x => x.pe === pe);
+      const p = (inst.periodos || Store.periodos() || []).find(x => x.pe === pe);
       if (!p || !document.getElementById(`${inst.id}-cab`)) continue;
       inst.periodo = p;
       syncPEBar(document.getElementById(`${inst.id}-pe`), pe);

@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderRubrica();
   renderPerfiles();
   renderCalendario();
-  renderDistPEBar();
+  DistritosAdmin.montar(document.getElementById('distritos-host'), () => ({ periodos: _periodos, distritos: _distritos, usuarios: _users }));
   populateDistritoFilters();
   initScrollEffects();
   actualizarRailProximo();
@@ -1774,91 +1774,13 @@ async function deleteCal(id) {
   renderCalendario();
 }
 
-/* ── TAB: DISTRITOS ── */
-function renderDistPEBar() {
-  const bar = document.getElementById('dist-pe-btns'); if (!bar) return;
-  if (!_periodos.length) {
-    bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>';
-    return;
-  }
-  if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
-  bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" data-act="peDist" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
-  ).join('');
-  renderDistritoSelect();
-  renderDistritoRanking(_activePEDist?.id);
-}
-
-async function selectDistPE(periodoId, btn) {
-  _activePEDist = _periodos.find(p => p.id == periodoId);
-  document.querySelectorAll('#dist-pe-btns .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderDistritoRanking(periodoId);
-  if (_activeDistId) loadDistEval(_activeDistId);
-}
-
-function renderDistritoSelect() {
-  const sel = document.getElementById('dist-eval-select'); if (!sel) return;
-  sel.innerHTML = '<option value="">Seleccionar distrito...</option>' +
-    _distritos.map(d => `<option value="${d.id}">${escHtml(d.nombre)}</option>`).join('');
-}
-
-/** Buscador de distritos: repinta el ranking del PE seleccionado. */
-function buscarDistritos() { renderDistritoRanking(_activePEDist?.id); }
-
-function onDistSelectChange() {
-  const sel = document.getElementById('dist-eval-select'); if (!sel?.value) return;
-  _activeDistId = sel.value;
-  loadDistEval(sel.value);
-}
-
-async function renderDistritoRanking(periodoId) {
-  const el = document.getElementById('dist-ranking'); if (!el) return;
-  if (!periodoId) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  // Cuántos distritos ya enviaron sus estadísticas de Instagram en este período (no espera: pinta cuando llega).
-  EstadisticasDistrito.resumenAdmin(document.getElementById('dist-est-resumen'), _periodos.find(p => p.id == periodoId), _distritos);
-
-  const distEvals = await API.getEvalDistritosByPE(periodoId);
-
-  const q = (document.getElementById('search-distritos')?.value || '').toLowerCase().trim();
-  const ranked = distEvals
-    .filter(d => d.estado === 'publicado')
-    .map(d => {
-      const score    = calcDistScore(d.puntajes);
-      const distInfo = _distritos.find(x => x.id === d.distrito_id);
-      return { ...d, score, nombre: distInfo?.nombre || d.distrito_id };
-    })
-    .filter(d => !q || d.nombre.toLowerCase().includes(q))
-    .sort((a, b) => b.score - a.score);
-
-  if (!ranked.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
-    renderIconos(el);
-    return;
-  }
-
-  const posClass = ['gold','silver','bronze'];
-  el.innerHTML = `
-    <div class="tbl" style="max-width:700px;margin:0 auto">
-      <div class="tbl-head" style="grid-template-columns:48px 1fr 80px 100px">
-        <div>#</div><div>Distrito</div><div style="text-align:center">Puntos</div><div style="text-align:center">Nivel</div>
-      </div>
-      <div class="tbl-body">
-        ${ranked.map((d, i) => `
-          <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
-               data-act="elegirDistrito" data-arg="${escHtml(d.distrito_id)}">
-            <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
-            <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
-            <div class="tbl-cell" style="justify-content:center">
-              <span class="num-display" style="color:${distScoreColor(d.score)}">${d.score}</span>
-              <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX_DIST}</span>
-            </div>
-            <div class="tbl-cell" style="justify-content:center"><span class="nivel-badge ${distScoreClass(d.score)}" style="padding:2px 8px;font-size:.55rem">${distScoreLabel(d.score)}</span></div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-  renderIconos(el);
+/* ── TAB: DISTRITOS ──
+   La pantalla (ranking acumulado y panel de cada distrito) vive en core/distritos-admin.js. Aquí queda lo que ya era de
+   admin.js: el formulario de evaluación, que el panel del distrito coloca dentro de su pestaña «Evaluación». */
+function abrirEvalDistrito(distId, periodoId) {
+  _activePEDist = _periodos.find(p => String(p.id) === String(periodoId)) || _activePEDist;
+  _activeDistId = distId;
+  loadDistEval(distId);
 }
 
 async function loadDistEval(distId) {
@@ -2013,7 +1935,7 @@ async function saveDistEval(estado, distId) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   await loadDistEval(distId);
-  renderDistritoRanking(_activePEDist.id);
+  DistritosAdmin.refrescar();
 }
 
 /* Score helpers y modales → core/render.js.
@@ -2561,8 +2483,7 @@ function switchTabAdminHooks(tab) {
     Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', distritos: _distritos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   }
   if (tab === 'gestiones') renderGestiones();
-  // Al volver a Distritos se refresca cuántas secretarías ya enviaron sus estadísticas (pudieron llegar mientras estabas en otra pestaña).
-  if (tab === 'distritos' && _activePEDist) EstadisticasDistrito.resumenAdmin(document.getElementById('dist-est-resumen'), _activePEDist, _distritos);
+  if (tab === 'distritos') DistritosAdmin.abrir();   // cada vez que se vuelve: pudieron llegar estadísticas o evaluaciones
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();

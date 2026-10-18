@@ -890,6 +890,21 @@ const API = {
       max: Number(c.max) > 0 ? Number(c.max) : 4,
     }));
 
+    // Un PE en el que la persona NO participó (periodo_participantes.activo = false) no existe para ella: no sale en ningún
+    // selector ni pantalla de los portales de miembro y secretaría. Sin fila = participa (así se define en toda la base). La
+    // administración ve todos. Si la consulta falla se muestran todos: es mejor un PE de más que dejar a alguien sin ninguno.
+    let peFuera = new Set();
+    if (!profile.es_admin) {
+      try {
+        const { data: fuera } = await SB.from('periodo_participantes').select('periodo_id').eq('user_id', profile.id).eq('activo', false);
+        if (fuera?.length) {
+          const no = new Set(fuera.map(r => String(r.periodo_id)));
+          peFuera = new Set(periodosRaw.filter(p => no.has(String(p.id))).map(p => p.nombre));
+          periodosRaw = periodosRaw.filter(p => !no.has(String(p.id)));
+        }
+      } catch { /* se muestran todos */ }
+    }
+
     // Períodos: SOLO datos. `activo` es booleano y las fechas van crudas.
     // La etiqueta de estado (Pendiente/En curso/Cerrado) la decide la UI
     // con estadoPeriodo() de core/render.js — antes esta capa devolvía el
@@ -915,7 +930,8 @@ const API = {
       nivel2: r.nivel2 || '', nivel1: r.nivel1 || '',
     }));
 
-    const calendario = calRaw.map(c => ({
+    // Las fechas de un PE donde no participó tampoco aparecen (el calendario enlaza por número: «PE2» ↔ 2).
+    const calendario = calRaw.filter(c => !peFuera.has('PE' + c.numero)).map(c => ({
       numero:     c.numero,
       titulo:     c.titulo || c.descripcion || '',
       color:      c.color  || 'rojo',
@@ -1162,6 +1178,39 @@ const API = {
     if (!path) return null;
     const { data, error } = await SB.storage.from('capturas-distrito').createSignedUrl(path, segundos);
     return error ? null : (data?.signedUrl || null);
+  },
+
+  /** ids de los PE en que la persona NO participó (periodo_participantes.activo = false). Sin fila = participa. Falla → [] (se muestran todos). */
+  async getPeriodosSinParticipar(userId) {
+    if (!userId) return [];
+    try {
+      const { data } = await SB.from('periodo_participantes').select('periodo_id').eq('user_id', userId).eq('activo', false);
+      return (data || []).map(r => String(r.periodo_id));
+    } catch { return []; }
+  },
+
+  // ── DISTRITOS: LECTURAS DE VARIOS PERÍODOS A LA VEZ (ranking acumulado) ──
+  /** Evaluaciones de distrito de varios PE. `soloPublicadas`: lo que ve una secretaría; el admin pide también borradores. */
+  async getEvalDistritosByPeriodos(ids, { soloPublicadas = false } = {}) {
+    if (!ids?.length) return { ok: true, data: [] };
+    let q = SB.from('evaluaciones_distrito').select('id, periodo_id, distrito_id, puntajes, comentarios, estado, updated_at').in('periodo_id', ids);
+    if (soloPublicadas) q = q.eq('estado', 'publicado');
+    const { data, error } = await q;
+    return error ? { ok: false, error: error.message, data: [] } : { ok: true, data: data ?? [] };
+  },
+
+  async getEstadisticasDistritosByPeriodos(ids) {
+    if (!ids?.length) return { ok: true, disponible: true, data: [] };
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').in('periodo_id', ids);
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
+  },
+
+  /** Todas las entregas de estadísticas de UN distrito (una por PE), de la más reciente a la más antigua. */
+  async getEstadisticasDistritoHistorial(distrito_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').eq('distrito_id', distrito_id).order('actualizado_en', { ascending: false });
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
   },
 
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────

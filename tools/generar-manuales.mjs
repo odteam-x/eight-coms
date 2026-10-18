@@ -310,10 +310,11 @@ ${nota('consejo', 'En el celular, tus dos herramientas de trabajo (' + b('Distri
     {
       id: 'distrito', titulo: 'Distrito: tu gente',
       html: `
-<p>Tiene tres pestañas internas: ${b('Personas')}, ${b('Estadísticas')} y ${b('Ranking de distritos')}.</p>
+<p>Tiene cuatro pestañas internas: ${b('Resumen')}, ${b('Personas')}, ${b('Estadísticas')} y ${b('Ranking de distritos')}.</p>
 ${captura('s-distrito', 'Distrito: indicadores del distrito y tarjetas de personas.')}
 ${pasos(
         `Abre ${b('Distrito')} y elige el período arriba (${b('PE1')}, ${b('PE2')}…).`,
+        `${b('Resumen')} es lo primero que ves: tu posición entre los distritos y tu promedio sobre 28, un bloque ${b('Qué falta')} (por ejemplo, enviar las estadísticas de Instagram del período, con un botón directo) y tu evolución período por período con las cuatro competencias. Los otros distritos son confidenciales: ves solo el tuyo.`,
         `En ${b('Personas')} ves los indicadores del distrito (personas, promedio individual, tu posición, el general más alto) y una tarjeta por persona con su nota. En los períodos nuevos, cada tarjeta indica «N por revisar» y «N vencidas».`,
         `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas, Períodos y Evolución, igual que ella.`,
         `En ${b('Estadísticas')} subes, para el período elegido, las cifras de Instagram de la cuenta de tu distrito (visualizaciones, cuentas alcanzadas, visitas al perfil, seguidores netos y los porcentajes de publicaciones, historias y reels) y adjuntas una <b>captura de pantalla como prueba</b>. La captura se reduce sola antes de enviarse. Si otra secretaría de tu distrito ya las envió, las ves y puedes corregirlas mientras el período siga abierto. La administración las usa para evaluar al distrito.`,
@@ -533,6 +534,18 @@ ${pasos(
         `Guarda. Las destinatarias reciben un aviso (y otro la víspera); quien no es destinataria no la ve en su calendario.`)}
 <p>La lista de actividades dice, en cada una, a quién alcanza («Todo el equipo», «Distrito 08-01», «3 personas elegidas»). En ${b('Configuración → Actividades')} también administras los <b>tipos</b> (etiquetas: nombre y color de una paleta fija).</p>
 ${nota('ojo', 'Elegir un equipo agrega a sus miembros <b>de ese momento</b>; quien entre después al equipo no se suma sola. Una actividad con tareas vinculadas no se puede eliminar hasta desvincular esas tareas.')}`,
+    },
+    {
+      id: 'distritos', titulo: 'Distritos: ranking acumulado y evaluación',
+      html: `
+<p>${b('Distritos')} (menú izquierdo, junto a Equipos) muestra a <b>todos los distritos</b> en una tabla con una columna por período: el puntaje de cada PE (de 28), el <b>total</b>, el <b>promedio sobre 28</b> y el <b>porcentaje</b>, ordenados de mayor a menor. Abajo, el promedio de cada período y el <b>promedio global acumulado</b>.</p>
+${lista(
+        `<b>Solo cuentan las evaluaciones publicadas.</b> Un período sin evaluaciones publicadas se dice así y no entra a las columnas. Los borradores no mueven ningún promedio.`,
+        `<b>El promedio</b> es el total ÷ los períodos en que el distrito fue evaluado. Los empates comparten posición.`,
+        `<b>Períodos:</b> los botones de arriba eligen qué períodos entran al ranking.`,
+        `<b>Mostrar:</b> ${b('Sin evaluar')}, ${b('En borrador')} y ${b('Sin estadísticas')} te dicen qué falta, sobre el último período incluido. Cada fila trae su estado (Publicada · Borrador · Sin evaluar) y si la secretaría ya envió sus estadísticas de Instagram.`,
+        `${b('Exportar CSV')} baja la misma tabla.`)}
+<p>Toca un distrito para abrir su panel: ${b('Resumen')} (posición, evolución y las cuatro competencias período por período), ${b('Evaluación')} (el formulario de siempre, con las estadísticas que envió la secretaría ya cargadas), ${b('Estadísticas')} (lo enviado y su captura de prueba) y ${b('Personas')}.</p>`,
     },
     {
       id: 'seguimiento', titulo: 'Seguimiento: todos los períodos, por rol',
