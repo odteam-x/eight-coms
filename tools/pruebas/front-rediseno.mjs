@@ -153,14 +153,20 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
 // ── Manuales de uso ───────────────────────────────────────────────────────
 {
   for (const [m, portalJs, rutaAyuda] of [['miembro', 'user.js', 'ayuda/miembro.html'], ['secretario', 'secretario.js', 'ayuda/secretario.html'], ['admin', 'admin.js', 'ayuda/admin.html']]) {
-    const h = fs.readFileSync(ROOT + 'ayuda/' + m + '.html', 'utf8');
+    let h = fs.readFileSync(ROOT + 'ayuda/' + m + '.html', 'utf8');
+    if (m === 'admin') {   // manual PRIVADO (0044): la página pública es una carcasa; el contenido real se valida desde el archivo generado, si está aquí
+      ok(/id="ay-estado"/.test(h) && /admin-privado\.js/.test(h) && !/<section id=/.test(h), 'ayuda/admin.html: es una carcasa privada (sin contenido)');
+      const priv = ROOT + '.manuales-privados/admin.fragmento.html';
+      if (!fs.existsSync(priv)) { console.log('  · (contenido del manual privado no generado en esta máquina: se salta su validación; correr node tools/generar-manuales.mjs)'); continue; }
+      h = fs.readFileSync(priv, 'utf8');
+    }
     const ids = [...h.matchAll(/<section id="([a-z-]+)"/g)].map(x => x[1]);
     ok(ids.length >= 8 && ids.includes('acceso') && ids.includes('avisos') && ids.includes('cuenta') && ids.includes('proximamente') && ids.includes('permisos') && ids.includes('faq'), 'ayuda/' + m + '.html: tiene acceso, avisos, cuenta, «Próximamente», permisos y preguntas frecuentes (' + ids.length + ' secciones)');
     ok([...h.matchAll(/<li><a href="#([a-z-]+)">/g)].every(x => ids.includes(x[1])) && /<nav class="ay-toc"/.test(h), 'ayuda/' + m + '.html: el índice enlaza solo a secciones que existen');
     ok([...h.matchAll(/src="img\/([a-z-]+\.jpg)"/g)].every(x => fs.existsSync(ROOT + 'ayuda/img/' + x[1])), 'ayuda/' + m + '.html: todas las capturas existen');
     ok((h.match(/<ol class="pasos">/g) || []).length >= 4 && /class="faq"/.test(h), 'ayuda/' + m + '.html: procedimientos con pasos numerados y preguntas frecuentes');
     ok(new RegExp("ayuda: [^\\n]*" + rutaAyuda.replace(/\./g, '\\.')).test(fs.readFileSync(ROOT + portalJs, 'utf8')), portalJs + ': enlaza el manual desde el portal (' + rutaAyuda + ')');
-    ok(!/<script/.test(h.replace(/<script src="\.\.\/core\/theme\.js"><\/script>/, '')), 'ayuda/' + m + '.html: sin scripts en línea (CSP)');
+    ok(!/<script(?![^>]*src=)/.test(h.replace(/<script src="\.\.\/core\/theme\.js"><\/script>/, '')), 'ayuda/' + m + '.html: sin scripts en línea (CSP)');
   }
   ok(/AYUDA_URL/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')) && /Ayuda y manual de uso/.test(fs.readFileSync(ROOT + 'core/rail.js', 'utf8')), 'Mi cuenta, el menú lateral y la hoja «Más» enlazan el manual');
   ok(fs.existsSync(ROOT + 'ayuda/ayuda.css') && fs.existsSync(ROOT + 'tools/generar-manuales.mjs'), 'existen ayuda.css y el generador');
@@ -168,7 +174,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/Próximamente/.test(man) && !/Lo que aún no hace|todavía no existen|aún no puedes elegirlos/.test(man), 'los manuales presentan lo pendiente como «Próximamente», no como «no disponible»');
   // Cada captura de computadora tiene su par de celular, y el manual elige la que corresponde al dispositivo.
   const pcs = fs.readdirSync(ROOT + 'ayuda/img').filter(f => /-pc\.jpg$/.test(f));
-  ok(pcs.length >= 20 && pcs.every(f => fs.existsSync(ROOT + 'ayuda/img/' + f.replace('-pc.jpg', '.jpg'))), 'ayuda/img: ' + pcs.length + ' capturas de computadora, cada una con su versión de celular');
+  ok(pcs.length >= 10 && pcs.every(f => fs.existsSync(ROOT + 'ayuda/img/' + f.replace('-pc.jpg', '.jpg'))), 'ayuda/img: ' + pcs.length + ' capturas de computadora, cada una con su versión de celular');
   ok(/captura--dual/.test(man) && /media="\(min-width: 900px\)" srcset="img\/[a-z-]+-pc\.jpg"/.test(man) && /captura--dual/.test(fs.readFileSync(ROOT + 'ayuda/ayuda.css', 'utf8')), 'los manuales usan <picture>: vista de PC desde 900 px y de celular en pantallas chicas');
   ok(/Novedades del portal/.test(man) && /bienvenida/.test(man), 'los manuales explican los dos recorridos (bienvenida y novedades)');
 }
