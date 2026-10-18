@@ -220,6 +220,7 @@
     upsert(p, o) { this.op = 'upsert'; this.pl = p; this.conf = o?.onConflict; return this; }
     delete() { this.op = 'delete'; return this; }
     eq(c, v) { this.fs.push(r => r[c] == v); return this; }
+    is(c, v) { this.fs.push(r => (r[c] ?? null) === v); return this; }
     in(c, a) { this.fs.push(r => a.map(String).includes(String(r[c]))); return this; }
     order(c, o = {}) { this.ord.push([c, o.ascending !== false]); return this; }
     range(a, b) { this.rng = [a, b]; return this; }
@@ -538,6 +539,264 @@
       const id = seq.perfil++; DB.perfiles_rol.push({ id, gestion_id: 1, rol_id: a.p_rol_id, version: v, vigente_desde_periodo: v > 1 ? a.p_vigente_desde : null, created_at: ahora() });
       Object.entries(a.p_pesos).forEach(([k, p]) => DB.perfil_criterios.push({ perfil_id: id, criterio_key: k, peso: p })); return id;
     },
+  };
+
+  /* ── Equipos, tareas colectivas y nota de tareas (0031–0036) ──────────────────────────────────────────
+     Réplica MÍNIMA de lo que hace la base, solo para ver y recorrer las pantallas. Las reglas de verdad están en SQL y
+     se prueban allí (tools/pruebas/sql-0031…0036); aquí se repiten las justas para que los botones respondan. */
+  DB.equipos = [
+    { id: 1, periodo_id: P.pe2, nombre: 'Cobertura de la jornada', descripcion: 'Foto y video del evento de cierre.', responsable_id: U.m1, distrito: null, estado: 'activo', created_at: ahora(), updated_at: ahora() },
+    { id: 2, periodo_id: P.pe2, nombre: 'Redacción 08-01', descripcion: 'Notas de prensa del distrito.', responsable_id: U.r1, distrito: '08-01', estado: 'activo', created_at: ahora(), updated_at: ahora() },
+    { id: 3, periodo_id: P.pe3, nombre: 'Equipo del PE3', descripcion: '', responsable_id: null, distrito: null, estado: 'inactivo', created_at: ahora(), updated_at: ahora() },
+  ];
+  DB.equipo_miembros = [[1, U.m1], [1, U.m2], [1, U.m3], [2, U.r1], [2, U.m5], [3, U.m4]].map(([e, p], i) => ({ id: i + 1, equipo_id: e, persona_id: p, desde: ahora(), hasta: null, excepcion: false }));
+  DB.equipo_eventos = [{ id: 1, equipo_id: 1, actor_id: U.admin, tipo: 'creado', persona_id: null, detalle: {}, motivo: null, created_at: ahora() }];
+  DB.tareas_equipo = [];
+  DB.tarea_equipo_participantes = [];
+  DB.tarea_equipo_aportes = [];
+  DB.tarea_equipo_eventos = [];
+  DB.calificaciones_historial = [];
+  DB.periodo_calif_config = [
+    { periodo_id: P.pe2, peso_tareas: 20, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: false },
+    { periodo_id: P.pe3, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: true },
+  ];
+  DB.periodo_calif_config_hist = [];
+  seq.teq = 1; seq.ap = 1; seq.hn = 1; seq.eqi = 100;
+  DB.tareas.forEach(t => { t.peso = 1; t.puntos = t.puntos ?? null; t.puntos_original = t.puntos ?? null; t.nota_anulada_en = null; });
+  { const g = DB.tareas.find(t => t.titulo === 'Guía de encuadres'); if (g) { g.puntos = 9; g.puntos_original = 9; } }
+  const nuevaTE = o => { const t = { id: seq.teq++, equipo_id: 1, periodo_id: P.pe2, titulo: 'Tarea de equipo', descripcion: '', instrucciones: '', criterios_evaluacion: '', criterios: [], prioridad: 'normal',
+    responsable_id: null, asignada_por: U.admin, asignada_en: ahora(), fecha_limite: dia(6), fecha_limite_original: undefined, estado: 'asignada', entrega_url: null, entrega_nota: null, entregada_por: null, entregada_en: null,
+    revision_nota: null, bloqueo_motivo: null, rondas_revision: 0, aprobada_en: null, aprobada_por: null, puntos: null, puntos_original: null, peso: 1, nota_anulada_en: null, nota_anulada_motivo: null,
+    anulada_en: null, anulacion_motivo: null, created_at: ahora(), updated_at: ahora(), ...o };
+    if (t.fecha_limite_original === undefined) t.fecha_limite_original = t.fecha_limite;
+    DB.tareas_equipo.push(t);
+    DB.equipo_miembros.filter(m => m.equipo_id === t.equipo_id && !m.hasta).forEach(m => DB.tarea_equipo_participantes.push({ tarea_id: t.id, persona_id: m.persona_id, desde: ahora(), hasta: null, puntos_individual: null, individual_motivo: null }));
+    DB.tarea_equipo_eventos.push({ id: seq.eqi++, tarea_id: t.id, actor_id: U.admin, tipo: 'creada', a: t.estado, motivo: t.titulo, created_at: ahora() });
+    return t; };
+  nuevaTE({ titulo: 'Reel del evento de cierre', descripcion: 'Un reel de 60 s con lo mejor de la jornada.', instrucciones: 'Formato vertical, subtítulos, música libre de derechos.', criterios_evaluacion: 'Ritmo, calidad de imagen y entrega a tiempo.', responsable_id: U.m1, prioridad: 'alta', criterios: ['plazos', 'calidad'] });
+  nuevaTE({ titulo: 'Fotos del backstage', estado: 'entregada', entregada_por: U.m2, entregada_en: ahora(), entrega_url: 'https://drive.example.com/backstage', entrega_nota: '40 fotos seleccionadas', fecha_limite: dia(2), peso: 2 });
+  nuevaTE({ titulo: 'Guion de la jornada', estado: 'aprobada', entregada_por: U.m1, entregada_en: ahora(), aprobada_en: ahora(), aprobada_por: U.admin, puntos: 8, puntos_original: 8, fecha_limite: dia(-4) });
+  nuevaTE({ titulo: 'Notas del taller', equipo_id: 2, estado: 'en_curso', fecha_limite: dia(-1) });
+  DB.tarea_equipo_aportes.push({ id: seq.ap++, tarea_id: 1, persona_id: U.m1, tipo: 'avance', nota: 'Guion y tomas listas', url: null, avance: 40, created_at: ahora() },
+    { id: seq.ap++, tarea_id: 1, persona_id: U.m2, tipo: 'evidencia', nota: 'Borrador del montaje', url: 'https://drive.example.com/borrador', avance: null, created_at: ahora() });
+
+  const eqVisible = e => esAdmin() || DB.equipo_miembros.some(m => m.equipo_id === e.id && m.persona_id === meId) || e.responsable_id === meId
+    || (esSec() && ((e.distrito && e.distrito === me().distrito) || DB.equipo_miembros.some(m => m.equipo_id === e.id && distritoIds().includes(m.persona_id))));
+  const eqVig = id => DB.equipo_miembros.filter(m => m.equipo_id === id && !m.hasta);
+  const nomP = id => { const p = DB.profiles.find(x => x.id === id); return p ? (p.nombre || p.email) : null; };
+  const partVig = (tid, pid = meId) => DB.tarea_equipo_participantes.some(p => p.tarea_id === tid && p.persona_id === pid && !p.hasta);
+  const revisaTE = t => { const e = DB.equipos.find(x => x.id === t.equipo_id); return esAdmin() || (esSec() && e.distrito && e.distrito === me().distrito && !DB.tarea_equipo_participantes.some(p => p.tarea_id === t.id && p.persona_id === meId)); };
+  const veTE = t => esAdmin() || DB.tarea_equipo_participantes.some(p => p.tarea_id === t.id && p.persona_id === meId) || t.responsable_id === meId || eqVisible(DB.equipos.find(x => x.id === t.equipo_id));
+  const avanceTE = t => t.estado === 'anulada' ? null : ['aprobada', 'entregada'].includes(t.estado) ? 100 : (DB.tarea_equipo_aportes.filter(a => a.tarea_id === t.id && a.tipo === 'avance').sort((a, b) => b.id - a.id)[0]?.avance ?? 0);
+  const venceTE = t => ['asignada', 'en_curso'].includes(t.estado) && !t.entregada_en && t.fecha_limite && t.fecha_limite < hoyISO;
+  const cfgP = pid => DB.periodo_calif_config.find(c => c.periodo_id === pid) || { periodo_id: pid, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: false };
+
+  /** Piezas candidatas de la nota de tareas (calif_items): las mismas reglas que 0034. */
+  function califItems(pid) {
+    const c = cfgP(pid), items = [];
+    DB.tareas.filter(t => t.periodo_id === pid).forEach(t => {
+      const venc = ['asignada', 'en_curso'].includes(t.estado) && !t.entregada_en && t.fecha_limite && t.fecha_limite < hoyISO;
+      let razon, cuenta = false;
+      if (t.estado === 'anulada') razon = 'tarea_anulada';
+      else if (t.estado === 'aprobada') { if (t.nota_anulada_en) razon = 'nota_anulada'; else if (t.puntos == null) razon = 'sin_puntos'; else if (t.origen === 'propia' && !c.contar_propias) razon = 'propia_excluida'; else { razon = 'calificada'; cuenta = true; } }
+      else if (venc) { razon = c.vencidas_como_cero ? 'vencida_como_cero' : 'vencida'; cuenta = c.vencidas_como_cero; }
+      else razon = { entregada: 'pendiente_de_evaluacion', bloqueada: 'bloqueada', devuelta: 'devuelta' }[t.estado] || 'en_curso';
+      items.push({ persona_id: t.asignada_a, tipo: 'individual', tarea_id: t.id, titulo: t.titulo, equipo_id: null, equipo_nombre: null, estado: t.estado, origen: t.origen, puntos: t.puntos, nota_grupo: null,
+        individual_en_grupo: false, peso_tarea: t.peso, peso_efectivo: t.peso * c.mult_individual, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: !!venc });
+    });
+    DB.tareas_equipo.filter(t => t.periodo_id === pid).forEach(t => {
+      DB.tarea_equipo_participantes.filter(p => p.tarea_id === t.id).forEach(p => {
+        const participa = t.estado === 'aprobada' ? (!p.hasta || DB.tarea_equipo_aportes.some(a => a.tarea_id === t.id && a.persona_id === p.persona_id)) : !p.hasta;
+        if (!participa && !['aprobada', 'anulada'].includes(t.estado)) return;
+        const pts = p.puntos_individual ?? t.puntos, venc = venceTE(t);
+        let razon, cuenta = false;
+        if (t.estado === 'anulada') razon = 'tarea_anulada';
+        else if (t.estado === 'aprobada') { if (!participa) razon = 'no_participo'; else if (t.nota_anulada_en) razon = 'nota_anulada'; else if (pts == null) razon = 'sin_puntos'; else { cuenta = true; razon = p.puntos_individual != null ? 'individual_en_grupo' : 'nota_del_grupo'; } }
+        else if (venc) { razon = c.vencidas_como_cero ? 'vencida_como_cero' : 'vencida'; cuenta = c.vencidas_como_cero; }
+        else razon = { entregada: 'pendiente_de_evaluacion', bloqueada: 'bloqueada', devuelta: 'devuelta' }[t.estado] || 'en_curso';
+        items.push({ persona_id: p.persona_id, tipo: 'equipo', tarea_id: t.id, titulo: t.titulo, equipo_id: t.equipo_id, equipo_nombre: DB.equipos.find(e => e.id === t.equipo_id)?.nombre, estado: t.estado, origen: 'grupal',
+          puntos: pts, nota_grupo: t.puntos, individual_en_grupo: p.puntos_individual != null, peso_tarea: t.peso, peso_efectivo: t.peso * c.mult_colectiva, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: venc });
+      });
+    });
+    return items;
+  }
+  const califNota = (pid, persona) => {
+    const c = cfgP(pid), it = califItems(pid).filter(i => i.persona_id === persona), cu = it.filter(i => i.cuenta);
+    const s = cu.reduce((a, i) => a + i.peso_efectivo, 0);
+    return { items: it, cuentan: cu.length, nota: cu.length >= c.minimo_tareas && s > 0 ? num(100 * cu.reduce((a, i) => a + i.peso_efectivo * (i.puntos ?? 0) / 10, 0) / s) : null, suma: s, cfg: c };
+  };
+  const puedeVer = pid => esAdmin() || pid === meId || (esSec() && distritoIds().includes(pid));
+
+  // La evaluación integrada: individual y general ya incluyen la nota de tareas (0035).
+  const resultadosBase = RPC.resultados_periodo;
+  RPC.resultados_periodo = a => resultadosBase(a).map(f => {
+    const t = califNota(a.p_periodo, f.evaluado_id), w = t.nota != null ? t.cfg.peso_tareas / 100 : 0;
+    const ie = f.individual, ge = f.general;
+    return { ...f, individual_eval: ie, general_eval: ge, tareas: t.nota, tareas_n: t.cuentan, peso_tareas: num(w * 100),
+      individual: num((1 - w) * ie + w * (t.nota ?? 0)), general: num((1 - w) * ge + w * (t.nota ?? 0)) };
+  });
+  const segBase = RPC.seguimiento_global;
+  RPC.seguimiento_global = a => segBase(a).map(f => {
+    if (f.modelo !== 'v2') return f;
+    const r = RPC.resultados_periodo({ p_periodo: f.periodo_id, p_borradores: esAdmin() }).find(x => x.evaluado_id === f.persona_id);
+    return { ...f, individual: r?.individual ?? f.individual, general: r?.general ?? f.general, individual_eval: r?.individual_eval ?? null, tareas_nota: r?.tareas ?? null, tareas_n: r?.tareas_n ?? 0, peso_tareas: r?.peso_tareas ?? 0,
+      colectivas_total: DB.tarea_equipo_participantes.filter(p => p.persona_id === f.persona_id && DB.tareas_equipo.find(t => t.id === p.tarea_id)?.periodo_id === f.periodo_id).length, colectivas_aprobadas: 0 };
+  });
+
+  const resumenEq = e => {
+    const ts = DB.tareas_equipo.filter(t => t.equipo_id === e.id);
+    return { equipo_id: e.id, periodo_id: e.periodo_id, periodo_nombre: DB.periodos_evaluacion.find(p => p.id === e.periodo_id).nombre, nombre: e.nombre, descripcion: e.descripcion, estado: e.estado, distrito: e.distrito,
+      responsable_id: e.responsable_id, responsable_nombre: nomP(e.responsable_id), integrantes: eqVig(e.id).length, soy_integrante: eqVig(e.id).some(m => m.persona_id === meId),
+      tareas_total: ts.filter(t => t.estado !== 'anulada').length, tareas_abiertas: ts.filter(t => ['asignada', 'en_curso', 'bloqueada', 'devuelta'].includes(t.estado)).length,
+      tareas_por_revisar: ts.filter(t => t.estado === 'entregada').length, tareas_vencidas: ts.filter(venceTE).length, tareas_aprobadas: ts.filter(t => t.estado === 'aprobada').length,
+      avance_promedio: ts.filter(t => t.estado !== 'anulada').length ? Math.round(ts.filter(t => t.estado !== 'anulada').reduce((a, t) => a + avanceTE(t), 0) / ts.filter(t => t.estado !== 'anulada').length) : null,
+      alertas: esAdmin() ? eqVig(e.id).filter(m => e.distrito && DB.profiles.find(p => p.id === m.persona_id).distrito !== e.distrito && !m.excepcion).length : 0, created_at: e.created_at, updated_at: e.updated_at };
+  };
+  const soloAdmin = () => { if (!meId) throw new Error('Se requiere sesion.'); if (!esAdmin()) throw new Error('Solo la administracion gestiona equipos.'); };
+  Object.assign(RPC, {
+    equipos_resumen: ({ p_periodo }) => { if (!meId) throw new Error('Se requiere sesion.'); return DB.equipos.filter(e => (!p_periodo || e.periodo_id === p_periodo) && eqVisible(e)).map(resumenEq); },
+    equipo_integrantes: ({ p_equipo, p_incluir_bajas }) => {
+      const e = DB.equipos.find(x => x.id === p_equipo); if (!e || !eqVisible(e)) return [];
+      return DB.equipo_miembros.filter(m => m.equipo_id === p_equipo && (p_incluir_bajas || !m.hasta)).map(m => { const p = DB.profiles.find(x => x.id === m.persona_id);
+        return { persona_id: p.id, nombre: p.nombre, distrito: p.distrito, rol_id: p.rol_id, rol_nombre: nombreRol(p.rol_id), tipo_miembro: p.tipo_miembro, desde: m.desde, hasta: m.hasta, motivo_retiro: m.motivo_retiro ?? null,
+          excepcion: !!m.excepcion, excepcion_motivo: m.excepcion_motivo ?? null, es_responsable: e.responsable_id === p.id,
+          alerta: esAdmin() && !m.hasta && e.distrito && p.distrito !== e.distrito && !m.excepcion ? 'otro_distrito' : null }; });
+    },
+    equipo_guardar: a => {
+      soloAdmin();
+      if (!a.p_nombre || a.p_nombre.trim().length < 2) throw new Error('El nombre del equipo debe tener entre 2 y 80 caracteres.');
+      if (a.p_id) { const e = DB.equipos.find(x => x.id === a.p_id); if (e.estado === 'archivado') throw new Error('Un equipo archivado no se edita; restauralo primero.');
+        Object.assign(e, { nombre: a.p_nombre.trim(), descripcion: a.p_descripcion || '', responsable_id: a.p_responsable, distrito: a.p_distrito, updated_at: ahora() }); return e.id; }
+      const per = DB.periodos_evaluacion.find(p => p.id === a.p_periodo);
+      if (!per) throw new Error('Elige un PE existente para el equipo.');
+      if (per.modelo !== 'v2') throw new Error('Los equipos solo existen en PE con la rubrica por roles; los anteriores conservan su evaluacion original.');
+      if (DB.equipos.some(e => e.periodo_id === per.id && e.estado !== 'archivado' && e.nombre.toLowerCase() === a.p_nombre.trim().toLowerCase())) throw new Error('Ya hay un equipo con ese nombre en este PE.');
+      const id = DB.equipos.reduce((m, e) => Math.max(m, e.id), 0) + 1;
+      DB.equipos.push({ id, periodo_id: per.id, nombre: a.p_nombre.trim(), descripcion: a.p_descripcion || '', responsable_id: a.p_responsable, distrito: a.p_distrito, estado: 'activo', created_at: ahora(), updated_at: ahora() });
+      DB.equipo_eventos.push({ id: seq.eqi++, equipo_id: id, actor_id: meId, tipo: 'creado', persona_id: null, detalle: {}, motivo: null, created_at: ahora() }); return id;
+    },
+    equipo_cambiar_estado: a => { soloAdmin(); const e = DB.equipos.find(x => x.id === a.p_equipo);
+      if (a.p_estado === 'archivado') { const ab = DB.tareas_equipo.filter(t => t.equipo_id === e.id && ['asignada', 'en_curso', 'bloqueada', 'entregada', 'devuelta'].includes(t.estado)).length;
+        if (ab) throw new Error(`No se puede archivar: tiene ${ab} tarea(s) colectiva(s) abierta(s). Cierralas o anulalas antes.`); if ((a.p_motivo || '').trim().length < 5) throw new Error('Archivar un equipo necesita un motivo (minimo 5 caracteres).'); }
+      DB.equipo_eventos.push({ id: seq.eqi++, equipo_id: e.id, actor_id: meId, tipo: 'estado', persona_id: null, detalle: { de: e.estado, a: a.p_estado }, motivo: a.p_motivo || null, created_at: ahora() });
+      e.estado = a.p_estado; return null; },
+    equipo_agregar_miembros: a => { soloAdmin(); const e = DB.equipos.find(x => x.id === a.p_equipo); const ag = [], om = [];
+      if (e.estado !== 'activo') throw new Error('Solo se agregan integrantes a un equipo activo.');
+      [...new Set(a.p_personas || [])].forEach(pid => { const p = DB.profiles.find(x => x.id === pid);
+        if (eqVig(e.id).some(m => m.persona_id === pid)) return om.push({ persona: pid, razon: 'ya_integrante' });
+        if (!p || p.es_admin) return om.push({ persona: pid, razon: 'administracion' });
+        if (e.distrito && p.distrito !== e.distrito && !a.p_excepcion) return om.push({ persona: pid, razon: 'otro_distrito' });
+        DB.equipo_miembros.push({ id: seq.eqi++, equipo_id: e.id, persona_id: pid, desde: ahora(), hasta: null, excepcion: !!(e.distrito && p.distrito !== e.distrito), excepcion_motivo: a.p_motivo || null });
+        DB.tareas_equipo.filter(t => t.equipo_id === e.id && ['asignada', 'en_curso', 'bloqueada', 'devuelta'].includes(t.estado)).forEach(t => DB.tarea_equipo_participantes.push({ tarea_id: t.id, persona_id: pid, desde: ahora(), hasta: null, puntos_individual: null }));
+        DB.equipo_eventos.push({ id: seq.eqi++, equipo_id: e.id, actor_id: meId, tipo: 'miembro_alta', persona_id: pid, detalle: {}, motivo: null, created_at: ahora() }); ag.push(pid); });
+      return { agregados: ag, omitidos: om }; },
+    equipo_retirar_miembro: a => { soloAdmin(); if ((a.p_motivo || '').trim().length < 5) throw new Error('Retirar a alguien necesita un motivo (minimo 5 caracteres).');
+      const m = DB.equipo_miembros.find(x => x.equipo_id === a.p_equipo && x.persona_id === a.p_persona && !x.hasta); if (!m) throw new Error('Esa persona no es integrante vigente del equipo.');
+      m.hasta = ahora(); m.motivo_retiro = a.p_motivo;
+      DB.tarea_equipo_participantes.filter(p => p.persona_id === a.p_persona && !p.hasta && DB.tareas_equipo.find(t => t.id === p.tarea_id)?.equipo_id === a.p_equipo && ['asignada', 'en_curso', 'bloqueada', 'devuelta', 'entregada'].includes(DB.tareas_equipo.find(t => t.id === p.tarea_id).estado)).forEach(p => { p.hasta = ahora(); });
+      DB.equipo_eventos.push({ id: seq.eqi++, equipo_id: a.p_equipo, actor_id: meId, tipo: 'miembro_baja', persona_id: a.p_persona, detalle: {}, motivo: a.p_motivo, created_at: ahora() }); return null; },
+    tareas_equipo_estado: ({ p_equipo, p_periodo }) => { if (!meId) throw new Error('Se requiere sesion.');
+      return DB.tareas_equipo.filter(t => (!p_equipo || t.equipo_id === p_equipo) && (!p_periodo || t.periodo_id === p_periodo) && veTE(t)).map(t => ({
+        tarea_id: t.id, equipo_id: t.equipo_id, equipo_nombre: DB.equipos.find(e => e.id === t.equipo_id).nombre, periodo_id: t.periodo_id, titulo: t.titulo, descripcion: t.descripcion, instrucciones: t.instrucciones,
+        criterios_evaluacion: t.criterios_evaluacion, criterios: t.criterios, prioridad: t.prioridad, estado: t.estado, fecha_limite: t.fecha_limite, fecha_limite_original: t.fecha_limite_original, asignada_en: t.asignada_en,
+        responsable_id: t.responsable_id, responsable_nombre: nomP(t.responsable_id), avance: avanceTE(t), participantes: DB.tarea_equipo_participantes.filter(p => p.tarea_id === t.id && !p.hasta).length,
+        aportes: DB.tarea_equipo_aportes.filter(a => a.tarea_id === t.id).length, entrega_url: t.entrega_url, entrega_nota: t.entrega_nota, entregada_por: t.entregada_por, entregada_por_nombre: nomP(t.entregada_por),
+        entregada_en: t.entregada_en, revision_nota: t.revision_nota, bloqueo_motivo: t.bloqueo_motivo, rondas_revision: t.rondas_revision, puntos: t.puntos, puntos_original: t.puntos_original, peso: t.peso,
+        nota_anulada: !!t.nota_anulada_en, aprobada_en: t.aprobada_en, vencida: venceTE(t), soy_participante: partVig(t.id), puedo_revisar: revisaTE(t) })).sort((a, b) => (a.fecha_limite || '9') < (b.fecha_limite || '9') ? -1 : 1); },
+    tarea_equipo_aportar: a => { const t = DB.tareas_equipo.find(x => x.id === a.p_tarea); if (!t || !veTE(t)) throw new Error('No tienes acceso a esta tarea.');
+      if (!partVig(t.id) && !(revisaTE(t) && a.p_tipo === 'comentario')) throw new Error(a.p_tipo === 'comentario' ? 'No tienes acceso a esta tarea.' : 'Quien revisa deja comentarios; los avances y evidencias los aportan los integrantes.');
+      if (a.p_tipo === 'avance' && a.p_avance == null) throw new Error('Un avance necesita su porcentaje (0 a 100).');
+      const id = seq.ap++; DB.tarea_equipo_aportes.push({ id, tarea_id: t.id, persona_id: meId, tipo: a.p_tipo, nota: a.p_nota, url: a.p_url, avance: a.p_tipo === 'avance' ? a.p_avance : null, created_at: ahora() }); return id; },
+    tarea_equipo_prorrogar: a => { const t = DB.tareas_equipo.find(x => x.id === a.p_id); if (!t || !revisaTE(t)) throw new Error('No puedes cambiar la fecha limite de esta tarea.');
+      if ((a.p_motivo || '').trim().length < 5) throw new Error('La prorroga necesita un motivo (minimo 5 caracteres).');
+      DB.tarea_equipo_eventos.push({ id: seq.eqi++, tarea_id: t.id, actor_id: meId, tipo: 'prorroga', de: t.fecha_limite, a: a.p_nueva, motivo: a.p_motivo, created_at: ahora() }); t.fecha_limite = a.p_nueva; return null; },
+    tarea_equipo_participacion: ({ p_tarea }) => { const t = DB.tareas_equipo.find(x => x.id === p_tarea); if (!t || !veTE(t)) return [];
+      return DB.tarea_equipo_participantes.filter(p => p.tarea_id === p_tarea).map(p => ({ persona_id: p.persona_id, nombre: nomP(p.persona_id), desde: p.desde, hasta: p.hasta,
+        aportes: DB.tarea_equipo_aportes.filter(a => a.tarea_id === p_tarea && a.persona_id === p.persona_id).length, ultimo_aporte: DB.tarea_equipo_aportes.filter(a => a.tarea_id === p_tarea && a.persona_id === p.persona_id).map(a => a.created_at).sort().pop() ?? null,
+        entrego: t.entregada_por === p.persona_id, es_responsable: t.responsable_id === p.persona_id, puntos_individual: revisaTE(t) || p.persona_id === meId ? p.puntos_individual : null, individual_motivo: null })); },
+    equipo_resultados: ({ p_equipo }) => { const e = DB.equipos.find(x => x.id === p_equipo); if (!e || !eqVisible(e)) return [];
+      const ap = DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado === 'aprobada' && t.puntos != null && !t.nota_anulada_en), sp = ap.reduce((a, t) => a + t.peso, 0);
+      const filas = [{ persona_id: null, nombre: 'Equipo', tareas_cuentan: ap.length, tareas_total: DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado !== 'anulada').length, nota: sp ? num(100 * ap.reduce((a, t) => a + t.peso * t.puntos / 10, 0) / sp) : null, con_nota_individual: 0 }];
+      eqVig(p_equipo).forEach(m => { if (!puedeVer(m.persona_id)) return; const it = califItems(e.periodo_id).filter(i => i.persona_id === m.persona_id && i.equipo_id === p_equipo), cu = it.filter(i => i.cuenta), s = cu.reduce((a, i) => a + i.peso_tarea, 0);
+        filas.push({ persona_id: m.persona_id, nombre: nomP(m.persona_id), tareas_cuentan: cu.length, tareas_total: it.filter(i => i.razon !== 'tarea_anulada').length, nota: s ? num(100 * cu.reduce((a, i) => a + i.peso_tarea * i.puntos / 10, 0) / s) : null, con_nota_individual: cu.filter(i => i.individual_en_grupo).length }); });
+      return filas; },
+    calif_config: ({ p_periodo }) => { const c = cfgP(p_periodo); return [{ ...c, definida: true }]; },
+    calif_config_guardar: a => { if (!esAdmin()) throw new Error('Solo la administracion define las reglas de calificacion.');
+      if (a.p_peso_tareas < 0 || a.p_peso_tareas > 100) throw new Error('El peso de las tareas va de 0 a 100 %.');
+      const pub = DB.evaluaciones.some(e => e.periodo_id === a.p_periodo && e.estado === 'publicado'); if (pub && (a.p_motivo || '').trim().length < 5) throw new Error('Ya hay evaluaciones publicadas: cambiar las reglas cambia sus resultados; explica el motivo (minimo 5 caracteres).');
+      let c = DB.periodo_calif_config.find(x => x.periodo_id === a.p_periodo); if (!c) DB.periodo_calif_config.push(c = { periodo_id: a.p_periodo });
+      Object.assign(c, { peso_tareas: a.p_peso_tareas, mult_individual: a.p_mult_individual, mult_colectiva: a.p_mult_colectiva, minimo_tareas: a.p_minimo_tareas, contar_propias: a.p_contar_propias, vencidas_como_cero: a.p_vencidas_como_cero, confirmado: true }); return null; },
+    tareas_calificacion_detalle: ({ p_periodo, p_persona }) => { const p = p_persona || meId; if (!puedeVer(p)) return [];
+      const c = cfgP(p_periodo), it = califItems(p_periodo).filter(i => i.persona_id === p), s = it.filter(i => i.cuenta).reduce((a, i) => a + i.peso_efectivo, 0);
+      return it.map(i => ({ ...i, aporte_pct: i.cuenta ? num(100 * i.peso_efectivo / s) : null, aporte_puntos: i.cuenta ? num(100 * i.peso_efectivo * (i.puntos ?? 0) / 10 / s) : null })).sort((a, b) => Number(b.cuenta) - Number(a.cuenta)); },
+    tareas_calificacion_resumen: ({ p_periodo }) => DB.profiles.filter(p => !p.es_admin && puedeVer(p.id)).map(p => { const n = califNota(p_periodo, p.id); return n.items.length ? { persona_id: p.id, nota: n.nota, n_cuentan: n.cuentan, n_individuales: 0, n_colectivas: 0, suma_pesos: n.suma,
+      n_pendientes: n.items.filter(i => i.razon === 'pendiente_de_evaluacion').length, n_abiertas: 0, n_vencidas: n.items.filter(i => i.razon.startsWith('vencida')).length, n_anuladas: 0, suficiente: n.nota != null, minimo: n.cfg.minimo_tareas, peso_tareas: n.cfg.peso_tareas } : null; }).filter(Boolean),
+    corregir_nota_tarea: a => notaAdmin('corregir', a), anular_nota_tarea: a => notaAdmin('anular', a), restaurar_nota_tarea: a => notaAdmin('restaurar', a),
+    nota_individual_equipo: a => { const t = DB.tareas_equipo.find(x => x.id === a.p_tarea); if (!t || !(esAdmin() || revisaTE(t))) throw new Error('No puedes calificar a las personas de esta tarea.');
+      if ((a.p_motivo || '').trim().length < 10) throw new Error('Una nota individual distinta a la del grupo necesita su evidencia o motivo (minimo 10 caracteres).');
+      const p = DB.tarea_equipo_participantes.find(x => x.tarea_id === t.id && x.persona_id === a.p_persona); if (!p) throw new Error('Esa persona no participa en la tarea.');
+      DB.calificaciones_historial.push({ id: seq.hn++, tarea_tipo: 'equipo', tarea_id: t.id, periodo_id: t.periodo_id, persona_id: a.p_persona, accion: a.p_puntos == null ? 'individual_retirada' : 'individual', puntos_anterior: p.puntos_individual ?? t.puntos, puntos_nuevo: a.p_puntos, motivo: a.p_motivo, actor_id: meId, contexto: { titulo: t.titulo }, created_at: ahora() });
+      p.puntos_individual = a.p_puntos; return null; },
+  });
+  function notaAdmin(que, a) {
+    if (!esAdmin()) throw new Error('Solo la administracion corrige, anula o restaura una calificacion.');
+    if ((a.p_motivo || '').trim().length < 5) throw new Error('Toda modificacion de una calificacion necesita su justificacion (minimo 5 caracteres).');
+    const t = (a.p_tipo === 'equipo' ? DB.tareas_equipo : DB.tareas).find(x => x.id === a.p_id);
+    if (!t || t.estado !== 'aprobada') throw new Error('Solo una tarea aprobada tiene calificacion que modificar.');
+    const ant = t.puntos;
+    if (que === 'corregir') { if (a.p_puntos == null || a.p_puntos < 0 || a.p_puntos > 10) throw new Error('Los puntos van de 0 a 10.'); if (t.nota_anulada_en) throw new Error('La calificacion esta anulada: restaurala antes de corregirla.'); if (a.p_puntos === t.puntos) throw new Error('Indica unos puntos distintos a los actuales.'); t.puntos = a.p_puntos; }
+    if (que === 'anular') { if (t.nota_anulada_en) throw new Error('La calificacion ya esta anulada.'); t.nota_anulada_en = ahora(); t.nota_anulada_motivo = a.p_motivo; }
+    if (que === 'restaurar') { if (!t.nota_anulada_en) throw new Error('La calificacion no esta anulada.'); t.nota_anulada_en = null; }
+    DB.calificaciones_historial.push({ id: seq.hn++, tarea_tipo: a.p_tipo, tarea_id: t.id, periodo_id: t.periodo_id, persona_id: a.p_tipo === 'individual' ? t.asignada_a : null,
+      accion: { corregir: 'corregida', anular: 'anulada', restaurar: 'restaurada' }[que], puntos_anterior: ant, puntos_nuevo: t.puntos, motivo: a.p_motivo, actor_id: meId, contexto: { titulo: t.titulo, peso_tarea: t.peso, peso_tareas_pct: cfgP(t.periodo_id).peso_tareas }, created_at: ahora() });
+    return null;
+  }
+  // Tablas nuevas: visibilidad y escritura mínimas
+  const visiblesBase = visibles;
+  visibles = (table, rows) => {
+    if (table === 'equipos') return rows.filter(eqVisible);
+    if (table === 'equipo_miembros') return rows.filter(m => esAdmin() || m.persona_id === meId || (!m.hasta && eqVig(m.equipo_id).some(x => x.persona_id === meId)) || (esSec() && distritoIds().includes(m.persona_id)));
+    if (table === 'equipo_eventos') return esAdmin() ? rows : [];
+    if (table === 'tareas_equipo') return rows.filter(veTE);
+    if (table === 'tarea_equipo_aportes' || table === 'tarea_equipo_eventos') return rows.filter(r => veTE(DB.tareas_equipo.find(t => t.id === r.tarea_id) || {}));
+    if (table === 'calificaciones_historial') return rows.filter(h => esAdmin() || h.persona_id === meId || (h.tarea_tipo === 'equipo' && !h.persona_id && veTE(DB.tareas_equipo.find(t => t.id === h.tarea_id) || {})));
+    if (table === 'periodo_calif_config_hist') return esAdmin() ? rows : [];
+    return visiblesBase(table, rows);
+  };
+  /** Transiciones de tareas colectivas (resumen de 0032). */
+  function validarTE(old, nuevo) {
+    const part = partVig(old.id), rev = revisaTE(old);
+    if (['aprobada', 'anulada'].includes(old.estado) && !esAdmin()) throw new Error(`Una tarea ${old.estado} no se modifica.`);
+    if (nuevo.estado !== old.estado) {
+      const okP = (old.estado === 'asignada' && ['en_curso', 'entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'en_curso' && ['entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'devuelta' && ['en_curso', 'entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'bloqueada' && nuevo.estado === 'en_curso');
+      const okR = (old.estado === 'entregada' && ['aprobada', 'devuelta'].includes(nuevo.estado)) || (nuevo.estado === 'anulada' && old.estado !== 'aprobada') || (old.estado === 'bloqueada' && nuevo.estado === 'en_curso');
+      if (!(esAdmin() || (rev && okR) || (part && okP))) throw new Error(`Transicion no permitida: ${old.estado} → ${nuevo.estado}.`);
+      if (nuevo.estado === 'entregada') { if (!nuevo.entrega_url && (nuevo.entrega_nota || '').trim().length < 3) throw new Error('Para entregar, indica un enlace o escribe una nota de la entrega.'); nuevo.entregada_en = old.entregada_en || ahora(); nuevo.entregada_por = meId; }
+      if (nuevo.estado === 'devuelta') { if ((nuevo.revision_nota || '').trim().length < 3) throw new Error('Al devolver una tarea explica que hay que corregir.'); nuevo.rondas_revision = old.rondas_revision + 1; }
+      if (nuevo.estado === 'aprobada') { if (nuevo.puntos == null) throw new Error('Al aprobar una tarea asigna sus puntos (de 0 a 10).'); nuevo.aprobada_en = ahora(); nuevo.aprobada_por = meId; nuevo.puntos_original = nuevo.puntos;
+        DB.calificaciones_historial.push({ id: seq.hn++, tarea_tipo: 'equipo', tarea_id: old.id, periodo_id: old.periodo_id, persona_id: null, accion: 'calificada', puntos_anterior: null, puntos_nuevo: nuevo.puntos, motivo: null, actor_id: meId, contexto: { titulo: old.titulo, peso_tarea: nuevo.peso, peso_tareas_pct: cfgP(old.periodo_id).peso_tareas }, created_at: ahora() }); }
+      if (nuevo.estado === 'bloqueada' && (nuevo.bloqueo_motivo || '').trim().length < 3) throw new Error('Una tarea bloqueada necesita un motivo.');
+      if (nuevo.estado === 'anulada') { if ((nuevo.anulacion_motivo || '').trim().length < 5) throw new Error('Anular una tarea necesita un motivo (minimo 5 caracteres).'); nuevo.anulada_en = ahora(); }
+      if (!['aprobada', 'anulada'].includes(nuevo.estado)) { nuevo.puntos = null; nuevo.puntos_original = null; nuevo.nota_anulada_en = null; }
+      DB.tarea_equipo_eventos.push({ id: seq.eqi++, tarea_id: old.id, actor_id: meId, tipo: 'estado', de: old.estado, a: nuevo.estado, motivo: nuevo.revision_nota || nuevo.bloqueo_motivo || nuevo.anulacion_motivo || null, created_at: ahora() });
+    }
+    nuevo.updated_at = ahora(); return nuevo;
+  }
+  Q.prototype._insertBase = Q.prototype._insert;
+  Q.prototype._insert = function (p) {
+    if (this.t === 'tareas_equipo') {
+      const e = DB.equipos.find(x => x.id === p.equipo_id);
+      if (!e || !(esAdmin() || (esSec() && e.distrito && e.distrito === me().distrito))) throw new Error('new row violates row-level security policy for table "tareas_equipo"');
+      if (e.estado !== 'activo') throw new Error('Solo se asignan tareas a un equipo activo.');
+      if (!eqVig(e.id).length) throw new Error('El equipo no tiene integrantes vigentes.');
+      return nuevaTE({ ...p, periodo_id: e.periodo_id, asignada_por: meId, fecha_limite_original: p.fecha_limite || null });
+    }
+    return this._insertBase(p);
+  };
+  Q.prototype._updateBase = Q.prototype._update;
+  Q.prototype._update = function (r) {
+    if (this.t === 'tareas_equipo') { const n = validarTE(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
+    return this._updateBase(r);
   };
 
   const listeners = [];

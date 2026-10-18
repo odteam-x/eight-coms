@@ -348,10 +348,20 @@ async function renderTrabajosTab() {
     id: 'mis-tareas', el, periodoId: per?.id ?? null, yo: CU.id,
     onNoDisponible: () => renderTrabajosLegacy(),
   });
+  montarEquipos(el, per);
+}
+
+/* Equipos y tareas colectivas del período (migraciones 0031–0036): bajo las tareas individuales, en su propio bloque. */
+function montarEquipos(despuesDe, per) {
+  let host = document.getElementById('equipos-host');
+  if (!host) { host = document.createElement('div'); host.id = 'equipos-host'; despuesDe.insertAdjacentElement('afterend', host); }
+  if (!per || !esPeriodoV2(per)) { host.innerHTML = ''; return; }
+  Equipos.montarMiembro(host, { periodoId: per.id, yo: CU.id, periodos: Store.periodos(), esSecretaria: false });
 }
 
 async function renderTrabajosLegacy() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
+  const eh = document.getElementById('equipos-host'); if (eh) eh.innerHTML = '';
   renderCargando(el);
   // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
   const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;
