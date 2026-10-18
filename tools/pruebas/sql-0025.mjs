@@ -101,6 +101,16 @@ await db.exec(fs.readFileSync(R + '0025_seguimiento_bienvenida.sql', 'utf8'));
 await db.exec(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
                GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated, anon;`);
 await db.exec(fs.readFileSync(R + '0025_seguimiento_bienvenida.sql', 'utf8'));
+// Regresión (0031–0035): con --con-equipos se aplican DESPUÉS de 0025, sobre datos que ya existían (PE, tareas, notas):
+// el resultado visible tiene que ser el mismo, porque los PE anteriores quedan con peso_tareas = 0.
+if (process.argv.includes('--con-equipos') || process.env.CON_EQUIPOS) {
+  for (const f of ['0031_equipos.sql', '0032_tareas_equipo.sql', '0033_calificaciones.sql', '0034_calificacion_tareas.sql', '0035_resultados_integrados.sql'])
+    await db.exec(fs.readFileSync(R + f, 'utf8'));
+  console.log('— 0031–0035 aplicadas sobre los datos existentes');
+  await root();
+  ok((await q(`SELECT puntos_original FROM tareas WHERE titulo='Entregada a tiempo'`))[0].puntos_original === 8, 'migración de datos: la tarea ya aprobada conserva sus 8 puntos como nota original');
+  ok((await q(`SELECT count(*)::int n FROM periodo_calif_config WHERE peso_tareas = 0 AND NOT confirmado`))[0].n >= 2, 'migración de datos: los PE que ya existían quedan con peso_tareas = 0 (no cambian sus resultados)');
+}
 await db.exec(`REVOKE ALL ON public.bienvenida_estado FROM anon; REVOKE INSERT, UPDATE, DELETE ON public.bienvenida_estado FROM authenticated;`);
 console.log('— 0025 aplicada sin errores (dos veces: es idempotente)');
 
