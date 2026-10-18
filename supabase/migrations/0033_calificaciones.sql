@@ -71,7 +71,11 @@ ALTER TABLE public.tareas ADD CONSTRAINT tareas_estado_check
   CHECK (estado IN ('asignada','en_curso','bloqueada','entregada','devuelta','aprobada','anulada'));
 
 --  Las tareas aprobadas ANTES de esta migración conservan sus puntos como nota original (no se inventa nada).
+--  (En el SQL Editor no hay sesión: los triggers de tareas exigen auth.uid(), así que se apagan un instante SOLO para
+--  este relleno de datos, dentro de la misma transacción, y se vuelven a encender.)
+ALTER TABLE public.tareas DISABLE TRIGGER USER;
 UPDATE public.tareas SET puntos_original = puntos WHERE puntos IS NOT NULL AND puntos_original IS NULL AND estado = 'aprobada';
+ALTER TABLE public.tareas ENABLE TRIGGER USER;
 
 --  Matriz de transiciones de 0016 + «anulada» (quien revisa anula lo no aprobado; la administración, lo que sea).
 CREATE OR REPLACE FUNCTION public.tarea_transicion_valida(p_rol TEXT, p_de TEXT, p_a TEXT)
