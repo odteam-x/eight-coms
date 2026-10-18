@@ -170,3 +170,21 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .panel--hoja .aviso-d { font-size: var(--fs-sm); }
 .panel--hoja .aviso-h { font-size: var(--fs-xs); }
 .panel--hoja .aviso-estado { min-height: 180px; justify-content: center; }
+
+/* Perfil: cinco pestañas no caben en 320–430 px. Se desplazan y los bordes con más pestañas se desvanecen
+   (core/perfil.js marca data-borde), para que quien mira sepa que hay Períodos y Evolución más allá. */
+.perfil-barra .seg { max-width: 100%; }
+.perfil-barra .seg[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); }
+
+/* Mi cuenta en pantallas de 360 px o menos: foto y datos en dos filas. En fila, la columna del texto quedaba en ~150 px y el rol
+   («Secretaría de distrito», sin salto de línea) salía de la tarjeta a 320 px. */
+@media (max-width: 400px) {
+  .cuenta-cab { flex-direction: column; align-items: flex-start; }
+  .cuenta-id { width: 100%; }
+  .cuenta-chips .etiqueta { white-space: normal; text-align: left; }
+}
+
+/* Una cabecera de pantalla que solo tiene el título (oculto a la vista en celular, ya está en la barra superior) no deja hueco. */
+.pantalla-cab:not(:has(> p, > .pantalla-acc, > .pantalla-sub)) { padding: 0; margin: 0; }

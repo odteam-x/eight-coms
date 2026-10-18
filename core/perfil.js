@@ -35,6 +35,7 @@ const Perfil = (() => {
     { k: 'resumen',   etiqueta: 'Resumen',   icono: 'layout-grid' },
     { k: 'criterios', etiqueta: 'Criterios', icono: 'list-checks' },
     { k: 'tareas',    etiqueta: 'Tareas',    icono: 'clipboard-check' },
+    { k: 'periodos',  etiqueta: 'Períodos',  icono: 'calendar-range' },
     { k: 'evolucion', etiqueta: 'Evolución', icono: 'trending-up' },
   ];
 
@@ -124,14 +125,13 @@ const Perfil = (() => {
   function _avatarHTML(inst) {
     const p = inst.persona;
     const editable = inst.modo === 'propio' && document.getElementById('avatar-file-input');
-    const interior = p.avatar_url
-      ? `<img src="${escHtml(p.avatar_url)}" alt="" width="88" height="88">`
-      : `<span aria-hidden="true">${escHtml(initials(p.nombre || p.email || '') || '?')}</span>`;
+    // El avatar (foto o predeterminado) lo resuelve Avatar; aquí solo se decide el contenedor y su accesibilidad.
+    const cls = Avatar.clases(p, 'xl') + ' perfil-av';
     return editable
-      ? `<button type="button" class="perfil-av perfil-av--editable" data-act="cambiarAvatar"
-                 aria-label="Cambiar foto de perfil" title="Cambiar foto de perfil">${interior}
+      ? `<button type="button" class="${cls} perfil-av--editable" data-act="cambiarAvatar"
+                 aria-label="Cambiar foto de perfil" title="Cambiar foto de perfil">${Avatar.interior(p)}
            <i data-lucide="camera" class="perfil-av-cam" aria-hidden="true"></i></button>`
-      : `<div class="perfil-av" role="img" aria-label="Foto de ${escHtml(p.nombre || 'la persona')}">${interior}</div>`;
+      : `<div class="${cls}" role="img" aria-label="Foto de ${escHtml(p.nombre || 'la persona')}">${Avatar.interior(p)}</div>`;
   }
 
   function _cabeceraHTML(inst, item) {
@@ -173,7 +173,7 @@ const Perfil = (() => {
         <i data-lucide="${escHtml(a.icono || 'arrow-right')}" aria-hidden="true"></i><span>${escHtml(a.etiqueta)}</span>
       </button>`).join('');
 
-    const H = inst.panel ? 'h3' : 'h2';
+    const H = inst.panel ? 'h3' : 'h1';   // en la página, el nombre es EL título (h1); en el panel lateral vive dentro de un diálogo
     return `
       <header class="perfil-cab sup-marca pat-${_patronDe(p)}" data-persona="${escHtml(p.id)}">
         <div class="perfil-id">
@@ -196,6 +196,26 @@ const Perfil = (() => {
       </header>`;
   }
 
+
+  /**
+   * Los paneles se escriben con los títulos que les tocan «en abstracto» (h3 de sección, h4 de subapartado). Aquí se les
+   * da el nivel que les corresponde bajo el nombre de la persona (h1 en la página, h3 en el panel lateral), para que el
+   * esquema del documento no salte de nivel. Se conservan clases, ids y atributos (aria-labelledby sigue funcionando).
+   */
+  function _niveles(inst, cuerpo) {
+    const base = inst.panel ? 3 : 1;
+    const mapa = [['.pf-h', base + 1], ['.pe-nombre', base + 1], ['.pf-sub', base + 2], ['.pe-sub', base + 2]];
+    for (const [sel, n] of mapa) {
+      const tag = 'H' + Math.min(6, n);
+      cuerpo.querySelectorAll(sel).forEach(h => {
+        if (!/^H[1-6]$/.test(h.tagName) || h.tagName === tag) return;
+        const nuevo = document.createElement(tag);
+        for (const at of h.attributes) nuevo.setAttribute(at.name, at.value);
+        nuevo.append(...h.childNodes);
+        h.replaceWith(nuevo);
+      });
+    }
+  }
 
   /* ══ PANELES ═══════════════════════════════════════════════════════════ */
 
@@ -505,9 +525,9 @@ const Perfil = (() => {
         </table></div>
       </section>` : '';
 
-    cuerpo.innerHTML = `<div class="pf-grid pf-grid--1">${bloqueV2}${bloqueLg}<div id="pf-seg-${uid}"></div></div>`;
-    // Todos los períodos con el estado de cada evaluación y los hechos de tareas (0025); sin la migración, no aparece.
-    if (typeof Seguimiento !== 'undefined') Seguimiento.persona(document.getElementById(`pf-seg-${uid}`), inst.persona.id);
+    // El estado de cada período (participación, evaluación, tareas) vive en la pestaña «Períodos», no aquí:
+    // esta pestaña es solo la evolución de los resultados.
+    cuerpo.innerHTML = `<div class="pf-grid pf-grid--1">${bloqueV2}${bloqueLg}</div>`;
     if (v2.length >= 2) graficoEvolucionV2(idV2, v2.map(i => ({ pe: i.periodo.pe, individual: i.fila.individual, general: i.fila.general })));
     if (legacy.length >= 2) graficoEvolucion(idLg, legacy.map(i => ({ pe: i.periodo.pe, total: i.total })), MAX);
   }
@@ -529,13 +549,14 @@ const Perfil = (() => {
       if (extra) await extra.render(cuerpo, { persona: inst.persona, periodo: inst.periodo, modo: inst.modo, refrescar: () => refrescar(inst.id) });
       else if (inst.tab === 'criterios') _panelCriterios(inst, cuerpo);
       else if (inst.tab === 'tareas')    await _panelTareas(inst, cuerpo, seq);
+      else if (inst.tab === 'periodos')  await PerfilPE.pintar(inst, cuerpo, () => seq === inst.seq && inst.tab === 'periodos');
       else if (inst.tab === 'evolucion') _panelEvolucion(inst, cuerpo);
       else                               await _panelResumen(inst, cuerpo, seq);
     } catch (e) {
       console.error('[Perfil]', e);
       renderError(cuerpo, e.message || String(e), () => _pintarPanel(inst));
     }
-    if (seq === inst.seq) animarEntrada(cuerpo);
+    if (seq === inst.seq) { _niveles(inst, cuerpo); animarEntrada(cuerpo); }
   }
 
   function _pintarCabecera(inst) {
@@ -550,6 +571,22 @@ const Perfil = (() => {
     const tabs = _tabsDe(inst);
     const seg = document.getElementById(`${inst.id}-seg`);
     if (seg) { seg.innerHTML = segHTML(tabs, inst.tab, 'perfilTab', { etiqueta: 'Secciones del perfil', prefijo: inst.id + '-tab' }); renderIconos(seg); }
+    // Con cinco pestañas el segmentado se desplaza en el celular: la activa se trae a la vista y los bordes dicen
+    // si hay más (data-borde="izq|der|ambos"; el desvanecido lo pinta movil.css).
+    const sc = seg?.querySelector('.seg');
+    if (sc) {
+      const marcar = () => {
+        const izq = sc.scrollLeft > 4, der = sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4;
+        sc.dataset.borde = izq && der ? 'ambos' : izq ? 'izq' : der ? 'der' : '';
+      };
+      const act = sc.querySelector('.seg-btn.active');
+      if (act && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = Math.max(0, act.offsetLeft - (sc.clientWidth - act.offsetWidth) / 2);
+      sc.addEventListener('scroll', marcar, { passive: true });
+      marcar();
+    }
+    // «Períodos» muestra todos los PE: el selector de un solo período no pinta nada ahí.
+    const pe = document.getElementById(`${inst.id}-pe`);
+    if (pe) pe.hidden = inst.tab === 'periodos';
   }
 
   /**
@@ -623,6 +660,22 @@ const Perfil = (() => {
     }
   }
 
+  /** «Ver detalle» de una tarjeta de Períodos: selecciona ese PE y abre el Resumen. */
+  function verPeriodo(pe, el) {
+    const root = el?.closest?.('[data-perfil]') || document.querySelector('[data-perfil]');
+    const inst = root && _inst.get(root.dataset.perfil);
+    const p = inst && (Store.periodos() || []).find(x => x.pe === pe);
+    if (!p) return;
+    inst.periodo = p;
+    inst.tab = 'resumen';
+    syncPEBar(document.getElementById(`${inst.id}-pe`), pe);
+    _pintarBarra(inst);
+    _pintarCabecera(inst);
+    _pintarPanel(inst);
+    inst.onPeriodo?.(pe);
+    root.scrollIntoView({ block: 'start' });
+  }
+
   /** Vuelve a pedir los datos y repinta (p. ej. tras guardar en la pestaña Gestión). */
   async function refrescar(id) {
     const inst = _inst.get(id); if (!inst) return;
@@ -685,5 +738,5 @@ const Perfil = (() => {
     renderIconos(cuerpo);
   }
 
-  return { montar, abrir, configurar, nuevaTarea, tab, refrescar, refrescarAvatar, sincronizar };
+  return { montar, abrir, configurar, nuevaTarea, tab, verPeriodo, refrescar, refrescarAvatar, sincronizar };
 })();

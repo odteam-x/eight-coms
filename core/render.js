@@ -676,10 +676,7 @@ function montarAvatar(perfil) {
   const el = document.getElementById('av-desktop');
   if (!el) return;
 
-  el.innerHTML = p.avatar_url
-    ? `<img src="${escHtml(p.avatar_url)}?t=${Date.now()}" alt=""
-            style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-    : (initials(nombre) || _ICONO_USUARIO);
+  Avatar.pintar(el, p, { tam: 'md', bust: true });
 
   // El perfil abierto en pantalla repinta su cabecera con la foto nueva.
   if (typeof Perfil !== 'undefined') Perfil.refrescarAvatar(p);

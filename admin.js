@@ -938,7 +938,7 @@ async function renderUsuarios() {
           return `
           <div class="tbl-row ${filaCls}">
             <div class="tbl-cell">
-              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${escHtml(initials(u.nombre||u.email))}</div>
+              ${Avatar.html(u, { tam: 'xs' })}
               <span>${escHtml(u.nombre || '—')}</span>
             </div>
             <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>

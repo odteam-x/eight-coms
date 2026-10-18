@@ -330,15 +330,29 @@ img { display:block; max-width:100%; }
 [data-theme="light"] .icon-sun  { display:none; }
 [data-theme="light"] .icon-moon { display:block; }
 
-/* ── AVATAR ── */
+/* ── AVATAR (componente único: core/avatar.js) ──────────────────────────
+   Círculo 1:1 con las iniciales sobre el patrón de la marca de la persona (--patron-img de .pat-N) y, encima, su foto.
+   La foto cubre el predeterminado; si falla, avatar--sin-img la oculta y el predeterminado queda a la vista. Superficie
+   navy en los dos temas (como el resto de las superficies de marca) y texto --on-brand: contraste medido en contraste.js.
+   El tamaño sale de --av (xs 28 · sm 36 · md 48 · lg 64 · xl 96 · xxl 112), nunca de width/height sueltos. */
 .avatar {
-  width:34px; height:34px; border-radius: 50%;
-  display:flex; align-items:center; justify-content:center;
-  background:var(--action-fill); color:var(--action-on);
-  font-family:var(--font-display); font-size:.9rem; flex-shrink:0;
-  overflow:hidden;
+  --av: 48px;
+  position: relative; isolation: isolate; flex: none;
+  display: inline-grid; place-items: center;
+  width: var(--av); height: var(--av); aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden;
+  background: var(--navy-900); color: var(--on-brand);
+  font-family: var(--font-display); font-weight: 700; font-size: calc(var(--av) * .4); line-height: 1; letter-spacing: .02em; text-transform: uppercase;
+  user-select: none; -webkit-user-select: none;
+  box-shadow: inset 0 0 0 1px var(--trazo);
 }
-.avatar.admin-av { background:var(--marca); color:var(--nivel-on); }
+.avatar::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--patron-img, none) center / 96px 96px repeat; opacity: .3; }
+.avatar-ini { display: grid; place-items: center; width: 100%; height: 100%; }
+.avatar-ini svg { width: 50%; height: 50%; }
+.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; background: var(--navy-900); }
+.avatar--sin-img .avatar-img { display: none; }
+.avatar--xs { --av: 28px; } .avatar--sm { --av: 36px; } .avatar--md { --av: 48px; }
+.avatar--lg { --av: 64px; } .avatar--xl { --av: 96px; } .avatar--xxl { --av: 112px; }
+.avatar.admin-av { background: var(--marca); color: var(--nivel-on); }
 
 /* ── BOTONES ── */
 .btn-out, .btn-out-mobile {
@@ -477,23 +491,30 @@ body.gestion-archivada [aria-disabled="true"] {
 .no-data-icon { opacity:.45; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
 .empty-txt  { font-size:.8rem; color:var(--muted); line-height:1.6; }
 
-/* ── TOAST ── */
+/* ── TOAST ──
+   Texto siempre en --txt (los colores de estado de antes eran alias heredados y sin medir); el tipo lo marca la
+   barra de la izquierda y el propio mensaje, nunca solo el color. Radio de fila, no píldora: una píldora con un
+   aviso de tres líneas se deformaba en un óvalo. En celular sube sobre la barra inferior. */
 .toast {
-  position:fixed; bottom:28px; left:50%; z-index:var(--z-toast);
+  position:fixed; bottom:max(var(--sp-5), env(safe-area-inset-bottom)); left:50%; z-index:var(--z-toast);
   transform:translateX(-50%) translateY(80px);
-  background:var(--glass); border:1px solid var(--glass-border);
-  border-radius: var(--r-pill);
-  padding:10px 24px;
-  font-family:var(--font-body); font-size:.8rem; font-weight:700;
-  letter-spacing: .01em; color:var(--txt);
+  width:max-content; max-width:min(520px, calc(100vw - var(--sp-5) * 2));
+  background:var(--surface-3); border:1px solid var(--trazo); border-left:4px solid var(--action);
+  border-radius:var(--r-fila);
+  padding:var(--sp-3) var(--sp-4);
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; line-height:1.4; text-align:left;
+  color:var(--txt);
   box-shadow:var(--shadow-md);
   transition:transform .3s var(--ease), opacity .3s;
   opacity:0; pointer-events:none;
 }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-.toast.toast--ok    { border-color:var(--green); color:var(--green); }
-.toast.toast--error { border-color:var(--accent); color:var(--accent); }
-.toast.toast--info  { border-color:var(--blue);   color:var(--blue);  }
+.toast.toast--ok    { border-left-color:var(--data); }
+.toast.toast--error { border-left-color:var(--alert); }
+.toast.toast--info  { border-left-color:var(--action); }
+@media (max-width:767px) {
+  .toast { bottom:calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-3)); }
+}
 
 /* ── BACK TO TOP ── */
 .back-top {
@@ -1762,7 +1783,7 @@ select:-webkit-autofill {
   letter-spacing: .01em; line-height: 1; margin-bottom: var(--sp-5);
 }
 .tk-campo label, .tk-campo legend { font-size: var(--fs-sm); letter-spacing: .01em; color: var(--txt-2); }
-.tk-box .cfg-inp, .tk-box .cfg-textarea { border-radius: var(--r-fila); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.tk-box .cfg-inp, .tk-box .cfg-textarea { border-radius: var(--r-fila); background-color: color-mix(in srgb, var(--surface-2) 70%, transparent); }
 .tk-checks-lista { border-radius: var(--r-fila); border-color: var(--trazo); }
 .tk-info { border-radius: var(--r-fila); background: color-mix(in srgb, var(--data) 10%, var(--surface-2)); }
 .tk-modal-acciones { margin-top: var(--sp-5); justify-content: flex-end; flex-direction: row-reverse; }
@@ -1798,7 +1819,9 @@ select:-webkit-autofill {
 .bus-txt { display: flex; flex-direction: column; min-width: 0; }
 .bus-txt strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); overflow-wrap: anywhere; }
 .bus-txt small { font-size: var(--fs-xs); color: var(--txt-2); }
-.bus-item:hover, .bus-item.sel { background: var(--surface-3); }
+/* `--sel`, no `.sel`: evolucion.css define .sel como la columna del Selector de personas y le daba su display:flex column
+   (icono centrado sobre el texto) a la fila elegida del buscador. */
+.bus-item:hover, .bus-item--sel { background: var(--surface-3); }
 .bus-vacio { padding: var(--sp-5); text-align: center; color: var(--txt-2); font-size: var(--fs-sm); }
 
 /* ── Rail: buscador, tarjeta de próxima fecha y cuenta ──────────────── */

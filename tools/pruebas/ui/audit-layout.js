@@ -13,7 +13,8 @@
  * Carga:  const s=document.createElement('script'); s.src='/tools/pruebas/ui/audit-layout.js';
  *         document.head.appendChild(s);   // same-origin: la CSP lo permite
  * Uso:    __aud()                        → informe de la vista actual
- *         await __sweep(['overview',…])  → informe compacto por pestaña (usa switchTab del portal)
+ *         await __sweep(['overview',…])  → informe compacto por pestaña (usa switchTab del portal); pie = [alto doc, hueco bajo el pie, hueco contenido→pie]
+ *         __pie()                        → pie de página: altura del documento y huecos (¿espacio extraño bajo el pie?)
  */
 (function () {
   const sel = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
@@ -57,13 +58,34 @@
     return out;
   };
 
+
+  /** Pie y fondo de página: ¿hay vacío bajo el pie? ¿el contenido queda tras una barra fija?
+   *  gapBajoPie  = alto del documento − fondo del pie (debería ser ≈ la barra inferior en móvil, 0 en escritorio)
+   *  gapPieContenido = distancia entre el último bloque con contenido y el pie. */
+  window.__pie = function () {
+    const doc = document.documentElement, f = document.querySelector('.derechos');
+    const fr = f && f.getBoundingClientRect();
+    const sy = scrollY, H = doc.scrollHeight;
+    const bar = document.querySelector('.bottom-bar'), br = bar && getComputedStyle(bar).display !== 'none' ? bar.getBoundingClientRect() : null;
+    const host = document.querySelector('.tab-content.active, .atab-content.active') || document.querySelector('.login-layout');
+    let last = 0;
+    if (host) host.querySelectorAll('*').forEach(el => { const r = el.getBoundingClientRect(); if (r.height > 0 && r.width > 0 && getComputedStyle(el).visibility !== 'hidden' && !el.closest('details:not([open]):not(summary)') ) last = Math.max(last, r.bottom + sy); });
+    const fixedFoot = f && getComputedStyle(f).position === 'fixed';
+    return { vw: innerWidth, vh: innerHeight, docH: H, extraScroll: H - innerHeight,
+      pie: fr ? { top: Math.round(fr.top + sy), bottom: Math.round(fr.bottom + sy), alto: Math.round(fr.height), fixed: fixedFoot } : null,
+      gapBajoPie: fr && !fixedFoot ? Math.round(H - (fr.bottom + sy)) : null,
+      gapContenidoPie: fr && !fixedFoot ? Math.round(fr.top + sy - last) : null,
+      barraInferior: br ? Math.round(br.height) : 0 };
+  };
+
   window.__sweep = async function (tabs, esperaMs) {
     const res = {};
     for (const t of tabs) {
       try { switchTab(t); } catch (e) { res[t] = { err: String(e) }; continue; }
       await new Promise(r => setTimeout(r, esperaMs || 1100));
       const a = __aud();
-      res[t] = { ov: a.overflow.length ? a.overflow.slice(0, 5) : 0, small: a.smallN, smallEx: a.small.slice(0, 6), tiny: a.tiny.slice(0, 4), noname: a.noname, doc: a.docScroll };
+      const p = __pie();
+      res[t] = { ov: a.overflow.length ? a.overflow.slice(0, 5) : 0, small: a.smallN, smallEx: a.small.slice(0, 6), tiny: a.tiny.slice(0, 4), noname: a.noname, doc: a.docScroll, pie: [p.docH, p.gapBajoPie, p.gapContenidoPie] };
     }
     return res;
   };
