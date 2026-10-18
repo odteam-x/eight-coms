@@ -545,8 +545,11 @@
     from: t => new Q(t),
     rpc: async (n, a) => { try { if (!RPC[n]) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${n}` } }; return { data: RPC[n](a || {}), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } },
     auth: {
-      getSession: async () => ({ data: { session: { user: { id: meId, email: me().email, user_metadata: {} } } } }),
-      getUser: async () => ({ data: { user: { id: meId, email: me().email } }, error: null }),
+      // ?as=anon: sin sesión (para ver el login y la recuperación de contraseña)
+      getSession: async () => (as === 'anon' ? { data: { session: null } } : { data: { session: { user: { id: meId, email: me().email, user_metadata: {} } } } }),
+      getUser: async () => (as === 'anon' ? { data: { user: null }, error: null } : { data: { user: { id: meId, email: me().email } }, error: null }),
+      signInWithPassword: async () => ({ data: null, error: { message: 'Invalid login credentials' } }),
+      resetPasswordForEmail: async () => ({ data: {}, error: null }),
       signOut: async () => ({}), signUp: async ({ email }) => (String(email).includes('existe') ? { data: null, error: { message: 'User already registered' } } : { data: { user: { email } }, error: null }), onAuthStateChange: cb => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
     storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },

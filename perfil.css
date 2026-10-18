@@ -348,3 +348,46 @@
 
 /* ── Cabecera de pantalla: título, períodos y contenido forman un solo bloque ─ */
 .ptitle + .pe-row, .page-header + .pe-row { margin-top: calc(var(--sp-2) * -1); margin-bottom: var(--sec-hero); }
+
+/* ── Los PE de la persona (core/perfil-pe.js) ───────────────────────────────
+   Una tarjeta por período, de lo general a lo particular: cabecera → datos de la persona en ese PE →
+   evaluación → indicadores → actividades → acción. La rejilla pasa de varias columnas a una sola sin
+   que ninguna tarjeta baje de 24rem de ancho útil (por debajo, texto y chips se comprimían). */
+.perfil-pe[hidden] { display: none; }
+.pe-intro { max-width: 70ch; margin-bottom: var(--sp-5); font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.6; color: var(--txt-2); }
+.pe-lista { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); gap: var(--sp-5); }
+.pe-card { position: relative; display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; padding: var(--sp-5); background: var(--surface-1); border-radius: var(--r-cont); }
+.pe-card--activo::before { content: ''; position: absolute; top: 0; left: var(--sp-5); right: var(--sp-5); height: 3px; border-radius: 0 0 3px 3px; background: var(--marca); }
+.pe-card--ausente { background: transparent; box-shadow: inset 0 0 0 1px var(--trazo); }
+.pe-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+.pe-titulo { flex: 1 1 10rem; min-width: 0; }
+.pe-nombre { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 1.4rem + .8vw, 2.2rem); line-height: var(--lh-display, 1.02); letter-spacing: var(--tr-display, -.02em); overflow-wrap: anywhere; }
+.pe-nombre span { display: block; margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0; color: var(--txt-2); }
+.pe-fechas { margin-top: var(--sp-1); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
+.pe-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.pe-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--sp-3) var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-fila); }
+.pe-dato { min-width: 0; }
+.pe-dato dt { margin-bottom: 2px; font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; color: var(--txt-muted); }
+.pe-dato dd { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; overflow-wrap: anywhere; }
+.pe-dato dd small { display: block; font-family: var(--font-body); font-weight: 400; color: var(--txt-2); }
+.pe-eval { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.pe-puntaje { display: flex; align-items: baseline; gap: var(--sp-2); }
+.pe-puntaje b { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1; }
+.pe-puntaje small { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-2); }
+.pe-inds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.pe-ind { padding: var(--sp-3); background: var(--surface-2); border: 2px solid transparent; border-radius: var(--r-fila); min-width: 0; }
+.pe-ind-v { font-family: var(--font-display); font-weight: 700; font-size: 1.9rem; line-height: 1; }
+.pe-ind-v small { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 400; color: var(--txt-2); }
+.pe-ind-l { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; color: var(--txt-2); }
+.pe-ind--aviso { border-color: var(--alert); }
+.pe-ind--aviso .pe-ind-v { color: var(--alert); }
+.pe-sub { margin-bottom: var(--sp-2); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); }
+.pe-act-lista { list-style: none; }
+.pe-act-lista li { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) 0; border-top: 1px solid var(--trazo); font-family: var(--font-body); font-size: var(--fs-sm); }
+.pe-act-lista li span { min-width: 0; overflow-wrap: anywhere; }
+.pe-act-lista li small { flex: none; color: var(--txt-2); }
+.pe-mas { padding-top: var(--sp-2); border-top: 1px solid var(--trazo); font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-muted); }
+.pe-aviso { font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.6; color: var(--txt-2); }
+.pe-pie { margin-top: auto; padding-top: var(--sp-2); }
+.pe-ver { width: 100%; justify-content: center; }
+@media (min-width: 640px) { .pe-ver { width: auto; } }

@@ -170,3 +170,10 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .panel--hoja .aviso-d { font-size: var(--fs-sm); }
 .panel--hoja .aviso-h { font-size: var(--fs-xs); }
 .panel--hoja .aviso-estado { min-height: 180px; justify-content: center; }
+
+/* Perfil: cinco pestañas no caben en 320–430 px. Se desplazan y los bordes con más pestañas se desvanecen
+   (core/perfil.js marca data-borde), para que quien mira sepa que hay Períodos y Evolución más allá. */
+.perfil-barra .seg { max-width: 100%; }
+.perfil-barra .seg[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); }

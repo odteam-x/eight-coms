@@ -477,23 +477,30 @@ body.gestion-archivada [aria-disabled="true"] {
 .no-data-icon { opacity:.45; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
 .empty-txt  { font-size:.8rem; color:var(--muted); line-height:1.6; }
 
-/* ── TOAST ── */
+/* ── TOAST ──
+   Texto siempre en --txt (los colores de estado de antes eran alias heredados y sin medir); el tipo lo marca la
+   barra de la izquierda y el propio mensaje, nunca solo el color. Radio de fila, no píldora: una píldora con un
+   aviso de tres líneas se deformaba en un óvalo. En celular sube sobre la barra inferior. */
 .toast {
-  position:fixed; bottom:28px; left:50%; z-index:var(--z-toast);
+  position:fixed; bottom:max(var(--sp-5), env(safe-area-inset-bottom)); left:50%; z-index:var(--z-toast);
   transform:translateX(-50%) translateY(80px);
-  background:var(--glass); border:1px solid var(--glass-border);
-  border-radius: var(--r-pill);
-  padding:10px 24px;
-  font-family:var(--font-body); font-size:.8rem; font-weight:700;
-  letter-spacing: .01em; color:var(--txt);
+  width:max-content; max-width:min(520px, calc(100vw - var(--sp-5) * 2));
+  background:var(--surface-3); border:1px solid var(--trazo); border-left:4px solid var(--action);
+  border-radius:var(--r-fila);
+  padding:var(--sp-3) var(--sp-4);
+  font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; line-height:1.4; text-align:left;
+  color:var(--txt);
   box-shadow:var(--shadow-md);
   transition:transform .3s var(--ease), opacity .3s;
   opacity:0; pointer-events:none;
 }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-.toast.toast--ok    { border-color:var(--green); color:var(--green); }
-.toast.toast--error { border-color:var(--accent); color:var(--accent); }
-.toast.toast--info  { border-color:var(--blue);   color:var(--blue);  }
+.toast.toast--ok    { border-left-color:var(--data); }
+.toast.toast--error { border-left-color:var(--alert); }
+.toast.toast--info  { border-left-color:var(--action); }
+@media (max-width:767px) {
+  .toast { bottom:calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-3)); }
+}
 
 /* ── BACK TO TOP ── */
 .back-top {

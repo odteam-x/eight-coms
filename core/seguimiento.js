@@ -205,7 +205,7 @@ const Seguimiento = (() => {
   }
   const invalidar = () => { _cache = null; };
 
-  return { montar, leerFiltros, persona, personaHTML, invalidar, metricas, celdaHTML };
+  return { montar, leerFiltros, persona, personaHTML, invalidar, metricas, celdaHTML, filasPersona, resultado };
 })();
 
 /** data-input / data-change de los filtros del seguimiento (lista blanca en config.js). */

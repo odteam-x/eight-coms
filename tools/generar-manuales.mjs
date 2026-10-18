@@ -120,7 +120,7 @@ const miembro = {
     ['Aprobar o devolver tus propias tareas', 'No: lo hace tu secretaría de distrito o la administración'],
     ['Cambiar la fecha límite de una tarea que te asignaron', 'No'],
     ['Ver el calendario del equipo y de tu distrito', 'Sí'],
-    ['Ver tu historial: todos los períodos con el estado de tu evaluación y tus tareas', 'Sí (en Mi perfil → Evolución)'],
+    ['Ver tu historial: todos los períodos con el estado de tu evaluación y tus tareas', 'Sí (en Mi perfil → Períodos)'],
     ['Elegir tus preferencias de rol y un rol predeterminado', 'Sí, en Mi cuenta. Son informativas: no te dan permisos ni te impiden recibir otro trabajo'],
     ['Evaluarte o evaluar a otras personas', 'No'],
     ['Ver a otras personas', 'No: solo tu información'],
@@ -161,11 +161,12 @@ ${lista(
       id: 'perfil', titulo: 'Mi perfil y cómo se calcula tu evaluación',
       html: `
 <p>En ${b('Mi perfil')} está tu cabecera (foto, nombre, rol, versión de la rúbrica, distrito) y el anillo con tu nota. Abajo eliges el período (${b('PE1')}, ${b('PE2')}…) y cuatro pestañas.</p>
-${captura('m-perfil', 'Mi perfil: tu cabecera, el período y las pestañas Resumen, Criterios, Tareas y Evolución.')}
+${captura('m-perfil', 'Mi perfil: tu cabecera, el período y las pestañas Resumen, Criterios, Tareas, Períodos y Evolución.')}
 ${tabla(['Pestaña', 'Qué muestra'], [
         ['Resumen', 'Tus indicadores del período (abajo) y la «lectura rápida»: los puntos más altos y donde hay más margen.'],
         ['Criterios', 'Cada criterio con tu puntaje, su barra y, si lo hay, el comentario de quien evaluó. En «¿Cómo se puntúa?» está la descripción de cada nivel.'],
         ['Tareas', 'Las tareas de ese período y su estado.'],
+        ['Períodos', 'Una tarjeta por PE: sus fechas, si participas y con qué rol, el resultado de tu evaluación, tus tareas (asignadas, a tiempo, aprobadas, vencidas) y las actividades relacionadas. «Ver detalle» abre ese PE en el resumen.'],
         ['Evolución', 'Cómo cambió tu nota entre períodos.']])}
 <h3>Los indicadores</h3>
 ${tabla(['Indicador', 'Qué es'], [
@@ -179,7 +180,7 @@ ${tabla(['Nivel', 'Desde (sobre 100)'], [['Excelente', '87'], ['Bueno', '67'], [
 <h3>Cómo se puntúa cada criterio</h3>
 <p>En las evaluaciones nuevas, cada criterio de tu rol se puntúa de <b>0 hasta su peso</b>: si «Composición y encuadre» pesa 30, la persona que evalúa elige un valor entre 0 y 30. Los criterios del núcleo se puntúan de 0 a 10. En la pestaña ${b('Criterios')} verás cada puntaje como «24/30» con su barra. Las evaluaciones guardadas antes de este cambio se siguen viendo de 1 a 5 (por ejemplo «4/5»); el portal las convierte a la misma escala de 0 a 100 para compararlas.</p>
 ${nota('ejemplo', 'Si tu técnico es 71, significa que sumaste 71 de 100 puntos posibles en los criterios de tu rol (cuando todos se puntuaron). Un criterio que no aplica para ti queda fuera: nunca cuenta como 0.')}
-<p>Debajo del gráfico de ${b('Evolución')} está <b>Todos los períodos</b>: para cada período, el estado de tu evaluación (publicada o aún no), tu resultado con su nivel y los hechos de tus tareas (cuántas, cuántas entregaste a tiempo, cuántas vencidas). Solo ves lo tuyo; un borrador de evaluación no aparece hasta que se publica.</p>
+<p>En la pestaña ${b('Períodos')} hay una tarjeta por PE: para cada período, el estado de tu evaluación (publicada o aún no), tu resultado con su nivel y los hechos de tus tareas (cuántas, cuántas entregaste a tiempo, cuántas vencidas). Solo ves lo tuyo; un borrador de evaluación no aparece hasta que se publica.</p>
 ${nota('ojo', 'Los períodos anteriores a la «rúbrica por roles» se muestran con la <b>rúbrica clásica</b> (7 criterios del 1 al 4, sobre 30 con el bono). Tienen otra escala y no se mezclan ni se comparan con los nuevos.')}`,
     },
     {
@@ -314,7 +315,7 @@ ${captura('s-distrito', 'Distrito: indicadores del distrito y tarjetas de person
 ${pasos(
         `Abre ${b('Distrito')} y elige el período arriba (${b('PE1')}, ${b('PE2')}…).`,
         `En ${b('Personas')} ves los indicadores del distrito (personas, promedio individual, tu posición, el general más alto) y una tarjeta por persona con su nota. En los períodos nuevos, cada tarjeta indica «N por revisar» y «N vencidas».`,
-        `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas y Evolución, igual que ella.`,
+        `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas, Períodos y Evolución, igual que ella.`,
         `En ${b('Ranking de distritos')} comparas los distritos del equipo.`)}
 ${nota('ojo', 'Solo ves a las personas de <b>tu</b> distrito. No es un filtro del portal: la base de datos no entrega más. Si falta alguien, la administración tiene que asignarle tu distrito.')}`,
     },
@@ -542,7 +543,7 @@ ${lista(
         `<b>Un grupo por rol</b> (se pliega) con una columna por período. Cada celda: el resultado con su nivel, o el estado («Borrador», «Sin publicar», «Sin evaluar», «No participa») y los hechos de las tareas. Toca un nombre para abrir el perfil.`,
         `A ti, como administración, se te muestran también los <b>borradores</b> (marcados); a las secretarías y a los miembros, no.`,
         `Rúbrica por roles (sobre 100) y rúbrica clásica (otra escala) van separadas: nunca se promedian ni se comparan.`)}
-<p>Quién ve qué lo decide la base de datos: tú ves todo; una secretaría, solo su distrito; un miembro, solo su propio historial (en su ${b('Mi perfil')} → ${b('Evolución')}).</p>`,
+<p>Quién ve qué lo decide la base de datos: tú ves todo; una secretaría, solo su distrito; un miembro, solo su propio historial (en su ${b('Mi perfil')} → ${b('Períodos')}).</p>`,
     },
     {
       id: 'reportes', titulo: 'Reportes',

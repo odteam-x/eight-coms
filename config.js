@@ -164,6 +164,7 @@ const ACCIONES = {
 
   /* ── Perfil de persona (core/perfil.js) ── */
   perfilTab:     (a, el) => Perfil.tab(a, el),
+  perfilPeriodo: (a, el) => Perfil.verPeriodo(a, el),
   perfilVer:     (a)     => Perfil.abrir(a),
   cambiarAvatar: ()      => document.getElementById('avatar-file-input')?.click(),
   distritoTab:   (a)     => seleccionarDistritoTab(a),

@@ -347,5 +347,53 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   }
 }
 
+// ── Sesión C: los PE de la persona (core/perfil-pe.js) y piezas globales del sistema visual ──
+console.log('\n[PE en el perfil]');
+{
+  const src = fs.readFileSync(ROOT + 'core/perfil-pe.js', 'utf8');
+  const ctxPE = {
+    escHtml, renderIconos: () => {}, renderCargando: () => {}, renderVacio: () => {}, console,
+    esPeriodoV2: p => p.modelo === 'v2', fmtNum: (n, d = 1) => (n == null ? '—' : Number(n).toFixed(d)),
+    fechaCortaISO: iso => iso.slice(5), Store: { periodos: () => [] }, API: {}, MAX_TOTAL: () => 30,
+    nivelV2: () => ({ key: 'sbu', label: 'Bueno' }), scoreColorTxtV2: () => 'var(--txt)', scoreColorTxt: () => 'var(--txt)',
+    scoreClass: () => 'sbu', scoreLabel: () => 'Bueno',
+    Seguimiento: { resultado: r => ({ txt: String(r.individual), de: 'de 100', clase: 'sbu', label: 'Bueno', color: 'var(--txt)' }) },
+  };
+  vm.createContext(ctxPE);
+  vm.runInContext(src + ';globalThis.__pe = PerfilPE;', ctxPE);
+  const PE = ctxPE.__pe;
+  const per = { id: 'p2', pe: 'PE2', nombre: 'Segundo <b>período</b>', modelo: 'v2', activo: true, inicio: '2026-09-28', entrega: '2026-10-28' };
+  const fila = { participa: true, estado_eval: 'publicado', individual: 70, rol_nombre: 'Fotografía', tareas_total: 5, con_plazo: 2, a_tiempo: 1, tareas_aprobadas: 1, tareas_vencidas: 2 };
+  const h = PE.tarjetaHTML({ p: per, item: null, fila, actividades: [{ titulo: 'Taller <i>x</i>', tareas: 1 }], equipo: null, actual: true });
+  ok(!h.includes('<b>período') && !h.includes('<i>x') && h.includes('&lt;b&gt;'), 'PE: nombre del período y de la actividad escapados');
+  ok(h.includes('Activo') && h.includes('pe-card--activo') && h.includes('aria-current="true"'), 'PE: el activo se marca (etiqueta, barra y aria-current)');
+  ok(h.includes('Participa') && h.includes('Fotografía') && h.includes('70') && h.includes('1<small> de 2'), 'PE: participación, rol, resultado y «a tiempo» con denominador');
+  ok(h.includes('pe-ind--aviso') && h.includes('Vencidas'), 'PE: las tareas vencidas se destacan');
+  ok(!h.includes('data-slot="equipo"'), 'PE: sin equipo registrado, el espacio de Equipo no se pinta');
+  const he = PE.tarjetaHTML({ p: per, item: null, fila, actividades: [], equipo: { nombre: 'Equipo <u>Luz</u>', detalle: '3 personas' }, actual: false });
+  ok(he.includes('data-slot="equipo"') && he.includes('&lt;u&gt;Luz') && !he.includes('<u>Luz'), 'PE: con equipo, aparece y va escapado');
+  const leg = PE.tarjetaHTML({ p: { id: 'p1', pe: 'PE1', modelo: 'legacy' }, item: null, fila: { participa: true, estado_eval: 'publicado', individual: 22, rol_nombre: 'Foto' }, actividades: [], equipo: null, actual: false });
+  ok(leg.includes('rúbrica clásica') && !leg.includes('pe-inds'), 'PE: período clásico no inventa tareas');
+  const no = PE.tarjetaHTML({ p: per, item: null, fila: { participa: false, estado_eval: 'sin_evaluar' }, actividades: [], equipo: null, actual: false });
+  ok(no.includes('pe-card--ausente') && no.includes('No participa') && !no.includes('pe-inds'), 'PE: quien no participa lo dice y no muestra indicadores');
+  const sin = PE.tarjetaHTML({ p: { id: 'p3', pe: 'PE3', modelo: 'v2' }, item: null, fila: null, actividades: [], equipo: null, actual: false });
+  ok(!sin.includes('Participación') && !sin.includes('pe-inds') && sin.includes('Sin fechas definidas'), 'PE: sin seguimiento no hay participación ni ceros inventados');
+  ok(PE.fase({ activo: false, entrega: '2000-01-01' }).txt === 'Cerrado' && PE.fase({ activo: false, inicio: '2999-01-01' }).txt === 'Próximo' && PE.fase({ activo: false }) === null, 'PE: fase Cerrado / Próximo / sin afirmar nada sin fechas');
+  const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  ok(/perfilPeriodo:\s*\(a, el\) => Perfil\.verPeriodo/.test(cfg), 'PE: «Ver detalle» tiene su acción en ACCIONES');
+  for (const f of ['user.html', 'secretario.html', 'admin.html'])
+    ok(fs.readFileSync(ROOT + f, 'utf8').includes('<script src="core/perfil-pe.js"></script>'), f + ': carga core/perfil-pe.js');
+  ok(/k: 'periodos'/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'PE: el perfil tiene la pestaña Períodos');
+}
+
+console.log('\n[sistema visual global]');
+{
+  const css = f => fs.readFileSync(ROOT + f, 'utf8');
+  ok(/\.btn--primario, \.btn--secundario, \.btn--texto, \.btn--peligro, \.btn--icono, \.btn--chip,/.test(css('marca.css')), 'botones canónicos: las variantes llevan la base (display, radio, tipografía) y funcionan sin `.btn`');
+  const d = css('derechos.css');
+  ok(/#contenido \{ display: flex; flex-direction: column; min-height: 100dvh; \}/.test(d) && /#contenido > \.derechos \{ margin-top: auto/.test(d), 'pie: pegado al fondo en pantallas cortas');
+  ok(!/#contenido > \.derechos \{ padding-bottom: calc\(var\(--sp-7\) \+ 72px\)/.test(d), 'pie: no duplica la reserva de la barra inferior (la hace #contenido)');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);
