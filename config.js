@@ -93,6 +93,8 @@ const _ACCIONES_SIMPLES = new Set([
   'segBuscar', 'segFiltro',
   // equipos (core/equipos.js)
   'eqFiltrar',
+  // estadísticas de Instagram del distrito (core/estadisticas-distrito.js)
+  'estDistArchivo', 'estDistCampo',
 ]);
 
 const ACCIONES = {
@@ -132,6 +134,7 @@ const ACCIONES = {
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2),
+  estDist:       (a, el) => EstadisticasDistrito.accion(a, el),
   evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),
   asigAtras:     ()      => Asignar.atras(),

@@ -488,22 +488,41 @@ function pintarSegDistrito() {
   const host = document.getElementById('distrito-seg'); if (!host) return;
   host.innerHTML = segHTML([
     { k: 'miembros', etiqueta: 'Personas',               icono: 'users'  },
+    { k: 'estadisticas', etiqueta: 'Estadísticas',        icono: 'bar-chart-2' },
     { k: 'ranking',  etiqueta: 'Ranking de distritos',   icono: 'trophy' },
   ], _distritoTab, 'distritoTab', { etiqueta: 'Secciones del distrito', prefijo: 'dist' });
   renderIconos(host);
+  // Con tres secciones no caben en 320–430 px: se desplaza, la activa se trae a la vista y el borde con más se desvanece (data-borde; lo pinta estadisticas-distrito.css).
+  const sc = host.querySelector('.seg');
+  if (sc) {
+    const marcar = () => { const izq = sc.scrollLeft > 4, der = sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4; sc.dataset.borde = izq && der ? 'ambos' : izq ? 'izq' : der ? 'der' : ''; };
+    const act = sc.querySelector('.seg-btn.active');
+    if (act && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = Math.max(0, act.offsetLeft - (sc.clientWidth - act.offsetWidth) / 2);
+    sc.addEventListener('scroll', marcar, { passive: true });
+    marcar();
+  }
   document.getElementById('dist-panel-miembros').hidden = _distritoTab !== 'miembros';
+  document.getElementById('dist-panel-estadisticas').hidden = _distritoTab !== 'estadisticas';
   document.getElementById('dist-panel-ranking').hidden  = _distritoTab !== 'ranking';
 }
 
 function seleccionarDistritoTab(k) {
-  _distritoTab = k === 'ranking' ? 'ranking' : 'miembros';
+  _distritoTab = k === 'ranking' ? 'ranking' : k === 'estadisticas' ? 'estadisticas' : 'miembros';
   pintarSegDistrito();
+  if (_distritoTab === 'estadisticas') montarEstadisticasDistrito();
 }
 
 /* ── DISTRITO: PERSONAS ──────────────────────────────────────────────── */
+/** Formulario de estadísticas de Instagram del distrito para el período seleccionado (core/estadisticas-distrito.js). */
+function montarEstadisticasDistrito() {
+  if (!isSecretario()) return;
+  EstadisticasDistrito.montarSecretaria(document.getElementById('dist-estadisticas-cuerpo'), { periodo: Store.periodo(), distrito: getMyDistrito() });
+}
+
 async function renderDistrito() {
   if (!isSecretario()) return;
   pintarSegDistrito();
+  if (_distritoTab === 'estadisticas') montarEstadisticasDistrito();
   renderCalificacionDistrito();
   const v2 = esPeriodoV2(Store.periodo());
   if (v2) renderDistritoV2Stats(); else renderDistStats();

@@ -147,7 +147,7 @@ const _ACCIONES_ESCRITURA = new Set([
   'crit2Nuevo','crit2Editar','crit2Alternar','crit2Borrar','crit2Mover','guardarCriterio2',
   'participante','aprobarUser',
   'onCambioDistritoUsuario','onCambioTipoUsuario','onCambioRolUsuario',
-  'onCambioAdminUsuario','handleAvatarUpload',
+  'onCambioAdminUsuario','handleAvatarUpload','estDistArchivo',
 ]);
 
 /**
@@ -655,6 +655,41 @@ async function reducirImagen(file, { lado = LADO_FOTO } = {}) {
   for (let q = 0.76; blob && blob.size > 300 * 1024 && q > 0.4; q -= 0.12) blob = await codificar(blob.type, q);
   if (!blob) throw new Error('No se pudo preparar la foto.');
   return blob;
+}
+
+/* ── Capturas de pantalla: se reducen SIN recortar ───────────────────────────────────────────────────
+   A diferencia de la foto de perfil (cuadrada, 512 px), una captura de estadísticas se lee por sus números: se conserva la
+   proporción completa, el lado mayor baja a LADO_CAPTURA px y se codifica en WebP (JPEG si el navegador no sabe WebP),
+   bajando la calidad por pasos y, si hace falta, el tamaño, hasta quedar bajo TOPE_CAPTURA. Una captura de teléfono de
+   3–6 MB queda en unos 60–200 KB con los números legibles. El bucket rechaza todo lo que pase de 600 KB.
+   @returns {Promise<{blob: Blob, ancho: number, alto: number}>} */
+const LADO_CAPTURA = 1280;
+const TOPE_CAPTURA = 250 * 1024;
+async function reducirCaptura(file, { lado = LADO_CAPTURA, tope = TOPE_CAPTURA } = {}) {
+  const img = await _decodificarImagen(file);
+  const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight;
+  if (!w || !h) throw new Error('No se pudo leer esa imagen. Prueba con JPG o PNG.');
+  let escala = Math.min(1, lado / Math.max(w, h));
+  const cv = document.createElement('canvas');
+  const cx = cv.getContext('2d');
+  const codificar = (tipo, q) => new Promise(ok => cv.toBlob(ok, tipo, q));
+  let blob = null, dw = 0, dh = 0;
+  for (let vuelta = 0; vuelta < 4; vuelta++) {
+    dw = Math.max(1, Math.round(w * escala)); dh = Math.max(1, Math.round(h * escala));
+    cv.width = dw; cv.height = dh;
+    cx.fillStyle = '#ffffff';                    // un PNG con transparencia no queda negro en JPEG
+    cx.fillRect(0, 0, dw, dh);
+    cx.imageSmoothingQuality = 'high';
+    cx.drawImage(img, 0, 0, dw, dh);
+    blob = await codificar('image/webp', 0.82);
+    if (!blob || blob.type !== 'image/webp') blob = await codificar('image/jpeg', 0.82);   // navegador sin WebP
+    for (let q = 0.7; blob && blob.size > tope && q > 0.4; q -= 0.1) blob = await codificar(blob.type, q);
+    if (!blob || blob.size <= tope) break;
+    escala *= 0.8;                               // aún pesa: se baja el tamaño y se vuelve a intentar
+  }
+  img.close?.();
+  if (!blob) throw new Error('No se pudo preparar la captura.');
+  return { blob, ancho: dw, alto: dh };
 }
 
 /** Perfil en curso, para que handleAvatarUpload sepa a quién pertenece. */

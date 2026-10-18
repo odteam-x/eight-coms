@@ -1816,6 +1816,8 @@ async function renderDistritoRanking(periodoId) {
   const el = document.getElementById('dist-ranking'); if (!el) return;
   if (!periodoId) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
+  // Cuántos distritos ya enviaron sus estadísticas de Instagram en este período (no espera: pinta cuando llega).
+  EstadisticasDistrito.resumenAdmin(document.getElementById('dist-est-resumen'), _periodos.find(p => p.id == periodoId), _distritos);
 
   const distEvals = await API.getEvalDistritosByPE(periodoId);
 
@@ -1863,11 +1865,12 @@ async function loadDistEval(distId) {
   const area = document.getElementById('dist-eval-area'); if (!area) return;
   if (!_activePEDist || !distId) { area.innerHTML = ''; return; }
   area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  const [ev, historial] = await Promise.all([
+  const [ev, historial, est] = await Promise.all([
     API.getEvalDistrito(_activePEDist.id, distId),
     API.getEvalDistritoHistorial(distId),
+    API.getEstadisticasDistrito(_activePEDist.id, distId),   // lo que subió la secretaría (0043); sin 0043 = no disponible
   ]);
-  renderDistEvalForm(ev, distId, historial);
+  renderDistEvalForm(ev, distId, historial, est);
 }
 
 const _IG_FIELDS = [
@@ -1880,12 +1883,15 @@ const _IG_FIELDS = [
   { key:'pct_reels',           label:'Reels %',            placeholder:'22.6'   },
 ];
 
-function renderDistEvalForm(ev, distId, historial = []) {
+function renderDistEvalForm(ev, distId, historial = [], est = { ok: false, disponible: false, data: null }) {
   const area     = document.getElementById('dist-eval-area'); if (!area) return;
   const distrito = _distritos.find(d => d.id === distId);
   const puntajes = parseJSON(ev?.puntajes);
   const coms     = parseJSON(ev?.comentarios);
-  const igStats  = parseJSON(ev?.ig_stats);
+  // Si la evaluación aún no tiene cifras propias, se precargan las que envió la secretaría (el admin puede corregirlas).
+  const igPropias = parseJSON(ev?.ig_stats);
+  const delantera = !Object.values(igPropias).some(v => String(v ?? '').trim());
+  const igStats  = delantera && est?.data ? EstadisticasDistrito.igDeFila(est.data) : igPropias;
   const estado   = ev?.estado      || 'borrador';
   const isPub    = estado === 'publicado';
 
@@ -1935,7 +1941,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
 
       ${histHTML}
 
-      <div class="section-label" style="margin-top:4px">Estadísticas de Instagram</div>
+      ${EstadisticasDistrito.bloqueAdminHTML(est?.data, { disponible: est?.disponible !== false })}
+
+      <div class="section-label" style="margin-top:4px">Estadísticas de Instagram${delantera && est?.data ? ' <span class="ed-precarga">· precargadas de la secretaría</span>' : ''}</div>
       <div class="ig-stats-grid">
         ${_IG_FIELDS.map(f => `
           <div class="ig-stat-field">
@@ -1969,6 +1977,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
            </div>`
       }
     </div>`;
+  EstadisticasDistrito.recordarFilaAdmin(est?.data);
+  renderIconos(area);
+  EstadisticasDistrito.animarBloqueAdmin(area);
 }
 
 function setDistScore(key, val, btn) {
@@ -2550,6 +2561,8 @@ function switchTabAdminHooks(tab) {
     Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', distritos: _distritos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   }
   if (tab === 'gestiones') renderGestiones();
+  // Al volver a Distritos se refresca cuántas secretarías ya enviaron sus estadísticas (pudieron llegar mientras estabas en otra pestaña).
+  if (tab === 'distritos' && _activePEDist) EstadisticasDistrito.resumenAdmin(document.getElementById('dist-est-resumen'), _activePEDist, _distritos);
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();

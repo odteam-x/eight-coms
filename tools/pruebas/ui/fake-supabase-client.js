@@ -87,6 +87,7 @@
       ...[['narrativa', 35], ['ortografia', 25], ['revision', 20], ['planificacion', 20]].map(([k, p]) => ({ perfil_id: 2, criterio_key: k, peso: p })),
     ],
     evaluaciones: [], evaluaciones_distrito: [], tareas: [], tarea_eventos: [],
+    estadisticas_distrito: [],
   };
   let seq = { eval: 1, tarea: 1, ev: 1, perfil: 3 };
 
@@ -328,6 +329,18 @@
         }
         if (prev) { Object.assign(prev, p, { updated_at: ahora() }); return prev; }
         Object.assign(p, { id: seq.eval++, created_at: ahora(), updated_at: ahora() }); rows.push(p); return p;
+      }
+      if (this.t === 'estadisticas_distrito') {
+        // Igual que 0043: una secretaría escribe solo su distrito; cifras tipadas; captura obligatoria en la carpeta del distrito/período.
+        if (!esAdmin() && !(esSec() && p.distrito_id === me().distrito)) throw new Error('new row violates row-level security policy for table "estadisticas_distrito"');
+        for (const k of ['visualizaciones', 'cuentas_alcanzadas', 'visitas_perfil']) if (!(Number.isFinite(p[k]) && p[k] >= 0)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_' + k + '_check"');
+        if (!Number.isFinite(p.seguidores_neto)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_seguidores_neto_check"');
+        for (const k of ['pct_publicaciones', 'pct_historias', 'pct_reels']) if (!(Number.isFinite(p[k]) && p[k] >= 0 && p[k] <= 100)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_' + k + '_check"');
+        if (!/^[A-Za-z0-9_-]+\/[^/]+\/[A-Za-z0-9._-]+\.(webp|jpe?g)$/.test(p.captura_path || '') || p.captura_path.split('/')[0] !== p.distrito_id || p.captura_path.split('/')[1] !== p.periodo_id) throw new Error('La captura de prueba es obligatoria y debe estar en la carpeta de este distrito y período.');
+        const nombre = me().nombre || '';
+        const prev = rows.find(r => r.periodo_id === p.periodo_id && r.distrito_id === p.distrito_id);
+        if (prev) { Object.assign(prev, p, { subido_por: meId, subido_por_nombre: nombre, actualizado_en: ahora() }); return prev; }
+        Object.assign(p, { id: rows.length + 1, subido_por: meId, subido_por_nombre: nombre, creado_en: ahora(), actualizado_en: ahora() }); rows.push(p); return p;
       }
       if (this.t === 'persona_roles') { if (!esAdmin()) throw new Error('new row violates row-level security policy for table "persona_roles"'); rows.push(p); return p; }
       if (this.t === 'periodos_evaluacion') { Object.assign(p, { id: 'aaaaaaaa-0000-0000-0000-0000000000' + (10 + rows.length), created_at: ahora(), activo: false, modelo: p.modelo || 'legacy' }); rows.push(p); return p; }
@@ -821,6 +834,7 @@
   // Tablas nuevas: visibilidad y escritura mínimas
   const visiblesBase = visibles;
   visibles = (table, rows) => {
+    if (table === 'estadisticas_distrito') return rows.filter(r => esAdmin() || (esSec() && r.distrito_id === me().distrito));
     if (table === 'equipos') return rows.filter(eqVisible);
     if (table === 'equipo_miembros') return rows.filter(m => esAdmin() || m.persona_id === meId || (!m.hasta && eqVig(m.equipo_id).some(x => x.persona_id === meId)) || (esSec() && distritoIds().includes(m.persona_id)));
     if (table === 'equipo_eventos') return esAdmin() ? rows : [];
@@ -878,7 +892,11 @@
       resetPasswordForEmail: async () => ({ data: {}, error: null }),
       signOut: async () => ({}), signUp: async ({ email }) => (String(email).includes('existe') ? { data: null, error: { message: 'User already registered' } } : { data: { user: { email } }, error: null }), onAuthStateChange: cb => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
-    storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
+    storage: { from: bucket => ({
+      upload: async (path, file) => { if (bucket === 'capturas-distrito') { if (!esAdmin() && !(esSec() && path.split('/')[0] === me().distrito)) return { error: { message: 'new row violates row-level security policy for table "objects"' } }; (DB._capturas = DB._capturas || {})[path] = file; } return { error: null }; },
+      remove: async paths => { (paths || []).forEach(x => { if (DB._capturas) delete DB._capturas[x]; }); return { error: null }; },
+      createSignedUrl: async path => ({ data: { signedUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="800" height="450" fill="#e8eef7"/><text x="40" y="80" font-family="sans-serif" font-size="28" fill="#334">Captura de prueba (simulador)</text><text x="40" y="130" font-family="sans-serif" font-size="20" fill="#556">' + String(path).replace(/[<&>]/g, "") + '</text></svg>') }, error: null }),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
   };
   window.__FAKE = { DB, U, P, as };
 })();

@@ -1116,6 +1116,54 @@ const API = {
     return { ok: true, porPeriodo };
   },
 
+  // ── ESTADÍSTICAS DE INSTAGRAM DEL DISTRITO (0043) ────────────────────────
+  // Las sube la secretaría de cada distrito, una entrega por (período, distrito), con una captura de prueba en el
+  // bucket privado `capturas-distrito` (ruta <distrito>/<período>/<archivo>). Sin 0043 las lecturas devuelven
+  // `disponible: false` y la pantalla lo dice en vez de fingir que no hay datos.
+  async getEstadisticasDistrito(periodo_id, distrito_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*')
+      .eq('periodo_id', periodo_id).eq('distrito_id', distrito_id).maybeSingle();
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message };
+    return { ok: true, disponible: true, data: data || null };
+  },
+
+  async getEstadisticasDistritosByPE(periodo_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').eq('periodo_id', periodo_id);
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
+  },
+
+  /** `cifras`: { visualizaciones, cuentas_alcanzadas, visitas_perfil, seguidores_neto, pct_publicaciones, pct_historias, pct_reels }. */
+  async guardarEstadisticasDistrito({ periodo_id, distrito_id, cifras, captura_path }) {
+    const { data, error } = await SB.from('estadisticas_distrito')
+      .upsert({ periodo_id, distrito_id, ...cifras, captura_path }, { onConflict: 'periodo_id,distrito_id' })
+      .select().single();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data };
+  },
+
+  /** `blob` sale de reducirCaptura(). Nombre único por subida: nunca se sirve una captura vieja desde caché. */
+  async subirCapturaDistrito(distrito_id, periodo_id, blob) {
+    const ext = blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+    const path = `${distrito_id}/${periodo_id}/captura-${Date.now()}.${ext}`;
+    const { error } = await SB.storage.from('capturas-distrito').upload(path, blob, { upsert: false, contentType: blob.type || 'image/webp', cacheControl: '3600' });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, path };
+  },
+
+  /** Mejor esfuerzo: un archivo huérfano no da acceso a nada, así que un fallo aquí no se le muestra a nadie. */
+  async borrarCapturaDistrito(path) {
+    if (!path) return;
+    try { await SB.storage.from('capturas-distrito').remove([path]); } catch { /* huérfano inofensivo */ }
+  },
+
+  /** URL firmada de corta vida (el bucket es privado). */
+  async urlCapturaDistrito(path, segundos = 3600) {
+    if (!path) return null;
+    const { data, error } = await SB.storage.from('capturas-distrito').createSignedUrl(path, segundos);
+    return error ? null : (data?.signedUrl || null);
+  },
+
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────
   /** La persona cambia SU nombre. RLS decide; rol, distrito y tipo no se tocan aquí. */
   async updateMiNombre(userId, nombre) {

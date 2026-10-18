@@ -310,12 +310,13 @@ ${nota('consejo', 'En el celular, tus dos herramientas de trabajo (' + b('Distri
     {
       id: 'distrito', titulo: 'Distrito: tu gente',
       html: `
-<p>Tiene dos pestañas internas: ${b('Personas')} y ${b('Ranking de distritos')}.</p>
+<p>Tiene tres pestañas internas: ${b('Personas')}, ${b('Estadísticas')} y ${b('Ranking de distritos')}.</p>
 ${captura('s-distrito', 'Distrito: indicadores del distrito y tarjetas de personas.')}
 ${pasos(
         `Abre ${b('Distrito')} y elige el período arriba (${b('PE1')}, ${b('PE2')}…).`,
         `En ${b('Personas')} ves los indicadores del distrito (personas, promedio individual, tu posición, el general más alto) y una tarjeta por persona con su nota. En los períodos nuevos, cada tarjeta indica «N por revisar» y «N vencidas».`,
         `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas, Períodos y Evolución, igual que ella.`,
+        `En ${b('Estadísticas')} subes, para el período elegido, las cifras de Instagram de la cuenta de tu distrito (visualizaciones, cuentas alcanzadas, visitas al perfil, seguidores netos y los porcentajes de publicaciones, historias y reels) y adjuntas una <b>captura de pantalla como prueba</b>. La captura se reduce sola antes de enviarse. Si otra secretaría de tu distrito ya las envió, las ves y puedes corregirlas mientras el período siga abierto. La administración las usa para evaluar al distrito.`,
         `En ${b('Ranking de distritos')} comparas los distritos del equipo.`)}
 ${nota('ojo', 'Solo ves a las personas de <b>tu</b> distrito. No es un filtro del portal: la base de datos no entrega más. Si falta alguien, la administración tiene que asignarle tu distrito.')}`,
     },

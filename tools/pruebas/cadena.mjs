@@ -28,6 +28,14 @@ const STUBS_SUPABASE = `
   CREATE TABLE IF NOT EXISTS cron.job (jobname TEXT, command TEXT);
   CREATE OR REPLACE FUNCTION cron.schedule(TEXT, TEXT, TEXT) RETURNS BIGINT LANGUAGE sql AS $$ SELECT 1::BIGINT $$;
   CREATE OR REPLACE FUNCTION cron.unschedule(TEXT) RETURNS BOOLEAN LANGUAGE sql AS $$ SELECT true $$;
+  -- Esquema previo de producción que 0043 usa: tabla distritos, get_my_distrito() y Storage (copia mínima, con RLS).
+  CREATE TABLE IF NOT EXISTS public.distritos (id TEXT PRIMARY KEY, nombre TEXT, activo BOOLEAN DEFAULT true);
+  CREATE OR REPLACE FUNCTION public.get_my_distrito() RETURNS TEXT LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$ SELECT distrito FROM profiles WHERE id = auth.uid() $$;
+  CREATE SCHEMA IF NOT EXISTS storage;
+  CREATE TABLE IF NOT EXISTS storage.buckets (id TEXT PRIMARY KEY, name TEXT, public BOOLEAN DEFAULT false, file_size_limit BIGINT, allowed_mime_types TEXT[]);
+  CREATE TABLE IF NOT EXISTS storage.objects (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), bucket_id TEXT, name TEXT);
+  ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+  CREATE OR REPLACE FUNCTION storage.foldername(name TEXT) RETURNS TEXT[] LANGUAGE sql IMMUTABLE AS $$ SELECT (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
 `;
 const leer = f => {
   let s = fs.readFileSync(R + f, 'utf8');
