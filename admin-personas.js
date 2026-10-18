@@ -123,15 +123,74 @@ async function cargarPersonasRes() {
 /** Cambió el período de Personas (o algo que altera los resultados). */
 function invalidarPersonasRes() { _personasRes = null; }
 
+/* ══ FILTRO POR ESTADO ═════════════════════════════════════════════════
+ * «¿Quién necesita algo?»: acceso pendiente, sin evaluar, borrador, sin rol…
+ * Una sola definición de cada estado para las tarjetas y la tabla (y para el
+ * aviso «Requiere atención» del Panel), así que el número del Panel y el de
+ * la lista no pueden discrepar. Solo cuenta hechos que la base ya guarda.
+ * «Sin evaluar» y «Borrador» dependen del período elegido en Personas. */
+const ESTADOS_PERSONA = [
+  { k: '',             l: 'Todas las personas' },
+  { k: 'pendientes',   l: 'Acceso pendiente' },
+  { k: 'sin_evaluar',  l: 'Sin evaluar' },
+  { k: 'borrador',     l: 'Evaluación en borrador' },
+  { k: 'sin_rol',      l: 'Sin rol' },
+  { k: 'sin_distrito', l: 'Sin distrito' },
+  { k: 'inactivas',    l: 'Inactivas en el período' },
+  { k: 'admins',       l: 'Administradores' },
+];
+
+/** Conjunto de estados de una persona. Los de evaluación solo si ya se cargaron los resultados. */
+function estadosDePersona(u) {
+  const e = new Set();
+  if (u.aprobado === false) e.add('pendientes');
+  if (u.es_admin) { e.add('admins'); return e; }          // la administración no se evalúa
+  if (!u.rol_id) e.add('sin_rol');
+  if (!u.distrito) e.add('sin_distrito');
+  const inactiva = _inactivosPE.has(u.id);
+  if (inactiva) e.add('inactivas');
+  if (_personasRes) {
+    const r = _personasRes.mapa.get(u.id);
+    if (r?.borrador) e.add('borrador');
+    if (!r && u.aprobado !== false && !inactiva) e.add('sin_evaluar');
+  }
+  return e;
+}
+
+const pasaEstadoPersona = (u, k) => !k || estadosDePersona(u).has(k);
+
+/** Rellena el selector con el conteo de cada estado, sin perder la selección. */
+function pintarFiltroEstado() {
+  const sel = document.getElementById('filter-estado-usuarios'); if (!sel) return;
+  const previo = sel.value;
+  const n = Object.fromEntries(ESTADOS_PERSONA.map(e => [e.k, 0]));
+  for (const u of _users) for (const k of estadosDePersona(u)) n[k]++;
+  n[''] = _users.length;
+  sel.innerHTML = ESTADOS_PERSONA.map(e => `<option value="${e.k}">${escHtml(e.l)} (${n[e.k]})</option>`).join('');
+  sel.value = ESTADOS_PERSONA.some(e => e.k === previo) ? previo : '';
+}
+
+/** Va a Personas con un estado ya elegido (lo usa el aviso del Panel). */
+function irPersonasFiltro(k) {
+  switchTab('usuarios', null);
+  const sel = document.getElementById('filter-estado-usuarios');
+  if (sel) { pintarFiltroEstado(); sel.value = k; }
+  renderUsuarios();
+}
+
 async function renderPersonasCards() {
   const el = document.getElementById('personas-cards'); if (!el) return;
+  // Los resultados se piden ANTES de filtrar: «sin evaluar» y «borrador» los necesitan.
+  const res = await cargarPersonasRes();
+  pintarFiltroEstado();
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
   const dist = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
+  const est = document.getElementById('filter-estado-usuarios')?.value || '';
   const lista = _users.filter(u =>
     (!q || (u.nombre || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || _distritoNombre(u.distrito).toLowerCase().includes(q)) &&
-    (!dist || (dist === '__none__' ? !u.distrito : u.distrito === dist)));
+    (!dist || (dist === '__none__' ? !u.distrito : u.distrito === dist)) &&
+    pasaEstadoPersona(u, est));
 
-  const res = await cargarPersonasRes();
   const personas = lista.map(u => {
     const r = res?.mapa.get(u.id);
     const chips = [];
@@ -147,7 +206,7 @@ async function renderPersonasCards() {
       estado: u.es_admin ? 'No se evalúa' : (_inactivosPE.has(u.id) && r?.valor == null ? 'Inactiva en este período' : 'Sin evaluar'),
     };
   });
-  el.innerHTML = rosterHTML(personas, q || dist ? 'Sin resultados.' : 'Sin usuarios.');
+  el.innerHTML = rosterHTML(personas, q || dist || est ? 'Nadie coincide con los filtros elegidos.' : 'Sin usuarios.');
   animarEntrada(el);
 }
 
@@ -279,7 +338,7 @@ async function renderAtencion() {
   const nombrePE = pe ? pe.nombre : '';
 
   const pendientes = _users.filter(u => u.aprobado === false).length;
-  if (pendientes) items.push({ n: pendientes, icono: 'user-x', txt: `persona${pendientes === 1 ? '' : 's'} esperando que apruebes su acceso`, tab: 'usuarios', cta: 'Revisar accesos' });
+  if (pendientes) items.push({ n: pendientes, icono: 'user-x', txt: `persona${pendientes === 1 ? '' : 's'} esperando que apruebes su acceso`, tab: 'usuarios', filtro: 'pendientes', cta: 'Revisar accesos' });
 
   if (pe) {
     const [evs, part] = await Promise.all([API.getEvaluacionesByPE(pe.id), API.getParticipantes(pe.id)]);
@@ -310,7 +369,7 @@ async function renderAtencion() {
           <i data-lucide="${escHtml(i.icono)}" class="atencion-ico" aria-hidden="true"></i>
           <span class="atencion-n">${i.n}</span>
           <span class="atencion-txt">${escHtml(i.txt)}</span>
-          <button type="button" class="pf-enlace" data-act="tabSinBtn" data-arg="${escHtml(i.tab)}">${escHtml(i.cta)}<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+          <button type="button" class="pf-enlace" data-act="${i.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(i.filtro || i.tab)}">${escHtml(i.cta)}<i data-lucide="arrow-right" aria-hidden="true"></i></button>
         </li>`).join('')}</ul>`
         : `<p class="atencion-ok"><i data-lucide="circle-check" aria-hidden="true"></i> Todo al día en ${escHtml(nombrePE || 'este período')}: nadie espera una acción tuya.</p>`}
     </section>`;

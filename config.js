@@ -248,6 +248,7 @@ const ACCIONES = {
   crit2Borrar: (a)     => borrarCriterio2(a),
   crit2Mover:  (a, el) => moverCriterio2(a, el.dataset.arg2),
   // Tareas: la acción viaja en data-arg y el id de la tarea en data-arg2.
+  personasFiltro: (a) => irPersonasFiltro(a),
   tkAccion:    (a, el) => Tareas.accion(a, el),
   tkFiltro:    (a, el) => Tareas.filtro(a, el),
   tkConfirmar: ()      => Tareas.confirmar(),

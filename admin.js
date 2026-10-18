@@ -894,18 +894,22 @@ async function selectUsersPE(periodoId, btn) {
   renderUsuarios();
 }
 
-function renderUsuarios() {
+async function renderUsuarios() {
   renderPersonasCards();
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
   const distFilter = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
+  const estFilter = document.getElementById('filter-estado-usuarios')?.value || '';
+  // «Sin evaluar» y «Borrador» salen de los resultados del período (misma caché que las tarjetas).
+  if (estFilter) await cargarPersonasRes();
   const list = _users.filter(u =>
     (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.distrito||'').toLowerCase().includes(q)) &&
     (!distFilter
-      || (distFilter === '__none__' ? !u.distrito : u.distrito === distFilter))
+      || (distFilter === '__none__' ? !u.distrito : u.distrito === distFilter)) &&
+    pasaEstadoPersona(u, estFilter)
   );
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter ? 'Sin resultados.' : 'Sin usuarios.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter || estFilter ? 'Nadie coincide con los filtros elegidos.' : 'Sin usuarios.'}</div></div>`;
     renderIconos(el);
     return;
   }
