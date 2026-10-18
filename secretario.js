@@ -742,6 +742,8 @@ async function renderTareasDistrito() {
     return;
   }
   const pid = per?.id ?? null;
+  const hostEq = document.getElementById('tareas-equipo-host');
+  if (hostEq) Equipos.montarTareas(hostEq, { periodoId: pid, yo: CU.id, esAdmin: false, periodos: Store.periodos() });
   await Tareas.montar({
     id: 'sec-tareas', el, periodoId: pid, yo: CU.id, revisor: true,
     personas: (_contenido?.districtMembers || []).map(m => ({ id: m.id, nombre: m.nombre || m.email })),
