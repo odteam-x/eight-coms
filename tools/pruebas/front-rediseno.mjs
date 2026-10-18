@@ -407,12 +407,12 @@ console.log('\n[avatar y tarjeta de persona]');
   vm.runInContext(fs.readFileSync(ROOT + 'core/avatar.js', 'utf8') + ';globalThis.__av = Avatar;', ctxA);
   const A = ctxA.__av;
   const conFoto = A.html({ id: 'x', nombre: 'Ana Pérez', avatar_url: 'https://x.supabase.co/a.png' }, { tam: 'lg' });
-  ok(conFoto.includes('avatar avatar--lg pat-2') && conFoto.includes('<img class="avatar-img"') && conFoto.includes('AP'), 'avatar: con foto → iniciales debajo (predeterminado) y la foto encima');
+  ok(conFoto.includes('avatar avatar--lg') && !conFoto.includes('pat-') && conFoto.includes('<img class="avatar-img"') && conFoto.includes('AP'), 'avatar: con foto → iniciales debajo (predeterminado) y la foto encima');
   for (const raro of [undefined, null, '', '  ', 'null', 'undefined', 'false', 'javascript:alert(1)'])
     ok(!A.html({ nombre: 'Ana Pérez', avatar_url: raro }).includes('<img'), `avatar: avatar_url ${JSON.stringify(raro)} se trata como «sin foto» (sin <img> ni «null»)`);
   ok(A.html({ nombre: '' }).includes('<svg>') && !A.html({ nombre: '' }).includes('undefined') && !A.html({ nombre: '' }).includes('null'), 'avatar: sin nombre ni foto → icono de persona, nunca vacío ni null/undefined');
   ok(A.html({ nombre: '<b>X</b>', avatar_url: 'a"onerror="x' }).indexOf('<b>X') === -1 && !/onerror=/.test(A.html({ nombre: 'x', avatar_url: 'a"onerror="x' }).replace('&quot;onerror=&quot;', '')), 'avatar: nombre y URL escapados (sin handlers inyectables)');
-  ok(A.html({ nombre: 'Z', fondo: 5 }).includes('pat-4') && A.html({ nombre: 'Z' }, { tam: 'raro' }).includes('avatar--md'), 'avatar: patrón de la persona y tamaño desconocido → md');
+  ok(!A.html({ nombre: 'Z', fondo: 5 }).includes('pat-') && A.html({ nombre: 'Z' }, { tam: 'raro' }).includes('avatar--md'), 'avatar: sin patrón (el fondo personalizado va en la tarjeta) y tamaño desconocido → md');
   const lj = fs.readFileSync(ROOT + 'core/avatar.js', 'utf8');
   ok(/addEventListener\('error'[\s\S]*true\)/.test(lj) && !/onerror\s*=/.test(lj.replace(/onerror\?=/g, '').replace(/[^\n]*\/\*[\s\S]*?\*\//g, '')), 'avatar: la foto rota se atiende con un listener delegado en captura, no con onerror inline');
   for (const f of ['user.html', 'secretario.html', 'admin.html'])
@@ -425,6 +425,7 @@ console.log('\n[avatar y tarjeta de persona]');
   ok(/\.pcard \{[^}]*background: var\(--surface-1\); border: 1px solid var\(--trazo\)/.test(pc), 'tarjeta de persona: fondo y borde en el contenedor exterior');
   const pj = fs.readFileSync(ROOT + 'core/personas.js', 'utf8');
   ok(/function personaMiniHTML/.test(pj), 'tarjeta de persona: variante compacta personaMiniHTML');
+  ok((pj.match(/class="pcard[^"]*sup-marca pat-\$\{Fondo\.clase\(p\)\}/g) || []).length >= 3, 'tarjeta de persona: el fondo personalizado (pat-N) va en el contenedor de la tarjeta');
 }
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);
