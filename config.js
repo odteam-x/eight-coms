@@ -319,8 +319,11 @@ function renderPEBar(container, periodos, current, onSelect) {
     // sigan en NULL se muestra solo el código, sin inventar nada.
     // El PE se lee del calendario: «PE2 · 15 sep – 25 oct». Sin fechas, solo el código.
     const fin = p.jornada || p.entrega || p.finTrabajo;
-    b.textContent = p.pe + (p.inicio && fin && typeof fechaCortaISO === 'function' ? ' · ' + fechaCortaISO(p.inicio) + ' – ' + fechaCortaISO(fin)
-      : mesDe(p.inicio) ? ' · ' + mesDe(p.inicio) : '');
+    // Dos líneas: el código del PE y, debajo, sus fechas (antes todo en una cadena que se partía en dos filas).
+    const rango = p.inicio && fin && typeof fechaCortaISO === 'function' ? fechaCortaISO(p.inicio) + ' – ' + fechaCortaISO(fin) : (mesDe(p.inicio) || '');
+    const n = document.createElement('span'); n.className = 'pb-n'; n.textContent = p.pe;
+    b.appendChild(n);
+    if (rango) { const f = document.createElement('span'); f.className = 'pb-f'; f.textContent = rango; b.appendChild(f); }
     if (p.inicio && fin) {
       const h = new Date(); const hoy = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
       if (hoy >= p.inicio && hoy <= fin) { b.classList.add('pb--hoy'); b.dataset.hoy = '1'; }
@@ -331,6 +334,9 @@ function renderPEBar(container, periodos, current, onSelect) {
     b.addEventListener('click', () => onSelect(p.pe, b));
     return b;
   }));
+  // En un celular las píldoras se desplazan: la activa se trae a la vista.
+  const act = container.querySelector('.pb.active');
+  if (act && container.scrollWidth > container.clientWidth) container.scrollLeft = Math.max(0, act.offsetLeft - (container.clientWidth - act.offsetWidth) / 2);
 }
 
 /** Marca cuál botón de una barra está activo, sin volver a construirla. */

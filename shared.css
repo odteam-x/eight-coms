@@ -331,7 +331,7 @@ img { display:block; max-width:100%; }
 [data-theme="light"] .icon-moon { display:block; }
 
 /* ── AVATAR (componente único: core/avatar.js) ──────────────────────────
-   Círculo 1:1 con las iniciales sobre el patrón de la marca de la persona (--patron-img de .pat-N) y, encima, su foto.
+   Círculo 1:1 con las iniciales sobre navy liso y, encima, su foto. El patrón de la persona va en su TARJETA, no en la foto.
    La foto cubre el predeterminado; si falla, avatar--sin-img la oculta y el predeterminado queda a la vista. Superficie
    navy en los dos temas (como el resto de las superficies de marca) y texto --on-brand: contraste medido en contraste.js.
    El tamaño sale de --av (xs 28 · sm 36 · md 48 · lg 64 · xl 96 · xxl 112), nunca de width/height sueltos. */
@@ -345,7 +345,6 @@ img { display:block; max-width:100%; }
   user-select: none; -webkit-user-select: none;
   box-shadow: inset 0 0 0 1px var(--trazo);
 }
-.avatar::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--patron-img, none) center / 96px 96px repeat; opacity: .3; }
 .avatar-ini { display: grid; place-items: center; width: 100%; height: 100%; }
 .avatar-ini svg { width: 50%; height: 50%; }
 .avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; background: var(--navy-900); }
