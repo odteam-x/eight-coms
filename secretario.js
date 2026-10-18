@@ -330,7 +330,7 @@ async function pintarPulsoDistrito(el) {
   const tile = (val, lbl, aviso) => `<div class="pf-tk${aviso ? ' pf-tk--aviso' : ''}"><div class="pf-tk-val">${escHtml(String(val))}</div><div class="pf-tk-lbl">${escHtml(lbl)}</div></div>`;
   el.innerHTML = `
     <section class="pf-card pf-card--ancha" aria-labelledby="pulso-h">
-      <div class="pf-card-cab"><h3 class="pf-h" id="pulso-h">Tu distrito${getMyDistrito() ? ` <small>${escHtml(getMyDistrito())}</small>` : ''}</h3>
+      <div class="pf-card-cab"><h2 class="pf-h" id="pulso-h">Tu distrito${getMyDistrito() ? ` <small>${escHtml(getMyDistrito())}</small>` : ''}</h2>
         <button type="button" class="pf-enlace" data-act="tab" data-arg="distrito">Ver personas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
       <div class="pf-tks">
         ${tile(miembros.length, 'Personas')}

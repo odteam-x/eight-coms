@@ -173,7 +173,7 @@ const Perfil = (() => {
         <i data-lucide="${escHtml(a.icono || 'arrow-right')}" aria-hidden="true"></i><span>${escHtml(a.etiqueta)}</span>
       </button>`).join('');
 
-    const H = inst.panel ? 'h3' : 'h2';
+    const H = inst.panel ? 'h3' : 'h1';   // en la página, el nombre es EL título (h1); en el panel lateral vive dentro de un diálogo
     return `
       <header class="perfil-cab sup-marca pat-${_patronDe(p)}" data-persona="${escHtml(p.id)}">
         <div class="perfil-id">
@@ -196,6 +196,26 @@ const Perfil = (() => {
       </header>`;
   }
 
+
+  /**
+   * Los paneles se escriben con los títulos que les tocan «en abstracto» (h3 de sección, h4 de subapartado). Aquí se les
+   * da el nivel que les corresponde bajo el nombre de la persona (h1 en la página, h3 en el panel lateral), para que el
+   * esquema del documento no salte de nivel. Se conservan clases, ids y atributos (aria-labelledby sigue funcionando).
+   */
+  function _niveles(inst, cuerpo) {
+    const base = inst.panel ? 3 : 1;
+    const mapa = [['.pf-h', base + 1], ['.pe-nombre', base + 1], ['.pf-sub', base + 2], ['.pe-sub', base + 2]];
+    for (const [sel, n] of mapa) {
+      const tag = 'H' + Math.min(6, n);
+      cuerpo.querySelectorAll(sel).forEach(h => {
+        if (!/^H[1-6]$/.test(h.tagName) || h.tagName === tag) return;
+        const nuevo = document.createElement(tag);
+        for (const at of h.attributes) nuevo.setAttribute(at.name, at.value);
+        nuevo.append(...h.childNodes);
+        h.replaceWith(nuevo);
+      });
+    }
+  }
 
   /* ══ PANELES ═══════════════════════════════════════════════════════════ */
 
@@ -527,7 +547,7 @@ const Perfil = (() => {
       console.error('[Perfil]', e);
       renderError(cuerpo, e.message || String(e), () => _pintarPanel(inst));
     }
-    if (seq === inst.seq) animarEntrada(cuerpo);
+    if (seq === inst.seq) { _niveles(inst, cuerpo); animarEntrada(cuerpo); }
   }
 
   function _pintarCabecera(inst) {
