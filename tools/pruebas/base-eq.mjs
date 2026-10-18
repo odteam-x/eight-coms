@@ -41,21 +41,24 @@ export const sql = f => fs.readFileSync(R + f, 'utf8');
 export async function montar(t, migraciones) {
   const { db, q } = t;
   await db.exec(fs.readFileSync(DIR + 'stub.sql', 'utf8'));
+  // Como Supabase: lo que se crea después nace con permisos para anon/authenticated y cada migración REVOCA lo que
+  // no corresponde. Así las pruebas validan los REVOKE de verdad (un GRANT global al final los taparía).
   await db.exec(`
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon, authenticated;
     ALTER TABLE public.profiles ADD COLUMN aprobado BOOLEAN DEFAULT true;
     CREATE TABLE public.config (gestion_id BIGINT, clave TEXT, valor TEXT, PRIMARY KEY (gestion_id, clave));
     CREATE TABLE public.periodo_participantes (periodo_id UUID, user_id UUID, activo BOOLEAN DEFAULT true, PRIMARY KEY (periodo_id, user_id));
     CREATE TABLE public.trabajos_entregados (id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, user_id UUID, periodo_id UUID,
        titulo TEXT DEFAULT '', descripcion TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now());
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon;
     INSERT INTO gestiones(nombre, activa) VALUES ('2026-2027', true);
     INSERT INTO gestiones(nombre, activa, archivada) VALUES ('2025-2026', false, true);
     INSERT INTO periodos_evaluacion(gestion_id,nombre) SELECT id,'LEG' FROM gestiones WHERE activa;
   `);
+  // Las tablas del esquema previo (stub) ya existen en producción con sus propias políticas; aquí solo se les da permiso.
+  await db.exec(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;`);
   for (const f of migraciones) await db.exec(sql(f));
-  await db.exec(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
-                 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated, anon;`);
   const ids = {
     G:  (await q(`SELECT id FROM gestiones WHERE activa`))[0].id,
     GA: (await q(`SELECT id FROM gestiones WHERE archivada`))[0].id,
