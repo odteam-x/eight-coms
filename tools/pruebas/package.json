@@ -8,7 +8,8 @@
     "correo": "node correo.mjs",
     "front": "node front.mjs && node front-rediseno.mjs && node front-equipos.mjs",
     "ui": "node ui/server.mjs",
-    "todo": "npm run sql && npm run correo && npm run front"
+    "rg": "node sql-0050.mjs && node sql-0051.mjs && node front-reporte-general.mjs",
+    "todo": "npm run sql && npm run correo && npm run front && npm run rg"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.10"
