@@ -6,9 +6,8 @@
  * (o `Avatar.interior(persona)` cuando el contenedor ya existe, como el rail o el perfil editable).
  *
  * TODA persona tiene imagen visible, haya subido foto o no:
- *   1. el avatar PREDETERMINADO es siempre el que se pinta primero: las iniciales sobre el patrón de la marca que la
- *      persona eligió (`Fondo.clase`, el mismo de su tarjeta de perfil; sin elección, el que sale de su id). Son los
- *      recursos que ya teníamos (los siete patrones), no hay imágenes de avatar nuevas;
+ *   1. el avatar PREDETERMINADO es siempre el que se pinta primero: las iniciales sobre navy liso. El fondo personalizado
+ *      (los siete patrones, `Fondo.clase`) pertenece a la TARJETA de la persona, no a su foto;
  *   2. si hay `avatar_url` válida, la foto se superpone. Mientras carga, o si falla, se ve el predeterminado: no hay
  *      icono de imagen rota, ni hueco, ni «null»/«undefined» (esos valores se tratan como «sin foto»);
  *   3. un listener delegado (la CSP prohíbe `onerror` en el marcado) marca `avatar--sin-img` cuando una foto da error
@@ -43,7 +42,7 @@ const Avatar = (() => {
   }
 
   /** Clases del contenedor: base, tamaño y patrón de la persona. */
-  const clases = (p, tam = 'md') => `avatar avatar--${TAMS.includes(tam) ? tam : 'md'} pat-${_pat(p)}`;
+  const clases = (p, tam = 'md') => `avatar avatar--${TAMS.includes(tam) ? tam : 'md'}`;
 
   /** Avatar completo. `clase` y `attrs` añaden clases y atributos propios del contexto (ya escapados por quien llama). */
   function html(p, { tam = 'md', tag = 'span', clase = '', attrs = '', bust = false } = {}) {

@@ -390,3 +390,12 @@ button.pcard { cursor: pointer; }
 .pcard--mini .pcard-nombre, .pcard--mini .pcard-rol { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 480px) { .pcard--mini { grid-template-columns: auto minmax(0, 1fr); } .pcard--mini .pcard-extra { grid-column: 1 / -1; justify-content: flex-start; } }
 .pcards { display: grid; gap: var(--sp-2); list-style: none; }
+
+/* Fondo personalizado en la TARJETA (no en la foto): la tarjeta de persona es una superficie de marca con el patrón que la persona
+   eligió (`pat-N`, de Fondo.clase). .sup-marca ya redefine los tokens de texto y de nivel a los pares medidos. */
+.pcard.sup-marca { border-radius: var(--r-card); clip-path: none; background: var(--navy-900); border: 1px solid var(--border); }
+.pcard.sup-marca:hover { background: var(--navy-900); border-color: var(--cyan-400); filter: brightness(1.12); }
+.pcard.sup-marca .pcard-barra { background: color-mix(in srgb, var(--on-brand) 18%, transparent); }
+.pcard.sup-marca .pcard-yo { background: var(--coral); }
+.pcard .avatar { background: var(--blue-700); box-shadow: inset 0 0 0 2px var(--cyan-400); }
+.pcard--mini.sup-marca { border-radius: var(--r-card); }

@@ -11,14 +11,17 @@ const ICONOS_SVG = {"alarm-clock":"<path d=\"M12 22a9 9 0 1 1 0-18a9 9 0 0 1 0 1
 /* Nombre del archivo ya no importa: el marcado conserva data-lucide="…" y este
    shim lo sustituye por un <svg> en línea (sin CDN). Si falta un nombre, se
    quita el atributo y la página sigue. */
+/* Nombres que otros módulos usan y el pack no trae con ese nombre (antes el icono simplemente no aparecía: «Equipos» en el menú). */
+const ICONO_ALIAS = { 'users-round': 'users', 'user-round-plus': 'user-add', 'users-2': 'group-2' };
 const lucide = {
   createIcons(opciones) {
     const raices = opciones?.nodes?.length ? opciones.nodes : [document];
     for (const raiz of raices) {
       const lista = raiz.matches?.('[data-lucide]') ? [raiz] : [...raiz.querySelectorAll('[data-lucide]')];
       for (const el of lista) {
-        const dentro = ICONOS_SVG[el.getAttribute('data-lucide')];
-        if (dentro == null) { el.removeAttribute('data-lucide'); continue; }
+        const nombre = el.getAttribute('data-lucide');
+        const dentro = ICONOS_SVG[nombre] ?? ICONOS_SVG[ICONO_ALIAS[nombre]];
+        if (dentro == null) { console.warn('[iconos] falta el icono «' + nombre + '»'); el.removeAttribute('data-lucide'); continue; }
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');
         svg.setAttribute('fill', 'currentColor');

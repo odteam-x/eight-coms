@@ -546,6 +546,18 @@ Una pantalla con **todos** los PE de la gestión que la persona puede ver (admin
 
 **Aplicación**: 0050 (necesita 0021 y 0025), luego 0051 (necesita 0031–0036). Sin 0050 la pantalla dice qué migración falta; con 0050 sin 0051 muestra todo salvo equipos y colectivas (las columnas valen 0). **Pruebas**: `npm run rg` en `tools/pruebas` (`sql-0050.mjs`, `sql-0051.mjs`, `front-reporte-general.mjs`); el simulador tiene `reporte_general_pe` en `ui/fake-extra-reporte-general.js` (`?rg=vacio|error|ausente`). **Pendiente / no existe en la base**: seguimiento de asistencia o participación más fino que «participa sí/no», tendencia de cumplimiento por fecha (hoy solo hay estado actual), y el número de «miembros activos» más allá de `profiles.aprobado` y `periodo_participantes.activo` (no hay otra señal de actividad).
 
+### Sesión C: sistema visual, login, cabecera, PE, avatar, tarjetas, títulos
+
+- **Pie** (`derechos.css`): `#contenido` es columna de al menos `100dvh` y el pie lleva `margin-top:auto`; no se reserva dos veces la barra inferior (la reserva `#contenido`, movil.css).
+- **Login**: `login.css` es la ÚNICA hoja de la pantalla (carga después de `premium.css` y `derechos.css`). Dos paneles desde 760 px; celular con banda de marca y pie `sticky`. El panel oculto de Entrar/Crear cuenta se colapsa (`max-height:0`) tras la transición.
+- **Avatar**: `core/avatar.js` (`Avatar.html/interior/pintar`). Predeterminado = iniciales sobre navy liso; la foto va encima y una foto rota/vacía/`null` deja ver el predeterminado (listener `error` delegado en captura). **El fondo personalizado (`pat-N`, `Fondo.clase`) va en la TARJETA** (`.pcard.sup-marca`), no en la foto. Nadie pinta `avatar_url` por su cuenta (test).
+- **Tarjeta de persona**: una sola definición de `.pcard` (perfil.css, final) y `personaMiniHTML` (`.pcard--mini`) para miembros de PE e integrantes de equipo.
+- **PE en el perfil**: pestaña *Períodos* (`core/perfil-pe.js`, `PerfilPE`): una tarjeta por PE; `PerfilPE.equipoDe(fn)` conecta el módulo de equipos (no se pinta si no hay datos). Selector de períodos (`renderPEBar`): cápsula con píldoras de dos líneas (código + fechas).
+- **Cabecera móvil**: una línea (isotipo, nombre de pantalla, buscar, avisos), sin raya coral ni sobretítulo.
+- **Títulos**: cuatro niveles (`.pf-h/.hist-sub/.cuenta-t` · `.panel-t-h/.rpt-sec-t/.rol-t` · `.pf-sub/.pe-sub`) al final de `premium.css`; Inicio y Mi perfil abren con `h1`; Perfil reajusta niveles bajo el nombre (`_niveles`).
+- **Trampas encontradas**: `background:` abreviado sobre `.cfg-inp` borraba el chevron de todo `<select>` (usar `background-color`); la clase `.sel` del Selector chocaba con la fila elegida del buscador; `.btn--texto` solo no tenía base; un icono que no existe en `core/iconos.js` desaparece en silencio (ahora `console.warn` + alias `users-round`→`users`).
+- Simulador: `?as=anon` (sin sesión) y `__pie()` en `tools/pruebas/ui/audit-layout.js`. Evidencias en `docs/evidencias/ui-octubre-2026/`.
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, 0018, 0019, 0020, 0021, 0022, 0023, then 0024 and 0025, then 0031–0036, then 0050 and 0051**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
