@@ -276,7 +276,7 @@ const _EVAL_ATAJOS = [
   { id: 'revisar',   txt: 'Con entregas por revisar', v2: true,  ico: 'inbox',        test: u => (_evalTareas[u.id]?.porRevisar || 0) > 0 },
   { id: 'vencidas',  txt: 'Con tareas vencidas',      v2: true,  ico: 'alarm-clock',  test: u => (_evalTareas[u.id]?.vencidas || 0) > 0 },
   { id: 'sinrol',    txt: 'Sin rol asignado',         v2: true,  ico: 'user-x',       test: u => !u.rol_id },
-  { id: 'pequeno',   txt: 'Rol con pocas personas',   v2: true,  ico: 'group',        test: u => !!_resV2[u.id]?.rol_pequeno },
+  { id: 'pequeno',   txt: 'Rol con pocas personas',   v2: true,  ico: 'users-round',  test: u => !!_resV2[u.id]?.rol_pequeno },
   { id: 'inactivos', txt: 'Inactivos en el período',  v2: false, ico: 'pause',        test: u => _evalInactivos.has(u.id) },
 ];
 

@@ -17,7 +17,7 @@ const Reportes = (() => {
   const SECCIONES = [
     { k: 'resumen',  t: 'Resumen',           ico: 'file-text' },
     { k: 'ranking',  t: 'Ranking',           ico: 'trophy' },
-    { k: 'rol',      t: 'Por rol',           ico: 'group' },
+    { k: 'rol',      t: 'Por rol',           ico: 'users-round' },
     { k: 'criterio', t: 'Por competencia',   ico: 'bar-chart-2' },
     { k: 'personas', t: 'Detalle por persona', ico: 'user' },
     { k: 'tareas',   t: 'Evidencia de tareas', ico: 'list-checks', v2: true },

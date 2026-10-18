@@ -9,7 +9,16 @@ const AQUI = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = path.resolve(process.argv[2] || path.join(AQUI, '../../..'));
 const PORT = Number(process.argv[3] || 3100);
 const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-const headers = Object.fromEntries(vercel.headers[0].headers.map(h => [h.key, h.value]));
+// Como Vercel: se aplican TODOS los bloques cuyo `source` coincide con la ruta (no solo el primero). Antes se leía solo
+// headers[0]; al añadirse un bloque para /sw.js delante del de «/(.*)», el simulador dejó de enviar la CSP sin que nadie
+// lo notara y las pruebas de interfaz corrían sin ella. Se usa path-to-regexp mínimo: «/(.*)» = todo, o ruta exacta.
+const headersDe = ruta => {
+  const out = {};
+  for (const bloque of vercel.headers) {
+    if (bloque.source === '/(.*)' || bloque.source === ruta) for (const h of bloque.headers) out[h.key] = h.value;
+  }
+  return out;
+};
 let FAKE = fs.readFileSync(process.argv[4] || path.join(AQUI, 'fake-supabase-client.js'), 'utf8');
 // Extensiones del simulador (ui/fake-extra-*.js): cada una añade RPC sin tocar el archivo principal.
 for (const f of fs.readdirSync(AQUI).filter(n => /^fake-extra-.*\.js$/.test(n)).sort()) FAKE += '\n' + fs.readFileSync(path.join(AQUI, f), 'utf8');
@@ -19,7 +28,8 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (p === '/') p = '/index.html';
-  Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
+  Object.entries(headersDe(p)).forEach(([k, v]) => res.setHeader(k, v));
+  if (p === '/__medir.js') { res.setHeader('Content-Type', MIME['.js']); return res.end(fs.readFileSync(path.join(AQUI, 'medir.js'))); }
   if (p === '/supabase-client.js') { res.setHeader('Content-Type', MIME['.js']); return res.end(FAKE); }
   const f = path.join(ROOT, p);
   if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.statusCode = 404; return res.end('404'); }
