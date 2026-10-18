@@ -26,6 +26,13 @@
       const f = s.filter(r => r.periodo_id === per.id), part = f.filter(r => r.participa), pub = part.filter(r => r.estado_eval === 'publicado');
       const val = r => per.modelo === 'v2' ? r.individual : r.total_clasico;
       const tk = DB.tareas.filter(t => t.periodo_id === per.id && quienes.has(t.asignada_a));
+      // 0051: equipos visibles (con alguien del alcance, o todos si es la administración sin filtros) y colectivas, una por tarea.
+      const eqs = (DB.equipos || []).filter(e => e.periodo_id === per.id && ((v === 'todo' && p_distrito == null && p_rol == null) || (DB.equipo_miembros || []).some(m => m.equipo_id === e.id && !m.hasta && quienes.has(m.persona_id))));
+      const tcs = (DB.tareas_equipo || []).filter(t => eqs.some(e => e.id === t.equipo_id));
+      const vivas = tcs.filter(t => t.estado !== 'anulada');
+      const venc = t => ['asignada', 'en_curso'].includes(t.estado) && !t.entregada_en && t.fecha_limite && t.fecha_limite < hoy;
+      const cp = vivas.filter(t => t.entregada_en && t.fecha_limite);
+      const cfg = (DB.periodo_calif_config || []).find(c => c.periodo_id === per.id);
       const fin = per.fecha_jornada || per.fecha_entrega || per.fecha_fin_trabajo || per.fecha_inicio || null;
       const por = (key, nom) => [...new Map(f.map(r => [key(r), 1])).keys()].sort().map(k => {
         const g = f.filter(r => key(r) === k);
@@ -52,6 +59,15 @@
         por_rol: por(r => r.rol_id ?? '', (k, g, c) => ({ rol_id: k === '' ? null : k, rol: g[0].rol_nombre || '', ...c })),
         g_personas: quienes.size, g_participan_alguno: new Set(s.filter(r => r.participa).map(r => r.persona_id)).size,
         g_con_publicada: new Set(s.filter(r => r.participa && r.estado_eval === 'publicado').map(r => r.persona_id)).size,
+        tareas_anuladas: tk.filter(t => t.estado === 'anulada').length,
+        colectivas_total: vivas.length, colectivas_abiertas: vivas.filter(t => ['asignada', 'en_curso', 'devuelta', 'bloqueada'].includes(t.estado)).length,
+        colectivas_en_revision: vivas.filter(t => t.estado === 'entregada').length, colectivas_aprobadas: vivas.filter(t => t.estado === 'aprobada').length,
+        colectivas_vencidas: vivas.filter(venc).length, colectivas_anuladas: tcs.length - vivas.length, colectivas_con_plazo: cp.length,
+        colectivas_a_tiempo: cp.filter(t => t.entregada_en.slice(0, 10) <= t.fecha_limite).length,
+        equipos_total: eqs.length, equipos_activos: eqs.filter(e => e.estado === 'activo').length,
+        equipos_integrantes: new Set((DB.equipo_miembros || []).filter(m => !m.hasta && eqs.some(e => e.id === m.equipo_id) && quienes.has(m.persona_id)).map(m => m.persona_id)).size,
+        n_nota_tareas: pub.filter(r => r.tareas_nota != null).length, suma_nota_tareas: sum(pub, r => r.tareas_nota),
+        peso_tareas_regla: cfg ? cfg.peso_tareas : null, regla_confirmada: cfg ? !!cfg.confirmado : null,
         generado_en: ahora,
       };
     });

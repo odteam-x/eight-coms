@@ -120,5 +120,24 @@ ok(!/\n=HYPERLINK|\n@SUM/.test(mala) && mala.includes("'=HYPERLINK") && mala.inc
 ok(R.csvTexto([fila({ nombre: 'con;punto y coma' })]).includes('"con;punto y coma"'), 'los separadores dentro de una celda se entrecomillan');
 ok(R.csvTexto([fila({ vista: 'distrito' })]).includes('Alcance;Solo mi distrito') && R.csvTexto([fila({ vista: 'propio' })]).includes('Solo mis datos'), 'el CSV dice el alcance que tenía quien lo bajó (distrito / solo lo propio)');
 
+console.log('\n[fase 2: tareas colectivas, equipos y anuladas]');
+// Dos PE; cada uno con 4 tareas individuales y 3 colectivas (una por tarea, no por integrante).
+const E1 = fila({ id: 'E1', nombre: 'PE equipos 1', orden: 1, tareas_total: 4, tareas_abiertas: 2, tareas_aprobadas: 2, tareas_vencidas: 1, colectivas_total: 3, colectivas_abiertas: 1, colectivas_en_revision: 1, colectivas_aprobadas: 1, colectivas_vencidas: 1,
+  colectivas_con_plazo: 2, colectivas_a_tiempo: 2, con_plazo: 2, a_tiempo: 1, equipos_total: 2, equipos_activos: 2, equipos_integrantes: 4, tareas_anuladas: 1, colectivas_anuladas: 1 });
+const E2 = fila({ id: 'E2', nombre: 'PE equipos 2', orden: 2, tareas_total: 1, tareas_aprobadas: 1, colectivas_total: 0, equipos_total: 0 });
+c = R.consolidar([E1, E2]);
+ok(c.tareas.total === 8 && c.tareas.individuales === 5 && c.tareas.colectivas === 3, 'tareas = individuales (5) + colectivas (3, una por tarea) = 8');
+ok(c.tareas.aprobadas === 4 && c.tareas.enRevision === 1 && c.tareas.abiertas === 3 && c.tareas.aprobadas + c.tareas.enRevision + c.tareas.abiertas === c.tareas.total, 'aprobadas 4 + en revisión 1 + abiertas 3 = 8: cada tarea en un solo grupo');
+ok(c.tareas.vencidas === 2 && c.tareas.conPlazo === 4 && c.tareas.aTiempo === 3, 'vencidas y entregas a tiempo incluyen las colectivas (3 de 4 a tiempo)');
+ok(c.tareas.anuladas === 2 && c.equipos === 2 && c.equiposActivos === 2, 'anuladas aparte (2, no suman al total) y 2 equipos');
+ok(R.sinDatos(fila({ equipos_total: 0 })) && !R.sinDatos(fila({ colectivas_total: 1 })) && !R.sinDatos(fila({ equipos_total: 1 })), 'un PE con solo un equipo o solo una colectiva ya no es «sin datos»');
+ok(R.filtrar([fila({ id: 'K', colectivas_vencidas: 1 }), fila({ id: 'J' })], { ver: 'vencidas' }).map(r => r.periodo_id).join() === 'K', 'el filtro «con tareas vencidas» también ve las colectivas vencidas');
+const csv2 = R.csvTexto([E1, E2]);
+const l2 = csv2.replace(/^﻿/, '').split('\n'), h2 = l2[0].split(';');
+ok(h2.length === l2[1].split(';').length && h2.length === l2[3].split(';').length, 'CSV ampliado: cabecera, filas y total con el mismo número de columnas');
+ok(l2[1].split(';')[h2.indexOf('Tareas')] === '7' && l2[1].split(';')[h2.indexOf('Colectivas')] === '3' && l2[1].split(';')[h2.indexOf('Anuladas (no cuentan)')] === '2', 'CSV: Tareas = 4 + 3, colectivas 3, anuladas 2 aparte');
+ok(l2[3].split(';')[h2.indexOf('Tareas')] === '8' && l2[3].split(';')[h2.indexOf('Equipos')] === '2', 'CSV: fila TOTAL con 8 tareas y 2 equipos');
+ok(R.consolidar([fila({ tareas_total: 3 })]).tareas.total === 3 && R.consolidar([fila({ tareas_total: 3 })]).tareas.colectivas === 0, 'con la versión 0050 (sin columnas de colectivas) el consolidado sigue funcionando');
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

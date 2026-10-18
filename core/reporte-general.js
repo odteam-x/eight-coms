@@ -49,7 +49,22 @@ const ReporteGeneral = (() => {
   /* ── Lógica pura (se prueba sin DOM) ─────────────────────────────────── */
 
   /** Un PE «sin datos»: ni una evaluación (publicada o en borrador) ni una sola tarea. */
-  const sinDatos = r => num(r.eval_publicadas) + num(r.eval_no_publicadas) === 0 && num(r.tareas_total) === 0;
+  /**
+   * «Unidades de tarea» de un PE = tareas individuales + tareas colectivas. Una colectiva es UNA unidad (la base la
+   * cuenta por tarea, no por integrante). Las anuladas no entran en ninguna cifra: se informan aparte.
+   * Sin la migración 0051 las columnas de colectivas no existen y valen 0.
+   */
+  const U = {
+    total: r => num(r.tareas_total) + num(r.colectivas_total),
+    abiertas: r => num(r.tareas_abiertas) + num(r.colectivas_abiertas),
+    enRevision: r => num(r.tareas_en_revision) + num(r.colectivas_en_revision),
+    aprobadas: r => num(r.tareas_aprobadas) + num(r.colectivas_aprobadas),
+    vencidas: r => num(r.tareas_vencidas) + num(r.colectivas_vencidas),
+    conPlazo: r => num(r.con_plazo) + num(r.colectivas_con_plazo),
+    aTiempo: r => num(r.a_tiempo) + num(r.colectivas_a_tiempo),
+  };
+  const sumaU = (rows, k) => rows.reduce((a, r) => a + U[k](r), 0);
+  const sinDatos = r => num(r.eval_publicadas) + num(r.eval_no_publicadas) === 0 && U.total(r) === 0 && num(r.equipos_total) === 0;
 
   function promedioDe(rows) {
     const n = suma(rows, 'n_resultados'), s = suma(rows, 'suma_resultado');
@@ -77,12 +92,14 @@ const ReporteGeneral = (() => {
       publicadas: suma(rows, 'eval_publicadas'), noPublicadas: suma(rows, 'eval_no_publicadas'), sinEvaluar: suma(rows, 'eval_sin_evaluar'),
       v2: promedioDe(v2), clasico: promedioDe(cl),
       peClasicos: cl.length,
+      equipos: suma(conTareas, 'equipos_total'), equiposActivos: suma(conTareas, 'equipos_activos'),
       tareas: {
-        aplican: conTareas.length, total: t('tareas_total'), asignadas: t('tareas_asignadas'), propias: t('tareas_propias'),
-        abiertas: t('tareas_abiertas'), enRevision: t('tareas_en_revision'), aprobadas: t('tareas_aprobadas'),
-        devueltas: t('tareas_devueltas'), bloqueadas: t('tareas_bloqueadas'), vencidas: t('tareas_vencidas'),
-        entregadas: t('tareas_entregadas'), conPlazo: t('con_plazo'), aTiempo: t('a_tiempo'),
-        peConVencidas: conTareas.filter(r => num(r.tareas_vencidas) > 0).length,
+        individuales: t('tareas_total'), colectivas: t('colectivas_total'), anuladas: t('tareas_anuladas') + t('colectivas_anuladas'),
+        aplican: conTareas.length, total: sumaU(conTareas, 'total'), asignadas: t('tareas_asignadas'), propias: t('tareas_propias'),
+        abiertas: sumaU(conTareas, 'abiertas'), enRevision: sumaU(conTareas, 'enRevision'), aprobadas: sumaU(conTareas, 'aprobadas'),
+        devueltas: t('tareas_devueltas'), bloqueadas: t('tareas_bloqueadas'), vencidas: sumaU(conTareas, 'vencidas'),
+        entregadas: t('tareas_entregadas'), conPlazo: sumaU(conTareas, 'conPlazo'), aTiempo: sumaU(conTareas, 'aTiempo'),
+        peConVencidas: conTareas.filter(r => U.vencidas(r) > 0).length,
       },
       peSinDatos: rows.filter(sinDatos).length,
     };
@@ -94,7 +111,7 @@ const ReporteGeneral = (() => {
       if (q && !norm(`${r.periodo_nombre} ${r.descripcion || ''}`).includes(q)) return false;
       if (f.estado && r.estado_pe !== f.estado) return false;
       if (f.modelo && (f.modelo === 'v2') !== esV2(r)) return false;
-      if (f.ver === 'vencidas' && !(num(r.tareas_vencidas) > 0)) return false;
+      if (f.ver === 'vencidas' && !(U.vencidas(r) > 0)) return false;
       if (f.ver === 'por_publicar' && !(num(r.eval_no_publicadas) + num(r.eval_sin_evaluar) > 0)) return false;
       if (f.ver === 'sin_datos' && !sinDatos(r)) return false;
       return true;
@@ -111,7 +128,7 @@ const ReporteGeneral = (() => {
       publicadas: (a, b) => pubs(b) - pubs(a) || num(a.orden) - num(b.orden),
       // Dos escalas no se comparan: primero los de la rúbrica por roles (de mayor a menor), luego los clásicos, al final los sin resultado.
       promedio: (a, b) => grupo(a) - grupo(b) || prom(b) - prom(a) || num(a.orden) - num(b.orden),
-      vencidas: (a, b) => num(b.tareas_vencidas) - num(a.tareas_vencidas) || num(a.orden) - num(b.orden),
+      vencidas: (a, b) => U.vencidas(b) - U.vencidas(a) || num(a.orden) - num(b.orden),
     }[orden] || ((a, b) => num(a.orden) - num(b.orden));
     return [...rows].sort(cmp);
   }
@@ -128,24 +145,27 @@ const ReporteGeneral = (() => {
     const cab = ['Período', 'Rúbrica', 'Estado', 'Inicio', 'Entrega', 'Personas', 'Participan', 'No participan',
       'Evaluaciones publicadas', 'Evaluaciones no publicadas', 'Sin evaluar', '% publicadas',
       'Resultados publicados (n)', 'Suma de resultados', 'Promedio', 'Escala',
-      'Tareas aplican', 'Tareas', 'Asignadas', 'Propias', 'Abiertas', 'En revisión', 'Aprobadas', 'Devueltas', 'Bloqueadas', 'Vencidas',
-      'Entregadas', 'Entregas con plazo', 'Entregas a tiempo', '% a tiempo', 'Actividades con tareas'];
+      'Tareas aplican', 'Tareas', 'Individuales', 'Colectivas', 'Asignadas (individuales)', 'Propias', 'Abiertas', 'En revisión', 'Aprobadas', 'Devueltas', 'Bloqueadas', 'Vencidas',
+      'Anuladas (no cuentan)', 'Entregadas (individuales asignadas)', 'Entregas con plazo', 'Entregas a tiempo', '% a tiempo', 'Actividades con tareas',
+      'Equipos', 'Equipos activos', 'Personas en equipos', 'Personas con nota de tareas', 'Peso de las tareas en el PE (%)'];
     const fila = r => [r.periodo_nombre, esV2(r) ? 'Por roles' : 'Clásica', (ESTADOS[r.estado_pe] || {}).txt || r.estado_pe,
       r.fecha_inicio || '', r.fecha_entrega || '', num(r.personas), num(r.participan), num(r.no_participan),
       num(r.eval_publicadas), num(r.eval_no_publicadas), num(r.eval_sin_evaluar), pctTxt(num(r.eval_publicadas), num(r.participan)),
       num(r.n_resultados), f1(num(r.suma_resultado)), num(r.n_resultados) ? f1(num(r.suma_resultado) / num(r.n_resultados)) : '—', esV2(r) ? 'sobre 100' : 'escala clásica',
-      r.tareas_aplican ? 'sí' : 'no', num(r.tareas_total), num(r.tareas_asignadas), num(r.tareas_propias), num(r.tareas_abiertas), num(r.tareas_en_revision),
-      num(r.tareas_aprobadas), num(r.tareas_devueltas), num(r.tareas_bloqueadas), num(r.tareas_vencidas),
-      num(r.tareas_entregadas), num(r.con_plazo), num(r.a_tiempo), pctTxt(num(r.a_tiempo), num(r.con_plazo)), num(r.actividades_con_tareas)];
+      r.tareas_aplican ? 'sí' : 'no', U.total(r), num(r.tareas_total), num(r.colectivas_total), num(r.tareas_asignadas), num(r.tareas_propias), U.abiertas(r), U.enRevision(r),
+      U.aprobadas(r), num(r.tareas_devueltas), num(r.tareas_bloqueadas), U.vencidas(r),
+      num(r.tareas_anuladas) + num(r.colectivas_anuladas), num(r.tareas_entregadas), U.conPlazo(r), U.aTiempo(r), pctTxt(U.aTiempo(r), U.conPlazo(r)), num(r.actividades_con_tareas),
+      num(r.equipos_total), num(r.equipos_activos), num(r.equipos_integrantes), num(r.n_nota_tareas), r.peso_tareas_regla == null ? '' : f1(num(r.peso_tareas_regla))];
     const c = consolidar(rows);
     const total = ['TOTAL (' + rows.length + ' PE)', '', '', '', '', c.personas ?? '', '', '',
       c.publicadas, c.noPublicadas, c.sinEvaluar, pctTxt(c.publicadas, c.participaciones),
       c.v2.n, f1(c.v2.suma), f1(c.v2.promedio), 'rúbrica por roles, sobre 100',
-      '', c.tareas.total, c.tareas.asignadas, c.tareas.propias, c.tareas.abiertas, c.tareas.enRevision,
+      '', c.tareas.total, c.tareas.individuales, c.tareas.colectivas, c.tareas.asignadas, c.tareas.propias, c.tareas.abiertas, c.tareas.enRevision,
       c.tareas.aprobadas, c.tareas.devueltas, c.tareas.bloqueadas, c.tareas.vencidas,
-      c.tareas.entregadas, c.tareas.conPlazo, c.tareas.aTiempo, pctTxt(c.tareas.aTiempo, c.tareas.conPlazo), ''];
+      c.tareas.anuladas, c.tareas.entregadas, c.tareas.conPlazo, c.tareas.aTiempo, pctTxt(c.tareas.aTiempo, c.tareas.conPlazo), '',
+      c.equipos, c.equiposActivos, '', '', ''];
     const extra = [[], ['Alcance', VISTAS[rows[0]?.vista] || ''], ['Filtros', meta.filtros || 'ninguno'],
-      ['Datos al', meta.generado || ''], ['Nota', 'Las personas no se suman entre PE; la rúbrica clásica no se mezcla con la de roles. El promedio total es ponderado por resultados.']];
+      ['Datos al', meta.generado || ''], ['Nota', 'Las personas no se suman entre PE; la rúbrica clásica no se mezcla con la de roles. El promedio total es ponderado por resultados. Tareas = individuales + colectivas (cada colectiva cuenta una vez); las anuladas no cuentan.']];
     return '﻿' + [cab, ...rows.map(fila), total, ...extra].map(r => r.map(csvEsc).join(';')).join('\n');
   }
 
@@ -283,7 +303,8 @@ const ReporteGeneral = (() => {
       ${kpi(String(c.personas ?? '—'), 'Personas', completo && c.participanAlguno != null ? `${c.participanAlguno} participan en algún PE · cada una cuenta una vez` : 'cada persona cuenta una sola vez')}
       ${kpi(escHtml(pctTxt(c.publicadas, c.participaciones)), 'Evaluaciones publicadas', escHtml(`${frac(c.publicadas, c.participaciones)} participaciones${c.noPublicadas ? ` · ${c.noPublicadas} sin publicar` : ''}`))}
       ${prom2}
-      ${kpi(String(t.total), 'Tareas', escHtml(t.total ? `${t.abiertas} abiertas · ${t.enRevision} en revisión · ${t.aprobadas} aprobadas` : (t.aplican ? 'sin tareas todavía' : 'ningún PE de esta vista usa tareas')) + (nota ? `<br>${escHtml(nota)}` : ''))}
+      ${kpi(String(t.total), 'Tareas', escHtml(t.total ? `${t.abiertas} abiertas · ${t.enRevision} en revisión · ${t.aprobadas} aprobadas${t.colectivas ? ` · ${t.individuales} individuales + ${t.colectivas} colectivas (cada una cuenta una vez)` : ''}${t.anuladas ? ` · ${t.anuladas} anulada${t.anuladas === 1 ? '' : 's'} aparte` : ''}` : (t.aplican ? 'sin tareas todavía' : 'ningún PE de esta vista usa tareas')) + (nota ? `<br>${escHtml(nota)}` : ''))}
+      ${c.equipos ? kpi(String(c.equipos), 'Equipos', escHtml(`${c.equiposActivos} activo${c.equiposActivos === 1 ? '' : 's'} · cada equipo pertenece a un solo PE`)) : ''}
       ${kpi(String(t.vencidas), 'Tareas vencidas', escHtml(t.vencidas ? `en ${t.peConVencidas} PE` : 'ninguna'), t.vencidas ? 'rg-kpi--alerta' : '')}
       ${kpi(escHtml(pctTxt(t.aTiempo, t.conPlazo)), 'Entregas a tiempo', escHtml(`${frac(t.aTiempo, t.conPlazo)} entregas con plazo`))}
     </div>`;
@@ -307,9 +328,9 @@ const ReporteGeneral = (() => {
       <td data-label="Personas"><b>${part}</b><small>${pers ? (part ? `de ${pers}${num(r.no_participan) ? ` · ${num(r.no_participan)} no participa${num(r.no_participan) === 1 ? '' : 'n'}` : ''}` : `de ${pers} · nadie participa`) : 'sin personas en esta vista'}</small></td>
       <td data-label="Evaluaciones">${part ? `<b>${p} %</b><small>${pub} de ${part} publicadas${num(r.eval_no_publicadas) ? ` · ${num(r.eval_no_publicadas)} sin publicar` : ''}${num(r.eval_sin_evaluar) ? ` · ${num(r.eval_sin_evaluar)} sin evaluar` : ''}</small>${barra(p, `${p} % de las personas que participan tienen su evaluación publicada`)}` : '<b>—</b><small>nadie participa</small>'}</td>
       <td data-label="Resultado">${res != null ? `<b>${escHtml(f1(res))}</b><small>${esV2(r) ? 'sobre 100' : 'escala clásica'} · ${num(r.n_resultados)} resultado${num(r.n_resultados) === 1 ? '' : 's'}</small>` : '<b>—</b><small>sin resultados publicados</small>'}</td>
-      <td data-label="Tareas">${r.tareas_aplican ? (num(r.tareas_total) ? `<b>${num(r.tareas_total)}</b><small>${num(r.tareas_aprobadas)} aprobadas · ${num(r.tareas_abiertas)} abiertas${num(r.tareas_en_revision) ? ' · ' + num(r.tareas_en_revision) + ' en revisión' : ''}</small>` : '<b>0</b><small>sin tareas</small>') : '<b>—</b><small>no aplica (rúbrica clásica)</small>'}</td>
-      <td data-label="A tiempo">${r.tareas_aplican && num(r.con_plazo) ? `<b>${pctTxt(num(r.a_tiempo), num(r.con_plazo))}</b><small>${num(r.a_tiempo)} de ${num(r.con_plazo)} con plazo</small>` : '<b>—</b><small>sin entregas con plazo</small>'}</td>
-      <td data-label="Vencidas">${r.tareas_aplican ? `<b class="${num(r.tareas_vencidas) ? 'rg-venc' : ''}">${num(r.tareas_vencidas)}</b>` : '<b>—</b>'}</td>
+      <td data-label="Tareas">${r.tareas_aplican ? (U.total(r) ? `<b>${U.total(r)}</b><small>${U.aprobadas(r)} aprobadas · ${U.abiertas(r)} abiertas${U.enRevision(r) ? ' · ' + U.enRevision(r) + ' en revisión' : ''}${num(r.colectivas_total) ? ` · ${num(r.colectivas_total)} colectiva${num(r.colectivas_total) === 1 ? '' : 's'}` : ''}</small>` : '<b>0</b><small>sin tareas</small>') : '<b>—</b><small>no aplica (rúbrica clásica)</small>'}</td>
+      <td data-label="A tiempo">${r.tareas_aplican && U.conPlazo(r) ? `<b>${pctTxt(U.aTiempo(r), U.conPlazo(r))}</b><small>${U.aTiempo(r)} de ${U.conPlazo(r)} con plazo</small>` : '<b>—</b><small>sin entregas con plazo</small>'}</td>
+      <td data-label="Vencidas">${r.tareas_aplican ? `<b class="${U.vencidas(r) ? 'rg-venc' : ''}">${U.vencidas(r)}</b>` : '<b>—</b>'}</td>
     </tr>
     <tr class="rg-det no-print" id="rg-det-${i}" data-det="${escHtml(r.periodo_id)}"${abierto ? '' : ' hidden'}><td colspan="7">${abierto ? detalleHTML(r) : ''}</td></tr>`;
   }
@@ -323,12 +344,17 @@ const ReporteGeneral = (() => {
   function detalleHTML(r) {
     const dist = (r.por_distrito || []).map(x => [nombreDistrito(x.distrito), num(x.personas), num(x.participan), num(x.publicadas)]);
     const roles = (r.por_rol || []).map(x => [x.rol || 'Sin rol', num(x.personas), num(x.participan), num(x.publicadas)]);
+    const col = num(r.colectivas_total), eqs = num(r.equipos_total);
+    const extra = `${eqs || col ? `<li><b>${eqs}</b> equipo${eqs === 1 ? '' : 's'} (${num(r.equipos_activos)} activo${num(r.equipos_activos) === 1 ? '' : 's'}, ${num(r.equipos_integrantes)} persona${num(r.equipos_integrantes) === 1 ? '' : 's'} distinta${num(r.equipos_integrantes) === 1 ? '' : 's'}) · <b>${col}</b> tarea${col === 1 ? '' : 's'} colectiva${col === 1 ? '' : 's'}: ${num(r.colectivas_aprobadas)} aprobadas, ${num(r.colectivas_en_revision)} en revisión, ${num(r.colectivas_abiertas)} abiertas, ${num(r.colectivas_vencidas)} vencidas. Cada una cuenta una vez, no una por integrante.</li>` : ''}
+      ${num(r.tareas_anuladas) + num(r.colectivas_anuladas) ? `<li><b>${num(r.tareas_anuladas) + num(r.colectivas_anuladas)}</b> anulada${num(r.tareas_anuladas) + num(r.colectivas_anuladas) === 1 ? '' : 's'} (no cuentan en ninguna cifra)</li>` : ''}
+      ${r.peso_tareas_regla != null ? `<li>Las tareas pesan <b>${escHtml(f1(num(r.peso_tareas_regla)))} %</b> del resultado de este PE${r.regla_confirmada ? '' : ' (regla sin confirmar)'} · <b>${num(r.n_nota_tareas)}</b> persona${num(r.n_nota_tareas) === 1 ? '' : 's'} con nota de tareas</li>` : ''}`;
     const tareas = r.tareas_aplican
-      ? `<ul class="rg-lista"><li><b>${num(r.tareas_total)}</b> tareas = ${num(r.tareas_asignadas)} asignadas + ${num(r.tareas_propias)} por iniciativa propia</li>
+      ? `<ul class="rg-lista"><li><b>${num(r.tareas_total)}</b> tareas individuales = ${num(r.tareas_asignadas)} asignadas + ${num(r.tareas_propias)} por iniciativa propia</li>
           <li><b>${num(r.tareas_aprobadas)}</b> aprobadas · <b>${num(r.tareas_en_revision)}</b> en revisión · <b>${num(r.tareas_abiertas)}</b> abiertas (${num(r.tareas_devueltas)} devueltas, ${num(r.tareas_bloqueadas)} bloqueadas)</li>
           <li><b>${num(r.tareas_vencidas)}</b> vencidas (nunca entregadas, plazo pasado) · <b>${num(r.tareas_entregadas)}</b> asignadas entregadas · <b>${num(r.a_tiempo)}</b> de <b>${num(r.con_plazo)}</b> con plazo, a tiempo</li>
           ${num(r.puntos_n) ? `<li>Puntos de las tareas aprobadas: promedio <b>${escHtml(f1(num(r.puntos_suma) / num(r.puntos_n)))}</b> sobre ${num(r.puntos_n)} tarea${num(r.puntos_n) === 1 ? '' : 's'}</li>` : ''}
-          <li><b>${num(r.actividades_con_tareas)}</b> actividad${num(r.actividades_con_tareas) === 1 ? '' : 'es'} con tareas (${num(r.tareas_en_actividades_aprobadas)} de ${num(r.tareas_en_actividades)} tareas vinculadas, aprobadas)</li></ul>`
+          <li><b>${num(r.actividades_con_tareas)}</b> actividad${num(r.actividades_con_tareas) === 1 ? '' : 'es'} con tareas (${num(r.tareas_en_actividades_aprobadas)} de ${num(r.tareas_en_actividades)} tareas vinculadas, aprobadas)</li>
+          ${extra}</ul>`
       : '<p class="cfg-hint">Este PE usa la rúbrica clásica: las tareas asignables solo existen en los PE de la rúbrica por roles.</p>';
     return `<div class="rg-det-grid">
       <div class="rg-mini"><h4>Tareas</h4>${tareas}</div>
@@ -396,6 +422,8 @@ const ReporteGeneral = (() => {
     <li><b>Promedio de resultados</b>: suma de los resultados publicados ÷ cantidad de resultados (ponderado: un PE con más resultados pesa más). La rúbrica por roles (sobre 100) y la clásica son escalas distintas y nunca se mezclan. Un borrador no cuenta.</li>
     <li><b>Tareas</b>: todas las de las personas de la vista en ese PE (asignadas + por iniciativa propia). <b>Abiertas</b>: asignadas, en curso, devueltas o bloqueadas. <b>En revisión</b>: entregadas sin aprobar. <b>Aprobadas</b>: cerradas con puntos. Cada tarea cae en un solo grupo.</li>
     <li><b>Vencidas</b>: tareas asignadas nunca entregadas con el plazo pasado; lo bloqueado no cuenta. <b>A tiempo</b>: entregadas dentro del plazo ÷ entregadas con plazo (primera entrega).</li>
+    <li><b>Tareas colectivas y equipos</b>: una tarea de equipo es UNA unidad aunque la compartan varias personas (no se cuenta por integrante) y se suma a las individuales para el total de tareas. Una persona en dos equipos cuenta una sola vez. Las tareas anuladas no entran en ninguna cifra y se informan aparte. Si un equipo reúne personas de varios distritos, los cortes por distrito de sus tareas no suman al total.</li>
+    <li><b>Resultado y tareas</b>: el resultado de cada persona ya incluye la nota de sus tareas según la regla del PE (peso en %); se lee tal cual de la evaluación, este reporte no lo recalcula.</li>
     <li><b>Actividades</b>: las que tienen tareas en el PE. Una actividad puede aparecer en dos PE, por eso no se totalizan.</li>
     <li><b>Sin datos</b>: el PE no tiene ninguna evaluación (ni borrador) ni tareas. No es lo mismo que «0 %»: significa que aún no hay información.</li>
     <li>Las rúbricas anteriores (clásicas) no tienen tareas: se muestra «no aplica», no cero.</li></ul>`;

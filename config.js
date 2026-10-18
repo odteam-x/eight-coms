@@ -218,6 +218,7 @@ const ACCIONES = {
   rgPersonas:     (a) => ReporteGeneral.personas(a),
   rgAbrirPE:      (a) => ReporteGeneral.abrirPE(a),
   rgLimpiar:      ()  => ReporteGeneral.limpiar(),
+  rgCsv:          ()  => ReporteGeneral.csv(),
   rgFiltrosToggle: () => ReporteGeneral.filtrosToggle(),
   rgActualizar:   ()  => ReporteGeneral.cargar(),
   repSeccion:     (a) => Reportes.toggleSeccion(a),
