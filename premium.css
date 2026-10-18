@@ -280,9 +280,11 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .btn-cfg-add:active { transform: scale(.985); }
 .btn-cfg-add:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
 
-.cfg-inp, .cfg-textarea, .search-inp { border-radius: var(--r-fila); border: 1px solid transparent; background: var(--surface-1); min-height: 48px; font-size: var(--fs-md); }
+/* `background-color`, no el shorthand `background`: el shorthand borraba también la flecha del <select> (shared.css la pinta con
+   background-image en .cfg-select), así que ningún selector del sitio tenía chevron. */
+.cfg-inp, .cfg-textarea, .search-inp { border-radius: var(--r-fila); border: 1px solid transparent; background-color: var(--surface-1); min-height: 48px; font-size: var(--fs-md); }
 .cfg-inp:hover, .search-inp:hover { border-color: var(--trazo); }
-.cfg-inp:focus, .cfg-textarea:focus, .search-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.cfg-inp:focus, .cfg-textarea:focus, .search-inp:focus { border-color: var(--action); background-color: var(--surface-2); }
 .search-inp { border-radius: var(--r-control); padding-inline: var(--sp-5); }
 .cfg-field-lbl, .cfg-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); letter-spacing: 0; text-transform: none; }
 
@@ -327,9 +329,9 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .tk-info { background: color-mix(in srgb, var(--data) 12%, var(--surface-2)); border-radius: var(--r-fila); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--txt-2); }
 .tk-campo { margin-bottom: var(--sp-4); }
 .tk-campo label, .tk-campo legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); letter-spacing: 0; margin-bottom: var(--sp-2); }
-.tk-campo .cfg-inp { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); border: 1px solid transparent; font-size: 16px; }
+.tk-campo .cfg-inp { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila); background-color: var(--surface-1); border: 1px solid transparent; font-size: 16px; }
 .tk-campo textarea.cfg-inp { padding: var(--sp-3) var(--sp-4); min-height: 96px; }
-.tk-campo .cfg-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.tk-campo .cfg-inp:focus { border-color: var(--action); background-color: var(--surface-2); }
 .tk-checks-lista { border: 0; border-radius: var(--r-fila); background: var(--surface-1); padding: 0; max-height: 240px; }
 .tk-check { padding: 0 var(--sp-4); min-height: 48px; font-size: var(--fs-sm); cursor: pointer; }
 .tk-check + .tk-check { border-top: 1px solid var(--trazo); }
@@ -432,7 +434,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .ov-action-btn { min-height: 44px; padding: 0 var(--sp-4); font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; }
 .rank-tab-btn.active, .rank-tab-btn[aria-pressed="true"] { background: var(--surface-3) !important; color: var(--txt) !important; }
 .btn-icon { width: 40px; height: 40px; min-width: 40px; }
-.modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background: var(--surface-1); font-size: 16px; }
+.modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background-color: var(--surface-1); font-size: 16px; }
 .modal-box .field input[type="checkbox"], .field input[type="checkbox"] { min-height: 0; width: 22px; height: 22px; padding: 0; border-radius: 7px; background: transparent; }
 @media (max-width: 767px) { .modal-actions { flex-direction: column-reverse; align-items: stretch; } }
 
@@ -1107,3 +1109,7 @@ a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }
 /* Filas de ajuste con enlace y texto largo: el icono se queda a la derecha (igual que con botones). */
 .cuenta-cols a.fila-aj { flex-wrap: nowrap; }
 .cuenta-cols a.fila-aj .fila-aj-txt { flex: 1 1 0; }
+
+/* ── <select> con flecha: el relleno derecho deja sitio al chevron en todos los contextos ─────────────────
+   `.tk-campo .cfg-inp` (padding: 0 16px) y movil.css (padding-inline) lo pisaban y el texto corría bajo la flecha. */
+.cfg-inp.cfg-select, select.cfg-select { padding-inline-end: calc(var(--sp-4) + 24px); text-overflow: ellipsis; }

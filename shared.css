@@ -1769,7 +1769,7 @@ select:-webkit-autofill {
   letter-spacing: .01em; line-height: 1; margin-bottom: var(--sp-5);
 }
 .tk-campo label, .tk-campo legend { font-size: var(--fs-sm); letter-spacing: .01em; color: var(--txt-2); }
-.tk-box .cfg-inp, .tk-box .cfg-textarea { border-radius: var(--r-fila); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.tk-box .cfg-inp, .tk-box .cfg-textarea { border-radius: var(--r-fila); background-color: color-mix(in srgb, var(--surface-2) 70%, transparent); }
 .tk-checks-lista { border-radius: var(--r-fila); border-color: var(--trazo); }
 .tk-info { border-radius: var(--r-fila); background: color-mix(in srgb, var(--data) 10%, var(--surface-2)); }
 .tk-modal-acciones { margin-top: var(--sp-5); justify-content: flex-end; flex-direction: row-reverse; }
@@ -1805,7 +1805,9 @@ select:-webkit-autofill {
 .bus-txt { display: flex; flex-direction: column; min-width: 0; }
 .bus-txt strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); overflow-wrap: anywhere; }
 .bus-txt small { font-size: var(--fs-xs); color: var(--txt-2); }
-.bus-item:hover, .bus-item.sel { background: var(--surface-3); }
+/* `--sel`, no `.sel`: evolucion.css define .sel como la columna del Selector de personas y le daba su display:flex column
+   (icono centrado sobre el texto) a la fila elegida del buscador. */
+.bus-item:hover, .bus-item--sel { background: var(--surface-3); }
 .bus-vacio { padding: var(--sp-5); text-align: center; color: var(--txt-2); font-size: var(--fs-sm); }
 
 /* ── Rail: buscador, tarjeta de próxima fecha y cuenta ──────────────── */
