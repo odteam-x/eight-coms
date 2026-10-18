@@ -92,7 +92,7 @@ const _ACCIONES_SIMPLES = new Set([
   // seguimiento global
   'segBuscar', 'segFiltro',
   // equipos (core/equipos.js)
-  'eqFiltrar',
+  'eqFiltrar', 'eqFiltrarTareas',
   // estadísticas de Instagram del distrito (core/estadisticas-distrito.js)
   'estDistArchivo', 'estDistCampo', 'distBuscar',
 ]);
@@ -133,7 +133,10 @@ const ACCIONES = {
   selQuitar:     (a, el) => Selector.de(a)?.quitar(el.dataset.arg2),
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
-  eq:            (a, el) => Equipos.accion(a, el.dataset.arg2),
+  eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
+  partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
+  partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),
+  partMasivo:    ()      => participacionMasiva(),
   estDist:       (a, el) => EstadisticasDistrito.accion(a, el),
   evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),

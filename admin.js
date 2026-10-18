@@ -2389,6 +2389,8 @@ function montarTareas() {
       '<div class="empty-box"><div class="empty-txt">Las tareas están disponibles en los períodos nuevos, con la rúbrica por roles. Este período conserva su forma de entrega original: elige uno más reciente.</div></div>';
     return;
   }
+  const hostEq = document.getElementById('tareas-equipo-host');
+  if (hostEq) Equipos.montarTareas(hostEq, { periodoId: _activePETareas.id, yo: CU.id, esAdmin: true, periodos: _periodos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   Tareas.montar({
     id: 'adm-tareas', el: document.getElementById('tareas-lista'),
     periodoId: _activePETareas.id, yo: CU.id, revisor: true, esAdmin: true,

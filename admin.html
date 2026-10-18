@@ -132,6 +132,11 @@
       </div>
     </div>
     <div id="tareas-lista"></div>
+    <section class="tq-equipo" aria-labelledby="tq-equipo-h">
+      <h2 class="pf-h" id="tq-equipo-h">Tareas de equipo</h2>
+      <p class="gp-s">Las tareas colectivas del período, agrupadas por equipo.</p>
+      <div id="tareas-equipo-host"></div>
+    </section>
   </div>
 
   <!-- ── TAB: EQUIPOS (0031–0036) ── -->
@@ -155,6 +160,7 @@
         <span class="pe-label">Período activo</span>
         <div class="users-pe-btns" id="users-pe-btns"></div>
       </div>
+      <button type="button" class="tk-btn" data-act="partMasivo"><i data-lucide="users" aria-hidden="true"></i>Participación por PE</button>
       <input class="search-inp" id="search-usuarios" aria-label="Buscar usuario por nombre o email" type="search" placeholder="Buscar por nombre o email…" data-input="renderUsuarios">
       <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios">
         <option value="">Todos los distritos</option>

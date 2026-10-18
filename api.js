@@ -546,6 +546,20 @@ const API = {
     return { ok: !error, error: error?.message };
   },
 
+  /** Participación de UNA persona en todos los PE (los que no tienen fila participan: «activo» por omisión). */
+  async getParticipacionPersona(user_id) {
+    const { data, error } = await SB.from('periodo_participantes').select('periodo_id, activo').eq('user_id', user_id);
+    return error ? { ok: false, error: error.message, rows: [] } : { ok: true, rows: data ?? [] };
+  },
+  /** Activa o desactiva a VARIAS personas en VARIOS PE de una vez (un solo upsert). */
+  async setParticipacionMasiva(periodoIds, userIds, activo) {
+    const filas = [];
+    for (const periodo_id of periodoIds) for (const user_id of userIds) filas.push({ periodo_id, user_id, activo });
+    if (!filas.length) return { ok: true, n: 0 };
+    const { error } = await SB.from('periodo_participantes').upsert(filas, { onConflict: 'periodo_id,user_id' });
+    return { ok: !error, error: error?.message, n: filas.length };
+  },
+
   // ── DISTRITOS ────────────────────────────────────────────────────────
   async getDistritos() {
     const { data } = await SB.from('distritos').select('*').eq('activo', true).order('id');

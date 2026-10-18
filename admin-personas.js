@@ -219,6 +219,55 @@ async function renderPersonasCards() {
 const _refrescarGestion = () => Perfil.tab('gestion', document.getElementById('panel-lateral-cuerpo'));
 
 async function gestionAprobar(id, aprobado) { await updateUserAprobado(id, aprobado); _refrescarGestion(); }
+/** Un PE de una persona (desde su pestaña Gestión). */
+async function participacionPE(userId, periodoId, activar) {
+  const r = await API.setParticipacionMasiva([periodoId], [userId], activar);
+  if (!r.ok) { showToast('No se pudo guardar: ' + r.error, 'error'); return; }
+  if (_activePEUsers && String(_activePEUsers.id) === String(periodoId)) { activar ? _inactivosPE.delete(userId) : _inactivosPE.add(userId); renderUsuarios(); }
+  invalidarPersonasRes(); _refrescarGestion();
+  showToast(activar ? 'Participa en ese período' : 'Desactivada en ese período', 'ok');
+}
+/** Todos los PE de una persona de una vez. */
+async function participacionTodos(userId, activar) {
+  const r = await API.setParticipacionMasiva(_periodos.map(p => p.id), [userId], activar);
+  if (!r.ok) { showToast('No se pudo guardar: ' + r.error, 'error'); return; }
+  if (_activePEUsers) { activar ? _inactivosPE.delete(userId) : _inactivosPE.add(userId); renderUsuarios(); }
+  invalidarPersonasRes(); _refrescarGestion();
+  showToast(activar ? 'Activada en todos los períodos' : 'Desactivada en todos los períodos', 'ok');
+}
+
+/** Herramienta masiva: varias personas × varios PE, activar o desactivar, en una sola operación. */
+function participacionMasiva() {
+  const gente = _users.filter(u => !u.es_admin);
+  const personas = gente.map(u => Selector.persona({ id: u.id, nombre: u.nombre || u.email, distrito: u.distrito, rol_nombre: u.roles?.nombre || '' }));
+  Selector.soltar('part-masiva');
+  const sel = Selector.crear({ id: 'part-masiva', personas, equipos: Selector.equiposDe(personas), seleccion: [] });
+  Tareas.abrirModal({
+    titulo: 'Participación por período',
+    campos: [
+      { tipo: 'info', texto: 'Elige a quién y en qué períodos. Quien se desactiva deja de contar en el resumen y los rankings de esos períodos; no se borra nada y se puede revertir.' },
+      { id: 'accion', tipo: 'select', label: 'Acción', valor: 'off', opciones: [{ v: 'off', l: 'Desactivar' }, { v: 'on', l: 'Activar' }] },
+      { id: 'pes', tipo: 'checks', label: 'Períodos', req: true, valor: _periodos.filter(p => p.activo).map(p => String(p.id)), opciones: _periodos.map(p => ({ v: String(p.id), l: p.nombre + (p.activo ? ' (activo)' : '') })) },
+      { tipo: 'html', html: '<div id="part-sel-host"></div>' },
+    ],
+    confirmar: 'Aplicar',
+    onConfirm: async v => {
+      const ids = sel.seleccion();
+      if (!ids.length) return 'Elige al menos una persona.';
+      if (!(v.pes || []).length) return 'Elige al menos un período.';
+      const activar = v.accion === 'on';
+      const r = await API.setParticipacionMasiva(v.pes, ids, activar);
+      if (!r.ok) return r.error;
+      if (_activePEUsers && v.pes.includes(String(_activePEUsers.id))) ids.forEach(id => activar ? _inactivosPE.delete(id) : _inactivosPE.add(id));
+      invalidarPersonasRes(); renderUsuarios();
+      showToast(`${ids.length} persona${ids.length === 1 ? '' : 's'} ${activar ? 'activada' : 'desactivada'}${ids.length === 1 ? '' : 's'} en ${v.pes.length} período${v.pes.length === 1 ? '' : 's'}`, 'ok');
+      return null;
+    },
+  });
+  const host = document.getElementById('part-sel-host');
+  if (host) { sel.montar(host); renderIconos(host); }
+}
+
 async function gestionParticipante(id, eraInactivo) { await toggleParticipante(id, eraInactivo); invalidarPersonasRes(); _refrescarGestion(); }
 function borrarDesdePerfil(id) { cerrarPanel(); confirmDeleteUser(id); }
 
@@ -265,6 +314,8 @@ async function renderGestionPersona(cuerpo, ctx) {
   const u = _users.find(x => String(x.id) === String(ctx.persona.id));
   if (!u) { cuerpo.innerHTML = '<div class="empty-box"><div class="empty-txt">Esta persona ya no existe.</div></div>'; return; }
   const rolesPermitidos = await rolesPermitidosHTML(u);
+  const part = await API.getParticipacionPersona(u.id);
+  const inactivosPersona = new Set((part.rows || []).filter(r => r.activo === false).map(r => String(r.periodo_id)));
   const nombre = u.nombre || u.email;
   const aprobado = u.aprobado !== false;
   const inactivo = _inactivosPE.has(u.id);
@@ -305,14 +356,19 @@ async function renderGestionPersona(cuerpo, ctx) {
 
       ${rolesPermitidos}
 
-      ${pe ? `<section class="pf-card" aria-labelledby="gp-h-pe">
-        <h3 class="pf-h" id="gp-h-pe">Participación en ${escHtml(pe.nombre)}</h3>
-        <div class="gp-fila">
-          <div><div class="gp-t">${inactivo ? 'No participa en este período' : 'Participa en este período'}</div>
-            <div class="gp-s">Quien no participa no cuenta en el resumen ni en los rankings.</div></div>
-          <button type="button" class="btn-save" data-act="gestionParticipante" data-arg="${escHtml(u.id)}" data-arg2="${inactivo}">${inactivo ? 'Activar' : 'Desactivar'}</button>
-        </div>
-      </section>` : ''}
+      <section class="pf-card" aria-labelledby="gp-h-pe">
+        <h3 class="pf-h" id="gp-h-pe">Participación por período</h3>
+        <p class="gp-s">Quien no participa en un período no cuenta en su resumen ni en sus rankings. Cambia cada período aquí mismo, sin cambiar de PE activo.</p>
+        ${_periodos.length ? `<ul class="gp-pe-lista">${_periodos.map(p => {
+          const off = inactivosPersona.has(String(p.id));
+          return `<li class="gp-pe-fila"><span class="gp-t">${escHtml(p.nombre)}${p.activo ? ' <span class="etiqueta etq-verde">Activo</span>' : ''}${p.modelo === 'v2' ? '' : ' <span class="etiqueta etq-gris">Clásico</span>'}</span>
+            <button type="button" class="pe-toggle ${off ? 'pe-toggle--off' : 'pe-toggle--on'}" data-act="partPE" data-arg="${escHtml(u.id)}" data-arg2="${escHtml(p.id)}" data-arg3="${off}"
+              aria-label="${off ? 'Activar' : 'Desactivar'} a ${aria} en ${escHtml(p.nombre)}">${off ? 'Inactiva' : 'Participa'}</button></li>`; }).join('')}</ul>
+          <div class="gp-fila gp-pe-todos">
+            <button type="button" class="tk-btn" data-act="partTodos" data-arg="${escHtml(u.id)}" data-arg2="false">Desactivar en todos</button>
+            <button type="button" class="tk-btn" data-act="partTodos" data-arg="${escHtml(u.id)}" data-arg2="true">Activar en todos</button>
+          </div>` : '<p class="gp-s">Todavía no hay períodos.</p>'}
+      </section>
 
       <section class="pf-card pf-card--peligro" aria-labelledby="gp-h-borrar">
         <h3 class="pf-h" id="gp-h-borrar">Eliminar</h3>

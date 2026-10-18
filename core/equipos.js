@@ -51,7 +51,17 @@ const Equipos = (() => {
     modo: 'admin', host: null, yo: null, esAdmin: false, periodos: [], personas: new Map(), distritos: [],
     periodoId: null, equipos: [], miembros: new Map(), f: { q: '', estado: '', resp: '' },
     eqId: null, tareas: [], integrantes: [], resultados: [], eventos: [], cargando: false, onCambio: null,
+    tq: { equipo: '', estado: '' },
   };
+  /* Una misma página puede tener varios contenedores de equipos (Entregas y Tareas, por ejemplo). El estado es uno solo;
+     al pulsar algo en otro contenedor se guarda el del anterior y se recupera el de ese. */
+  const SNAP = {};
+  function usar(host) {
+    if (!host || S.host === host) return;
+    if (S.host && S.host.id) SNAP[S.host.id] = { ...S };
+    const sn = SNAP[host.id];
+    if (sn) Object.assign(S, sn);
+  }
   const soloLectura = () => document.body.classList.contains('gestion-archivada');
   const v2 = () => (S.periodos || []).filter(p => typeof esPeriodoV2 === 'function' ? esPeriodoV2(p) : p.modelo === 'v2');
 
@@ -124,6 +134,7 @@ const Equipos = (() => {
 
   /* ══ ADMIN: lista ════════════════════════════════════════════════════ */
   async function montarAdmin(host, { yo, periodos, personas, distritos = [], onCambio = null }) {
+    if (S.host && S.host !== host && S.host.id) SNAP[S.host.id] = { ...S };
     Object.assign(S, { modo: 'admin', host, yo, esAdmin: true, periodos, distritos, onCambio, eqId: null,
       personas: new Map((personas || []).map(p => [p.id, p])) });
     const pe = v2();
@@ -204,6 +215,7 @@ const Equipos = (() => {
   }
 
   function filtrar(el) {
+    usar(el.closest('#eq-host'));
     const f = el.dataset.f;
     if (f === 'periodo') { S.periodoId = el.value; listar(); return; }
     S.f[f] = el.value;
@@ -286,7 +298,7 @@ const Equipos = (() => {
     S.host.innerHTML = `
       <div class="eq-detalle">
         <div class="eq-detalle-cab">
-          <button type="button" class="tk-btn" data-act="eq" data-arg="${S.modo === 'admin' ? 'lista' : 'lista-miembro'}"><i data-lucide="arrow-left" aria-hidden="true"></i>Volver</button>
+          <button type="button" class="tk-btn" data-act="eq" data-arg="${S.modo === 'admin' ? 'lista' : S.modo === 'tareas' ? 'lista-tareas' : 'lista-miembro'}"><i data-lucide="arrow-left" aria-hidden="true"></i>Volver</button>
           <div>
             <h2 class="eq-detalle-t">${escHtml(e.nombre)} <span class="etiqueta ${est.cls}">${est.txt}</span></h2>
             <p class="eq-card-sub">${escHtml(e.periodo_nombre)}${e.distrito ? ' · Ámbito: ' + escHtml(e.distrito) : ' · Transversal'} · ${e.responsable_nombre ? 'Responsable: ' + escHtml(e.responsable_nombre) : 'Sin responsable'}</p>
@@ -462,7 +474,8 @@ const Equipos = (() => {
   }
 
   async function refrescar() {
-    if (S.modo === 'admin' || S.eqId) { if (S.eqId) await abrir(S.eqId); else await listar(); }
+    if (S.modo === 'tareas' && !S.eqId) await recargarTareas();
+    else if (S.modo === 'admin' || S.eqId) { if (S.eqId) await abrir(S.eqId); else await listar(); }
     else await recargarMiembro();
     S.onCambio?.();
   }
@@ -581,6 +594,7 @@ const Equipos = (() => {
 
   /* ══ MIEMBRO / SECRETARÍA: «Mis equipos» ═════════════════════════════ */
   async function montarMiembro(host, { periodoId, yo, periodos = [], esSecretaria = false }) {
+    if (S.host && S.host !== host && S.host.id) SNAP[S.host.id] = { ...S };
     Object.assign(S, { modo: esSecretaria ? 'secretaria' : 'miembro', host, yo, esAdmin: false, periodoId, periodos, eqId: null, personas: new Map() });
     await recargarMiembro();
   }
@@ -611,8 +625,87 @@ const Equipos = (() => {
     renderIconos(host);
   }
 
+
+  /* ══ SECCIÓN «TAREAS DE EQUIPO» (pestaña Tareas de administración y secretaría) ═══════════════════
+   * Todas las tareas colectivas del PE, agrupadas por equipo, con los mismos botones que el detalle del equipo.
+   * Lo que ve cada quien lo decide la base (administración: todas; secretaría: las de su distrito...). */
+  async function montarTareas(host, { periodoId, yo, esAdmin = false, periodos = [], personas = [], onCambio = null }) {
+    if (S.host && S.host !== host && S.host.id) SNAP[S.host.id] = { ...S };
+    Object.assign(S, { modo: 'tareas', host, yo, esAdmin, periodoId, periodos, eqId: null, onCambio,
+      personas: new Map((personas || []).map(p => [p.id, p])) });
+    await recargarTareas();
+  }
+
+  async function recargarTareas() {
+    const host = S.host; if (!host) return;
+    const per = (S.periodos || []).find(p => String(p.id) === String(S.periodoId));
+    if (per && !(typeof esPeriodoV2 === 'function' ? esPeriodoV2(per) : per.modelo === 'v2')) {
+      host.innerHTML = `<div class="empty-box"><div class="empty-txt">Los equipos y sus tareas existen en los PE con la rúbrica por roles. Elige uno de esos PE.</div></div>`; return;
+    }
+    renderCargando(host);
+    const [r, t] = await Promise.all([API.getEquipos({ periodoId: S.periodoId }), API.getTareasEquipo({ periodoId: S.periodoId })]);
+    if (!r.ok) { host.innerHTML = r.noDisponible ? noDisponibleHTML() : ''; if (!r.noDisponible) renderError(host, r.error, recargarTareas); return; }
+    S.equipos = r.equipos; S.tareas = t.ok ? t.tareas : [];
+    pintarTareas();
+  }
+
+  const FILTROS_TQ = [['', 'Todas'], ['abiertas', 'Abiertas'], ['revisar', 'Por revisar'], ['vencidas', 'Vencidas'], ['aprobadas', 'Aprobadas'], ['anuladas', 'Anuladas']];
+  const pasaTQ = (t, f) => !f || (f === 'abiertas' && ['asignada', 'en_curso', 'bloqueada', 'devuelta'].includes(t.estado)) || (f === 'revisar' && t.estado === 'entregada')
+    || (f === 'vencidas' && t.vencida) || (f === 'aprobadas' && t.estado === 'aprobada') || (f === 'anuladas' && t.estado === 'anulada');
+
+  function pintarTareas() {
+    const lista = S.tareas.filter(t => (!S.tq.equipo || String(t.equipo_id) === S.tq.equipo) && pasaTQ(t, S.tq.estado));
+    const grupos = new Map();
+    for (const e of S.equipos) grupos.set(e.equipo_id, { e, tareas: [] });
+    for (const t of lista) { if (!grupos.has(t.equipo_id)) grupos.set(t.equipo_id, { e: { equipo_id: t.equipo_id, nombre: t.equipo_nombre, estado: 'activo' }, tareas: [] }); grupos.get(t.equipo_id).tareas.push(t); }
+    const visibles = [...grupos.values()].filter(g => g.tareas.length);
+    const porRevisar = S.tareas.filter(t => t.estado === 'entregada' && t.puedo_revisar).length;
+    S.host.innerHTML = `
+      <div class="filtros-fila eq-filtros">
+        <label class="eq-f"><span>Equipo</span>
+          <select class="cfg-inp cfg-select" data-change="eqFiltrarTareas" data-f="equipo" aria-label="Equipo">
+            <option value="">Todos los equipos</option>${S.equipos.map(e => `<option value="${e.equipo_id}"${S.tq.equipo === String(e.equipo_id) ? ' selected' : ''}>${escHtml(e.nombre)}</option>`).join('')}
+          </select></label>
+        <label class="eq-f"><span>Estado</span>
+          <select class="cfg-inp cfg-select" data-change="eqFiltrarTareas" data-f="estado" aria-label="Estado de la tarea">
+            ${FILTROS_TQ.map(([v, l]) => `<option value="${v}"${S.tq.estado === v ? ' selected' : ''}>${l}${v === 'revisar' && porRevisar ? ` (${porRevisar})` : ''}</option>`).join('')}
+          </select></label>
+        ${soloLectura() || !(S.esAdmin || S.modo === 'tareas') ? '' : `<button type="button" class="btn-save" data-act="eq" data-arg="nueva-desde-tareas"><i data-lucide="plus" aria-hidden="true"></i>Nueva tarea de equipo</button>`}
+      </div>
+      ${!S.equipos.length ? `<div class="empty-box"><div class="empty-txt">Este PE todavía no tiene equipos${S.esAdmin ? ': créalos en la pestaña Equipos' : ''}.</div></div>`
+        : !visibles.length ? `<div class="empty-box"><div class="empty-txt">${S.tareas.length ? 'Ninguna tarea coincide con el filtro.' : 'Todavía no hay tareas de equipo en este PE.'}</div></div>`
+        : visibles.map(g => `
+          <section class="eq-grupo" aria-label="Tareas del equipo ${escHtml(g.e.nombre)}">
+            <div class="eq-grupo-cab"><h4 class="pf-sub">${escHtml(g.e.nombre)}</h4>
+              <button type="button" class="tk-btn" data-act="eq" data-arg="abrir" data-arg2="${g.e.equipo_id}">Ver el equipo</button></div>
+            <div class="tk-lista">${g.tareas.map(tareaHTML).join('')}</div>
+          </section>`).join('')}`;
+    renderIconos(S.host);
+  }
+
+  function filtrarTareas(el) { usar(el.closest('#tareas-equipo-host')); S.tq[el.dataset.f] = el.value; pintarTareas(); }
+
+  /** «Nueva tarea de equipo» desde la pestaña Tareas: primero se elige el equipo. */
+  function elegirEquipoParaTarea() {
+    const activos = S.equipos.filter(e => e.estado === 'activo');
+    if (!activos.length) { showToast('No hay equipos activos en este PE.', 'info'); return; }
+    Tareas.abrirModal({
+      titulo: 'Nueva tarea de equipo',
+      campos: [{ id: 'equipo', tipo: 'select', label: 'Equipo', valor: String(activos[0].equipo_id), opciones: activos.map(e => ({ v: String(e.equipo_id), l: e.nombre })) }],
+      confirmar: 'Continuar',
+      onConfirm: async v => {
+        S.eqId = Number(v.equipo);
+        const ints = await API.getEquipoIntegrantes(S.eqId);
+        S.integrantes = ints.ok ? ints.integrantes : [];
+        setTimeout(modalNuevaTarea, 0);
+        return null;
+      },
+    });
+  }
+
   /* ══ Despachador ═════════════════════════════════════════════════════ */
-  function accion(a, id) {
+  function accion(a, id, el) {
+    usar(el?.closest?.('#eq-host, #equipos-host, #tareas-equipo-host'));
     if (String(a).startsWith('t-')) return accionTarea(a, id);
     switch (a) {
       case 'nuevo':   return formularioEquipo(null);
@@ -620,6 +713,8 @@ const Equipos = (() => {
       case 'abrir': case 'abrir-miembro': return abrir(id);
       case 'lista':   return listar();
       case 'lista-miembro': return recargarMiembro();
+      case 'lista-tareas': S.eqId = null; return recargarTareas();
+      case 'nueva-desde-tareas': return elegirEquipoParaTarea();
       case 'miembros': return modalMiembros();
       case 'retirar': return modalRetirar(id);
       case 'estado':  return modalEstado();
@@ -627,8 +722,9 @@ const Equipos = (() => {
     }
   }
 
-  return { montarAdmin, montarMiembro, accion, filtrar, tareaHTML, ESTADOS: EST_TAREA };
+  return { montarAdmin, montarMiembro, montarTareas, accion, filtrar, filtrarTareas, tareaHTML, ESTADOS: EST_TAREA };
 })();
 
 /* Globales de la lista blanca de config.js (data-input / data-change). */
 function eqFiltrar(el) { Equipos.filtrar(el); }
+function eqFiltrarTareas(el) { Equipos.filtrarTareas(el); }
