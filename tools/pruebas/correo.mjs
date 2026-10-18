@@ -243,5 +243,10 @@ try { await N.crearPuente(cfgP, fake('{"ok":false,"error":"Destinatario no váli
 try { await N.crearPuente(cfgP, fake('{"ok":false,"error":"Service invoked too many times"}'))({}); } catch (x) { ok(x.permanente === false, 'la cuota diaria agotada es transitoria (se reintenta)'); }
 try { await N.crearPuente(cfgP, fake('<html>login de Google</html>', 200))({}); } catch (x) { ok(x.permanente === undefined && /inesperada/.test(x.message), 'una respuesta que no es JSON (p. ej. pide iniciar sesión) es un fallo transitorio con motivo claro'); }
 
+console.log('\n[la campana (front) conoce todos los tipos del catálogo]');
+const nf = fs.readFileSync(DIR + '../../core/notificaciones.js', 'utf8');
+ok(cat.every(t => new RegExp('\\b' + t.tipo + ':\\s*\\{').test(nf)), 'core/notificaciones.js tiene icono y texto para los ' + cat.length + ' tipos (ninguno cae en «Aviso» genérico)');
+for (const viejo of ['nota_publicada', 'nota_corregida', 'tarea_devuelta', 'plazo_movido', 'entrega_por_revisar']) ok(new RegExp(viejo + ':\\s*[\'"]').test(nf), 'y entiende el nombre anterior «' + viejo + '» (base sin 0040)');
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

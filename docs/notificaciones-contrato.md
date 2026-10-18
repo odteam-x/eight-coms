@@ -42,7 +42,7 @@ PERFORM public.notif_emitir(
 | `calificacion_nueva` | la persona (o integrantes del equipo) calificada | `periodo`, `actividad`, `equipo`, `evaluador` | `evaluacion` / `tarea` | sí |
 | `calificacion_cambiada` | ídem | ídem | ídem | sí |
 | `observacion_nueva` | la persona / equipo que recibe la retroalimentación | `periodo`, `actividad`, `equipo`, `autor` (sin el texto) | `evaluacion` / `tarea` | no |
-| `estado_cambiado` | las personas afectadas por el cambio | `objeto`, `nombre`, `antes`, `ahora`, `cambiado_por` | según objeto | no |
+| `estado_cambiado` | las personas afectadas por el cambio | `objeto`, `elemento`, `antes`, `ahora`, `cambiado_por` | según objeto | no |
 
 Existentes que **se conservan** (y alimentan lo anterior): `tarea_aprobada`, `tarea_bloqueada`,
 `solicitud_acceso`, `acceso_aprobado`, `actividad_nueva`, `actividad_recordatorio`, `evaluaciones_sin_publicar`.
@@ -56,3 +56,9 @@ Documentar en su rama (p. ej. `docs/equipos-puntos-de-emision.md`) por cada hech
 produce (INSERT/UPDATE/DELETE y qué columna cambia), **quién debe enterarse** (consulta que da las personas) y
 **qué clave identifica el hecho**. B escribe los disparadores en su fase 2, después de fusionar la rama de A, para
 no tocar tablas ajenas. A **no** emite avisos ni modifica `notificaciones`, `notif_*` ni `core/notificaciones.js`.
+
+## Estado (fase 2 hecha)
+Los disparadores de equipos, tareas colectivas y calificaciones están en la migración **0041** (sobre las tablas de eventos de
+0031–0036, no sobre las tablas de negocio). El `ref_tipo` de una tarea de equipo es `tarea_equipo`. Aplicación: 0040 → 0041.
+Un `notif_emitir` con tipo sin plantilla en `supabase/functions/enviar-notificaciones/plantillas.mjs` o sin entrada en
+`core/notificaciones.js` falla `tools/pruebas/correo.mjs`. Requeridas por tipo: ver `notif_tipos.requeridas` (0040).
