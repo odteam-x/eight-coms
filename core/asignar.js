@@ -211,7 +211,7 @@ const Asignar = (() => {
         </select>` : '';
       const issues = v.porPersona.get(id) || [];
       return `<article class="asig-persona">
-        <header class="asig-persona-cab"><span class="sel-av" aria-hidden="true">${escHtml(initials(p.nombre) || '?')}</span>
+        <header class="asig-persona-cab">${Avatar.html(p, { tam: 'sm' })}
           <div><b>${escHtml(p.nombre)}</b><small>${escHtml(p.rol_nombre ? 'Rol principal: ' + p.rol_nombre : 'Sin rol principal')}${p.distrito ? ' · ' + escHtml(p.distrito) : ''}</small></div></header>
         ${sel1}
         ${E.conRoles && rolId !== '' && rolId != null ? rolInfoHTML(rolId) : ''}

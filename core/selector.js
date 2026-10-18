@@ -89,7 +89,7 @@ const Selector = (() => {
     function filaPersona(p) {
       const on = S.sel.has(p.id);
       return `<li><button type="button" class="sel-fila${on ? ' sel-fila--on' : ''}" data-act="selToggle" data-arg="${escHtml(S.id)}" data-arg2="p:${escHtml(p.id)}" aria-pressed="${on}">
-        <span class="sel-av" aria-hidden="true">${escHtml(initials(p.nombre) || '?')}</span>
+        ${Avatar.html(p, { tam: 'sm' })}
         <span class="sel-txt"><b>${escHtml(p.nombre)}</b>${p.distrito ? `<small>${escHtml(p.distrito)}</small>` : ''}<span class="sel-insignias">${insignias(p)}</span></span>
         <span class="sel-check${on ? ' sel-check--on' : ''}" aria-hidden="true">${on ? '<i data-lucide="check"></i>' : ''}</span></button></li>`;
     }

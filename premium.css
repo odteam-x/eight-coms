@@ -174,7 +174,7 @@ a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
    La tarjeta con borde desaparece: un renglón limpio con avatar y punto de
    presencia. Tema, salir y contraer comparten una sola fila de iconos. */
 .rail-user { border: 0; background: none; padding: var(--sp-2) var(--sp-2); gap: var(--sp-3); border-radius: var(--r-card); margin-block: var(--sp-1); }
-.rail-user .avatar { position: relative; width: 40px; height: 40px; flex: none; }
+.rail-user .avatar { --av: 40px; }
 .rail-user .avatar::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--cyan-400); border: 2px solid var(--navy-900); }
 .rail-uname { font-size: var(--fs-md); line-height: 1.2; }
 .rail-ts { color: var(--txt-2); }
@@ -243,10 +243,10 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
    Cabecera con la foto grande y dos columnas de listas tipo ajustes:
    a la izquierda lo que eres, a la derecha lo que puedes cambiar. */
 .rail-user { width: 100%; text-align: left; }
-.rail-user .avatar { width: 40px; height: 40px; }
+.rail-user .avatar { --av: 40px; }
 .cuenta-cab { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sec-main); flex-wrap: wrap; }
-.cuenta-foto { width: 112px; height: 112px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); color: var(--txt); font-family: var(--font-display); font-weight: 700; font-size: 2.8rem; outline: 3px solid var(--data); outline-offset: 4px; }
-.cuenta-foto img { width: 100%; height: 100%; object-fit: cover; }
+/* La foto de Mi cuenta es un .avatar (shared.css): aquí solo su tamaño. */
+.cuenta-foto { --av: 112px; }
 .cuenta-id { min-width: 0; }
 .cuenta-nombre { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem); line-height: 1.02; letter-spacing: -.02em; overflow-wrap: anywhere; }
 .cuenta-mail { color: var(--txt-2); font-size: var(--fs-md); overflow-wrap: anywhere; }
@@ -265,7 +265,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .cuenta-msg--error { color: var(--alert); }
 .cuenta-salir { margin-top: var(--sp-4); }
 .cuenta-salir .fila-aj-ind svg, .cuenta-cols .fila-aj-ind svg { width: 22px; height: 22px; }
-@media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { width: 84px; height: 84px; font-size: 2.1rem; } }
+@media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { --av: 84px; } }
 
 /* ═══ Admin: configuración, tablas y formularios ═══════════════════════
    Las pantallas de gestión usaban tablas con cabecera gris, un botón «+ Nuevo»
@@ -358,24 +358,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .rail-colapsado .rail-marca-col { display: none; }
 @media (max-height: 640px) { .rail-prox { display: none; } .rail-marca { min-height: 44px; padding-bottom: var(--sp-2); } }
 
-/* ── Personas: una lista, no una pared de tarjetas ─────────────────────
-   Avatar, nombre y rol a la izquierda; resultado a la derecha; un solo
-   contenedor con divisores finos (como las listas de ajustes). */
-.roster { display: flex; flex-direction: column; gap: 0; background: var(--surface-1); border-radius: var(--r-cont); overflow: hidden; }
-.pcard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4); width: 100%; min-height: 76px; padding: var(--sp-3) var(--sp-5); border: 0; border-top: 1px solid var(--trazo); border-radius: 0; background: none; box-shadow: none; text-align: left; transition: background .15s var(--ease); }
-.roster > .pcard:first-child { border-top: 0; }
-.pcard:hover { background: var(--surface-2); border-color: var(--trazo); }
-.pcard--yo { background: var(--surface-2); }
-.pcard-av { width: 48px; height: 48px; flex: none; }
-.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
-.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
-.pcard-yo { margin-left: var(--sp-2); }
-.pcard-valor { flex-direction: row-reverse; align-items: center; gap: var(--sp-3); }
-.pcard-valor .anillo { --tam: 52px; }
-.pcard-valor .anillo-num { font-size: 1.25rem; }
-.pcard-valor .nivel-badge { padding: 2px var(--sp-3); }
-.pcard-sin { max-width: none; font-size: var(--fs-sm); color: var(--txt-2); text-align: right; }
-@media (max-width: 520px) { .pcard { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); } .pcard-valor .nivel-badge { display: none; } }
+/* Personas: tarjeta y avatar canónicos en perfil.css (`.pcard`) y shared.css (`.avatar`); aquí no se redefinen. */
 
 
 /* ── Medallas del ranking (icono, no emoji) ───────────────────────────── */
@@ -604,36 +587,15 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 @media (max-width: 520px) { .per-fechas { grid-template-columns: minmax(0, 1fr); } }
 
 
-/* ── Personas: tarjeta de persona (exterior) ───────────────────────────── */
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--sp-3); background: none; border-radius: 0; overflow: visible; }
-.roster > .pcard, .pcard { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: var(--sp-4); border: 0; border-radius: var(--r-card); background: var(--surface-1); text-align: left; transition: background .15s var(--ease); }
-.roster > .pcard:first-child { border-top: 0; }
-.pcard:hover { background: var(--surface-2); }
-.pcard--yo { background: var(--surface-2); }
-.pcard-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
-.pcard-av { width: 56px; height: 56px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
-.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
-.pcard-valor { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
-.pcard-num { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; }
-.pcard-valor small { font-size: var(--fs-xs); color: var(--txt-muted); margin-top: 2px; }
-.pcard-sin { font-size: var(--fs-sm); color: var(--txt-2); text-align: right; max-width: 12ch; line-height: 1.2; }
-.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.2; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
-.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
-.pcard-barra { display: block; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: var(--sp-2); }
-.pcard-barra i { display: block; height: 100%; border-radius: inherit; }
-.pcard-pie { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); min-height: 28px; align-items: center; }
-.pcard-pie .nivel-badge { margin: 0; }
 
 /* ── Perfil: cabecera más sobria y cifras neutras ──────────────────────── */
 .perfil-nombre { font-size: clamp(2rem, 1.2rem + 2.6vw, 3.6rem) !important; line-height: .95; text-transform: none; letter-spacing: var(--tr-display); }
 .perfil-cab { padding-block: var(--sp-6) calc(var(--sp-6) + 36px); }
-.perfil-av { width: 96px; height: 96px; }
 .pf-kpis > :nth-child(n) { --b-bg: var(--surface-1); --b-fg: var(--txt); }
 .pf-kpis > :nth-child(1) .pf-kpi-val { color: var(--data-txt); }
 .pf-kpi { border-radius: var(--r-card); clip-path: none; }
 .pf-kpi-val { font-size: clamp(2.6rem, 3.6vw, 3.6rem); }
 .pf-kpi-lbl { color: var(--txt-2); }
-.pcard-av, .pcard-av span { color: var(--txt); }
 
 
 /* ── Cabecera de pantalla: título + acción en una fila, descripción debajo ─ */
@@ -647,7 +609,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 
 /* ── Mi cuenta: aprovecha el ancho ─────────────────────────────────────── */
 .cuenta-cab { padding: var(--sp-4) var(--sp-6); background: var(--surface-1); border-radius: var(--r-cont); gap: var(--sp-5); }
-.cuenta-foto { width: 96px; height: 96px; font-size: 2.4rem; }
+.cuenta-foto { --av: 96px; }
 .cuenta-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: var(--sp-5); }
 .cuenta-cols > section { display: flex; flex-direction: column; min-width: 0; }
 .cuenta-cols > section > .lista-aj { flex: 1; }
@@ -779,7 +741,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
    borde ni sombra, así que nada se distinguía; los campos blancos tampoco tenían
    límite visible (WCAG 1.4.11 pide 3:1: --campo-borde). :where() deja la especificidad
    en la de la clase, de modo que el foco (:focus-visible) y los estados activos ganan. */
-:where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
+:where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .pe-card, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
   box-shadow: 0 0 0 1px var(--trazo), var(--shadow-sm);
 }
 :where([data-theme="light"]) :is(.search-inp, .cfg-inp, .cfg-select, .cfg-textarea, .field input, .field select, .field textarea, select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="date"], input[type="url"], input[type="number"]) {

@@ -125,14 +125,13 @@ const Perfil = (() => {
   function _avatarHTML(inst) {
     const p = inst.persona;
     const editable = inst.modo === 'propio' && document.getElementById('avatar-file-input');
-    const interior = p.avatar_url
-      ? `<img src="${escHtml(p.avatar_url)}" alt="" width="88" height="88">`
-      : `<span aria-hidden="true">${escHtml(initials(p.nombre || p.email || '') || '?')}</span>`;
+    // El avatar (foto o predeterminado) lo resuelve Avatar; aquí solo se decide el contenedor y su accesibilidad.
+    const cls = Avatar.clases(p, 'xl') + ' perfil-av';
     return editable
-      ? `<button type="button" class="perfil-av perfil-av--editable" data-act="cambiarAvatar"
-                 aria-label="Cambiar foto de perfil" title="Cambiar foto de perfil">${interior}
+      ? `<button type="button" class="${cls} perfil-av--editable" data-act="cambiarAvatar"
+                 aria-label="Cambiar foto de perfil" title="Cambiar foto de perfil">${Avatar.interior(p)}
            <i data-lucide="camera" class="perfil-av-cam" aria-hidden="true"></i></button>`
-      : `<div class="perfil-av" role="img" aria-label="Foto de ${escHtml(p.nombre || 'la persona')}">${interior}</div>`;
+      : `<div class="${cls}" role="img" aria-label="Foto de ${escHtml(p.nombre || 'la persona')}">${Avatar.interior(p)}</div>`;
   }
 
   function _cabeceraHTML(inst, item) {

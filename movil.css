@@ -185,3 +185,6 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
   .cuenta-id { width: 100%; }
   .cuenta-chips .etiqueta { white-space: normal; text-align: left; }
 }
+
+/* Una cabecera de pantalla que solo tiene el título (oculto a la vista en celular, ya está en la barra superior) no deja hueco. */
+.pantalla-cab:not(:has(> p, > .pantalla-acc, > .pantalla-sub)) { padding: 0; margin: 0; }
