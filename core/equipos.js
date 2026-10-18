@@ -60,7 +60,7 @@ const Equipos = (() => {
     <span class="eq-avance" role="img" aria-label="Avance ${Number(n)} %"><span class="barra-track"><span class="barra-fill" style="width:${Math.max(0, Math.min(100, Number(n)))}%"></span></span><b>${Number(n)} %</b></span>`;
 
   const avatarChip = (nombre, extra = '') => `
-    <li class="eq-pers"><span class="eq-pers-av" aria-hidden="true">${escHtml(initials(nombre || '') || '?')}</span><span>${escHtml(nombre || '—')}${extra}</span></li>`;
+    <li class="eq-pers">${Avatar.html({ nombre: nombre || '' }, { tam: 'xs', attrs: 'aria-hidden="true"' })}<span>${escHtml(nombre || '—')}${extra}</span></li>`;
 
   function noDisponibleHTML() {
     return `<div class="empty-box"><div class="empty-txt">Los equipos todavía no están activos en esta instalación: falta aplicar las migraciones 0031 a 0036 en la base de datos.</div></div>`;
