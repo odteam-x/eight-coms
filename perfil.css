@@ -72,6 +72,14 @@
 .perfil-barra { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-4); margin-bottom: var(--sp-6); }
 .perfil-barra .pe-row { margin-bottom: 0; }
 .perfil-barra > * { min-width: 0; max-width: 100%; }
+/* Selector de PE del perfil: una sola fila que se desplaza, con desvanecido en el borde que tiene más. El relleno lateral evita que el
+   overflow recorte el punto de «hoy» (sobresale 2 px) y la raya de la activa. */
+.perfil-pe { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: var(--sp-1) var(--sp-4); padding-inline: 4px; max-width: 100%; }
+.perfil-pe::-webkit-scrollbar { display: none; }
+.perfil-pe .pb { flex: none; white-space: nowrap; }
+.perfil-pe[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 32px), transparent); }
+.perfil-pe[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 32px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 32px), transparent); }
+.perfil-pe[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent); }
 .perfil-cuerpo { min-height: 240px; }
 
 /* En el panel lateral la cabecera es un bloque, sin diagonal (no hay página debajo). */

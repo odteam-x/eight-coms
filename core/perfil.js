@@ -567,6 +567,21 @@ const Perfil = (() => {
     animarEntrada(host);
   }
 
+  /* Los PE del perfil van en UNA fila que se desplaza (como las pestañas): en el panel lateral, con seis PE y fechas, envueltos en
+     filas quedaban desparejos y con los puntos de cada botón sueltos. La activa se trae a la vista y los bordes dicen si hay más
+     (data-borde; el desvanecido lo pinta perfil.css). Los botones son los de siempre (renderPEBar). */
+  function _peDesplazable(pe, centrar) {
+    if (!pe) return;
+    const marcar = () => {
+      const izq = pe.scrollLeft > 4, der = pe.scrollLeft + pe.clientWidth < pe.scrollWidth - 4;
+      pe.dataset.borde = izq && der ? 'ambos' : izq ? 'izq' : der ? 'der' : '';
+    };
+    const act = pe.querySelector('.pb.active');
+    if (centrar && act && pe.scrollWidth > pe.clientWidth) pe.scrollLeft = Math.max(0, act.offsetLeft - (pe.clientWidth - act.offsetWidth) / 2);
+    if (!pe._bordes) { pe._bordes = true; pe.addEventListener('scroll', marcar, { passive: true }); }
+    marcar();
+  }
+
   function _pintarBarra(inst) {
     const tabs = _tabsDe(inst);
     const seg = document.getElementById(`${inst.id}-seg`);
@@ -632,6 +647,7 @@ const Perfil = (() => {
       </article>`;
 
     renderPEBar(document.getElementById(`${id}-pe`), periodos, periodo.pe, pe => _cambiarPeriodo(inst, pe));
+    _peDesplazable(document.getElementById(`${id}-pe`), true);
     _pintarCabecera(inst);
     _pintarBarra(inst);
     await _pintarPanel(inst);
@@ -642,6 +658,7 @@ const Perfil = (() => {
     if (!p || String(p.id) === String(inst.periodo.id)) return;
     inst.periodo = p;
     syncPEBar(document.getElementById(`${inst.id}-pe`), pe);
+    _peDesplazable(document.getElementById(`${inst.id}-pe`), true);
     _pintarCabecera(inst);
     _pintarPanel(inst);
     inst.onPeriodo?.(pe);
