@@ -536,7 +536,9 @@ const Perfil = (() => {
   /* ══ MONTAJE ═══════════════════════════════════════════════════════════ */
 
   function _tabsDe(inst) {
-    return [...TABS, ...(_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin)];
+    // Las pestañas de gestión (solo administración) van PRIMERO: la configuración queda a un toque.
+    const extra = (_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin);
+    return [...extra.filter(t => t.soloAdmin), ...TABS, ...extra.filter(t => !t.soloAdmin)];
   }
 
   async function _pintarPanel(inst) {
