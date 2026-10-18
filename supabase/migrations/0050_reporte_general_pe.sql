@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════════
---  0050 — Reporte general consolidado de todos los Puntos de Encuentro (PE)
+--  0050 — Reporte general consolidado de todos los Períodos de Evaluación (PE)
 -- ══════════════════════════════════════════════════════════════════════
 --
 --  QUÉ HACE

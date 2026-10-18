@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   Reporte general de los Puntos de Encuentro (core/reporte-general.js)
+   Reporte general de los Períodos de Evaluación (core/reporte-general.js)
    Carga DESPUÉS de evolucion.css y ANTES de movil.css. Solo tokens: cero hex.
    Reutiliza .tarjeta / .tarjeta--kpi / .panel-kpis / .filtros-fila / .barra-track / .etiqueta / .rpt-hoja /
    .seg-tabla (la lista de personas): aquí solo está lo que es propio de esta pantalla.

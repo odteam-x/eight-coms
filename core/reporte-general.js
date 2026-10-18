@@ -1,6 +1,6 @@
 'use strict';
 /**
- * EIGHT CREATORS LABs — Reporte general de todos los Puntos de Encuentro (PE)
+ * EIGHT CREATORS LABs — Reporte general de todos los Períodos de Evaluación (PE)
  * ─────────────────────────────────────────────────────────────────────────────
  * Una sola pantalla con TODOS los PE de la gestión que la persona puede ver: tarjetas con los totales,
  * una tabla comparativa (una fila por PE, también los que no tienen datos) y, al abrir una fila, de dónde
@@ -299,7 +299,7 @@ const ReporteGeneral = (() => {
           ? `Solo rúbrica clásica: ${escHtml(f1(c.clasico.promedio))} (${c.clasico.n} resultado${c.clasico.n === 1 ? '' : 's'}) · otra escala`
           : 'Todavía no hay resultados publicados');
     return `<div class="panel-kpis rg-kpis">
-      ${kpi(String(c.pe), 'Puntos de Encuentro', c.peSinDatos ? `${c.peSinDatos} sin datos todavía` : 'todos con actividad')}
+      ${kpi(String(c.pe), 'Períodos de Evaluación', c.peSinDatos ? `${c.peSinDatos} sin datos todavía` : 'todos con actividad')}
       ${kpi(String(c.personas ?? '—'), 'Personas', completo && c.participanAlguno != null ? `${c.participanAlguno} participan en algún PE · cada una cuenta una vez` : 'cada persona cuenta una sola vez')}
       ${kpi(escHtml(pctTxt(c.publicadas, c.participaciones)), 'Evaluaciones publicadas', escHtml(`${frac(c.publicadas, c.participaciones)} participaciones${c.noPublicadas ? ` · ${c.noPublicadas} sin publicar` : ''}`))}
       ${prom2}
@@ -376,7 +376,7 @@ const ReporteGeneral = (() => {
       return;
     }
     const todas = S.rows || [];
-    if (!todas.length) { res.innerHTML = '<div class="empty-box"><div class="empty-txt">Esta gestión todavía no tiene Puntos de Encuentro. Crea el primero en Configuración → Períodos.</div></div>'; return; }
+    if (!todas.length) { res.innerHTML = '<div class="empty-box"><div class="empty-txt">Esta gestión todavía no tiene Períodos de Evaluación. Crea el primero en Configuración → Períodos.</div></div>'; return; }
     const vistos = ordenar(filtrar(todas, S.f), S.f.orden);
     const vista = todas[0].vista;
     const alcance = VISTAS[vista] || '';
@@ -389,10 +389,10 @@ const ReporteGeneral = (() => {
     const completo = vistos.length === todas.length;
     const c = consolidar(vistos, { completo });
     res.innerHTML = `
-      <article class="rpt-hoja rg-hoja" aria-label="Reporte general de los Puntos de Encuentro">
+      <article class="rpt-hoja rg-hoja" aria-label="Reporte general de los Períodos de Evaluación">
         <header class="rpt-hoja-cab">
           <picture><source srcset="logo.webp 1x, logo@2x.webp 2x" type="image/webp"><img src="logo.png" alt="" class="rpt-logo" width="64" height="64"></picture>
-          <div class="rpt-hoja-t"><span>EIGHT CREATORS LABs · CELIDER 08 Santiago</span><h2>Reporte general de los Puntos de Encuentro</h2>
+          <div class="rpt-hoja-t"><span>EIGHT CREATORS LABs · CELIDER 08 Santiago</span><h2>Reporte general de los Períodos de Evaluación</h2>
             <p>${c.pe} de ${todas.length} PE · ${escHtml(alcance)}${fT ? ' · ' + escHtml(fT) : ''}</p></div>
           <div class="rpt-hoja-f"><span>Datos al</span><b>${escHtml(fechaHora(S.cargadoEn))}</b></div>
         </header>
@@ -401,8 +401,8 @@ const ReporteGeneral = (() => {
           <h3 class="rpt-sec-t">Comparación entre PE</h3>
           <p class="rpt-sec-d">Cada fila es un PE. Ábrela para ver de dónde sale cada cifra. Los PE sin datos también aparecen.</p>
           <div class="seg-tabla-wrap"><table class="rg-tabla">
-            <caption class="sr-only">Comparación entre Puntos de Encuentro</caption>
-            <thead><tr><th scope="col">Punto de Encuentro</th><th scope="col">Personas que participan</th><th scope="col">Evaluaciones publicadas</th><th scope="col">Resultado promedio</th><th scope="col">Tareas</th><th scope="col">Entregas a tiempo</th><th scope="col">Vencidas</th></tr></thead>
+            <caption class="sr-only">Comparación entre Períodos de Evaluación</caption>
+            <thead><tr><th scope="col">Período de Evaluación</th><th scope="col">Personas que participan</th><th scope="col">Evaluaciones publicadas</th><th scope="col">Resultado promedio</th><th scope="col">Tareas</th><th scope="col">Entregas a tiempo</th><th scope="col">Vencidas</th></tr></thead>
             <tbody>${vistos.map(filaHTML).join('')}</tbody></table></div>
         </section>
         <section class="rpt-sec rg-como">
@@ -416,7 +416,7 @@ const ReporteGeneral = (() => {
   }
 
   const DEFINICIONES = `<ul class="rol-lista">
-    <li><b>Puntos de Encuentro</b>: los PE de la gestión que tu usuario puede ver. Con filtros, solo los que coinciden.</li>
+    <li><b>Períodos de Evaluación</b>: los PE de la gestión que tu usuario puede ver. Con filtros, solo los que coinciden.</li>
     <li><b>Personas</b>: personas distintas del alcance (administración: todas · secretaría: su distrito · miembro: solo tú). Una persona está en varios PE, por eso <i>no se suma</i> entre PE.</li>
     <li><b>Evaluaciones publicadas</b>: personas con la evaluación publicada ÷ personas que participan en ese PE. El total suma numeradores y denominadores de los PE en pantalla: no promedia porcentajes.</li>
     <li><b>Promedio de resultados</b>: suma de los resultados publicados ÷ cantidad de resultados (ponderado: un PE con más resultados pesa más). La rúbrica por roles (sobre 100) y la clásica son escalas distintas y nunca se mezclan. Un borrador no cuenta.</li>

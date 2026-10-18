@@ -586,9 +586,8 @@ ${pasos(
         `Guarda. Esos textos se muestran a quien recibe una tarea con ese rol, en la asignación y en la bienvenida y en ${b('Mi cuenta')} de cada persona.`)}
 <p>Para el perfil de evaluación: para cambiar pesos, ${b('crea una versión nueva')}: los pesos técnicos deben sumar <b>exactamente 100</b>. Un perfil que ya usó alguna evaluación es inmutable; la versión nueva rige desde un período que aún no tenga evaluaciones de ese rol. Desde el diálogo del perfil también puedes ${b('Crear criterio')}.</p>
 ${nota('ojo', 'El peso de un criterio es lo que define su escala de puntaje (0 a su peso). Cambiar pesos en una versión nueva no altera evaluaciones ya guardadas: conservan su perfil.')}
-<h3>Distritos y Gestiones</h3>
+<h3>Gestiones</h3>
 ${lista(
-        `${b('Distritos')}: crea y ordena los distritos que se asignan a las personas.`,
         `${b('Gestiones')}: el año de trabajo. ${b('Abrir gestión')} crea la nueva, clona el catálogo de criterios y la última versión de cada perfil, y archiva la anterior. Si no hay una gestión abierta, el registro de cuentas nuevas se cierra.`)}`,
     },
     comunAvisos('admin'),

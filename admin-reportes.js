@@ -50,7 +50,7 @@ const Reportes = (() => {
     document.getElementById('rep-detalle').hidden = g;
     const ayuda = document.getElementById('rep-ayuda');
     if (ayuda) ayuda.textContent = g
-      ? 'El estado de todos los Puntos de Encuentro en una sola pantalla. Abre una fila para ver de dónde sale cada cifra.'
+      ? 'El estado de todos los Períodos de Evaluación en una sola pantalla. Abre una fila para ver de dónde sale cada cifra.'
       : 'Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.';
   }
 
