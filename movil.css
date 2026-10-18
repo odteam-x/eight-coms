@@ -177,3 +177,11 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .perfil-barra .seg[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); }
 .perfil-barra .seg[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); }
 .perfil-barra .seg[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); }
+
+/* Mi cuenta en pantallas de 360 px o menos: foto y datos en dos filas. En fila, la columna del texto quedaba en ~150 px y el rol
+   («Secretaría de distrito», sin salto de línea) salía de la tarjeta a 320 px. */
+@media (max-width: 400px) {
+  .cuenta-cab { flex-direction: column; align-items: flex-start; }
+  .cuenta-id { width: 100%; }
+  .cuenta-chips .etiqueta { white-space: normal; text-align: left; }
+}
