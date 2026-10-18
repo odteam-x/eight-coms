@@ -66,3 +66,31 @@ El SMTP de Supabase Auth con Gmail falla igual que desde las funciones («Error 
 4. Prueba pidiendo el código de restablecimiento desde el login.
 
 Con el hook activo, el SMTP y las plantillas de *Authentication → Emails* dejan de usarse para estos correos (no hace falta pegarlas). La plantilla vive en `supabase/functions/auth-correo/plantillas.mjs`, copia de `enviar-notificaciones/plantillas.mjs` (`node tools/generar-correos.mjs` las sincroniza).
+
+## 9. Modo de envío (0040): por defecto NO se envía nada
+Desde la migración 0040 la función `enviar-notificaciones` **no manda correos a nadie** mientras no se lo pidas. Variable `CORREO_MODO` (Edge Functions → Secrets):
+
+| Valor | Qué hace |
+|---|---|
+| *(vacío / ausente)* o `apagado` | No toca la cola: responde 503 y los avisos esperan. **Es lo que pasa tras desplegar si olvidas la variable.** |
+| `prueba` | Reclama avisos, arma y valida cada correo y lo marca **`simulado`**: ningún correo real sale. Con `CORREO_PRUEBA_DESTINO=tu@correo` (y un proveedor) cada correo se manda **solo a esa dirección**, con asunto `[PRUEBA → real@…]`, y sigue contando como simulado. |
+| `produccion` | Envía al destinatario real. Exige proveedor (`APPS_SCRIPT_URL` + `APPS_SCRIPT_SECRET`, o `GMAIL_USER` + `GMAIL_APP_PASSWORD`) y `SITIO_URL` https. |
+
+Resto de variables: `SITIO_URL` (por defecto `https://eight-coms.vercel.app`; los enlaces del correo salen de ahí), `APPS_SCRIPT_URL` (debe ser `https://script.google.com/…`), `APPS_SCRIPT_SECRET`. En el script de Apps Script, propiedades opcionales: `DOMINIOS_PERMITIDOS` (p. ej. `gmail.com`) para que mientras pruebas solo pueda escribir a esos dominios.
+La función valida la configuración y la devuelve en la respuesta (`errores`); no guardes ni pegues secretos en el repositorio, el navegador ni el chat.
+
+**Orden recomendado para la primera vez:** `prueba` + `CORREO_PRUEBA_DESTINO` (comprobar que llega y cómo se ve) → revisar «Estado de los correos» en el panel de avisos de la administración → `produccion`.
+Ojo: los avisos pendientes que existían antes de 0040 salen en cuanto pases a `produccion`; si no quieres eso, revisa la cola antes.
+
+## 10. Estado de cada correo
+`notificaciones.correo_estado`: `pendiente` → `enviado` | `omitido` (sin correo registrado, o la persona apagó ese aviso opcional: sigue en la campana) | `simulado` (modo prueba: **no salió ningún correo**) | `fallido` (5 intentos agotados o dirección inválida). Reintentos a los 5, 15, 60 y 180 minutos. Cada intento queda en `notificaciones_eventos`. La administración ve el resumen de 7 días en **Avisos → Preferencias → Estado de los correos**.
+Un correo «registrado» no es un correo enviado: solo `enviado` significa que el proveedor lo aceptó. Que llegue a la bandeja depende de Gmail/Google (cuotas: ~100 destinatarios/día en cuenta personal).
+
+## 11. Enlaces de los correos
+`https://…/<portal>.html#ir/<pestaña>/<objeto>/<id>`. El portal sigue exigiendo sesión y la RLS decide qué se ve; si abres el enlace sin sesión, se recuerda la pestaña (solo ese fragmento, en `sessionStorage`) y se abre al entrar. El portal sale del rol real de quien recibe el correo.
+
+## 12. Cómo probarlo
+Sin credenciales: `cd tools/pruebas && npm run sql && npm run correo` (cola, destinatarios, preferencias, duplicados, errores y reintentos con un proveedor simulado). Eso prueba la **lógica**; la entrega real por Gmail solo se puede comprobar con tus credenciales en modo `prueba` + `CORREO_PRUEBA_DESTINO`.
+
+## 13. Qué sale por correo por defecto (0042)
+Solo los avisos **esenciales** (11: tarea asignada o cambiada, devolución, tarea vencida, calificación nueva o cambiada, equipo, acceso) salen por correo sin que nadie haga nada. Los **opcionales** (9: por vencer, entrega registrada, tarea aprobada, actividad nueva o recordatorio, observación, estado cambiado, evaluaciones sin publicar, tarea bloqueada) llegan siempre a la campana y solo van por correo si la persona los enciende en Avisos → Preferencias. Así 25 personas no generan ~50 correos por cada tarea y nota, y se cuida el tope de ~100 destinatarios al día de una cuenta Gmail personal. Para cambiar el valor de un tipo: `UPDATE notif_tipos SET correo_default = true WHERE tipo = '…' AND NOT esencial;`.

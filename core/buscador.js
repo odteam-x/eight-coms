@@ -77,13 +77,13 @@ const Buscador = (() => {
     lista.innerHTML = _items.map((i, n) => {
       const cab = i.grupo !== grupo ? `<div class="bus-grupo">${escHtml(i.grupo)}</div>` : '';
       grupo = i.grupo;
-      return `${cab}<button type="button" class="bus-item${n === _sel ? ' sel' : ''}" role="option" aria-selected="${n === _sel}" data-act="busIr" data-arg="${n}">
+      return `${cab}<button type="button" class="bus-item${n === _sel ? ' bus-item--sel' : ''}" role="option" aria-selected="${n === _sel}" data-act="busIr" data-arg="${n}">
         <i data-lucide="${escHtml(i.icono || 'arrow-right')}"></i>
         <span class="bus-txt"><strong>${escHtml(i.titulo)}</strong>${i.sub ? `<small>${escHtml(i.sub)}</small>` : ''}</span>
       </button>`;
     }).join('');
     renderIconos(lista);
-    lista.querySelector('.bus-item.sel')?.scrollIntoView({ block: 'nearest' });
+    lista.querySelector('.bus-item--sel')?.scrollIntoView({ block: 'nearest' });
   }
 
   function abrir() {

@@ -79,7 +79,10 @@ ${tabla(['Si ves…', 'Significa'], rol === 'miembro' ? [
     ['Tarea bloqueada', 'Alguien marcó que espera algo (Tareas).'],
     ['Faltan evaluaciones por publicar', 'Aviso 3 días antes de la entrega de scores del período activo (Evaluar).'],
     ['Nueva actividad · Mañana: …', 'Una actividad agregada al calendario, o la de mañana.']])}
-${nota('ojo', 'Si el panel dice que los avisos «aún no están activos», la actualización de la base de datos (migración 0022) no se ha aplicado; los correos siguen llegando con normalidad.')}`,
+<h3>Qué te llega por correo</h3>
+<p>Para no llenarte la bandeja, <b>por correo solo te llegan los avisos importantes</b>: acceso aprobado, tarea asignada o cambiada, tarea vencida, que te devuelvan una entrega, calificaciones y cambios de equipo. Los demás (recordatorios, «tarea aprobada», actividades nuevas, etc.) <b>siempre están en la campana</b>; si los quieres también por correo, enciéndelos en ${b('Avisos')} → ${b('Preferencias')}. Los importantes no se pueden apagar.</p>
+${nota('consejo', 'Si no te llega un correo, mira primero la campana: el aviso siempre está ahí. Revisa también la carpeta de spam la primera vez.')}
+${nota('ojo', 'Si el panel dice que los avisos «aún no están activos», la actualización de la base de datos (migración 0022) no se ha aplicado.')}`,
 });
 
 const comunCuenta = {
@@ -107,6 +110,8 @@ const faqComun = [
   [`La pantalla se ve vieja o algo no carga`, `Recarga la página (en la app instalada, ciérrala y vuelve a abrirla). Si el portal muestra un error con un botón ${b('Reintentar')}, púlsalo: pasa cuando se corta el internet un instante.`],
   [`El texto o los botones se ven pequeños`, `El portal usa letras más grandes en el celular por sí solo. Si aun así te cuesta, aumenta el tamaño de letra del sistema del teléfono: el portal lo respeta.`],
   [`No veo la campana / no sube el contador`, `El contador se actualiza cada minuto y al volver a la pestaña. Si no aparece ningún aviso nunca, mira el mensaje dentro del panel de avisos: te dice si la función aún no está activa.`],
+  [`No veo un período (PE) que sí existe`, `Cada persona ve <b>solo los períodos en los que participó</b>. Si la administración te marcó como «No participa» en un PE, ese PE no aparece en tus selectores, tu perfil ni tu calendario. Si crees que es un error, pide que revisen tu participación en <i>Personas → Gestión</i>.`],
+  [`No me llegan correos de algunos avisos`, `Por correo solo salen los avisos importantes. Los demás están siempre en la campana; para recibirlos también por correo, enciéndelos en <i>Avisos → Preferencias</i>.`],
 ];
 
 /* ── Manual del miembro ──────────────────────────────────────────────── */
@@ -120,7 +125,7 @@ const miembro = {
     ['Aprobar o devolver tus propias tareas', 'No: lo hace tu secretaría de distrito o la administración'],
     ['Cambiar la fecha límite de una tarea que te asignaron', 'No'],
     ['Ver el calendario del equipo y de tu distrito', 'Sí'],
-    ['Ver tu historial: todos los períodos con el estado de tu evaluación y tus tareas', 'Sí (en Mi perfil → Evolución)'],
+    ['Ver tu historial: todos los períodos con el estado de tu evaluación y tus tareas', 'Sí (en Mi perfil → Períodos)'],
     ['Elegir tus preferencias de rol y un rol predeterminado', 'Sí, en Mi cuenta. Son informativas: no te dan permisos ni te impiden recibir otro trabajo'],
     ['Evaluarte o evaluar a otras personas', 'No'],
     ['Ver a otras personas', 'No: solo tu información'],
@@ -161,11 +166,12 @@ ${lista(
       id: 'perfil', titulo: 'Mi perfil y cómo se calcula tu evaluación',
       html: `
 <p>En ${b('Mi perfil')} está tu cabecera (foto, nombre, rol, versión de la rúbrica, distrito) y el anillo con tu nota. Abajo eliges el período (${b('PE1')}, ${b('PE2')}…) y cuatro pestañas.</p>
-${captura('m-perfil', 'Mi perfil: tu cabecera, el período y las pestañas Resumen, Criterios, Tareas y Evolución.')}
+${captura('m-perfil', 'Mi perfil: tu cabecera, el período y las pestañas Resumen, Criterios, Tareas, Períodos y Evolución.')}
 ${tabla(['Pestaña', 'Qué muestra'], [
         ['Resumen', 'Tus indicadores del período (abajo) y la «lectura rápida»: los puntos más altos y donde hay más margen.'],
         ['Criterios', 'Cada criterio con tu puntaje, su barra y, si lo hay, el comentario de quien evaluó. En «¿Cómo se puntúa?» está la descripción de cada nivel.'],
         ['Tareas', 'Las tareas de ese período y su estado.'],
+        ['Períodos', 'Una tarjeta por PE: sus fechas, si participas y con qué rol, el resultado de tu evaluación, tus tareas (asignadas, a tiempo, aprobadas, vencidas) y las actividades relacionadas. «Ver detalle» abre ese PE en el resumen.'],
         ['Evolución', 'Cómo cambió tu nota entre períodos.']])}
 <h3>Los indicadores</h3>
 ${tabla(['Indicador', 'Qué es'], [
@@ -179,7 +185,7 @@ ${tabla(['Nivel', 'Desde (sobre 100)'], [['Excelente', '87'], ['Bueno', '67'], [
 <h3>Cómo se puntúa cada criterio</h3>
 <p>En las evaluaciones nuevas, cada criterio de tu rol se puntúa de <b>0 hasta su peso</b>: si «Composición y encuadre» pesa 30, la persona que evalúa elige un valor entre 0 y 30. Los criterios del núcleo se puntúan de 0 a 10. En la pestaña ${b('Criterios')} verás cada puntaje como «24/30» con su barra. Las evaluaciones guardadas antes de este cambio se siguen viendo de 1 a 5 (por ejemplo «4/5»); el portal las convierte a la misma escala de 0 a 100 para compararlas.</p>
 ${nota('ejemplo', 'Si tu técnico es 71, significa que sumaste 71 de 100 puntos posibles en los criterios de tu rol (cuando todos se puntuaron). Un criterio que no aplica para ti queda fuera: nunca cuenta como 0.')}
-<p>Debajo del gráfico de ${b('Evolución')} está <b>Todos los períodos</b>: para cada período, el estado de tu evaluación (publicada o aún no), tu resultado con su nivel y los hechos de tus tareas (cuántas, cuántas entregaste a tiempo, cuántas vencidas). Solo ves lo tuyo; un borrador de evaluación no aparece hasta que se publica.</p>
+<p>En la pestaña ${b('Períodos')} hay una tarjeta por PE: para cada período, el estado de tu evaluación (publicada o aún no), tu resultado con su nivel y los hechos de tus tareas (cuántas, cuántas entregaste a tiempo, cuántas vencidas). Solo ves lo tuyo; un borrador de evaluación no aparece hasta que se publica.</p>
 ${nota('ojo', 'Los períodos anteriores a la «rúbrica por roles» se muestran con la <b>rúbrica clásica</b> (7 criterios del 1 al 4, sobre 30 con el bono). Tienen otra escala y no se mezclan ni se comparan con los nuevos.')}`,
     },
     {
@@ -187,13 +193,16 @@ ${nota('ojo', 'Los períodos anteriores a la «rúbrica por roles» se muestran 
       html: `
 <p>Una tarea es lo que se te pidió, para cuándo y qué hiciste. Así, cuando te evalúen, se mira lo que realmente pasó.</p>
 ${captura('m-entregas', 'Entregas: filtros, «+ Mi iniciativa» y una tarea devuelta con su observación.')}
+<h3>Tareas del equipo</h3>
+<p>Si perteneces a un <b>equipo</b>, debajo de tus tareas ves ${b('Mis equipos')} y las <b>tareas del equipo</b>: una tarea compartida para todo el grupo. Puedes <b>registrar un aporte</b> (qué avanzaste y el avance en %), y cualquiera del equipo puede <b>entregarla</b> con un enlace y/o una nota (es una sola entrega para todos). No puedes aprobarla ni mover su fecha. La nota es <b>del grupo</b> y cuenta una vez para cada integrante.</p>
+${nota('consejo', 'Tus puntos de tareas ya entran a tu resultado. En «Mi perfil» → Resumen, «Cómo se compone tu evaluación» te muestra tarea por tarea cuál cuenta, cuánto aporta y por qué otra no cuenta.')}
 <h3>Los estados</h3>
 ${tabla(['Estado', 'Qué significa', 'Qué puedes hacer'], [
         ['Asignada', 'Te la asignó tu secretaría o la administración.', 'Empezarla o entregarla.'],
         ['En curso', 'La estás haciendo.', 'Entregarla.'],
         ['Entregada', 'Ya la entregaste; espera revisión.', 'Esperar. Quien revisa la aprueba o la devuelve.'],
         ['Devuelta', 'Quien revisa te dejó una observación.', `${b('Entregar corregida')} o ${b('Retomar')}.`],
-        ['Aprobada', 'Quedó aprobada y con puntos (0 a 10).', 'Nada: queda como evidencia.'],
+        ['Aprobada', 'Quedó aprobada y con puntos (0 a 10).', 'Nada: los puntos entran a tu nota de tareas, que cuenta en tu resultado según las reglas del período.'],
         ['Bloqueada', 'Estás esperando algo de otra persona.', 'Retomarla cuando se destrabe. Mientras está bloqueada no cuenta como atrasada.']])}
 <h3>Entregar una tarea</h3>
 ${pasos(
@@ -309,12 +318,14 @@ ${nota('consejo', 'En el celular, tus dos herramientas de trabajo (' + b('Distri
     {
       id: 'distrito', titulo: 'Distrito: tu gente',
       html: `
-<p>Tiene dos pestañas internas: ${b('Personas')} y ${b('Ranking de distritos')}.</p>
+<p>Tiene cuatro pestañas internas: ${b('Resumen')}, ${b('Personas')}, ${b('Estadísticas')} y ${b('Ranking de distritos')}.</p>
 ${captura('s-distrito', 'Distrito: indicadores del distrito y tarjetas de personas.')}
 ${pasos(
         `Abre ${b('Distrito')} y elige el período arriba (${b('PE1')}, ${b('PE2')}…).`,
+        `${b('Resumen')} es lo primero que ves: tu posición entre los distritos y tu promedio sobre 28, un bloque ${b('Qué falta')} (por ejemplo, enviar las estadísticas de Instagram del período, con un botón directo) y tu evolución período por período con las cuatro competencias. Los otros distritos son confidenciales: ves solo el tuyo.`,
         `En ${b('Personas')} ves los indicadores del distrito (personas, promedio individual, tu posición, el general más alto) y una tarjeta por persona con su nota. En los períodos nuevos, cada tarjeta indica «N por revisar» y «N vencidas».`,
-        `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas y Evolución, igual que ella.`,
+        `Toca una tarjeta para abrir el perfil de esa persona en un panel (en el celular, una hoja desde abajo). Ahí ves sus pestañas Resumen, Criterios, Tareas, Períodos y Evolución, igual que ella.`,
+        `En ${b('Estadísticas')} subes, para el período elegido, las cifras de Instagram de la cuenta de tu distrito (visualizaciones, cuentas alcanzadas, visitas al perfil, seguidores netos y los porcentajes de publicaciones, historias y reels) y adjuntas una <b>captura de pantalla como prueba</b>. La captura se reduce sola antes de enviarse. Si otra secretaría de tu distrito ya las envió, las ves y puedes corregirlas mientras el período siga abierto. La administración las usa para evaluar al distrito.`,
         `En ${b('Ranking de distritos')} comparas los distritos del equipo.`)}
 ${nota('ojo', 'Solo ves a las personas de <b>tu</b> distrito. No es un filtro del portal: la base de datos no entrega más. Si falta alguien, la administración tiene que asignarle tu distrito.')}`,
     },
@@ -340,11 +351,13 @@ ${tabla(['Aviso', 'Qué pasa'], [
         ['Carga alta (5 o más tareas abiertas) o tareas vencidas', 'Aviso: ya tiene mucho trabajo. Puedes crearla igual.'],
         ['No participa en el período · fecha límite ya pasada', 'Aviso: la tarea no contaría en el resumen, o nacería vencida.']])}
 ${nota('consejo', 'La <b>preferencia</b> de una persona es solo información: puedes asignarle un rol que no prefiere si lo tiene habilitado. Y un rol que prefiere pero no tiene habilitado, no.')}
+<h3>Equipos de tu distrito</h3>
+<p>La administración arma <b>equipos</b> por período. En ${b('Tareas')} (y debajo de tus tareas en ${b('Entregas')}) ves los equipos <b>de tu distrito</b> o con integrantes tuyos. Puedes asignarles una <b>tarea del equipo</b> (una sola, compartida) y revisarla, <b>siempre que tú no seas integrante</b> de ese equipo. Aprobar o devolver funciona igual que con una tarea individual; la <b>nota es del grupo</b>. No creas ni cambias equipos: eso lo hace la administración.</p>
 <h3>Revisar una entrega</h3>
 ${pasos(
         `Entra a ${b('Tareas')} y usa el filtro ${b('Por revisar')} (muestra el número).`,
         `Pulsa ${b('Ver entrega')} para leer el enlace o la nota.`,
-        `Si está bien, ${b('Aprobar')}: <b>es obligatorio ponerle puntos de 0 a 10</b>. Los puntos son un dato para quien evalúa; no entran en ninguna fórmula.`,
+        `Si está bien, ${b('Aprobar')}: <b>es obligatorio ponerle puntos de 0 a 10</b>. Los puntos <b>sí cuentan</b>: entran a la nota de tareas de la persona, según las reglas del período (la administración las define). Si quieres que una tarea pese más, ajusta el <b>Peso de la tarea</b> al aprobar.`,
         `Si hay que corregir, ${b('Devolver')} y escribe la observación (obligatoria). La persona recibe un aviso con tu observación.`)}
 ${tabla(['Botón', 'Para qué'], [
         [b('Editar'), 'Cambiar el título, la descripción o la prioridad de una tarea que asignaste.'],
@@ -381,6 +394,8 @@ ${nota('ojo', 'Solo ves a tu distrito (no es un filtro del portal: la base de da
     {
       id: 'reportes', titulo: 'Reportes de tu distrito',
       html: `
+<p>Arriba de ${b('Reportes')} tienes <b>Todos los PE</b>: una hoja con todos los períodos de tu distrito a la vez (personas que participan, evaluaciones publicadas, resultado promedio, tareas, entregas a tiempo y vencidas). Desde la fila de un PE abres su reporte completo; ${b('Ver las personas que componen estas cifras')} muestra quiénes suman cada número. Solo incluye a las personas de tu distrito.</p>
+
 <p>${b('Reportes')} (en ${b('Más')} en el celular) reúne dos cortes de tu distrito para llevar a una reunión:</p>
 ${captura('s-reportes', 'Reporte del distrito: un cuadro por período con publicadas, promedio, entregas a tiempo y vencidas.')}
 ${lista(
@@ -419,7 +434,7 @@ ${lista(
 /* ── Manual de la administración ─────────────────────────────────────── */
 const admin = {
   archivo: 'admin', titulo: 'Manual para administración', sub: 'Cómo gestionar el portal de EIGHT CREATORS LABs',
-  resumen: `Tienes el control completo: personas, evaluaciones, tareas, calendario, reportes y la configuración de la rúbrica. Este manual separa lo que usas cada día (operación) de lo que configuras de vez en cuando.`,
+  resumen: `Tienes el control completo: personas y accesos, evaluaciones, tareas y equipos, la nota de tareas, distritos con sus estadísticas, calendario, reportes, correos y la configuración de la rúbrica. Este manual explica <b>cada pantalla paso a paso</b> y separa lo que usas cada día (operación) de lo que configuras de vez en cuando.`,
   permisos: [
     ['Ver y gestionar a todas las personas', 'Sí'],
     ['Aprobar accesos y asignar rol, distrito, tipo de acceso y administración', 'Sí'],
@@ -432,6 +447,14 @@ const admin = {
     ['Ver el seguimiento de todas las personas en todos los períodos de la gestión', 'Sí'],
     ['Crear, editar, ordenar, desactivar y eliminar criterios', 'Sí (eliminar solo si ninguna evaluación lo usó)'],
     ['Crear versiones de perfiles por rol', 'Sí'],
+    ['Crear equipos, sumar o retirar integrantes y archivarlos', 'Sí (solo la administración)'],
+    ['Asignar y revisar tareas del equipo; poner una nota individual', 'Sí'],
+    ['Cambiar las reglas de tareas de un período (peso, multiplicadores, mínimo)', 'Sí, con motivo si ya hay evaluaciones publicadas'],
+    ['Corregir, anular o restaurar la nota de una tarea', 'Sí, con motivo (mínimo 5 caracteres)'],
+    ['Evaluar y publicar a un distrito', 'Sí (solo la administración)'],
+    ['Ver las estadísticas de Instagram de todos los distritos y corregirlas', 'Sí'],
+    ['Ver los borradores de evaluación de personas y distritos', 'Sí (los demás no los ven)'],
+    ['Ver el estado de los correos enviados', 'Sí'],
     ['Escribir en una gestión archivada', 'No: queda solo de lectura'],
     ['Generar y exportar reportes (incluidos entre períodos y por actividad)', 'Sí'],
   ],
@@ -486,6 +509,7 @@ ${tabla(['Para…', 'Haz'], [
         ['Ajustar de a uno', `Toca ${b('−')} o ${b('+')}. Desde «sin puntuar», ${b('+')} empieza en 1 y ${b('−')} en 0.`],
         ['Dejarlo sin puntuar', 'Borra el número de la casilla. «Sin puntuar» no vale 0: el criterio queda fuera del cálculo.']])}
 ${captura('a-evaluar-tecnico', 'Criterios técnicos: «Escala 0 a 30 · peso 30» y la barra por encima del número.')}
+${nota('ojo', 'El <b>resultado final</b> de la persona incluye también su <b>nota de tareas</b> según las reglas del período (ver «Cómo cuentan las tareas en la evaluación»). Lo que ves en este formulario es solo la parte que tú puntúas.')}
 <p>El resultado sale de la base de datos: <b>técnico = suma de puntos · 100 / suma de pesos de los criterios puntuados</b> (si puntúas todos, es la suma de puntos); <b>núcleo</b> = promedio de (puntos / 10); <b>individual</b> = 60 % técnico + 40 % núcleo.</p>
 ${nota('ejemplo', 'Perfil de Fotografía: Composición 30, Dominio técnico 25, Diseño 20, Planificación 15, Revisión 10 (suman 100). Si das 24, 17, 14, 9 y 6, el técnico es 70.')}
 ${nota('ojo', 'La escala de una evaluación la fija el servidor <b>al primer guardado</b> y no cambia. Las evaluaciones guardadas antes de esta actualización se siguen puntuando de 1 a 5 (la barra de cinco paradas) y se convierten a la misma nota sobre 100; no se reescriben. Una persona evaluada en un perfil conserva ese perfil aunque después cambie el rol.')}
@@ -511,10 +535,116 @@ ${nota('ojo', 'Quien se registra queda con acceso pendiente, sin rol ni distrito
 ${nota('consejo', 'Si desactivas a alguien <b>en un período</b>, deja de contarse como pendiente por evaluar ahí, pero conserva su historia.')}`,
     },
     {
-      id: 'tareas', titulo: 'Tareas',
+      id: 'accesos', titulo: 'Aprobar accesos y gestionar a una persona',
       html: `
-<p>Funciona igual que para la secretaría (ver su manual para los tres pasos y los avisos de <i>Nueva tarea</i>), pero ves y asignas a <b>todas</b> las personas. Con una diferencia: si eliges un rol que la persona <b>no</b> tiene habilitado, no se bloquea; se avisa y, si confirmas, la tarea se crea como <b>excepción</b> y queda marcada «Excepción de rol» en la tarjeta. El cambio de rol de una tarea queda en su historial. Puedes asignar, revisar (aprobar con puntos de 0 a 10 o devolver con observación), mover plazos con motivo y ver el historial. Eres la única persona que puede <b>corregir los puntos</b> de una tarea ya aprobada, y reabrir una tarea borra sus puntos.</p>
-${nota('ojo', 'Las tareas solo existen en períodos de rúbrica por roles.')}`,
+<p>Quien se registra queda con <b>acceso pendiente</b>, sin rol ni distrito, y no puede entrar al portal hasta que lo apruebes. Recibes el aviso «Hay una solicitud de acceso».</p>
+<h3>Aprobar a alguien nuevo</h3>
+${pasos(
+        `Abre ${b('Personas')} y, en el filtro de estado, elige ${b('Acceso pendiente')} (el número entre paréntesis dice cuántas hay).`,
+        `Toca la tarjeta y abre la pestaña ${b('Gestión')}.`,
+        `Asigna el <b>rol</b> (con qué perfil se evaluará), el <b>distrito</b> y el <b>tipo de acceso</b> (<i>Creator</i> o <i>Secretario</i>).`,
+        `Activa ${b('Acceso aprobado')}. La persona recibe el aviso «Tu acceso fue aprobado» y ya puede entrar.`)}
+<h3>Qué más se hace en «Gestión»</h3>
+${tabla(['Campo', 'Para qué sirve'], [
+        ['<b>Rol</b>', 'Define el perfil con que se la evalúa. Sin rol no se la puede evaluar en rúbrica por roles.'],
+        ['<b>Roles permitidos</b>', 'Roles extra con los que se le pueden asignar tareas. Se guarda al marcar cada casilla. Abajo ves sus <b>preferencias</b> (solo lectura).'],
+        ['<b>Distrito</b> y <b>Tipo de miembro</b>', 'El distrito decide qué secretaría la ve; el tipo, si es Creator o Secretaría.'],
+        ['<b>Administradora</b>', 'Da el acceso de administración. No se evalúa a quien es admin.'],
+        ['<b>Participación en el PE</b>', '«Participa / No participa en este período». Quien <b>no participa</b> no cuenta en resúmenes ni rankings <b>y ese PE deja de aparecerle por completo</b> (selectores, perfil y calendario). Conserva su historia.'],
+        ['<b>Eliminar</b>', 'Borra a la persona. Pide confirmación; úsalo solo para cuentas que nunca debieron existir.']])}
+<h3>Encontrar a quien necesita algo</h3>
+<p>El filtro de estado de ${b('Personas')} te lleva directo a los pendientes: ${b('Acceso pendiente')}, ${b('Sin evaluar')}, ${b('Evaluación en borrador')}, ${b('Sin rol')}, ${b('Sin distrito')}, ${b('Inactivas en el período')} y ${b('Administradores')}. Los avisos del Panel abren Personas ya filtrado.</p>
+${nota('ojo', 'Si no aprobaste a alguien, no es que el portal falle: hasta tu aprobación no entra. Y si la aprobaste y dice que no le llegan los correos, mira «Correos y avisos».')}`,
+    },
+    {
+      id: 'tareas', titulo: 'Tareas: asignar, revisar y calificar',
+      html: `
+<p>${b('Tareas')} (menú izquierdo) es donde asignas trabajo a <b>cualquier persona</b> y revisas lo que entrega. Cada tarea tiene un <b>estado</b> que va cambiando: <i>Asignada → En curso → Entregada → Aprobada</i>, y puede pasar por <i>Devuelta</i>, <i>Bloqueada</i> o <i>Anulada</i>.</p>
+${nota('ojo', 'Las tareas solo existen en períodos de <b>rúbrica por roles</b>. En un período clásico la pestaña lo explica y no deja crearlas.')}
+<h3>Asignar una tarea, paso a paso</h3>
+${pasos(
+        `Abre ${b('Tareas')} y toca ${b('+ Nueva tarea')}. También puedes empezar desde el perfil de una persona (${b('Nueva tarea')}) o desde un día del calendario.`,
+        `<b>Paso 1 · Qué.</b> Título, qué se espera, fecha límite, prioridad y el período (si hay varios de rúbrica por roles). Opcional: una <b>actividad</b> del calendario y el <b>rol para el que es el trabajo</b>.`,
+        `<b>Paso 2 · Quién.</b> Busca por nombre, rol o distrito. Marca personas sueltas o un equipo entero. Cada persona muestra su rol, si tiene <b>habilitado</b> el rol elegido, si lo <b>prefiere</b> y su <b>carga</b> (tareas abiertas y vencidas).`,
+        `<b>Paso 3 · Rol y resumen.</b> Elige un rol <i>por persona</i>; ves sus responsabilidades y con qué competencias se evalúa. Marca qué competencias evidencia la tarea (opcional; ${b('Sugerir las del rol')} marca las principales). Revisa el resumen.`,
+        `Si aparecen avisos, léelos y marca ${b('Entiendo los avisos')}. Luego ${b('Crear N tareas')}. Cada persona recibe un aviso en la campana (y un correo, porque «tarea asignada» es esencial).`)}
+${tabla(['Aviso al crear', 'Qué hacer'], [
+        ['<b>Rol no habilitado</b> para esa persona', 'Como administración <b>sí puedes seguir</b>: la tarea se crea como <b>Excepción de rol</b> y queda marcada a la vista. Una secretaría no puede; tú sí. Si no era tu intención, cambia el rol o habilítalo en Personas → Gestión.'],
+        ['Ya tiene una tarea abierta con el mismo título', 'Puede ser un duplicado. Si es a propósito, marca «Entiendo los avisos».'],
+        ['Carga alta (5 o más abiertas) o tareas vencidas', 'Aviso: ya tiene mucho trabajo. Puedes crearla igual.'],
+        ['No participa en el período · fecha límite ya pasada', 'La tarea no contaría en el resumen, o nacería vencida.']])}
+<h3>Qué puede hacer cada parte</h3>
+${tabla(['Quién', 'Qué hace con una tarea'], [
+        ['La persona asignada', '<b>Empezar</b> (pasa a En curso), <b>Entregar</b> (enlace https y/o una nota; uno de los dos es obligatorio), <b>Bloquear</b> con el motivo («¿De qué o de quién depende?») y reanudar. No puede cambiar la fecha, ni aprobar, ni anular.'],
+        ['Quien la asignó o la administración', '<b>Editar</b> (título, descripción, prioridad), <b>Mover la fecha límite</b>, <b>Aprobar y puntuar</b>, <b>Devolver para corregir</b>, <b>Anular</b>, ver el <b>Historial</b>.'],
+        ['Nadie', 'Aprobar la <b>propia</b> tarea (lo impide la base de datos). Tampoco se evalúa a la administración.']])}
+<h3>Revisar una entrega</h3>
+${pasos(
+        `En ${b('Tareas')} usa el filtro ${b('Por revisar')} (muestra el número) o busca por persona.`,
+        `Pulsa ${b('Ver entrega')} y lee el enlace o la nota.`,
+        `Si está bien: ${b('Aprobar y puntuar')}. Pon los <b>Puntos (0–10)</b> —obligatorios— y, si corresponde, el <b>Peso de la tarea</b> (cuánto cuenta frente a las demás; por defecto 1). Una tarea «propia» (iniciativa de la persona) siempre pesa 1.`,
+        `Si hay que corregir: ${b('Devolver para corregir')} y escribe <b>Qué hay que corregir</b> (obligatorio y concreto). La persona recibe un aviso con tu observación (correo incluido).`)}
+${nota('ejemplo', 'Entregó el reel del sábado: lo apruebas con 8 puntos y peso 2. Entra a su <b>nota de tareas</b> con el doble de peso que una tarea de peso 1 (ver «Cómo cuentan las tareas»).')}
+${nota('consejo', 'Lo de «a tiempo» se mide en la <b>primera</b> entrega: devolver y corregir no la vuelve tarde. Así no se castiga a quien corrige bien.')}
+<h3>Mover el plazo, bloquear y anular</h3>
+${lista(
+        `${b('Mover la fecha límite')}: eliges la <b>Nueva fecha</b> y escribes el <b>Motivo</b> (mínimo 5 caracteres). La fecha original queda registrada y la persona recibe un aviso («Cambió una tarea»).`,
+        `${b('Bloquear')}: una tarea bloqueada <b>no cuenta como atrasada</b> mientras siga así; quien la asignó recibe el aviso.`,
+        `${b('Anular la tarea')}: necesita un motivo. Una tarea anulada <b>no entra en ninguna cuenta</b> (ni en tareas, ni en promedios).`,
+        `${b('Historial')}: cada cambio con quién, qué y cuándo. No se puede borrar.`)}
+<h3>Corregir una nota ya aprobada</h3>
+<p>Una vez aprobada, los puntos no se editan a mano: solo tú, desde la tarea, con ${b('Corregir nota')}, ${b('Anular nota')} o ${b('Restaurar nota')}, y siempre con un <b>motivo</b> (mínimo 5 caracteres). Cada cambio queda en el <b>historial de notas</b> con los pesos y reglas que regían en ese momento. Una tarea con historial de notas no se puede borrar.</p>`,
+    },
+    {
+      id: 'equipos', titulo: 'Equipos y tareas del equipo',
+      html: `
+<p>Un <b>equipo</b> es un grupo de personas para <b>un período</b> de rúbrica por roles. Sirve para asignar <b>una tarea compartida</b> (no una copia por persona) y ver cómo rinde el grupo. Solo la administración crea y modifica equipos.</p>
+<h3>Crear un equipo</h3>
+${pasos(
+        `Abre ${b('Equipos')} (menú izquierdo) y toca ${b('Nuevo equipo')}.`,
+        `Escribe el <b>Nombre del equipo</b>, elige el <b>PE</b> (después <b>no se puede cambiar</b>) y, si quieres, una <b>Descripción</b>.`,
+        `Opcional: el <b>Responsable de seguimiento</b> (quien acompaña al equipo y recibe sus avisos) y el <b>Ámbito</b> (un distrito: así solo pueden entrar personas de ese distrito).`,
+        `Guarda y, dentro del equipo, toca ${b('Añadir integrantes')}. Busca y marca a las personas.`)}
+${lista(
+        `<b>Quién puede entrar:</b> acceso aprobado, que no sea administración y que <b>no esté desactivada en ese PE</b>.`,
+        `Si el equipo tiene ámbito de distrito y quieres sumar a alguien de otro, usa la <b>Excepción de ámbito</b> y escribe el motivo: queda guardado.`,
+        `${b('Retirar')} a un integrante pide un motivo. Quien entra o sale recibe un aviso (esencial, con correo).`,
+        `${b('Cambiar estado')} (activo, inactivo, archivado): <b>archivar pide un motivo</b> y no se puede si el equipo tiene tareas del equipo abiertas. Los equipos no se borran.`)}
+${nota('ojo', 'Si un integrante cambia de distrito o deja de participar en el PE, <b>nada cambia solo</b>: el equipo muestra una alerta y tú decides si lo retiras o lo dejas.')}
+<h3>Asignar una tarea al equipo</h3>
+${pasos(
+        `Dentro del equipo, toca ${b('Nueva tarea de equipo')}.`,
+        `Completa <b>Título</b>, <b>Instrucciones</b>, <b>Fecha límite</b>, <b>Prioridad</b>, el <b>Responsable</b> (opcional) y los <b>criterios que evidencia</b> (orientativo).`,
+        `Guarda. Los integrantes <b>de ese momento</b> reciben el aviso «Tarea para tu equipo». Quien se suma después entra a las tareas todavía abiertas; quien se va sale de las abiertas o entregadas (las aprobadas y anuladas no cambian).`)}
+<h3>Cómo avanza y cómo se califica</h3>
+${tabla(['Paso', 'Quién', 'Qué ocurre'], [
+        ['Avanzar', 'Cualquier integrante', 'Registra un aporte: <b>Qué se avanzó</b> y el <b>Avance del equipo (0 a 100 %)</b>. Queda con su autoría.'],
+        ['Entregar', 'Cualquier integrante', '<b>Enlace de la entrega</b> (https) y/o <b>Nota de la entrega</b>. Es <b>una</b> entrega para todo el equipo; la primera mide el plazo.'],
+        ['Aprobar', 'Administración (o la secretaría del distrito del equipo, si no participa)', '<b>Puntos (0–10)</b> y <b>Peso de la tarea</b>. La nota es <b>del grupo</b>: cada persona cuenta <b>una vez</b>.'],
+        ['Devolver', 'Quien revisa', '<b>Observación para el equipo</b> (obligatoria).'],
+        ['Mover plazo · Anular', 'Administración', '<b>Nueva fecha</b> y <b>Motivo</b>; anular pide motivo y solo tú la reabres.'],
+        ['Nota individual', 'Quien revisa', 'Si una persona rindió distinto, le pones una <b>Nota individual</b> con evidencia (mínimo 10 caracteres). Reemplaza la del grupo solo para ella y se muestra aparte.']])}
+<p>Una persona cuenta en una tarea del equipo si <b>participaba cuando se aprobó</b> o si <b>dejó al menos un aporte</b>. No hay archivos adjuntos: la evidencia es un enlace y/o una nota.</p>`,
+    },
+    {
+      id: 'reglas', titulo: 'Cómo cuentan las tareas en la evaluación',
+      html: `
+<p>Las notas de las tareas <b>entran en el resultado</b> de cada persona. Tú decides cuánto pesan, <b>período por período</b>.</p>
+<pre class="formula">individual = (1 − w) × (0,6 × técnico + 0,4 × núcleo) + w × nota de tareas
+general    = (1 − w) × (0,4 × núcleo + 0,6 × percentil) + w × nota de tareas
+nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan</pre>
+<p>donde <b>w</b> es el peso de las tareas (por ejemplo 20 % → 0,2). Si la persona no tiene nota de tareas, se queda con su evaluación pura: <b>nadie baja por no tener tareas calificadas</b>.</p>
+${tabla(['Cuenta', 'No cuenta (y nunca se rellena con 0)'], [
+        ['Tareas <b>aprobadas</b> con puntos y no anuladas', 'Entregadas esperando revisión · en curso · devueltas · bloqueadas'],
+        ['Tareas del equipo aprobadas (la nota del grupo)', 'Tareas anuladas o con la nota anulada'],
+        ['Las de iniciativa propia, <b>si</b> la regla lo permite', 'Aprobadas antes de que existieran los puntos']])}
+<h3>Cambiar las reglas de un período</h3>
+${pasos(
+        `Abre ${b('Equipos')} y busca el bloque de reglas del PE (resumen «Tareas: N % del resultado»). Toca ${b('Editar reglas')}.`,
+        `Ajusta: <b>Peso de las tareas en el resultado</b> (0 a 100 %), <b>Multiplicador de las tareas individuales</b>, <b>Multiplicador de las tareas del equipo</b>, <b>Mínimo de tareas calificadas</b> (con menos, no hay nota de tareas), <b>¿Cuentan las iniciativas propias?</b> y <b>¿Las vencidas sin entregar cuentan como 0?</b> (No es lo recomendado).`,
+        `Escribe el <b>Motivo del cambio</b> (obligatorio si el PE ya tiene evaluaciones publicadas) y guarda. Los resultados se <b>recalculan al instante</b> y el cambio queda en el historial.`)}
+${nota('ojo', 'Los períodos que ya existían empiezan con <b>0 %</b> (para no mover resultados ya publicados). Los períodos nuevos nacen con <b>20 %</b>, marcado «Valor inicial, sin confirmar» hasta que lo guardes tú: es una decisión tuya.')}
+${nota('consejo', 'En el perfil de cada persona, en «Cómo se compone tu evaluación», se ve pieza por pieza qué tarea cuenta, cuánto aporta y por qué una no cuenta.')}`,
     },
     {
       id: 'calendario', titulo: 'Calendario y actividades',
@@ -533,6 +663,33 @@ ${pasos(
 ${nota('ojo', 'Elegir un equipo agrega a sus miembros <b>de ese momento</b>; quien entre después al equipo no se suma sola. Una actividad con tareas vinculadas no se puede eliminar hasta desvincular esas tareas.')}`,
     },
     {
+      id: 'distritos', titulo: 'Distritos: ranking acumulado y evaluación',
+      html: `
+<p>${b('Distritos')} (menú izquierdo, junto a Equipos) tiene arriba cuatro cifras (distritos evaluados, promedio global, mejor distrito y estadísticas de Instagram recibidas) y, debajo, el <b>ranking acumulado</b>: una fila por distrito con una columna por período (puntaje de 28), el <b>total</b>, el <b>promedio sobre 28</b> y el <b>porcentaje</b>, de mayor a menor. Abajo, el promedio de cada período y el <b>promedio global acumulado</b>.</p>
+${lista(
+        `<b>Solo cuentan las evaluaciones publicadas.</b> Un período sin evaluaciones publicadas se dice así y no entra a las columnas. Los borradores no mueven ningún promedio.`,
+        `<b>El promedio</b> es el total ÷ los períodos en que el distrito fue evaluado (no se castiga por un PE que no tiene). Los <b>empates comparten posición</b>; a igualdad, manda el período más reciente.`,
+        `<b>Períodos:</b> los botones de arriba eligen qué períodos entran al ranking.`,
+        `<b>Mostrar:</b> ${b('Sin evaluar')}, ${b('En borrador')} y ${b('Sin estadísticas')} te dicen qué falta, sobre el último período incluido. Cada fila trae su estado (<i>Publicada</i>, <i>Borrador</i>, <i>Sin evaluar</i>) y si la secretaría ya envió sus estadísticas (<i>IG enviado</i> / <i>IG falta</i>).`,
+        `${b('Exportar CSV')} baja la misma tabla (con totales, promedios y el promedio por período).`)}
+<h3>Evaluar un distrito, paso a paso</h3>
+${pasos(
+        `Toca el distrito en la tabla: se abre su panel. Elige la pestaña ${b('Evaluación')} y el <b>período</b> (botones PE).`,
+        `<b>Estadísticas de Instagram.</b> Arriba ves lo que envió la secretaría (cifras y su captura de prueba; toca la captura para verla grande). Los campos de abajo vienen <b>precargados</b> con esas cifras; corrígelas si hace falta o usa ${b('Usar estas cifras en la evaluación')}. Si la secretaría aún no envió nada, las escribes tú.`,
+        `<b>Las 4 competencias</b>, cada una de <b>0 a 7</b> con su barra: <i>CGO</i> gestión y organización (orden y coherencia del feed), <i>CCT</i> creativa y técnica (creatividad y edición), <i>COM</i> comunicativa (claridad y estrategia del mensaje) y <i>CEE</i> ejecución estratégica (constancia y estrategia de publicación). Cada una admite un comentario. El máximo es <b>28</b>.`,
+        `Escribe las <b>Notas / comentario general</b> si quieres.`,
+        `${b('Guardar borrador')} (solo lo ves tú) o ${b('Publicar')}. Al publicar, el distrito entra al ranking y su secretaría ve su resultado. Si ya estaba publicada, puedes ${b('Volver a borrador')} o ${b('Confirmar cambios')}.`)}
+${tabla(['Nivel (sobre 28)', 'Desde'], [['Excelente', '24'], ['Bueno', '17'], ['En proceso', '10'], ['Bajo', 'menos de 10']])}
+<h3>Las otras pestañas del panel</h3>
+${lista(
+        `${b('Resumen')}: posición, promedio, porcentaje y nivel; la evolución por período y una tabla con las cuatro competencias de cada PE (los borradores aparecen marcados y solo tú los ves).`,
+        `${b('Estadísticas')}: lo que envió la secretaría para el PE elegido y todo lo enviado antes, con quién lo subió y cuándo.`,
+        `${b('Personas')}: la gente del distrito; al tocar a alguien se abre su perfil (reemplaza el panel; vuelve a abrir el distrito desde la tabla).`)}
+<h3>Estadísticas de Instagram: qué hace la secretaría</h3>
+<p>Cada secretaría sube, por período, las 7 cifras de la cuenta de su distrito con una <b>captura de pantalla como prueba</b> (se reduce sola a unos 100–250 KB antes de enviarse). Es <b>una entrega por distrito y período</b>, compartida: cualquier secretaría del distrito puede corregirla mientras el período siga abierto. Tú ves todo; las cifras no cambian la evaluación hasta que tú las uses.</p>
+${nota('ojo', 'Si «Estadísticas» dice que aún no está activada, falta aplicar la migración 0043 en Supabase (ver «Qué depende de actualizaciones»).')}`,
+    },
+    {
       id: 'seguimiento', titulo: 'Seguimiento: todos los períodos, por rol',
       html: `
 <p>${b('Seguimiento')} (menú izquierdo, entre Personas y Calendario) pone a <b>todas las personas</b> frente a <b>todos los períodos</b> de la gestión, agrupadas por rol. Es la forma de ver de un vistazo quién está al día, quién arrastra pendientes y cómo se movió cada rol.</p>
@@ -542,11 +699,15 @@ ${lista(
         `<b>Un grupo por rol</b> (se pliega) con una columna por período. Cada celda: el resultado con su nivel, o el estado («Borrador», «Sin publicar», «Sin evaluar», «No participa») y los hechos de las tareas. Toca un nombre para abrir el perfil.`,
         `A ti, como administración, se te muestran también los <b>borradores</b> (marcados); a las secretarías y a los miembros, no.`,
         `Rúbrica por roles (sobre 100) y rúbrica clásica (otra escala) van separadas: nunca se promedian ni se comparan.`)}
-<p>Quién ve qué lo decide la base de datos: tú ves todo; una secretaría, solo su distrito; un miembro, solo su propio historial (en su ${b('Mi perfil')} → ${b('Evolución')}).</p>`,
+<p>Quién ve qué lo decide la base de datos: tú ves todo; una secretaría, solo su distrito; un miembro, solo su propio historial (en su ${b('Mi perfil')} → ${b('Períodos')}).</p>`,
     },
     {
       id: 'reportes', titulo: 'Reportes',
       html: `
+<h3>Todos los PE a la vez</h3>
+<p>${b('Reportes')} abre en <b>Todos los PE</b>: una hoja con <b>todos los períodos</b> de la gestión (personas que participan, evaluaciones publicadas, resultado promedio, tareas, entregas a tiempo y vencidas) y un comparador entre PE. Filtra por distrito, rol, rúbrica o estado del PE; ${b('Quitar filtros')} vuelve a ver todos. Desde la fila de un PE, ${b('Abrir el reporte completo de este PE')} te lleva a su detalle, y ${b('Ver las personas que componen estas cifras')} muestra quiénes suman cada número. ${b('Exportar CSV')} baja la misma hoja.</p>
+${nota('consejo', 'Cada cifra dice de dónde sale («¿Cómo se calcula y de dónde sale cada cifra?»). Un porcentaje es siempre Σ numerador ÷ Σ denominador, nunca un promedio de porcentajes; la rúbrica por roles y la clásica nunca se mezclan.')}
+<h3>Un PE en detalle</h3>
 ${pasos(`Abre ${b('Reportes')}.`, `Elige el período, el alcance (equipo, distrito, rol o una persona) y las secciones que quieres.`, `Revisa la hoja que se genera. ${b('Descargar PDF')} usa el tema claro; ${b('Exportar CSV')} descarga el ranking para una planilla.`)}
 <h3>Secciones</h3>
 ${tabla(['Sección', 'Qué muestra'], [
@@ -585,10 +746,37 @@ ${pasos(
         `Guarda. Esos textos se muestran a quien recibe una tarea con ese rol, en la asignación y en la bienvenida y en ${b('Mi cuenta')} de cada persona.`)}
 <p>Para el perfil de evaluación: para cambiar pesos, ${b('crea una versión nueva')}: los pesos técnicos deben sumar <b>exactamente 100</b>. Un perfil que ya usó alguna evaluación es inmutable; la versión nueva rige desde un período que aún no tenga evaluaciones de ese rol. Desde el diálogo del perfil también puedes ${b('Crear criterio')}.</p>
 ${nota('ojo', 'El peso de un criterio es lo que define su escala de puntaje (0 a su peso). Cambiar pesos en una versión nueva no altera evaluaciones ya guardadas: conservan su perfil.')}
-<h3>Distritos y Gestiones</h3>
+<h3>Gestiones</h3>
+${pasos(
+        `Abre ${b('Configuración → Gestiones')} y toca ${b('Abrir gestión nueva')}.`,
+        `Escribe el <b>Nombre</b> (por ejemplo 2027-2028) y confirma con ${b('Abrir gestión')}.`,
+        `La gestión actual se <b>archiva</b> (queda en solo lectura) y la nueva arranca <b>sin evaluaciones ni período activo</b>, con los criterios, la rúbrica, el calendario, los períodos base y la última versión de cada perfil clonados como plantilla editable.`)}
 ${lista(
-        `${b('Distritos')}: crea y ordena los distritos que se asignan a las personas.`,
-        `${b('Gestiones')}: el año de trabajo. ${b('Abrir gestión')} crea la nueva, clona el catálogo de criterios y la última versión de cada perfil, y archiva la anterior. Si no hay una gestión abierta, el registro de cuentas nuevas se cierra.`)}`,
+        `Para ver una gestión anterior, cámbiala al entrar al panel o con el selector de gestión; se abre en solo lectura.`,
+        `Si no hay una gestión abierta, el registro de cuentas nuevas se cierra.`,
+        `Después de abrirla: activa el primer período, revisa los roles y perfiles, y crea los equipos de cada PE.`)}`,
+    },
+    {
+      id: 'correos', titulo: 'Correos y avisos: qué sale y cómo comprobarlo',
+      html: `
+<p>Cada hecho importante crea un <b>aviso</b> que aparece siempre en la campana. Además puede salir por <b>correo</b>. Son dos canales distintos: quien no tiene correo igual ve el aviso en el portal.</p>
+<h3>Qué sale por correo por defecto</h3>
+<p>Para no saturar los correos (con unas 25 personas, una tarea más una nota ya serían ~50) y cuidar el tope diario del remitente, <b>solo los avisos esenciales</b> van por correo sin que nadie haga nada:</p>
+${tabla(['Esenciales (siempre por correo, no se pueden apagar)', 'Opcionales (solo campana, salvo que la persona los encienda)'], [
+        ['Acceso aprobado · Solicitud de acceso · Tarea asignada · Tarea del equipo · Cambió una tarea · Te devolvieron la tarea · Tarea vencida · Calificación nueva o cambiada · Te sumaron o te retiraron de un equipo', 'Tarea por vencer · Entrega por revisar · Tarea aprobada · Tarea bloqueada · Actividad nueva y recordatorio · Observación nueva · Evaluaciones sin publicar · Cambió el estado de algo']])}
+<p>Cada persona elige sus opcionales en ${b('la campana')} → ${b('Preferencias')}. Un esencial no se apaga. Los correos <b>no llevan puntajes ni el texto de una observación</b>: avisan y enlazan al portal (que pide sesión).</p>
+<h3>Comprobar que se están enviando</h3>
+${pasos(
+        `Abre la campana → ${b('Preferencias')} → ${b('Estado de los correos')} (solo administración): resumen de los últimos 7 días por tipo y estado.`,
+        `Lee los estados: <b>enviado</b> (el proveedor lo aceptó), <b>omitido</b> (la persona no tiene correo, o apagó ese aviso opcional; sigue en la campana), <b>simulado</b> (modo prueba: <b>no salió ningún correo</b>) y <b>fallido</b> (se agotaron los 5 intentos o la dirección es inválida).`,
+        `Si hay <b>fallidos</b>, mira el motivo. Los fallos temporales se reintentan solos a los 5, 15, 60 y 180 minutos.`)}
+<h3>Lo que se configura fuera del portal (Supabase)</h3>
+${tabla(['Ajuste (Edge Functions → Secrets)', 'Valores y efecto'], [
+        ['<code>CORREO_MODO</code>', '<b>produccion</b>: envía a las personas reales. <b>prueba</b>: no envía a nadie real (con <code>CORREO_PRUEBA_DESTINO</code> manda todo solo a esa dirección, con el asunto «[PRUEBA → …]»). Vacío o <b>apagado</b>: no toca la cola. Al cambiarlo, guarda el secreto y espera un minuto.'],
+        ['<code>APPS_SCRIPT_URL</code> y <code>APPS_SCRIPT_SECRET</code>', 'El puente de Google que envía desde tu cuenta de Gmail.']])}
+${nota('ojo', '<b>Límite del remitente:</b> una cuenta de Gmail personal envía hasta unos <b>100 destinatarios al día</b> (Workspace, unos 1.500). Un plan familiar de almacenamiento no lo cambia. Si se llega al tope, los avisos esperan y se reintentan; la campana sigue funcionando.')}
+${nota('ojo', 'Los avisos que se generan mientras el modo es <b>prueba</b> se marcan «simulado» y <b>no se reenvían</b> al pasar a producción: quedan solo en la campana.')}
+${nota('consejo', 'Cada persona puede recibir dos tipos de correo muy distintos: los de acceso (código de verificación, recuperar contraseña) y los avisos. Los de acceso se configuran aparte, en Authentication de Supabase.')}`,
     },
     comunAvisos('admin'),
     comunCuenta,
@@ -616,8 +804,14 @@ ${tabla(['Función', 'Migración', 'Si no está aplicada'], [
         ['Descripción de los roles, roles permitidos, preferencias y rol en cada tarea', '0021', 'Esos campos no aparecen; la asignación de tareas sigue por persona, sin rol.'],
         ['Actividades «para personas y equipos»', '0024 (y 0021)', 'Las actividades siguen siendo de todo el equipo o de un distrito; «Personas y equipos» aparece desactivado.'],
         ['Seguimiento global, bienvenida y novedades, y reporte por actividad', '0025 (el reporte por actividad también necesita 0021 y 0024)', 'Las pestañas lo explican; la bienvenida y las novedades no se muestran.'],
-        ['La etiqueta «Hito» pasa a llamarse «Evento»', '0026', 'Se sigue viendo «Hito»; todo lo demás funciona igual.']])}
-<p>Orden recomendado para lo nuevo: <b>0021 → 0024 → 0025 → 0026</b>.</p>`,
+        ['La etiqueta «Hito» pasa a llamarse «Evento»', '0026', 'Se sigue viendo «Hito»; todo lo demás funciona igual.'],
+        ['Fondo personalizado de la tarjeta de perfil', '0030', 'Mi cuenta no ofrece elegir fondo.'],
+        ['Equipos y tareas del equipo; calificaciones (peso, corregir y anular notas); la nota de tareas integrada al resultado; vistas de equipos', '0031 → 0036', 'No aparecen Equipos ni las reglas por PE; las notas de tareas no entran al resultado.'],
+        ['Avisos con catálogo, preferencias, estado de los correos y modo de prueba', '0040 y 0041', 'Los avisos siguen con el esquema anterior; no hay preferencias ni «Estado de los correos».'],
+        ['Solo lo esencial va por correo por defecto', '0042', 'Todos los avisos opcionales también salen por correo.'],
+        ['Estadísticas de Instagram del distrito (con captura de prueba)', '0043', '«Estadísticas» avisa que no está activada; el admin escribe las cifras a mano.'],
+        ['Reporte general de todos los PE (con equipos y tareas del equipo)', '0050 y 0051', 'Reportes no ofrece «Todos los PE».']])}
+<p>Orden recomendado: <b>0021 → 0024 → 0025 → 0026 → 0030 → 0031 → 0032 → 0033 → 0034 → 0035 → 0036 → 0040 → 0041 → 0042 → 0043 → 0050 → 0051</b>. Cada archivo está en <code>supabase/migrations</code> y se aplica completo, una sola vez, en el SQL Editor (o con la conexión de Supabase).</p>`,
     },
   ],
   faq: [
@@ -631,7 +825,13 @@ ${tabla(['Función', 'Migración', 'Si no está aplicada'], [
     [`No puedo eliminar un criterio`, `Si alguna evaluación o perfil lo usó, solo puede desactivarse: así no se pierde la historia.`],
     [`Los pesos no suman 100 y no me deja guardar el perfil`, `Es una regla de la base de datos: los pesos técnicos de una versión suman exactamente 100. El diálogo muestra la suma en vivo.`],
     [`No me deja guardar en una gestión`, `Está archivada: es de solo lectura. Abre la gestión activa.`],
-    [`Alguien dice que no le llegan los correos`, `Revisa que su acceso esté aprobado y que su correo esté confirmado; confirma también su correo real en Personas. Sin correo confirmado la persona no puede iniciar sesión.`],
+    [`Alguien dice que no le llegan los correos`, `Revisa que su acceso esté aprobado, que tenga correo registrado y que el aviso sea de los <b>esenciales</b> (los opcionales van solo a la campana, salvo que ella los encienda en Preferencias). Mira también «Estado de los correos» en la campana: ahí ves si salió, si se omitió o si falló.`],
+    [`Los correos no salen a nadie`, `Revisa en Supabase (Edge Functions → Secrets) que <code>CORREO_MODO</code> sea <b>produccion</b>: en <i>prueba</i> los avisos quedan «simulado» y en vacío o <i>apagado</i> no se toca la cola. Después de cambiarlo, guarda y espera un minuto.`],
+    [`Una persona dice que no ve un PE`, `Es lo esperado si está marcada «No participa» en ese PE (Personas → Gestión): para ella ese PE no existe. Si fue un error, márcala como participante y volverá a verlo.`],
+    [`Ya aprobé una tarea y quiero cambiar los puntos`, `Abre la tarea → ${b('Corregir nota')} (o ${b('Anular nota')} / ${b('Restaurar nota')}) y escribe el motivo (mínimo 5 caracteres). Queda en el historial de notas y se recalcula el resultado.`],
+    [`No me deja archivar un equipo`, `Tiene tareas del equipo abiertas. Ciérralas (aprobar, devolver o anular) y vuelve a intentarlo; archivar pide un motivo.`],
+    [`Las estadísticas de Instagram de un distrito no aparecen`, `La secretaría de ese distrito aún no las envió para ese PE (verás «IG falta» en Distritos). Pídeselas o escríbelas tú dentro de la evaluación. Si la pantalla dice que no está activada, falta aplicar la migración 0043.`],
+    [`Cambié las reglas de tareas y los resultados se movieron`, `Es lo esperado: al cambiar el peso o los multiplicadores del PE, los resultados se recalculan al instante. Queda registrado con tu motivo; si no querías el cambio, vuelve a las reglas anteriores.`],
   ],
 };
 

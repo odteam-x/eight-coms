@@ -1,0 +1,54 @@
+/* ═══ Centro de notificaciones — ampliaciones de la migración 0040 (core/notificaciones.js) ═══════════
+   Lo base de la campana y de la lista vive en premium.css (lo de «Campana y centro de avisos» y «Avisos:
+   lista plana»). Esto añade: categorías, filtro por categoría, fecha y hora, resaltado del elemento al que
+   lleva un aviso y la pantalla de preferencias. Solo tokens (ningún hex), y el color nunca es la única señal:
+   cada categoría lleva su nombre, el interruptor dice «Activado / Apagado» y lo esencial dice «Siempre».
+   notificaciones.js enlaza esta hoja al iniciar (así no hay que tocar las tres páginas). */
+
+/* ── Categorías: el icono se tiñe, el nombre va escrito ── */
+.aviso-ico--tareas         { --tono: var(--action-fill); }
+.aviso-ico--equipos        { --tono: var(--blue-500); }
+.aviso-ico--calificaciones { --tono: var(--marca); }
+.aviso-ico--actividades    { --tono: var(--cyan-400); }
+.aviso-ico--cuenta         { --tono: var(--txt-muted); }
+
+/* ── Barra: filtros en una fila que se desliza (sin partir en tres líneas en el celular) + acciones ── */
+.avisos-barra { flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+.aviso-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.aviso-chips .chip { flex: none; }
+.avisos-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-1) var(--sp-3); }
+.avisos-prefs { display: inline-flex; align-items: center; gap: 6px; }
+.avisos-prefs svg, .avisos-prefs i { width: 20px; height: 20px; }
+
+/* ── Cada aviso: categoría + fecha y hora bajo el texto ── */
+.aviso-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--sp-2); margin-top: 2px; }
+.aviso-cat {
+  font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--txt-2);
+  padding: 2px 8px; border-radius: var(--r-control); background: var(--surface-3);
+}
+.aviso-meta .aviso-h { white-space: normal; flex: 0 1 auto; }
+
+/* ── El elemento al que lleva el aviso queda a la vista unos segundos ── */
+.aviso-resalte { outline: 3px solid var(--action); outline-offset: 3px; animation: aviso-pulso 1.2s ease-out 2; }
+@keyframes aviso-pulso { from { outline-offset: 12px; outline-color: transparent; } to { outline-offset: 3px; outline-color: var(--action); } }
+@media (prefers-reduced-motion: reduce) { .aviso-resalte { animation: none; } }
+
+/* ── Preferencias ── */
+.pref-intro { margin: var(--sp-1) 0 0; font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt-2); }
+.pref-lista { list-style: none; margin: 0; padding: 0; background: var(--surface-1); border-radius: var(--r-card); overflow: hidden; }
+.pref-fila { text-align: left; display: flex; align-items: center; gap: var(--sp-3); min-height: 64px; padding: var(--sp-3) var(--sp-4); }
+.pref-fila + .pref-fila { border-top: 1px solid var(--trazo); }
+.pref-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pref-t { font: 600 var(--fs-sm)/1.3 var(--font-ui); overflow-wrap: anywhere; }
+.pref-d { font: 400 var(--fs-xs)/1.4 var(--font-body); color: var(--txt-2); overflow-wrap: anywhere; }
+.pref-esencial { flex: none; display: inline-flex; align-items: center; gap: 4px; font: 600 var(--fs-xs)/1 var(--font-ui); color: var(--txt-2); }
+.pref-esencial svg, .pref-esencial i { width: 16px; height: 16px; }
+.pref-n { flex: none; font: 700 var(--fs-md)/1 var(--font-display); }
+.pref-sw {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 88px; min-height: 44px;
+  padding: 0 var(--sp-3); border: 2px solid var(--txt-muted); border-radius: var(--r-control);
+  background: var(--surface-2); color: var(--txt); font: 600 var(--fs-xs)/1 var(--font-ui); cursor: pointer;
+}
+.pref-sw[aria-checked="true"] { background: var(--action-fill); border-color: var(--action-fill); color: var(--action-on); }
+.pref-sw:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.pref-estado { margin-top: var(--sp-3); }

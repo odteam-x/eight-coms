@@ -904,6 +904,21 @@ const API = {
       max: Number(c.max) > 0 ? Number(c.max) : 4,
     }));
 
+    // Un PE en el que la persona NO participó (periodo_participantes.activo = false) no existe para ella: no sale en ningún
+    // selector ni pantalla de los portales de miembro y secretaría. Sin fila = participa (así se define en toda la base). La
+    // administración ve todos. Si la consulta falla se muestran todos: es mejor un PE de más que dejar a alguien sin ninguno.
+    let peFuera = new Set();
+    if (!profile.es_admin) {
+      try {
+        const { data: fuera } = await SB.from('periodo_participantes').select('periodo_id').eq('user_id', profile.id).eq('activo', false);
+        if (fuera?.length) {
+          const no = new Set(fuera.map(r => String(r.periodo_id)));
+          peFuera = new Set(periodosRaw.filter(p => no.has(String(p.id))).map(p => p.nombre));
+          periodosRaw = periodosRaw.filter(p => !no.has(String(p.id)));
+        }
+      } catch { /* se muestran todos */ }
+    }
+
     // Períodos: SOLO datos. `activo` es booleano y las fechas van crudas.
     // La etiqueta de estado (Pendiente/En curso/Cerrado) la decide la UI
     // con estadoPeriodo() de core/render.js — antes esta capa devolvía el
@@ -929,7 +944,8 @@ const API = {
       nivel2: r.nivel2 || '', nivel1: r.nivel1 || '',
     }));
 
-    const calendario = calRaw.map(c => ({
+    // Las fechas de un PE donde no participó tampoco aparecen (el calendario enlaza por número: «PE2» ↔ 2).
+    const calendario = calRaw.filter(c => !peFuera.has('PE' + c.numero)).map(c => ({
       numero:     c.numero,
       titulo:     c.titulo || c.descripcion || '',
       color:      c.color  || 'rojo',
@@ -1130,6 +1146,87 @@ const API = {
     return { ok: true, porPeriodo };
   },
 
+  // ── ESTADÍSTICAS DE INSTAGRAM DEL DISTRITO (0043) ────────────────────────
+  // Las sube la secretaría de cada distrito, una entrega por (período, distrito), con una captura de prueba en el
+  // bucket privado `capturas-distrito` (ruta <distrito>/<período>/<archivo>). Sin 0043 las lecturas devuelven
+  // `disponible: false` y la pantalla lo dice en vez de fingir que no hay datos.
+  async getEstadisticasDistrito(periodo_id, distrito_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*')
+      .eq('periodo_id', periodo_id).eq('distrito_id', distrito_id).maybeSingle();
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message };
+    return { ok: true, disponible: true, data: data || null };
+  },
+
+  async getEstadisticasDistritosByPE(periodo_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').eq('periodo_id', periodo_id);
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
+  },
+
+  /** `cifras`: { visualizaciones, cuentas_alcanzadas, visitas_perfil, seguidores_neto, pct_publicaciones, pct_historias, pct_reels }. */
+  async guardarEstadisticasDistrito({ periodo_id, distrito_id, cifras, captura_path }) {
+    const { data, error } = await SB.from('estadisticas_distrito')
+      .upsert({ periodo_id, distrito_id, ...cifras, captura_path }, { onConflict: 'periodo_id,distrito_id' })
+      .select().single();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data };
+  },
+
+  /** `blob` sale de reducirCaptura(). Nombre único por subida: nunca se sirve una captura vieja desde caché. */
+  async subirCapturaDistrito(distrito_id, periodo_id, blob) {
+    const ext = blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+    const path = `${distrito_id}/${periodo_id}/captura-${Date.now()}.${ext}`;
+    const { error } = await SB.storage.from('capturas-distrito').upload(path, blob, { upsert: false, contentType: blob.type || 'image/webp', cacheControl: '3600' });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, path };
+  },
+
+  /** Mejor esfuerzo: un archivo huérfano no da acceso a nada, así que un fallo aquí no se le muestra a nadie. */
+  async borrarCapturaDistrito(path) {
+    if (!path) return;
+    try { await SB.storage.from('capturas-distrito').remove([path]); } catch { /* huérfano inofensivo */ }
+  },
+
+  /** URL firmada de corta vida (el bucket es privado). */
+  async urlCapturaDistrito(path, segundos = 3600) {
+    if (!path) return null;
+    const { data, error } = await SB.storage.from('capturas-distrito').createSignedUrl(path, segundos);
+    return error ? null : (data?.signedUrl || null);
+  },
+
+  /** ids de los PE en que la persona NO participó (periodo_participantes.activo = false). Sin fila = participa. Falla → [] (se muestran todos). */
+  async getPeriodosSinParticipar(userId) {
+    if (!userId) return [];
+    try {
+      const { data } = await SB.from('periodo_participantes').select('periodo_id').eq('user_id', userId).eq('activo', false);
+      return (data || []).map(r => String(r.periodo_id));
+    } catch { return []; }
+  },
+
+  // ── DISTRITOS: LECTURAS DE VARIOS PERÍODOS A LA VEZ (ranking acumulado) ──
+  /** Evaluaciones de distrito de varios PE. `soloPublicadas`: lo que ve una secretaría; el admin pide también borradores. */
+  async getEvalDistritosByPeriodos(ids, { soloPublicadas = false } = {}) {
+    if (!ids?.length) return { ok: true, data: [] };
+    let q = SB.from('evaluaciones_distrito').select('id, periodo_id, distrito_id, puntajes, comentarios, estado, updated_at').in('periodo_id', ids);
+    if (soloPublicadas) q = q.eq('estado', 'publicado');
+    const { data, error } = await q;
+    return error ? { ok: false, error: error.message, data: [] } : { ok: true, data: data ?? [] };
+  },
+
+  async getEstadisticasDistritosByPeriodos(ids) {
+    if (!ids?.length) return { ok: true, disponible: true, data: [] };
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').in('periodo_id', ids);
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
+  },
+
+  /** Todas las entregas de estadísticas de UN distrito (una por PE), de la más reciente a la más antigua. */
+  async getEstadisticasDistritoHistorial(distrito_id) {
+    const { data, error } = await SB.from('estadisticas_distrito').select('*').eq('distrito_id', distrito_id).order('actualizado_en', { ascending: false });
+    if (error) return { ok: false, disponible: !/estadisticas_distrito|schema cache|PGRST205|42P01/i.test(error.message || error.code || ''), error: error.message, data: [] };
+    return { ok: true, disponible: true, data: data ?? [] };
+  },
+
   // ── AVATAR UPLOAD ────────────────────────────────────────────────────
   /** La persona cambia SU nombre. RLS decide; rol, distrito y tipo no se tocan aquí. */
   async updateMiNombre(userId, nombre) {
@@ -1170,10 +1267,39 @@ const API = {
   _rpcAusente(error) {
     return /Could not find the function|does not exist|PGRST202|42883/i.test((error?.code || '') + ' ' + (error?.message || ''));
   },
-  async getNotificaciones({ limite = 40, antes = null } = {}) {
-    const { data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes });
+  async getNotificaciones({ limite = 40, antes = null, categoria = null, soloSinLeer = false } = {}) {
+    // Los filtros por categoría y «sin leer» los aplica la base desde 0040; sin ella se pide la lista simple.
+    const args = { p_limite: limite, p_antes: antes };
+    if (categoria) args.p_categoria = categoria;
+    if (soloSinLeer) args.p_solo_sin_leer = true;
+    let { data, error } = await SB.rpc('mis_notificaciones', args);
+    if (error && (categoria || soloSinLeer) && API._rpcAusente(error)) {
+      ({ data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes }));
+    }
     if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
     return { ok: true, data: data ?? [] };
+  },
+  /** Total y sin leer por categoría (0040). Sin 0040: ok:false, noDisponible. */
+  async getNotifResumen() {
+    const { data, error } = await SB.rpc('notif_resumen');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error), data: [] };
+    return { ok: true, data: (data ?? []).map(r => ({ categoria: r.categoria, total: Number(r.total), sin_leer: Number(r.sin_leer) })) };
+  },
+  /** Qué avisos puede recibir esta persona por correo y cuáles tiene activados (0040). */
+  async getPreferenciasNotif() {
+    const { data, error } = await SB.rpc('mis_preferencias_notif');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
+    return { ok: true, data: data ?? [] };
+  },
+  /** { tipo: true|false }. La base rechaza los esenciales: nunca se confía en el cliente para esto. */
+  async guardarPreferenciasNotif(prefs) {
+    const { error } = await SB.rpc('guardar_preferencias_notif', { p_prefs: prefs });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+  /** Estado de los correos de los últimos días (solo administración). */
+  async getEstadoEnvios(dias = 7) {
+    const { data, error } = await SB.rpc('notif_estado_envios', { p_dias: dias });
+    return error ? { ok: false, error: error.message, noDisponible: API._rpcAusente(error) } : { ok: true, data: data ?? [] };
   },
   async getNotifNoLeidas() {
     const { data, error } = await SB.rpc('notif_no_leidas');
@@ -1184,8 +1310,8 @@ const API = {
     const { error } = await SB.rpc('notif_marcar_leida', { p_id: id });
     return error ? { ok: false, error: error.message } : { ok: true };
   },
-  async marcarNotifTodas() {
-    const { data, error } = await SB.rpc('notif_marcar_todas');
+  async marcarNotifTodas(categoria = null) {
+    const { data, error } = await SB.rpc('notif_marcar_todas', categoria ? { p_categoria: categoria } : {});
     return error ? { ok: false, error: error.message } : { ok: true, n: Number(data) || 0 };
   },
 

@@ -1,0 +1,71 @@
+/* Estadísticas de Instagram del distrito (core/estadisticas-distrito.js, migración 0043).
+   Solo tokens del sistema (shared.css): ningún color nuevo. Carga después de equipos.css y antes de movil.css. */
+
+.ed { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 880px; }
+.ed .pf-h { margin: 0; }
+.ed-sub { margin: 0; font-family: var(--font-body); font-size: var(--fs-md); line-height: 1.55; color: var(--txt-2); max-width: 70ch; }
+.ed-sub b { color: var(--txt); font-weight: 600; }
+
+/* Estado de la entrega: dice si ya se envió, con ícono y texto (nunca solo color) */
+.ed-estado { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); border: 1px solid var(--trazo); font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--txt); line-height: 1.5; }
+.ed-estado i, .ed-estado svg { flex: none; width: 20px; height: 20px; margin-top: 1px; }
+.ed-estado--ok i, .ed-estado--ok svg { color: var(--data-txt); }
+.ed-estado--falta i, .ed-estado--falta svg { color: var(--alert); }
+.ed-aviso { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-fila); background: var(--surface-2); font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--txt-2); }
+
+/* Las siete cifras */
+.ed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--sp-4); }
+.ed-campo { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.ed-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt); }
+.ed-req { font-weight: 400; color: var(--txt-muted); }
+.ed-inp { min-height: 48px; font-size: 16px; width: 100%; font-variant-numeric: tabular-nums; }   /* 16 px: iOS no hace zoom al enfocar */
+.ed-inp--mal { border-color: var(--alert); }
+.ed-ayuda { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); line-height: 1.4; }
+.ed-err { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; color: var(--alert); line-height: 1.4; }
+
+/* La captura */
+.ed-captura { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); padding: var(--sp-4); border: 1px dashed var(--trazo); border-radius: var(--r-cont); background: var(--surface-1); }
+.ed-captura-cab { display: flex; gap: var(--sp-2); align-items: baseline; }
+.ed-info { margin: 0; font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.5; max-width: 62ch; }
+.ed-info b { color: var(--txt); font-weight: 600; }
+.ed-adjuntar { min-height: 44px; display: inline-flex; align-items: center; gap: var(--sp-2); }
+.ed-adjuntar i, .ed-adjuntar svg { width: 18px; height: 18px; }
+.ed-mini { display: block; padding: 0; border: 1px solid var(--trazo); border-radius: var(--r-fila); background: var(--surface-2); cursor: zoom-in; overflow: hidden; max-width: 320px; width: 100%; min-height: 44px; }
+.ed-mini:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.ed-mini img { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; background: var(--surface-2); }
+.ed-mini-cargando { display: block; padding: var(--sp-4); font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--txt-muted); text-align: center; }
+.ed-acciones { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.ed-acciones .btn-save { min-height: 48px; }
+
+/* Visor a pantalla completa de la captura */
+.ed-visor { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: var(--sp-4); background: color-mix(in srgb, var(--navy-900) 82%, transparent); overscroll-behavior: contain; }
+.ed-visor-caja { position: relative; max-width: min(1100px, 100%); max-height: 100%; display: flex; }
+.ed-visor-caja img { display: block; max-width: 100%; max-height: calc(100dvh - var(--sp-4) * 2); object-fit: contain; border-radius: var(--r-fila); background: var(--surface-1); }
+.ed-visor-x { position: absolute; top: var(--sp-2); right: var(--sp-2); min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--surface-1); color: var(--txt); border: 1px solid var(--trazo); display: grid; place-items: center; cursor: pointer; }
+.ed-visor-x:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+
+/* Lo que ve el admin dentro de «Evaluar un distrito» */
+.ed-admin { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--trazo); border-radius: var(--r-cont); background: var(--surface-1); }
+.ed-admin--vacio { gap: var(--sp-2); }
+.ed-admin .section-label { margin: 0; }
+.ed-admin .pf-vacio { margin: 0; }
+.ed-admin-cuerpo { display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: flex-start; }
+.ed-mini--admin { max-width: 240px; flex: 0 1 240px; }
+.ed-cifras { flex: 1 1 320px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2) var(--sp-4); min-width: 0; }
+.ed-cifra { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ed-cifra-l { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); }
+.ed-cifra-v { font-family: var(--font-display); font-size: var(--fs-lg); color: var(--txt); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ed-precarga { font-weight: 400; color: var(--txt-muted); text-transform: none; letter-spacing: 0; }
+
+@media (max-width: 480px) {
+  .ed-captura { padding: var(--sp-3); }
+  .ed-mini, .ed-mini--admin { max-width: 100%; flex-basis: 100%; }
+  .ed-acciones .btn-save { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .ed-mini { transition: none; } }
+
+/* Barra de secciones del distrito (Personas · Estadísticas · Ranking): en celular se desplaza y el borde con más se desvanece. */
+.distrito-seg .seg { max-width: 100%; }
+.distrito-seg .seg[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); }
+.distrito-seg .seg[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); }
+.distrito-seg .seg[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); }

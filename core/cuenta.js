@@ -21,12 +21,7 @@ const Cuenta = (() => {
       ${ind}
     </div>`;
 
-  function _avatarHTML() {
-    const nombre = _p.nombre || _p.name || _p.email || '';
-    return _p.avatar_url
-      ? `<img src="${escHtml(_p.avatar_url)}?t=${Date.now()}" alt="" width="96" height="96">`
-      : escHtml(initials(nombre) || '?');
-  }
+  const _avatarHTML = () => Avatar.interior(_p, { bust: true });
 
   const TABS = [
     { k: 'perfil', etiqueta: 'Perfil', icono: 'user-round' },
@@ -58,7 +53,7 @@ const Cuenta = (() => {
     const panel = (k, aria, cuerpo) => `<section class="cuenta-panel" id="cu-tab-panel-${k}" role="tabpanel" aria-labelledby="cu-tab-${k}" data-panel="${k}"${k === activa ? '' : ' hidden'}>${cuerpo}</section>`;
     host.innerHTML = `
       <section class="cuenta-cab">
-        <div class="cuenta-foto" id="cuenta-foto">${_avatarHTML()}</div>
+        <div class="cuenta-foto avatar avatar--xl pat-${Fondo.clase(_p)}" id="cuenta-foto">${_avatarHTML()}</div>
         <div class="cuenta-id">
           <h2 class="cuenta-nombre" id="cuenta-nombre-txt">${escHtml(nombre)}</h2>
           <p class="cuenta-mail">${escHtml(_p.email || '')}</p>

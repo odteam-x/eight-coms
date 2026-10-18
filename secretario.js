@@ -330,7 +330,7 @@ async function pintarPulsoDistrito(el) {
   const tile = (val, lbl, aviso) => `<div class="pf-tk${aviso ? ' pf-tk--aviso' : ''}"><div class="pf-tk-val">${escHtml(String(val))}</div><div class="pf-tk-lbl">${escHtml(lbl)}</div></div>`;
   el.innerHTML = `
     <section class="pf-card pf-card--ancha" aria-labelledby="pulso-h">
-      <div class="pf-card-cab"><h3 class="pf-h" id="pulso-h">Tu distrito${getMyDistrito() ? ` <small>${escHtml(getMyDistrito())}</small>` : ''}</h3>
+      <div class="pf-card-cab"><h2 class="pf-h" id="pulso-h">Tu distrito${getMyDistrito() ? ` <small>${escHtml(getMyDistrito())}</small>` : ''}</h2>
         <button type="button" class="pf-enlace" data-act="tab" data-arg="distrito">Ver personas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
       <div class="pf-tks">
         ${tile(miembros.length, 'Personas')}
@@ -482,29 +482,57 @@ function renderRankingDistritos() {
 }
 
 /* ── DISTRITO: SUBPESTAÑAS ────────────────────────────────────────────── */
-let _distritoTab = 'miembros';
+let _distritoTab = 'resumen';
 
 function pintarSegDistrito() {
   const host = document.getElementById('distrito-seg'); if (!host) return;
   host.innerHTML = segHTML([
+    { k: 'resumen',  etiqueta: 'Resumen',                icono: 'layout-dashboard' },
     { k: 'miembros', etiqueta: 'Personas',               icono: 'users'  },
+    { k: 'estadisticas', etiqueta: 'Estadísticas',        icono: 'bar-chart-2' },
     { k: 'ranking',  etiqueta: 'Ranking de distritos',   icono: 'trophy' },
   ], _distritoTab, 'distritoTab', { etiqueta: 'Secciones del distrito', prefijo: 'dist' });
   renderIconos(host);
+  // Con tres secciones no caben en 320–430 px: se desplaza, la activa se trae a la vista y el borde con más se desvanece (data-borde; lo pinta estadisticas-distrito.css).
+  const sc = host.querySelector('.seg');
+  if (sc) {
+    const marcar = () => { const izq = sc.scrollLeft > 4, der = sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4; sc.dataset.borde = izq && der ? 'ambos' : izq ? 'izq' : der ? 'der' : ''; };
+    const act = sc.querySelector('.seg-btn.active');
+    if (act && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = Math.max(0, act.offsetLeft - (sc.clientWidth - act.offsetWidth) / 2);
+    sc.addEventListener('scroll', marcar, { passive: true });
+    marcar();
+  }
+  document.getElementById('dist-panel-resumen').hidden = _distritoTab !== 'resumen';
   document.getElementById('dist-panel-miembros').hidden = _distritoTab !== 'miembros';
+  document.getElementById('dist-panel-estadisticas').hidden = _distritoTab !== 'estadisticas';
   document.getElementById('dist-panel-ranking').hidden  = _distritoTab !== 'ranking';
 }
 
 function seleccionarDistritoTab(k) {
-  _distritoTab = k === 'ranking' ? 'ranking' : 'miembros';
+  _distritoTab = ['ranking', 'estadisticas', 'miembros'].includes(k) ? k : 'resumen';
   pintarSegDistrito();
+  if (_distritoTab === 'estadisticas') montarEstadisticasDistrito();
+  if (_distritoTab === 'resumen') montarResumenDistrito();
 }
 
 /* ── DISTRITO: PERSONAS ──────────────────────────────────────────────── */
+/** Formulario de estadísticas de Instagram del distrito para el período seleccionado (core/estadisticas-distrito.js). */
+function montarEstadisticasDistrito() {
+  if (!isSecretario()) return;
+  EstadisticasDistrito.montarSecretaria(document.getElementById('dist-estadisticas-cuerpo'), { periodo: Store.periodo(), distrito: getMyDistrito() });
+}
+
+/** «Resumen» del distrito: posición, qué falta y evolución (core/distritos.js). */
+function montarResumenDistrito() {
+  if (!isSecretario()) return;
+  Distritos.montarSecretaria(document.getElementById('dist-resumen-cuerpo'), { periodos: Store.periodos() || [], distrito: getMyDistrito(), periodo: Store.periodo(), irA: seleccionarDistritoTab });
+}
+
 async function renderDistrito() {
   if (!isSecretario()) return;
   pintarSegDistrito();
-  renderCalificacionDistrito();
+  if (_distritoTab === 'estadisticas') montarEstadisticasDistrito();
+  if (_distritoTab === 'resumen') montarResumenDistrito();
   const v2 = esPeriodoV2(Store.periodo());
   if (v2) renderDistritoV2Stats(); else renderDistStats();
   await renderRoster();
@@ -528,46 +556,6 @@ function renderDistritoV2Stats() {
     { lbl: 'Mi posición (general)', val: miPos ? '#' + miPos : '—', sub: rows.length ? `de ${rows.length} evaluadas` : 'Sin evaluar', col: 'var(--txt)' },
     { lbl: 'General más alto', val: mejor ? fmtV2(mejor.general) : '—', sub: mejor?.nombre || '—', col: mejor ? scoreColorTxtV2(mejor.general) : '' },
   ].map(c => `<div class="dist-scard"><div class="dist-scard-lbl">${escHtml(c.lbl)}</div><div class="dist-scard-val"${c.col ? ` style="color:${c.col}"` : ''}>${escHtml(String(c.val))}</div><div class="dist-scard-sub">${escHtml(String(c.sub))}</div></div>`).join('');
-}
-
-/* Calificación oficial del distrito desde CREATORS DISTRITOS - PEx */
-function renderCalificacionDistrito() {
-  const el = document.getElementById('dist-cal-body'); if (!el) return;
-  const wrap = document.getElementById('dist-calificacion');
-  if (!isSecretario()) { if (wrap) wrap.hidden = true; return; }
-  if (wrap) wrap.hidden = false;
-  const pe = mPE;
-  const myDist = getMyDistrito();
-  if (!myDist) {
-    el.innerHTML = '<p class="pf-vacio">Sin distrito asignado.</p>';
-    return;
-  }
-  renderCargando(el);
-  API.getEvalDistritoByNombreAndPE(myDist, pe).then(ev => {
-    if (!ev) {
-      el.innerHTML = '<p class="pf-vacio">Sin calificación oficial para este período.</p>';
-      return;
-    }
-    const s = calcDistScore(ev.puntajes);
-    const critBars = DIST_CRITERIOS.map(c => {
-      const val = parseJSON(ev.puntajes)[c.key] ?? 0;
-      return `<div class="dist-cal-row">
-        <span class="dist-cal-abbr" style="color:var(--criterio-txt)">${escHtml(c.label)}</span>
-        <div class="dist-cal-track"><div class="dist-cal-fill" style="width:${(val/7)*100}%;background:var(--criterio)"></div></div>
-        <span class="dist-cal-val" style="color:var(--criterio-txt)">${val}</span>
-      </div>`;
-    }).join('');
-    el.innerHTML = `<div class="dist-cal-card">
-      <div class="dist-cal-head">
-        <div>
-          <div class="pf-sub">Calificación oficial · Distrito ${escHtml(myDist)} · ${escHtml(pe)}</div>
-          <div class="dist-cal-total" style="color:${distScoreColor(s)}">${s} <small>/ ${MAX_DIST_SEC} pts</small></div>
-        </div>
-        <span class="nivel-badge ${distScoreClass(s)}">${distScoreLabel(s)}</span>
-      </div>
-      <div class="dist-cal-bars">${critBars}</div>
-    </div>`;
-  });
 }
 
 function getDistrictMembersList() {
@@ -694,7 +682,7 @@ function switchTab(tab, btn) {
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
-  if (tab === 'reportes') ReporteEquipo.montar(document.getElementById('reportes-host'));
+  if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');

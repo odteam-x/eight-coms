@@ -10,18 +10,14 @@
   margin: 0;
 }
 .derechos b { font-weight: 600; color: var(--txt-2); }
-#contenido > .derechos { margin-top: var(--sp-6); }
-/* Inicio de sesión: el pie queda al fondo del panel del formulario, sin empujar la altura de la pantalla. */
-.login-form-panel > .derechos, .login-split > .derechos { position: static; }
-@media (min-width: 860px) {
-  .derechos--login { position: fixed; right: 0; bottom: 0; width: 58%; padding: var(--sp-3) var(--sp-4); pointer-events: none; }
-}
-@media (max-width: 767px) {
-  #contenido > .derechos { padding-bottom: calc(var(--sp-7) + 72px); }
-}
-/* Celular: el pie del inicio de sesión queda fijo abajo, a la vista sin desplazarse; el formulario reserva ese espacio. */
-@media (max-width: 859px) {
-  .derechos--login { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: var(--sp-2) var(--sp-4) max(var(--sp-2), env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--trazo); }
-  body:has(.derechos--login) { padding-bottom: 76px; }
-}
+/* El pie vive dentro de #contenido, después de las pestañas. Sin esto, en una pantalla corta (Gestiones, Distritos,
+   una tarea vacía) el pie quedaba a media altura y debajo quedaba un vacío sin sentido: #contenido es una columna
+   que ocupa al menos la ventana y el pie se pega al fondo con margin-top:auto. El espacio sobre el pie sale de su
+   propio padding, así que en una pantalla larga sigue habiendo aire entre el último bloque y el texto. */
+#contenido { display: flex; flex-direction: column; min-height: 100dvh; }
+#contenido > .tab-content, #contenido > .atab-content { flex: 0 0 auto; }
+#contenido > .derechos { margin-top: auto; padding-top: var(--sp-7); }
+/* admin.css dejaba 60 px de relleno bajo el pie en escritorio: el pie ya es el final de la página. */
+@media (min-width: 768px) { .amain { padding-bottom: 0; } }
+/* El pie del inicio de sesión (.derechos--login) se define en login.css, junto a la pantalla que lo contiene. */
 @media print { .derechos { display: none; }}

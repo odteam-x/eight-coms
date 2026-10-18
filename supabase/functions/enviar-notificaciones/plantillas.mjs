@@ -102,30 +102,59 @@ export const AUTH = {
   },
 };
 
-// Marcadores {{...}} los rellena la Edge Function; los valores ya llegan escapados.
+// Marcadores {{...}} los rellena la Edge Function (nucleo.mjs); los valores ya llegan escapados.
+// Reglas de estas plantillas:
+//   · {{nombre}} es SIEMPRE el nombre de pila de quien recibe el correo (nunca un dato del aviso).
+//   · Un dato opcional va en `filas`: si no viene, la fila entera se omite (nunca se ve «—» suelto).
+//   · Los párrafos y el asunto solo usan datos que el catálogo (notif_tipos.requeridas) garantiza.
+//   · Ningún correo lleva puntajes ni el texto de una observación de calificación: avisa y enlaza.
 export const AVISOS = {
-  nota_publicada: {
-    asunto: 'Ya está publicada tu evaluación de {{periodo}}',
-    preheader: 'Tu resultado de {{periodo}} está disponible.',
-    titulo: 'Tu evaluación está publicada',
-    parrafos: ['Hola {{nombre}}, ya puedes ver tu resultado de <b>{{periodo}}</b>, con el detalle por criterio y los comentarios de quien te evaluó.'],
-    filas: [['Período', '{{periodo}}']],
+  calificacion_nueva: {
+    asunto: 'Tienes una calificación nueva',
+    preheader: 'Revisa tu resultado en el portal.',
+    titulo: 'Tienes una calificación nueva',
+    parrafos: ['Hola {{nombre}}, se publicó una calificación tuya. Por privacidad no incluimos el resultado en este correo: ábrelo en el portal con tu sesión.'],
+    filas: [['Período', '{{periodo}}'], ['Actividad', '{{actividad}}'], ['Equipo', '{{equipo}}'], ['Calificada por', '{{evaluador}}']],
     boton: { texto: 'Ver mi resultado', url: '{{enlace}}' },
   },
-  nota_corregida: {
-    asunto: 'Se actualizó tu evaluación de {{periodo}}',
-    preheader: 'Cambió un dato de tu evaluación.',
-    titulo: 'Actualizamos tu evaluación',
-    parrafos: ['Hola {{nombre}}, quien te evaluó corrigió tu resultado de <b>{{periodo}}</b>. Revisa cómo quedó.'],
-    filas: [['Período', '{{periodo}}']],
+  calificacion_cambiada: {
+    asunto: 'Se modificó una calificación tuya',
+    preheader: 'Revisa cómo quedó.',
+    titulo: 'Actualizamos tu calificación',
+    parrafos: ['Hola {{nombre}}, quien te calificó corrigió un resultado que ya estaba publicado. Revisa cómo quedó en el portal.'],
+    filas: [['Período', '{{periodo}}'], ['Actividad', '{{actividad}}'], ['Equipo', '{{equipo}}'], ['Modificada por', '{{evaluador}}']],
     boton: { texto: 'Ver mi resultado', url: '{{enlace}}' },
+  },
+  observacion_nueva: {
+    asunto: 'Tienes una observación nueva',
+    preheader: 'Alguien dejó una observación sobre tu trabajo.',
+    titulo: 'Tienes una observación nueva',
+    parrafos: ['Hola {{nombre}}, recibiste una observación o retroalimentación. Léela en el portal, junto a tu evaluación.'],
+    filas: [['Período', '{{periodo}}'], ['Actividad', '{{actividad}}'], ['Equipo', '{{equipo}}'], ['De', '{{autor}}']],
+    boton: { texto: 'Leer la observación', url: '{{enlace}}' },
   },
   tarea_asignada: {
     asunto: 'Nueva tarea: {{tarea}}',
-    preheader: '{{asignador}} te asignó una tarea.',
+    preheader: 'Revisa el plazo y las instrucciones.',
     titulo: 'Tienes una tarea nueva',
-    parrafos: ['Hola {{nombre}}, <b>{{asignador}}</b> te asignó una tarea en <b>{{periodo}}</b>.'],
-    filas: [['Tarea', '{{tarea}}'], ['Fecha límite', '{{fecha_limite}}'], ['Prioridad', '{{prioridad}}']],
+    parrafos: ['Hola {{nombre}}, te asignaron una tarea. Abre el detalle para ver las instrucciones.'],
+    filas: [['Tarea', '{{tarea}}'], ['Asignada por', '{{asignador}}'], ['Período', '{{periodo}}'], ['Equipo', '{{equipo}}'], ['Fecha límite', '{{fecha_limite}}'], ['Prioridad', '{{prioridad}}']],
+    boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
+  },
+  tarea_colectiva_asignada: {
+    asunto: 'Tarea para tu equipo: {{tarea}}',
+    preheader: 'Asignaron una tarea al equipo {{equipo}}.',
+    titulo: 'Tu equipo tiene una tarea nueva',
+    parrafos: ['Hola {{nombre}}, se asignó una tarea al equipo <b>{{equipo}}</b>, del que formas parte. Coordínate con tus compañeros para entregarla.'],
+    filas: [['Tarea', '{{tarea}}'], ['Equipo', '{{equipo}}'], ['Asignada por', '{{asignador}}'], ['Responsable', '{{responsable}}'], ['Fecha límite', '{{fecha_limite}}'], ['Prioridad', '{{prioridad}}']],
+    boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
+  },
+  tarea_cambio: {
+    asunto: 'Cambió una tarea: {{tarea}}',
+    preheader: 'Cambio en: {{cambio}}.',
+    titulo: 'Cambió una de tus tareas',
+    parrafos: ['Hola {{nombre}}, hubo un cambio en una de tus tareas (<b>{{cambio}}</b>). Revísalo para no trabajar con datos antiguos.'],
+    filas: [['Tarea', '{{tarea}}'], ['Qué cambió', '{{cambio}}'], ['Antes', '{{antes}}'], ['Ahora', '{{ahora}}'], ['Motivo', '{{motivo}}'], ['Cambiado por', '{{cambiado_por}}']],
     boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
   },
   tarea_por_vencer: {
@@ -133,7 +162,7 @@ export const AVISOS = {
     preheader: 'Recuerda entregarla a tiempo.',
     titulo: 'Una tarea está por vencer',
     parrafos: ['Hola {{nombre}}, esta tarea vence <b>{{cuando}}</b>. Si no puedes llegar, avisa antes a quien te la asignó: un plazo se mueve con motivo, no después.'],
-    filas: [['Tarea', '{{tarea}}'], ['Fecha límite', '{{fecha_limite}}'], ['Estado', '{{estado}}']],
+    filas: [['Tarea', '{{tarea}}'], ['Equipo', '{{equipo}}'], ['Fecha límite', '{{fecha_limite}}'], ['Estado', '{{estado}}']],
     boton: { texto: 'Entregar la tarea', url: '{{enlace}}' },
   },
   tarea_vencida: {
@@ -141,40 +170,32 @@ export const AVISOS = {
     preheader: 'Pasó la fecha límite.',
     titulo: 'Una tarea ya venció',
     parrafos: ['Hola {{nombre}}, pasó la fecha límite de esta tarea y todavía no se entrega. Entrégala cuanto antes o avisa a quien te la asignó si algo te lo impide.'],
-    filas: [['Tarea', '{{tarea}}'], ['Venció el', '{{fecha_limite}}'], ['Días de atraso', '{{dias}}']],
+    filas: [['Tarea', '{{tarea}}'], ['Equipo', '{{equipo}}'], ['Venció el', '{{fecha_limite}}'], ['Días de atraso', '{{dias}}']],
     boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
   },
-  tarea_devuelta: {
+  correccion_solicitada: {
     asunto: 'Te devolvieron la tarea: {{tarea}}',
     preheader: 'Hay observaciones por corregir.',
     titulo: 'Tu tarea necesita correcciones',
-    parrafos: ['Hola {{nombre}}, <b>{{revisor}}</b> revisó tu entrega y te la devolvió con esta observación:', `<span style="display:block;padding:14px 20px;background:${C.fila};border-radius:16px;color:${C.texto}">{{observacion}}</span>`],
-    filas: [['Tarea', '{{tarea}}'], ['Fecha límite', '{{fecha_limite}}']],
+    parrafos: ['Hola {{nombre}}, revisaron tu entrega y te la devolvieron con esta observación:', `<span style="display:block;padding:14px 20px;background:${C.fila};border-radius:16px;color:${C.texto}">{{observacion}}</span>`],
+    filas: [['Tarea', '{{tarea}}'], ['Revisó', '{{revisor}}'], ['Equipo', '{{equipo}}'], ['Fecha límite', '{{fecha_limite}}']],
     boton: { texto: 'Corregir y entregar', url: '{{enlace}}' },
     nota: 'Corregir una observación no cambia que tu primera entrega haya llegado a tiempo.',
   },
   tarea_aprobada: {
     asunto: 'Aprobaron tu tarea: {{tarea}}',
-    preheader: 'Sumaste {{puntos}} puntos.',
+    preheader: 'Tu entrega fue aprobada.',
     titulo: 'Tu tarea fue aprobada',
-    parrafos: ['Hola {{nombre}}, <b>{{revisor}}</b> aprobó tu tarea. Queda como evidencia para tu evaluación.'],
-    filas: [['Tarea', '{{tarea}}'], ['Puntos', '{{puntos}} de 10']],
+    parrafos: ['Hola {{nombre}}, tu entrega fue aprobada. Queda como evidencia para tu evaluación.'],
+    filas: [['Tarea', '{{tarea}}'], ['Aprobada por', '{{revisor}}'], ['Equipo', '{{equipo}}'], ['Puntos', '{{puntos}} de 10']],
     boton: { texto: 'Ver la tarea', url: '{{enlace}}' },
   },
-  plazo_movido: {
-    asunto: 'Cambió el plazo de: {{tarea}}',
-    preheader: 'Nueva fecha límite: {{fecha_nueva}}.',
-    titulo: 'Se movió el plazo',
-    parrafos: ['Hola {{nombre}}, cambió la fecha límite de una de tus tareas.'],
-    filas: [['Tarea', '{{tarea}}'], ['Antes', '{{fecha_anterior}}'], ['Ahora', '{{fecha_nueva}}'], ['Motivo', '{{motivo}}']],
-    boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
-  },
-  entrega_por_revisar: {
+  entrega_registrada: {
     asunto: '{{persona}} entregó: {{tarea}}',
     preheader: 'Hay una entrega esperando tu revisión.',
     titulo: 'Tienes una entrega por revisar',
     parrafos: ['Hola {{nombre}}, <b>{{persona}}</b> entregó una tarea y espera tu revisión. Al aprobarla, asígnale sus puntos (0 a 10).'],
-    filas: [['Tarea', '{{tarea}}'], ['Entregada el', '{{entregada}}'], ['A tiempo', '{{a_tiempo}}']],
+    filas: [['Tarea', '{{tarea}}'], ['Equipo', '{{equipo}}'], ['Entregada el', '{{entregada}}'], ['A tiempo', '{{a_tiempo}}']],
     boton: { texto: 'Revisar la entrega', url: '{{enlace}}' },
   },
   tarea_bloqueada: {
@@ -182,8 +203,32 @@ export const AVISOS = {
     preheader: '{{persona}} marcó que está esperando algo.',
     titulo: 'Una tarea quedó bloqueada',
     parrafos: ['Hola {{nombre}}, <b>{{persona}}</b> marcó una tarea como bloqueada. Mientras siga así no cuenta como atrasada.'],
-    filas: [['Tarea', '{{tarea}}'], ['Motivo', '{{motivo}}']],
+    filas: [['Tarea', '{{tarea}}'], ['Equipo', '{{equipo}}'], ['Motivo', '{{motivo}}']],
     boton: { texto: 'Abrir la tarea', url: '{{enlace}}' },
+  },
+  estado_cambiado: {
+    asunto: 'Cambió el estado: {{elemento}}',
+    preheader: 'Revisa el cambio.',
+    titulo: 'Cambió el estado de algo tuyo',
+    parrafos: ['Hola {{nombre}}, cambió el estado de <b>{{elemento}}</b>.'],
+    filas: [['Elemento', '{{elemento}}'], ['Tipo', '{{objeto}}'], ['Equipo', '{{equipo}}'], ['Antes', '{{antes}}'], ['Ahora', '{{ahora}}'], ['Cambiado por', '{{cambiado_por}}']],
+    boton: { texto: 'Ver el detalle', url: '{{enlace}}' },
+  },
+  equipo_incorporado: {
+    asunto: 'Te incorporaron al equipo {{equipo}}',
+    preheader: 'Ya formas parte del equipo.',
+    titulo: 'Te sumaste a un equipo',
+    parrafos: ['Hola {{nombre}}, ahora formas parte del equipo <b>{{equipo}}</b>. Desde el portal puedes ver a tus compañeros y las tareas del equipo.'],
+    filas: [['Equipo', '{{equipo}}'], ['Tu rol en el equipo', '{{rol_equipo}}'], ['Incorporado por', '{{agregado_por}}']],
+    boton: { texto: 'Abrir el portal', url: '{{enlace}}' },
+  },
+  equipo_retiro: {
+    asunto: 'Ya no formas parte del equipo {{equipo}}',
+    preheader: 'Te retiraron de un equipo.',
+    titulo: 'Te retiraron de un equipo',
+    parrafos: ['Hola {{nombre}}, ya no formas parte del equipo <b>{{equipo}}</b>. Si crees que fue un error, consúltalo con quien administra el equipo.'],
+    filas: [['Equipo', '{{equipo}}'], ['Retirado por', '{{retirado_por}}'], ['Motivo', '{{motivo}}']],
+    boton: { texto: 'Abrir el portal', url: '{{enlace}}' },
   },
   solicitud_acceso: {
     asunto: 'Nueva solicitud de acceso: {{persona}}',
@@ -225,4 +270,3 @@ export const AVISOS = {
     boton: { texto: 'Ir a Evaluar', url: '{{enlace}}' },
   },
 };
-

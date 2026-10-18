@@ -25,17 +25,10 @@
 .perfil-id { display: flex; align-items: center; gap: var(--sp-5); min-width: 0; }
 .perfil-id-txt { min-width: 0; }
 
-.perfil-av {
-  position: relative; flex: 0 0 auto;
-  width: 112px; height: 112px; border-radius: 50%;
-  display: grid; place-items: center; overflow: hidden;
-  background: var(--blue-700); color: var(--on-brand);
-  border: 4px solid var(--cyan-400);
-  box-shadow: 0 0 0 6px rgba(0,203,255,.18), 0 18px 40px -12px rgba(0,203,255,.5);
-  font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; letter-spacing: .02em;
-
+.perfil-av {   /* el aro de la cabecera de perfil: un modificador de .avatar (shared.css), que pone tamaño, foto y predeterminado */
+  --av: 96px; padding: 0; border: 4px solid var(--cyan-400);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cyan-400) 18%, transparent);
 }
-.perfil-av img { width: 100%; height: 100%; object-fit: cover; }
 .perfil-av--editable { cursor: pointer; padding: 0; }
 .perfil-av-cam {
   position: absolute; right: 4px; bottom: 4px; width: 30px; height: 30px; padding: 6px;
@@ -79,6 +72,14 @@
 .perfil-barra { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-4); margin-bottom: var(--sp-6); }
 .perfil-barra .pe-row { margin-bottom: 0; }
 .perfil-barra > * { min-width: 0; max-width: 100%; }
+/* Selector de PE del perfil: una sola fila que se desplaza, con desvanecido en el borde que tiene más. El relleno lateral evita que el
+   overflow recorte el punto de «hoy» (sobresale 2 px) y la raya de la activa. */
+.perfil-pe { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: var(--sp-1) var(--sp-4); padding-inline: 4px; max-width: 100%; }
+.perfil-pe::-webkit-scrollbar { display: none; }
+.perfil-pe .pb { flex: none; white-space: nowrap; }
+.perfil-pe[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 32px), transparent); }
+.perfil-pe[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 32px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 32px), transparent); }
+.perfil-pe[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent); }
 .perfil-cuerpo { min-height: 240px; }
 
 /* En el panel lateral la cabecera es un bloque, sin diagonal (no hay página debajo). */
@@ -89,7 +90,7 @@
 }
 .perfil--panel .perfil-cab::after { display: none; }
 .perfil--panel .perfil-nombre { font-size: clamp(2.2rem, 5vw, 3.2rem); }
-.perfil--panel .perfil-av { width: 88px; height: 88px; font-size: 2rem; }
+.perfil--panel .perfil-av { --av: 88px; }
 .perfil--panel .perfil-resumen .anillo { --tam: 120px; }
 .perfil--panel .perfil-barra { position: sticky; top: calc(var(--sp-5) * -1); z-index: var(--z-sticky); background: var(--bg); padding: var(--sp-2) 0; margin-bottom: var(--sp-4); }
 
@@ -193,42 +194,7 @@
 .perfil .v2-tabla th:first-child { text-align: left; }
 .perfil .v2-tabla th:nth-child(2) { text-align: right; }
 
-/* ── Tarjeta de persona (core/personas.js) ──────────────────────────── */
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: var(--sp-5); }
-.pcard {
-  border-radius: var(--r-xl); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4);
-  width: 100%; min-height: 108px; padding: var(--sp-4); text-align: left;
-  color: var(--txt); background: var(--surface-1);
-  border: 0; border-radius: var(--r-cont); box-shadow: none;
-  transition: transform .14s var(--ease), box-shadow .14s var(--ease), border-color .14s var(--ease);
-
-}
-.pcard:nth-child(2n) { animation-delay: .06s; } .pcard:nth-child(3n) { animation-delay: .12s; } .pcard:nth-child(4n) { animation-delay: .18s; }
-.pcard:hover { border-color: var(--data); }
-.pcard:active { transform: scale(.985); }
-.pcard:focus-visible { outline: 3px solid var(--action); outline-offset: 4px; }
-.pcard--yo { background: var(--surface-2); }
-.pcard-av {
-  width: 60px; height: 60px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
-  background: var(--blue-700); color: var(--on-brand); border: 3px solid var(--cyan-400);
-  font-family: var(--font-display); font-weight: 700; font-size: 1.4rem;
-}
-.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
-.pcard-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pcard-nombre { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere; }
-.pcard-yo { margin-left: var(--sp-1); padding: 1px var(--sp-2); background: var(--coral); color: var(--navy-900); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .01em; vertical-align: 2px; }
-.pcard-rol { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
-.pcard-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); margin-top: var(--sp-1); }
-.pcard-chip { border-radius: var(--r-full); display: inline-flex; align-items: center; gap: 4px; padding: 1px var(--sp-2); border: 1.5px solid var(--trazo); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em; color: var(--txt); }
-.pcard-chip svg, .pcard-chip i { width: 12px; height: 12px; }
-.pcard-chip--aviso { background: var(--coral); border-color: var(--coral); color: var(--navy-900); }
-.pcard-valor { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
-.pcard-valor .anillo { --tam: 72px; }
-.pcard-valor .anillo circle { stroke-width: 12; }
-.pcard-valor .anillo-num { font-size: 1.6rem; }
-.pcard-valor .nivel-badge { padding: 2px var(--sp-2); border-radius: var(--r-lg); }
-.pcard-sin { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--txt-muted); max-width: 9ch; text-align: center; }
-@media (max-width: 400px) { .pcard { grid-template-columns: auto minmax(0, 1fr); } .pcard-valor { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; } }
+/* TARJETA DE PERSONA: definición única al final de este archivo (antes había tres capas contradictorias). */
 
 /* ── Distrito y Personas ────────────────────────────────────────────── */
 .dist-cal-total { font-family: var(--font-display); font-weight: 700; font-size: 3.6rem; line-height: 1; margin-top: var(--sp-1); }
@@ -269,7 +235,7 @@
 }
 @media (max-width: 767px) {
   .perfil-cab { grid-template-columns: minmax(0, 1fr); padding-block: var(--sp-6) calc(var(--sp-6) + 44px); }
-  .perfil-av { width: 88px; height: 88px; font-size: 2rem; }
+  .perfil-av { --av: 88px; }
   .perfil-resumen .anillo { --tam: 132px; }
   /* Las pestañas y los períodos quedan fijos bajo la cabecera móvil. */
   .perfil:not(.perfil--panel) .perfil-barra { position: sticky; top: 48px; z-index: var(--z-sticky); background: var(--bg); padding: var(--sp-2) 0; margin-bottom: var(--sp-4); }
@@ -348,3 +314,96 @@
 
 /* ── Cabecera de pantalla: título, períodos y contenido forman un solo bloque ─ */
 .ptitle + .pe-row, .page-header + .pe-row { margin-top: calc(var(--sp-2) * -1); margin-bottom: var(--sec-hero); }
+
+/* ── Los PE de la persona (core/perfil-pe.js) ───────────────────────────────
+   Una tarjeta por período, de lo general a lo particular: cabecera → datos de la persona en ese PE →
+   evaluación → indicadores → actividades → acción. La rejilla pasa de varias columnas a una sola sin
+   que ninguna tarjeta baje de 24rem de ancho útil (por debajo, texto y chips se comprimían). */
+.perfil-pe[hidden] { display: none; }
+.pe-intro { max-width: 70ch; margin-bottom: var(--sp-5); font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.6; color: var(--txt-2); }
+.pe-lista { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); gap: var(--sp-5); }
+.pe-card { position: relative; display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; padding: var(--sp-5); background: var(--surface-1); border-radius: var(--r-cont); }
+.pe-card--activo::before { content: ''; position: absolute; top: 0; left: var(--sp-5); right: var(--sp-5); height: 3px; border-radius: 0 0 3px 3px; background: var(--marca); }
+.pe-card--ausente { background: transparent; box-shadow: inset 0 0 0 1px var(--trazo); }
+.pe-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+.pe-titulo { flex: 1 1 10rem; min-width: 0; }
+.pe-nombre { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 1.4rem + .8vw, 2.2rem); line-height: var(--lh-display, 1.02); letter-spacing: var(--tr-display, -.02em); overflow-wrap: anywhere; }
+.pe-nombre span { display: block; margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0; color: var(--txt-2); }
+.pe-fechas { margin-top: var(--sp-1); font-family: var(--font-body); font-size: var(--fs-sm); color: var(--txt-2); }
+.pe-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.pe-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--sp-3) var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-fila); }
+.pe-dato { min-width: 0; }
+.pe-dato dt { margin-bottom: 2px; font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; color: var(--txt-muted); }
+.pe-dato dd { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; overflow-wrap: anywhere; }
+.pe-dato dd small { display: block; font-family: var(--font-body); font-weight: 400; color: var(--txt-2); }
+.pe-eval { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.pe-puntaje { display: flex; align-items: baseline; gap: var(--sp-2); }
+.pe-puntaje b { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1; }
+.pe-puntaje small { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-2); }
+.pe-inds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.pe-ind { padding: var(--sp-3); background: var(--surface-2); border: 2px solid transparent; border-radius: var(--r-fila); min-width: 0; }
+.pe-ind-v { font-family: var(--font-display); font-weight: 700; font-size: 1.9rem; line-height: 1; }
+.pe-ind-v small { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 400; color: var(--txt-2); }
+.pe-ind-l { margin-top: var(--sp-1); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; color: var(--txt-2); }
+.pe-ind--aviso { border-color: var(--alert); }
+.pe-ind--aviso .pe-ind-v { color: var(--alert); }
+.pe-sub { margin-bottom: var(--sp-2); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); }
+.pe-act-lista { list-style: none; }
+.pe-act-lista li { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) 0; border-top: 1px solid var(--trazo); font-family: var(--font-body); font-size: var(--fs-sm); }
+.pe-act-lista li span { min-width: 0; overflow-wrap: anywhere; }
+.pe-act-lista li small { flex: none; color: var(--txt-2); }
+.pe-mas { padding-top: var(--sp-2); border-top: 1px solid var(--trazo); font-family: var(--font-body); font-size: var(--fs-xs); color: var(--txt-muted); }
+.pe-aviso { font-family: var(--font-body); font-size: var(--fs-sm); line-height: 1.6; color: var(--txt-2); }
+.pe-pie { margin-top: auto; padding-top: var(--sp-2); }
+.pe-ver { width: 100%; justify-content: center; }
+@media (min-width: 640px) { .pe-ver { width: auto; } }
+
+/* ═══ TARJETA DE PERSONA (core/personas.js) — definición única ═══════════════
+   Antes había tres capas contradictorias (tarjeta, fila de lista y tarjeta otra vez, repartidas entre perfil.css y
+   premium.css) y la tarjeta quedaba a veces sin contenedor. El fondo y el borde van en el contenedor EXTERIOR, nunca
+   en el avatar: --surface-1 + anillo --trazo + radio de tarjeta; en el tema claro se suma la sombra (premium.css, lista
+   «Tema claro»). Variantes sobre la misma base:
+     .pcard           persona en un listado (avatar, resultado, nivel, estados)
+     .pcard--yo       la propia persona
+     .pcard--mini     compacta, en fila: miembro de un PE o integrante de un equipo (personaMiniHTML)
+   El avatar es siempre `.avatar` (core/avatar.js): nunca se vuelve a dibujar aquí. */
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); gap: var(--sp-3); }
+.pcard {
+  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-1); width: 100%; min-width: 0;
+  padding: var(--sp-4); text-align: left; font: inherit; color: var(--txt);
+  background: var(--surface-1); border: 1px solid var(--trazo); border-radius: var(--r-card);
+  transition: background .15s var(--ease), border-color .15s var(--ease);
+}
+button.pcard { cursor: pointer; }
+.pcard:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--data) 55%, transparent); }
+.pcard:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.pcard--yo { background: var(--surface-2); }
+.pcard-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
+.pcard-valor { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; line-height: 1; }
+.pcard-num { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; }
+.pcard-valor small { margin-top: 2px; font-size: var(--fs-xs); color: var(--txt-muted); }
+.pcard-sin { max-width: 12ch; font-size: var(--fs-sm); line-height: 1.2; text-align: right; color: var(--txt-2); }
+.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; letter-spacing: 0; text-transform: none; overflow-wrap: anywhere; }
+.pcard-yo { margin-left: var(--sp-2); padding: 1px var(--sp-2); border-radius: var(--r-control); background: var(--coral); color: var(--navy-900); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 600; }
+.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
+.pcard-barra { display: block; height: 6px; margin-top: var(--sp-2); border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.pcard-barra i { display: block; height: 100%; border-radius: inherit; }
+.pcard-pie { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); min-height: 28px; margin-top: var(--sp-2); }
+.pcard-pie .nivel-badge { margin: 0; }
+
+/* Compacta: avatar a la izquierda, nombre y detalle, y un hueco a la derecha para un estado o una acción */
+.pcard--mini { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); min-height: 60px; padding: var(--sp-3) var(--sp-4); }
+.pcard--mini .pcard-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pcard--mini .pcard-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2); min-width: 0; }
+.pcard--mini .pcard-nombre, .pcard--mini .pcard-rol { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 480px) { .pcard--mini { grid-template-columns: auto minmax(0, 1fr); } .pcard--mini .pcard-extra { grid-column: 1 / -1; justify-content: flex-start; } }
+.pcards { display: grid; gap: var(--sp-2); list-style: none; }
+
+/* Fondo personalizado en la TARJETA (no en la foto): la tarjeta de persona es una superficie de marca con el patrón que la persona
+   eligió (`pat-N`, de Fondo.clase). .sup-marca ya redefine los tokens de texto y de nivel a los pares medidos. */
+.pcard.sup-marca { border-radius: var(--r-card); clip-path: none; background: var(--navy-900); border: 1px solid var(--border); }
+.pcard.sup-marca:hover { background: var(--navy-900); border-color: var(--cyan-400); filter: brightness(1.12); }
+.pcard.sup-marca .pcard-barra { background: color-mix(in srgb, var(--on-brand) 18%, transparent); }
+.pcard.sup-marca .pcard-yo { background: var(--coral); }
+.pcard .avatar { background: var(--blue-700); box-shadow: inset 0 0 0 2px var(--cyan-400); }
+.pcard--mini.sup-marca { border-radius: var(--r-card); }

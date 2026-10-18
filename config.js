@@ -68,7 +68,9 @@ const _ACCIONES_SIMPLES = new Set([
   // buscadores y selectores de admin.html (data-input / data-change)
   'renderEvalUserList', 'repCambio', 'renderActividades', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
   'renderCriterios', 'renderRubrica', 'renderCalendario',
-  'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
+  // reporte general de todos los PE (core/reporte-general.js)
+  'rgFiltro',
+  'handleAvatarUpload',
   // selectores de la tabla de usuarios (llevaban onchange= inline)
   'onCambioDistritoUsuario', 'onCambioTipoUsuario',
   'onCambioRolUsuario', 'onCambioAdminUsuario',
@@ -91,6 +93,8 @@ const _ACCIONES_SIMPLES = new Set([
   'segBuscar', 'segFiltro',
   // equipos (core/equipos.js)
   'eqFiltrar', 'eqFiltrarTareas',
+  // estadísticas de Instagram del distrito (core/estadisticas-distrito.js)
+  'estDistArchivo', 'estDistCampo', 'distBuscar',
 ]);
 
 const ACCIONES = {
@@ -112,6 +116,9 @@ const ACCIONES = {
   avisosFiltro:     (arg)         => Notif.filtro(arg),
   avisosTodas:      ()            => Notif.todas(),
   avisosMas:        ()            => Notif.mas(),
+  avisosPrefs:      ()            => Notif.prefs(),
+  avisosLista:      ()            => Notif.volver(),
+  avisoPref:        (arg)         => Notif.pref(arg),
   cuentaDesdeHoja:  ()            => { cerrarHoja(); switchTab('cuenta', null); },
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
   // Mis preferencias de rol (core/preferencias.js)
@@ -130,6 +137,7 @@ const ACCIONES = {
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
   partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),
   partMasivo:    ()      => participacionMasiva(),
+  estDist:       (a, el) => EstadisticasDistrito.accion(a, el),
   evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),
   asigAtras:     ()      => Asignar.atras(),
@@ -171,6 +179,7 @@ const ACCIONES = {
 
   /* ── Perfil de persona (core/perfil.js) ── */
   perfilTab:     (a, el) => Perfil.tab(a, el),
+  perfilPeriodo: (a, el) => Perfil.verPeriodo(a, el),
   perfilVer:     (a)     => Perfil.abrir(a),
   cambiarAvatar: ()      => document.getElementById('avatar-file-input')?.click(),
   distritoTab:   (a)     => seleccionarDistritoTab(a),
@@ -195,11 +204,6 @@ const ACCIONES = {
   irTab:        (a)             => goTab(a),
   rankTab:      (a)             => switchRankTab(a),
   abrirCerrar:  (a)             => document.getElementById(a)?.classList.toggle('open'),
-  elegirDistrito: (a)           => {
-    const s = document.getElementById('dist-eval-select');
-    if (s) { s.value = a; onDistSelectChange(); }
-  },
-
   // Un solo argumento
   borrarUsuario:  (a) => confirmDeleteUser(a),
   borrarCal:      (a) => deleteCal(a),
@@ -213,6 +217,15 @@ const ACCIONES = {
   rubricaVista:   (a) => { _rubVista = a; renderRubricaTab(); },
   panelCmp:       (a) => PanelAdmin.setVista(a),
   repPeriodo:     (a) => Reportes.setPeriodo(a),
+  repModo:        (a) => Reportes.setModo(a),
+  // Reporte general de todos los PE (core/reporte-general.js)
+  rgDetalle:      (a) => ReporteGeneral.detalle(a),
+  rgPersonas:     (a) => ReporteGeneral.personas(a),
+  rgAbrirPE:      (a) => ReporteGeneral.abrirPE(a),
+  rgLimpiar:      ()  => ReporteGeneral.limpiar(),
+  rgCsv:          ()  => ReporteGeneral.csv(),
+  rgFiltrosToggle: () => ReporteGeneral.filtrosToggle(),
+  rgActualizar:   ()  => ReporteGeneral.cargar(),
   repSeccion:     (a) => Reportes.toggleSeccion(a),
   repPdf:         ()  => Reportes.pdf(),
   repCsv:         ()  => Reportes.csv(),
@@ -237,7 +250,8 @@ const ACCIONES = {
   guardarTrabajo: ()  => saveTrabajo(),
 
   // Barras de período del admin: (id, botón)
-  peDist:   (a, el) => selectDistPE(a, el),
+  dist:          (a, el) => (typeof DistritosAdmin !== 'undefined' ? DistritosAdmin.accion(a, el) : Distritos.accion(a, el)),   // admin: ranking y panel; secretaría: «Qué falta»
+  distPanelTab:  (a)     => DistritosAdmin.tab(a),
   peEval:   (a, el) => selectEvalPE(a, el),
   peOv:     (a, el) => selectOvPE(a, el),
   peRpt:    (a, el) => selectRptPE(a, el),
@@ -255,6 +269,7 @@ const ACCIONES = {
   crit2Borrar: (a)     => borrarCriterio2(a),
   crit2Mover:  (a, el) => moverCriterio2(a, el.dataset.arg2),
   // Tareas: la acción viaja en data-arg y el id de la tarea en data-arg2.
+  personasFiltro: (a) => irPersonasFiltro(a),
   tkAccion:    (a, el) => Tareas.accion(a, el),
   tkFiltro:    (a, el) => Tareas.filtro(a, el),
   tkConfirmar: ()      => Tareas.confirmar(),

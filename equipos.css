@@ -47,8 +47,6 @@
 .eq-pers-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .eq-pers { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);
   background: var(--surface-2); border-radius: var(--r-control); font-size: var(--fs-sm); color: var(--txt); }
-.eq-pers-av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r-control); background: var(--surface-3); color: var(--txt); font-size: var(--fs-xs); font-weight: 700; }
-
 /* ── Tarea del equipo ───────────────────────────────────────────────── */
 .eq-tarea-meta { margin: var(--sp-1) 0; font-size: var(--fs-sm); color: var(--txt-2); display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
 .eq-nota { display: inline-flex; flex-wrap: wrap; gap: var(--sp-1); align-items: baseline; margin: var(--sp-2) 0; padding: var(--sp-1) var(--sp-3);

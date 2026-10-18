@@ -49,7 +49,7 @@ const Inicio = (() => {
       <section class="inicio-hero sup-marca pat-${typeof Fondo !== 'undefined' ? Fondo.clase(persona) : _patron(persona.id)}" data-persona="${escHtml(persona.id)}" aria-labelledby="inicio-titulo">
         <div class="inicio-saludo">
           ${periodo ? `<span class="tag-marca">${escHtml(estado?.label || 'Período')} · ${escHtml(periodo.pe)}</span>` : ''}
-          <h2 class="inicio-titulo" id="inicio-titulo">Hola, <span class="acento">${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</span></h2>
+          <h1 class="inicio-titulo" id="inicio-titulo">Hola, <span class="acento">${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</span></h1>
           <p class="inicio-sub">${periodo
             ? escHtml(periodo.nombre && periodo.nombre !== periodo.pe ? periodo.nombre : `Período ${periodo.pe}`)
             : 'Todavía no hay un período en curso.'}</p>
@@ -64,7 +64,7 @@ const Inicio = (() => {
   }
 
   function _evaluacionHTML(persona, periodo, ev) {
-    const cab = `<div class="pf-card-cab"><h3 class="pf-h">Tu evaluación</h3>
+    const cab = `<div class="pf-card-cab"><h2 class="pf-h">Tu evaluación</h2>
       <button type="button" class="pf-enlace" data-act="tab" data-arg="perfil">Ver mi perfil<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
     if (!periodo) return `${cab}<p class="pf-vacio">Cuando haya un período en curso verás aquí cómo vas.</p>`;
     if (!ev) {
@@ -89,7 +89,7 @@ const Inicio = (() => {
 
   /** Tareas que piden atención: devueltas primero, luego por fecha. */
   function _atenderHTML(periodo, datos) {
-    const cab = (titulo) => `<div class="pf-card-cab"><h3 class="pf-h">${titulo}</h3>
+    const cab = (titulo) => `<div class="pf-card-cab"><h2 class="pf-h">${titulo}</h2>
       <button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ir a Entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
     if (!periodo || !esPeriodoV2(periodo)) {
       return `${cab('Para atender')}<p class="pf-vacio">Este período usa el registro de trabajos: lo que hiciste se agrega en Entregas.</p>`;
@@ -111,7 +111,7 @@ const Inicio = (() => {
   }
 
   function _fechasHTML(hitos) {
-    const cab = `<div class="pf-card-cab"><h3 class="pf-h">Próximas fechas</h3>
+    const cab = `<div class="pf-card-cab"><h2 class="pf-h">Próximas fechas</h2>
       <button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ver línea de tiempo<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
     if (!hitos.length) return `${cab}<p class="pf-vacio">No hay fechas próximas cargadas.</p>`;
     return `${cab}<ol class="inicio-fechas">${hitos.map(h => `

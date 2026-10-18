@@ -174,7 +174,7 @@ a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
    La tarjeta con borde desaparece: un renglón limpio con avatar y punto de
    presencia. Tema, salir y contraer comparten una sola fila de iconos. */
 .rail-user { border: 0; background: none; padding: var(--sp-2) var(--sp-2); gap: var(--sp-3); border-radius: var(--r-card); margin-block: var(--sp-1); }
-.rail-user .avatar { position: relative; width: 40px; height: 40px; flex: none; }
+.rail-user .avatar { --av: 40px; }
 .rail-user .avatar::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--cyan-400); border: 2px solid var(--navy-900); }
 .rail-uname { font-size: var(--fs-md); line-height: 1.2; }
 .rail-ts { color: var(--txt-2); }
@@ -237,53 +237,16 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .rail-colapsado .rail-grupo:not([open]) > .rail-item { display: none; }
 
 
-/* ── Acceso y registro rehechos ────────────────────────────────────────
-   Lado de marca: navy con patrón real, titular compacto a la izquierda y tres
-   puntos como lista de ajustes. Lado del formulario: lienzo con luz, selector
-   Entrar / Crear cuenta arriba y un único CTA coral. */
-.login-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
-.login-panel-brand { position: relative; isolation: isolate; overflow: hidden; justify-content: flex-start; gap: var(--sp-7); padding: var(--sp-7) var(--sp-7);
-  background: radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--cyan-400) 30%, transparent), transparent 70%), var(--navy-900); }
-.login-panel-brand::before { content: ''; position: absolute; inset: 0; z-index: -1; background: url("img/patrones/patron-6.webp") 0 0 / 260px 260px repeat; opacity: .16; -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 70%); mask-image: linear-gradient(to bottom, black 0%, transparent 70%); }
-.login-brand-center { justify-content: flex-start; flex: 0 0 auto; gap: var(--sp-4); }
-.login-hero-tag { color: var(--cyan-200); letter-spacing: .01em; text-transform: none; font-size: var(--fs-sm); margin-bottom: 0; }
-.login-hero-h1 { font-size: clamp(2.6rem, 1.8rem + 2.6vw, 4.4rem); line-height: .98; letter-spacing: -.025em; margin-bottom: 0; text-align: left; }
-.login-hero-h1 em { color: var(--cyan-200); display: block; }
-.login-hero-h1 .login-hero-labs { display: block; color: var(--on-brand); }
-.login-hero-desc { color: var(--on-brand-2); max-width: 34ch; margin: 0; }
-.login-puntos { list-style: none; margin: var(--sp-5) 0 0; padding: 0; max-width: 46ch; border-radius: var(--r-cont); background: color-mix(in srgb, var(--on-brand) 7%, transparent); overflow: hidden; }
-.login-puntos li { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-4) var(--sp-5); }
-.login-puntos li + li { border-top: 1px solid color-mix(in srgb, var(--on-brand) 14%, transparent); }
-.login-puntos strong { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); color: var(--on-brand); }
-.login-puntos span { font-family: var(--font-body); font-size: var(--fs-sm); color: var(--on-brand-2); }
-.login-brand-foot { margin-top: auto; color: var(--on-brand-2); font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; }
-
-.login-panel-form { flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-6); padding: var(--sp-7) var(--sp-5); }
-.login-form-inner { max-width: 420px; }
-.login-form-title { font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem); line-height: 1.02; letter-spacing: -.02em; text-transform: none; text-align: left; }
-.login-form-sub { color: var(--txt-2); font-size: var(--fs-md); text-align: left; }
-.field label { font-size: var(--fs-sm); color: var(--txt-2); letter-spacing: 0; text-transform: none; }
-.field input { min-height: 52px; border-radius: var(--r-control); background: var(--surface-1); border: 1px solid transparent; }
-.field input:focus { border-color: var(--action); background: var(--surface-2); }
-.btn-login { min-height: 54px; width: 100%; }
-@media (max-width: 860px) {
-  .login-layout { grid-template-columns: minmax(0, 1fr); }
-  .login-panel-brand { padding: var(--sp-6) var(--sp-5); gap: var(--sp-5); }
-  .login-puntos { display: none; }
-  .login-hero-h1 { font-size: clamp(2.4rem, 12vw, 3.4rem); }
-  /* login.css los ponía en una línea con un espacio duro delante; aquí van en bloque y el espacio los sangraba 10 px */
-  .login-hero-h1 em::before, .login-hero-h1 .login-hero-labs::before { content: none; }
-  .login-brand-foot { display: none; }
-}
+/* Acceso y registro: toda su hoja vive en login.css (una sola fuente; antes la repartían cuatro bloques). */
 
 /* ── Mi cuenta ─────────────────────────────────────────────────────────
    Cabecera con la foto grande y dos columnas de listas tipo ajustes:
    a la izquierda lo que eres, a la derecha lo que puedes cambiar. */
 .rail-user { width: 100%; text-align: left; }
-.rail-user .avatar { width: 40px; height: 40px; }
+.rail-user .avatar { --av: 40px; }
 .cuenta-cab { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sec-main); flex-wrap: wrap; }
-.cuenta-foto { width: 112px; height: 112px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); color: var(--txt); font-family: var(--font-display); font-weight: 700; font-size: 2.8rem; outline: 3px solid var(--data); outline-offset: 4px; }
-.cuenta-foto img { width: 100%; height: 100%; object-fit: cover; }
+/* La foto de Mi cuenta es un .avatar (shared.css): aquí solo su tamaño. */
+.cuenta-foto { --av: 112px; }
 .cuenta-id { min-width: 0; }
 .cuenta-nombre { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem); line-height: 1.02; letter-spacing: -.02em; overflow-wrap: anywhere; }
 .cuenta-mail { color: var(--txt-2); font-size: var(--fs-md); overflow-wrap: anywhere; }
@@ -302,7 +265,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .cuenta-msg--error { color: var(--alert); }
 .cuenta-salir { margin-top: var(--sp-4); }
 .cuenta-salir .fila-aj-ind svg, .cuenta-cols .fila-aj-ind svg { width: 22px; height: 22px; }
-@media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { width: 84px; height: 84px; font-size: 2.1rem; } }
+@media (max-width: 860px) { .cuenta-cols { grid-template-columns: minmax(0, 1fr); } .cuenta-cab { gap: var(--sp-4); } .cuenta-foto { --av: 84px; } }
 
 /* ═══ Admin: configuración, tablas y formularios ═══════════════════════
    Las pantallas de gestión usaban tablas con cabecera gris, un botón «+ Nuevo»
@@ -317,9 +280,11 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .btn-cfg-add:active { transform: scale(.985); }
 .btn-cfg-add:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
 
-.cfg-inp, .cfg-textarea, .search-inp { border-radius: var(--r-fila); border: 1px solid transparent; background: var(--surface-1); min-height: 48px; font-size: var(--fs-md); }
+/* `background-color`, no el shorthand `background`: el shorthand borraba también la flecha del <select> (shared.css la pinta con
+   background-image en .cfg-select), así que ningún selector del sitio tenía chevron. */
+.cfg-inp, .cfg-textarea, .search-inp { border-radius: var(--r-fila); border: 1px solid transparent; background-color: var(--surface-1); min-height: 48px; font-size: var(--fs-md); }
 .cfg-inp:hover, .search-inp:hover { border-color: var(--trazo); }
-.cfg-inp:focus, .cfg-textarea:focus, .search-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.cfg-inp:focus, .cfg-textarea:focus, .search-inp:focus { border-color: var(--action); background-color: var(--surface-2); }
 .search-inp { border-radius: var(--r-control); padding-inline: var(--sp-5); }
 .cfg-field-lbl, .cfg-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); letter-spacing: 0; text-transform: none; }
 
@@ -364,9 +329,9 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .tk-info { background: color-mix(in srgb, var(--data) 12%, var(--surface-2)); border-radius: var(--r-fila); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--txt-2); }
 .tk-campo { margin-bottom: var(--sp-4); }
 .tk-campo label, .tk-campo legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); letter-spacing: 0; margin-bottom: var(--sp-2); }
-.tk-campo .cfg-inp { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); border: 1px solid transparent; font-size: 16px; }
+.tk-campo .cfg-inp { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila); background-color: var(--surface-1); border: 1px solid transparent; font-size: 16px; }
 .tk-campo textarea.cfg-inp { padding: var(--sp-3) var(--sp-4); min-height: 96px; }
-.tk-campo .cfg-inp:focus { border-color: var(--action); background: var(--surface-2); }
+.tk-campo .cfg-inp:focus { border-color: var(--action); background-color: var(--surface-2); }
 .tk-checks-lista { border: 0; border-radius: var(--r-fila); background: var(--surface-1); padding: 0; max-height: 240px; }
 .tk-check { padding: 0 var(--sp-4); min-height: 48px; font-size: var(--fs-sm); cursor: pointer; }
 .tk-check + .tk-check { border-top: 1px solid var(--trazo); }
@@ -393,24 +358,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .rail-colapsado .rail-marca-col { display: none; }
 @media (max-height: 640px) { .rail-prox { display: none; } .rail-marca { min-height: 44px; padding-bottom: var(--sp-2); } }
 
-/* ── Personas: una lista, no una pared de tarjetas ─────────────────────
-   Avatar, nombre y rol a la izquierda; resultado a la derecha; un solo
-   contenedor con divisores finos (como las listas de ajustes). */
-.roster { display: flex; flex-direction: column; gap: 0; background: var(--surface-1); border-radius: var(--r-cont); overflow: hidden; }
-.pcard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4); width: 100%; min-height: 76px; padding: var(--sp-3) var(--sp-5); border: 0; border-top: 1px solid var(--trazo); border-radius: 0; background: none; box-shadow: none; text-align: left; transition: background .15s var(--ease); }
-.roster > .pcard:first-child { border-top: 0; }
-.pcard:hover { background: var(--surface-2); border-color: var(--trazo); }
-.pcard--yo { background: var(--surface-2); }
-.pcard-av { width: 48px; height: 48px; flex: none; }
-.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.25; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
-.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
-.pcard-yo { margin-left: var(--sp-2); }
-.pcard-valor { flex-direction: row-reverse; align-items: center; gap: var(--sp-3); }
-.pcard-valor .anillo { --tam: 52px; }
-.pcard-valor .anillo-num { font-size: 1.25rem; }
-.pcard-valor .nivel-badge { padding: 2px var(--sp-3); }
-.pcard-sin { max-width: none; font-size: var(--fs-sm); color: var(--txt-2); text-align: right; }
-@media (max-width: 520px) { .pcard { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); } .pcard-valor .nivel-badge { display: none; } }
+/* Personas: tarjeta y avatar canónicos en perfil.css (`.pcard`) y shared.css (`.avatar`); aquí no se redefinen. */
 
 
 /* ── Medallas del ranking (icono, no emoji) ───────────────────────────── */
@@ -469,7 +417,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .ov-action-btn { min-height: 44px; padding: 0 var(--sp-4); font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; }
 .rank-tab-btn.active, .rank-tab-btn[aria-pressed="true"] { background: var(--surface-3) !important; color: var(--txt) !important; }
 .btn-icon { width: 40px; height: 40px; min-width: 40px; }
-.modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background: var(--surface-1); font-size: 16px; }
+.modal-box .field input:not([type="checkbox"]):not([type="color"]):not([type="radio"]), .modal-box .field select { min-height: 48px; border-radius: var(--r-fila); padding-inline: var(--sp-4); background-color: var(--surface-1); font-size: 16px; }
 .modal-box .field input[type="checkbox"], .field input[type="checkbox"] { min-height: 0; width: 22px; height: 22px; padding: 0; border-radius: 7px; background: transparent; }
 @media (max-width: 767px) { .modal-actions { flex-direction: column-reverse; align-items: stretch; } }
 
@@ -639,36 +587,15 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 @media (max-width: 520px) { .per-fechas { grid-template-columns: minmax(0, 1fr); } }
 
 
-/* ── Personas: tarjeta de persona (exterior) ───────────────────────────── */
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--sp-3); background: none; border-radius: 0; overflow: visible; }
-.roster > .pcard, .pcard { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: var(--sp-4); border: 0; border-radius: var(--r-card); background: var(--surface-1); text-align: left; transition: background .15s var(--ease); }
-.roster > .pcard:first-child { border-top: 0; }
-.pcard:hover { background: var(--surface-2); }
-.pcard--yo { background: var(--surface-2); }
-.pcard-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
-.pcard-av { width: 56px; height: 56px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
-.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
-.pcard-valor { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
-.pcard-num { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; }
-.pcard-valor small { font-size: var(--fs-xs); color: var(--txt-muted); margin-top: 2px; }
-.pcard-sin { font-size: var(--fs-sm); color: var(--txt-2); text-align: right; max-width: 12ch; line-height: 1.2; }
-.pcard-nombre { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-md); line-height: 1.2; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
-.pcard-rol { font-size: var(--fs-sm); color: var(--txt-2); }
-.pcard-barra { display: block; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: var(--sp-2); }
-.pcard-barra i { display: block; height: 100%; border-radius: inherit; }
-.pcard-pie { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); min-height: 28px; align-items: center; }
-.pcard-pie .nivel-badge { margin: 0; }
 
 /* ── Perfil: cabecera más sobria y cifras neutras ──────────────────────── */
-.perfil-nombre { font-size: clamp(2rem, 1.2rem + 2.6vw, 3.6rem) !important; line-height: .95; text-transform: none; letter-spacing: var(--tr-display); }
+.perfil-nombre { font-size: clamp(2rem, 1.2rem + 2.6vw, 3.6rem); line-height: .95; text-transform: none; letter-spacing: var(--tr-display); }
 .perfil-cab { padding-block: var(--sp-6) calc(var(--sp-6) + 36px); }
-.perfil-av { width: 96px; height: 96px; }
 .pf-kpis > :nth-child(n) { --b-bg: var(--surface-1); --b-fg: var(--txt); }
 .pf-kpis > :nth-child(1) .pf-kpi-val { color: var(--data-txt); }
 .pf-kpi { border-radius: var(--r-card); clip-path: none; }
 .pf-kpi-val { font-size: clamp(2.6rem, 3.6vw, 3.6rem); }
 .pf-kpi-lbl { color: var(--txt-2); }
-.pcard-av, .pcard-av span { color: var(--txt); }
 
 
 /* ── Cabecera de pantalla: título + acción en una fila, descripción debajo ─ */
@@ -682,7 +609,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 
 /* ── Mi cuenta: aprovecha el ancho ─────────────────────────────────────── */
 .cuenta-cab { padding: var(--sp-4) var(--sp-6); background: var(--surface-1); border-radius: var(--r-cont); gap: var(--sp-5); }
-.cuenta-foto { width: 96px; height: 96px; font-size: 2.4rem; }
+.cuenta-foto { --av: 96px; }
 .cuenta-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: var(--sp-5); }
 .cuenta-cols > section { display: flex; flex-direction: column; min-width: 0; }
 .cuenta-cols > section > .lista-aj { flex: 1; }
@@ -814,7 +741,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
    borde ni sombra, así que nada se distinguía; los campos blancos tampoco tenían
    límite visible (WCAG 1.4.11 pide 3:1: --campo-borde). :where() deja la especificidad
    en la de la clase, de modo que el foco (:focus-visible) y los estados activos ganan. */
-:where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
+:where([data-theme="light"]) :is(.tarjeta, .panel, .pf-card, .pf-kpi, .pf-lista, .pf-tk, .pf-tareas, .cal2-mes, .cal2-agenda, .tk-card, .lista-aj, .eval-resumen, .eval-ucard, .pcard, .pe-card, .per-linea-pista, .rol-card, .rol-perfil, .rpt-hoja, .rpt-tabla, .tbl, .cuenta-cab, .atencion-item, .ov-panel, .v2-rol-card, .dist-hist-card, .dist-rk-card, .tk-evid, .eval-form-card) {
   box-shadow: 0 0 0 1px var(--trazo), var(--shadow-sm);
 }
 :where([data-theme="light"]) :is(.search-inp, .cfg-inp, .cfg-select, .cfg-textarea, .field input, .field select, .field textarea, select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="date"], input[type="url"], input[type="number"]) {
@@ -845,107 +772,6 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 /* Filtros: los selectores se encogen para caber en la misma fila que la búsqueda (a ~1040 px el distrito saltaba solo a otra línea) */
 .filtros-fila .cfg-select { flex: 1 1 150px; max-width: 240px; min-width: 130px; }
 
-/* ═══ Acceso y registro en UNA página, sin scroll en escritorio ════════════════
-   - Entrar / Crear cuenta son dos paneles de la misma página (login.js: setModoAcceso).
-     El indicador del selector se desliza, el formulario que sale se desplaza y se
-     desvanece mientras entra el otro, y el texto de marca se cruza.
-   - En escritorio todo cabe en la altura de la ventana: el panel de marca no desborda
-     (la lista de puntos se compacta y luego se oculta según la altura) y el formulario
-     escala con vh; solo si la ventana es muy baja el lado del formulario hace scroll. */
-.login-seg { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: var(--r-control); background: var(--surface-1); align-self: center; flex: none; }
-.login-seg::before { content: ''; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: var(--r-control); background: var(--surface-3);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cyan-200) 22%, transparent); transition: transform .4s cubic-bezier(.4, 0, .2, 1); }
-.login-layout[data-modo="registro"] .login-seg::before { transform: translateX(100%); }
-.login-seg-btn { position: relative; z-index: 1; min-height: 44px; min-width: 132px; padding: 0 var(--sp-5); border: 0; background: none; border-radius: var(--r-control); cursor: pointer;
-  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--txt-2); transition: color .25s var(--ease); }
-.login-seg-btn:hover { color: var(--txt); }
-.login-seg-btn[aria-selected="true"] { color: var(--txt); }
-.login-seg-btn:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-
-.login-stage { display: grid; width: 100%; max-width: 420px; }
-.login-pane { grid-area: 1 / 1; min-width: 0; opacity: 1; transform: none; visibility: visible; transition: opacity .35s var(--ease), transform .4s cubic-bezier(.4, 0, .2, 1), visibility 0s; }
-.login-pane .login-form-inner { max-width: none; }
-.login-layout[data-modo="login"] #pane-registro { opacity: 0; transform: translateX(28px); visibility: hidden; pointer-events: none; transition: opacity .25s var(--ease), transform .4s cubic-bezier(.4, 0, .2, 1), visibility 0s .4s; }
-.login-layout[data-modo="registro"] #pane-login { opacity: 0; transform: translateX(-28px); visibility: hidden; pointer-events: none; transition: opacity .25s var(--ease), transform .4s cubic-bezier(.4, 0, .2, 1), visibility 0s .4s; }
-
-.login-hero-desc { display: grid; }
-.login-hero-desc-m { grid-area: 1 / 1; transition: opacity .35s var(--ease), transform .4s cubic-bezier(.4, 0, .2, 1), visibility 0s; }
-.login-layout[data-modo="login"] .login-hero-desc-m[data-m="registro"], .login-layout[data-modo="registro"] .login-hero-desc-m[data-m="login"] { opacity: 0; transform: translateY(8px); visibility: hidden; transition: opacity .2s var(--ease), transform .4s cubic-bezier(.4, 0, .2, 1), visibility 0s .4s; }
-
-@media (min-width: 861px) {
-  .login-layout { height: 100dvh; min-height: 0; }
-  .login-panel-brand { padding: clamp(20px, 5vh, 56px) var(--sp-7); gap: clamp(16px, 4vh, 48px); }
-  .login-hero-h1 { font-size: clamp(2.4rem, .6rem + 6.4vh, 4.4rem); }
-  .login-puntos { margin-top: clamp(8px, 2vh, 24px); }
-  .login-panel-form { overflow-x: clip; overflow-y: auto; justify-content: flex-start; gap: clamp(12px, 3vh, 32px); padding-block: clamp(16px, 4vh, 48px); }
-  .login-seg { margin-top: auto; }
-  .login-stage { margin-bottom: auto; }
-  .login-form-header { margin-bottom: clamp(12px, 2.6vh, 28px); }
-  .login-form-title { font-size: clamp(1.9rem, .8rem + 3.6vh, 3.2rem); }
-  .field { margin-bottom: clamp(8px, 1.8vh, 16px); }
-  .field input { min-height: clamp(44px, 5.6vh, 52px); }
-  .btn-login { min-height: clamp(46px, 6vh, 54px); }
-  .login-aux a, .login-link a { padding-block: 10px; }
-  .login-link, .login-aux + .login-aux { margin-top: clamp(8px, 2vh, 20px); }
-}
-@media (min-width: 861px) and (max-height: 900px) {
-  .login-puntos span { display: none; }
-  .login-puntos li { padding: var(--sp-3) var(--sp-5); }
-}
-@media (min-width: 861px) and (max-height: 640px) { .login-puntos { display: none; } }
-@media (min-width: 861px) and (max-height: 600px) { .login-hero-desc, .login-hero-tag { display: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .login-seg::before, .login-seg-btn, .login-pane, .login-hero-desc-m { transition: none !important; }
-}
-
-/* Móvil: la marca es una cabecera de una línea (logo + «EIGHT CREATORS LABs»); el texto de apoyo se oculta
-   para que el formulario quede a la vista sin deslizar. */
-@media (max-width: 860px) {
-  .login-panel-brand { flex-direction: row; align-items: center; justify-content: flex-start; gap: var(--sp-3); padding: var(--sp-4) 64px var(--sp-4) var(--sp-5); }
-  .login-brand-center { flex: 1; gap: 0; }
-  .logo-img { width: 48px; height: 48px; }
-  .login-hero-tag, .login-hero-desc, .login-brand-foot, .login-puntos { display: none; }
-  .login-hero-h1 { font-size: clamp(1.35rem, 6.2vw, 2rem); line-height: 1.1; letter-spacing: -.01em; }
-  .login-hero-h1 em, .login-hero-h1 .login-hero-labs { display: inline; }
-  .login-hero-h1 em::before, .login-hero-h1 .login-hero-labs::before { content: '\00a0'; }
-  .login-panel-form { padding-top: var(--sp-5); gap: var(--sp-5); }
-}
-/* La luz inferior del formulario se salía por debajo y creaba una barra de scroll vacía: ahora termina en el borde. */
-.login-panel-form::after { top: calc(100% - var(--luz-size) * .3); }
-
-/* Panel de marca: el bloque se centra entre el logo y el pie (antes quedaba arriba y dejaba un vacío debajo) y el titular crece con la altura. */
-@media (min-width: 861px) {
-  .login-brand-center { flex: 1 1 auto; justify-content: center; }
-  .login-hero-h1 { font-size: clamp(2.8rem, 1rem + 8.6vh, 5.8rem); }
-  .login-hero-desc { font-size: var(--fs-md); }
-  .login-puntos { max-width: 48ch; }
-  .login-brand-foot { margin-top: 0; }
-}
-@media (min-width: 861px) and (max-height: 760px) { .login-puntos li { padding: var(--sp-2) var(--sp-5); } }
-
-/* Autocompletado de Chrome: pintaba el campo azul pálido con el texto claro del tema (ilegible al previsualizar una sugerencia) */
-.field input:-webkit-autofill, .field input:-webkit-autofill:hover, .field input:-webkit-autofill:focus, .field input:-webkit-autofill:active {
-  -webkit-text-fill-color: var(--txt); caret-color: var(--txt);
-  -webkit-box-shadow: 0 0 0 1000px var(--surface-1) inset; box-shadow: 0 0 0 1000px var(--surface-1) inset;
-  transition: background-color 9999s ease-out 0s;
-}
-
-/* ═══ Restablecer contraseña: orientación y aviso (no alarma) ═════════════════
-   «Tu clave nueva es la actual» no es un fallo: es información, con una salida clara.
-   Tinte --data (informativo), nunca el rojo de error. */
-.login-nota, .login-aviso { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-3) var(--sp-4); margin: var(--sp-1) 0 var(--sp-4); border-radius: var(--r-fila);
-  background: color-mix(in srgb, var(--data) 10%, transparent); border: 1px solid color-mix(in srgb, var(--data) 30%, transparent); color: var(--txt); font-size: var(--fs-sm); line-height: 1.5; text-align: left; }
-.login-nota > i, .login-aviso > i { flex: none; width: 20px; height: 20px; margin-top: 2px; color: var(--data-txt); }
-.login-nota a { color: var(--action); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-.login-aviso { padding: var(--sp-4) var(--sp-5); margin-top: var(--sp-4); }
-.login-aviso[hidden] { display: none; }
-.login-aviso strong { display: block; font-family: var(--font-ui); font-size: var(--fs-md); margin-bottom: var(--sp-1); }
-.login-aviso p { margin: 0 0 var(--sp-3); color: var(--txt-2); }
-.login-aviso-acc { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: center; }
-.login-aviso-acc .btn-login { width: auto; margin: 0; padding-inline: var(--sp-6); }
-/* clip, no hidden: con hidden el navegador podía desplazar el panel en horizontal al enfocar un campo (la luz de fondo lo ensancha) */
-.login-panel-form { overflow-x: clip; }
 
 /* ═══ Criterios dinámicos (0020): gestión del catálogo, modal y campos de registro ═════════════ */
 .crit2-barra { align-items: center; margin-bottom: var(--sp-5); }
@@ -1245,3 +1071,38 @@ a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }
 /* Filas de ajuste con enlace y texto largo: el icono se queda a la derecha (igual que con botones). */
 .cuenta-cols a.fila-aj { flex-wrap: nowrap; }
 .cuenta-cols a.fila-aj .fila-aj-txt { flex: 1 1 0; }
+
+/* ── <select> con flecha: el relleno derecho deja sitio al chevron en todos los contextos ─────────────────
+   `.tk-campo .cfg-inp` (padding: 0 16px) y movil.css (padding-inline) lo pisaban y el texto corría bajo la flecha. */
+.cfg-inp.cfg-select, select.cfg-select { padding-inline-end: calc(var(--sp-4) + 24px); text-overflow: ellipsis; }
+
+/* ═══ JERARQUÍA DE TÍTULOS — una escala, cuatro niveles ═══════════════════════
+   Los títulos llevaban tamaños sueltos (28 px en mayúsculas, 24, 20, 15 px en cian…) según quién los escribió. Ahora cada
+   nivel es una sola regla, con los tokens --fs-*; lo que cambia entre pantallas es el nivel HTML, no el estilo.
+     N1 página      h1.pantalla-t (marca.css) · el nombre de la persona (h1 en su perfil) · el saludo de Inicio
+     N2 sección     .pf-h  .hist-sub  .cuenta-t            display 700, mayúsculas, --t-sec
+     N3 tarjeta     .panel-t-h  .rpt-sec-t  .rol-t         display 700, --fs-lg
+     N4 subapartado .pf-sub  .pe-sub                       ui 600, --fs-sm, --txt-2
+   Todos soportan textos largos (nombre de un PE, de un equipo, de una sección): se parten, no desbordan. El nivel semántico
+   (h1–h6) lo fija el marcado; Perfil reajusta los de sus paneles bajo el nombre (core/perfil.js, _niveles). */
+:root { --t-sec: clamp(1.4rem, 1.2rem + .6vw, 1.9rem); }
+.pf-h, .hist-sub, .cuenta-t {
+  font-family: var(--font-display); font-weight: 700; font-size: var(--t-sec); line-height: 1.05; letter-spacing: .02em; text-transform: uppercase;
+  color: var(--txt); margin: var(--sp-5) 0 var(--sp-4); padding: 0; border: 0; text-wrap: balance;
+}
+.pf-card .pf-h, .pf-card-cab .pf-h { margin-top: 0; }
+.pf-h small, .cuenta-t small { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--txt-muted); margin-left: var(--sp-2); }
+.panel-t-h, .rpt-sec-t, .rol-t { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); line-height: 1.1; letter-spacing: var(--tr-titulo); text-transform: none; text-wrap: balance; }
+.pf-sub, .pe-sub { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; letter-spacing: 0; text-transform: none; color: var(--txt-2); }
+/* Títulos dinámicos (datos humanos): nunca rompen el diseño */
+.pf-h, .hist-sub, .cuenta-t, .panel-t-h, .rpt-sec-t, .rol-t, .pf-sub, .pe-sub, .perfil-nombre, .cuenta-nombre, .pe-nombre, .pantalla-t, .inicio-titulo, .cal2-agenda-h { overflow-wrap: anywhere; min-width: 0; }
+.perfil-nombre, .cuenta-nombre, .pe-nombre, .pantalla-t { text-wrap: balance; }
+
+/* ── Centro de avisos: nada se desplaza hacia los lados ──────────────────────────────────────────────────
+   Los filtros (Todos, Sin leer, Tareas…) no caben en 390 px: antes ensanchaban todo el panel y el contenido corría a un
+   lado. Ahora el panel recorta, y la fila de filtros se desplaza SOLA, con un desvanecido a la derecha. */
+.panel .panel-cuerpo { overflow-x: hidden; }
+.panel .avisos, .panel .avisos-barra, .panel .avisos-barra .chip-row { min-width: 0; max-width: 100%; }
+.panel .avisos-barra .chip-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
+.panel .avisos-barra .chip-row::-webkit-scrollbar { display: none; }
+.panel .avisos-barra .chip-row .chip { flex: none; }

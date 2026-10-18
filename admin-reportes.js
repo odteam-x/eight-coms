@@ -8,13 +8,16 @@
  * mismos datos salen en CSV. Funciona con los dos modelos de rúbrica: lee los
  * resultados ya calculados (rúbrica por roles, en la base) o la fórmula clásica
  * a través de PanelAdmin.datos(); aquí no se calcula ningún puntaje oficial.
- * Depende de: admin.js (globals), admin-panel.js (PanelAdmin), core/rubrica.js.
+ * Dos modos (E.modo): «general» (por defecto) = el resumen de TODOS los PE en una sola pantalla
+ * (core/reporte-general.js, migración 0050); «detalle» = este constructor, para un PE. Desde la fila de un PE
+ * del resumen se abre su reporte completo (verPE). CSV e impresión siguen el modo activo.
+ * Depende de: admin.js (globals), admin-panel.js (PanelAdmin), core/rubrica.js, core/reporte-general.js.
  */
 const Reportes = (() => {
   const SECCIONES = [
     { k: 'resumen',  t: 'Resumen',           ico: 'file-text' },
     { k: 'ranking',  t: 'Ranking',           ico: 'trophy' },
-    { k: 'rol',      t: 'Por rol',           ico: 'group' },
+    { k: 'rol',      t: 'Por rol',           ico: 'users-round' },
     { k: 'criterio', t: 'Por competencia',   ico: 'bar-chart-2' },
     { k: 'personas', t: 'Detalle por persona', ico: 'user' },
     { k: 'tareas',   t: 'Evidencia de tareas', ico: 'list-checks', v2: true },
@@ -22,7 +25,7 @@ const Reportes = (() => {
     { k: 'actividad', t: 'Por actividad',    ico: 'calendar-days' },
     { k: 'sin',      t: 'Sin evaluar',       ico: 'user-x' },
   ];
-  const E = { periodoId: null, alcance: 'todo', valor: '', sec: new Set(['resumen', 'ranking', 'rol', 'criterio', 'sin']) };
+  const E = { modo: 'general', periodoId: null, alcance: 'todo', valor: '', sec: new Set(['resumen', 'ranking', 'rol', 'criterio', 'sin']) };
   let _d = null;           // datos del período
   let _tareas = {};        // por persona, solo períodos por roles
   let _sinEv = [];
@@ -34,12 +37,38 @@ const Reportes = (() => {
   const fechaLarga = d => d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
   const periodoSel = () => _periodos.find(p => String(p.id) === String(E.periodoId));
 
+  const MODOS = [
+    { k: 'general', etiqueta: 'Todos los PE', icono: 'layout-grid' },
+    { k: 'detalle', etiqueta: 'Un PE en detalle', icono: 'file-text' },
+  ];
+  function pintarModo() {
+    const host = document.getElementById('rep-modo'); if (!host) return;
+    host.innerHTML = segHTML(MODOS, E.modo, 'repModo', { etiqueta: 'Tipo de reporte', prefijo: 'rep-modo' });
+    renderIconos(host);
+    const g = E.modo === 'general';
+    document.getElementById('rg-host').hidden = !g;
+    document.getElementById('rep-detalle').hidden = g;
+    const ayuda = document.getElementById('rep-ayuda');
+    if (ayuda) ayuda.textContent = g
+      ? 'El estado de todos los Períodos de Evaluación en una sola pantalla. Abre una fila para ver de dónde sale cada cifra.'
+      : 'Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.';
+  }
+
   async function abrir() {
+    pintarModo();
+    if (E.modo === 'general') {
+      await ReporteGeneral.montar(document.getElementById('rg-host'), { distritos: _distritos, roles: _roles, abrirPE: verPE });
+      return;
+    }
     if (!_periodos.length) { document.getElementById('rpt-body').innerHTML = '<div class="empty-box"><div class="empty-txt">Crea un período para generar reportes.</div></div>'; return; }
     if (!E.periodoId) E.periodoId = (_periodos.find(p => p.activo) || _periodos[0]).id;
     pintarControles();
     await cargar();
   }
+  /** Cambia entre el resumen de todos los PE y el reporte de uno. */
+  function setModo(k) { if (k !== 'general' && k !== 'detalle') return; E.modo = k; abrir(); }
+  /** Desde una fila del resumen: el reporte completo de ese PE. */
+  function verPE(id) { E.modo = 'detalle'; E.periodoId = id; E.valor = ''; abrir(); window.scrollTo?.({ top: 0 }); }
 
   function pintarControles() {
     const host = document.getElementById('rep-controles'); if (!host) return;
@@ -220,6 +249,7 @@ const Reportes = (() => {
 
   const csvEsc = v => { const s = String(v ?? ''); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   function csv() {
+    if (E.modo === 'general') { ReporteGeneral.csv(); return; }
     const fs = filtradas(); if (!fs.length) { showToast('No hay resultados que exportar con esos filtros.', 'error'); return; }
     const cab = ['Posición', 'Persona', 'Rol', 'Distrito', ..._d.v2 ? ['Competencias comunes', 'Competencias del rol'] : [], 'Total sobre 100', 'Nivel'];
     const filas = fs.map((x, i) => [i + 1, x.nombre, x.rolNombre, x.distrito, ..._d.v2 ? [f1(x.nucleo), f1(x.tecnico)] : [], f1(x.score), NIV[nivelK(x.score)]]);
@@ -232,6 +262,7 @@ const Reportes = (() => {
 
   /** PDF por impresión: se imprime con el tema claro y se restaura el del usuario. */
   function pdf() {
+    if (E.modo === 'general') { ReporteGeneral.imprimir(); return; }
     const r = document.documentElement, previo = r.getAttribute('data-theme');
     r.setAttribute('data-theme', 'light'); document.body.classList.add('imprimiendo-reporte');
     const fin = () => { document.body.classList.remove('imprimiendo-reporte'); previo ? r.setAttribute('data-theme', previo) : r.removeAttribute('data-theme'); window.removeEventListener('afterprint', fin); };
@@ -248,7 +279,7 @@ const Reportes = (() => {
   }
   const csvPeriodos = () => { if (_seg) ReporteEquipo.descargar('reporte-periodos.csv', ReporteEquipo.csvPeriodos(dentroDelAlcance(_seg))); };
   const csvActividad = () => { if (_act) ReporteEquipo.descargar('reporte-actividades.csv', ReporteEquipo.csvActividades(dentroDelAlcance(_act))); };
-  return { abrir, setPeriodo, toggleSeccion, cambio, csv, pdf, csvPeriodos, csvActividad };
+  return { abrir, setModo, verPE, setPeriodo, toggleSeccion, cambio, csv, pdf, csvPeriodos, csvActividad };
 })();
 
 /** data-change="repCambio" (lista blanca de config.js) */

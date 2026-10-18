@@ -30,16 +30,13 @@
 function personaCardHTML(p) {
   const tiene = p.valor != null && !Number.isNaN(Number(p.valor));
   const max = p.max || 100;
-  const av = p.avatar_url
-    ? `<img src="${escHtml(p.avatar_url)}" alt="" width="56" height="56" loading="lazy">`
-    : `<span aria-hidden="true">${escHtml(initials(p.nombre || '') || '?')}</span>`;
   const chips = (p.chips || []).map(c => `<span class="etiqueta ${c.aviso ? 'etq-coral' : 'etq-gris'}">${escHtml(c.txt)}</span>`).join('');
   const sub = [p.rol || '—', p.distrito].filter(Boolean).map(escHtml).join(' · ');
   return `
-    <button type="button" class="pcard${p.soyYo ? ' pcard--yo' : ''}" data-act="perfilVer" data-arg="${escHtml(p.id)}"
+    <button type="button" class="pcard sup-marca pat-${Fondo.clase(p)}${p.soyYo ? ' pcard--yo' : ''}" data-act="perfilVer" data-arg="${escHtml(p.id)}"
             aria-label="Ver el perfil de ${escHtml(p.nombre || 'la persona')}">
       <span class="pcard-cab">
-        <span class="pcard-av">${av}</span>
+        ${Avatar.html(p, { tam: 'lg', clase: 'pcard-av' })}
         <span class="pcard-valor">${tiene ? `<b class="pcard-num" style="color:${escHtml(p.color || 'var(--txt)')}">${fmtNum(p.valor, 0)}</b><small>de ${max}</small>` : `<span class="pcard-sin">${escHtml(p.estado || 'Sin evaluar')}</span>`}</span>
       </span>
       <span class="pcard-nombre">${escHtml(p.nombre || 'Sin nombre')}${p.soyYo ? ' <span class="pcard-yo">tú</span>' : ''}</span>
@@ -47,6 +44,25 @@ function personaCardHTML(p) {
       ${tiene ? `<span class="pcard-barra" aria-hidden="true"><i style="width:${Math.max(3, Math.min(100, Number(p.valor) / max * 100))}%;background:${escHtml(p.color || 'var(--data)')}"></i></span>` : ''}
       <span class="pcard-pie">${tiene && p.nivel ? `<span class="nivel-badge ${escHtml(p.nivel.key)}">${escHtml(p.nivel.label)}</span>` : ''}${chips}</span>
     </button>`;
+}
+
+/**
+ * Tarjeta compacta de una persona (variante `.pcard--mini`): miembro de un PE, integrante de un equipo, cualquier lista
+ * corta de personas. Misma base visual que personaCardHTML; el contenedor exterior lleva el fondo y el borde.
+ * @param {object} p       { id, nombre, avatar_url?, fondo?, rol?, distrito? }
+ * @param {object} [o]
+ * @param {string} [o.detalle]  texto bajo el nombre (si falta: rol · distrito)
+ * @param {string} [o.extra]    HTML ya escapado para el hueco de la derecha (etiquetas, un botón…)
+ * @param {boolean}[o.abre]     true: toda la tarjeta abre el perfil (botón); false: tarjeta informativa (artículo)
+ */
+function personaMiniHTML(p, { detalle = '', extra = '', abre = true } = {}) {
+  const sub = detalle || [p.rol, p.distrito].filter(Boolean).join(' · ');
+  const cuerpo = `${Avatar.html(p, { tam: 'md' })}
+    <span class="pcard-txt"><span class="pcard-nombre">${escHtml(p.nombre || 'Sin nombre')}</span>${sub ? `<span class="pcard-rol">${escHtml(sub)}</span>` : ''}</span>
+    ${extra ? `<span class="pcard-extra">${extra}</span>` : ''}`;
+  return abre
+    ? `<button type="button" class="pcard pcard--mini sup-marca pat-${Fondo.clase(p)}" data-act="perfilVer" data-arg="${escHtml(p.id)}" aria-label="Ver el perfil de ${escHtml(p.nombre || 'la persona')}">${cuerpo}</button>`
+    : `<article class="pcard pcard--mini sup-marca pat-${Fondo.clase(p)}">${cuerpo}</article>`;
 }
 
 /** Cuadrícula de tarjetas, con un mensaje si no hay nadie. */

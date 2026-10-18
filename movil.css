@@ -170,3 +170,40 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .panel--hoja .aviso-d { font-size: var(--fs-sm); }
 .panel--hoja .aviso-h { font-size: var(--fs-xs); }
 .panel--hoja .aviso-estado { min-height: 180px; justify-content: center; }
+
+/* Perfil: cinco pestañas no caben en 320–430 px. Se desplazan y los bordes con más pestañas se desvanecen
+   (core/perfil.js marca data-borde), para que quien mira sepa que hay Períodos y Evolución más allá. */
+.perfil-barra .seg { max-width: 100%; }
+.perfil-barra .seg[data-borde="der"]   { -webkit-mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="izq"]   { -webkit-mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); mask-image: linear-gradient(270deg, black calc(100% - 36px), transparent); }
+.perfil-barra .seg[data-borde="ambos"] { -webkit-mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, black 36px, black calc(100% - 36px), transparent); }
+
+/* Mi cuenta en pantallas de 360 px o menos: foto y datos en dos filas. En fila, la columna del texto quedaba en ~150 px y el rol
+   («Secretaría de distrito», sin salto de línea) salía de la tarjeta a 320 px. */
+@media (max-width: 400px) {
+  .cuenta-cab { flex-direction: column; align-items: flex-start; }
+  .cuenta-id { width: 100%; }
+  .cuenta-chips .etiqueta { white-space: normal; text-align: left; }
+}
+
+/* Una cabecera de pantalla que solo tiene el título (oculto a la vista en celular, ya está en la barra superior) no deja hueco. */
+.pantalla-cab:not(:has(> p, > .pantalla-acc, > .pantalla-sub)) { padding: 0; margin: 0; }
+
+/* La barra de filtros fija de la hoja de avisos era un rectángulo opaco de esquinas vivas: ahora es una cápsula con radio y fondo propio. */
+.panel--hoja .avisos-barra { background: var(--surface-1); border-radius: var(--r-cont); padding: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-2); box-shadow: none; }
+.panel--hoja .avisos-barra .btn-texto { margin-left: auto; }
+
+/* ═══ CABECERA MÓVIL REPLANTEADA ═════════════════════════════════════════════════════════════════════
+   Antes: sobretítulo «EIGHT CREATORS» en mayúsculas espaciadas, nombre de la pantalla en dos tamaños y una raya coral que
+   la cortaba del contenido. Ahora una barra tranquila de una sola línea: isotipo, nombre de la pantalla, buscar y avisos.
+   La marca ya la dice el isotipo (cuadrado, 1:1). */
+.cab-movil { --cab-h: 60px; gap: var(--sp-3); border-bottom: 1px solid var(--border); box-shadow: none; }
+.cab-movil::after { display: none; }
+.cab-movil-logo { width: 40px; height: 40px; }
+.cab-marca { display: none; }
+.cab-movil-seccion { display: block; font-size: 1.375rem; line-height: 1.1; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cab-titulos { justify-content: center; }
+.cab-btn { width: 44px; height: 44px; }
+.cab-btn svg, .cab-btn i { width: 24px; height: 24px; }
+/* La descripción bajo el título es contexto, no contenido: dos líneas como máximo y en tono suave */
+.pantalla-cab > p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--txt-2); }

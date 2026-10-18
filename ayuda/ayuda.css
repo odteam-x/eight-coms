@@ -80,3 +80,7 @@ body.ayuda { margin: 0; background: var(--bg); color: var(--txt); font: 400 1.06
   .captura--dual .captura-marco { width: min(100%, 860px); aspect-ratio: auto; border-radius: 14px; }
   .captura--dual img { width: 100%; }
 }
+
+/* Fórmulas y valores técnicos del manual */
+.formula { margin: var(--sp-3) 0; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--trazo); border-radius: var(--r-fila); background: var(--surface-1); color: var(--txt); font-family: ui-monospace, Consolas, monospace; font-size: var(--fs-sm); line-height: 1.7; white-space: pre-wrap; overflow-x: auto; }
+.ayuda code { padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--txt); font-family: ui-monospace, Consolas, monospace; font-size: .92em; }

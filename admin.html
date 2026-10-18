@@ -34,6 +34,9 @@
   <link rel="stylesheet" href="premium.css">
   <link rel="stylesheet" href="evolucion.css">
   <link rel="stylesheet" href="equipos.css">
+  <link rel="stylesheet" href="estadisticas-distrito.css">
+  <link rel="stylesheet" href="distritos.css">
+  <link rel="stylesheet" href="reporte-general.css">
   <link rel="stylesheet" href="derechos.css">
   <link rel="stylesheet" href="movil.css" media="(max-width: 767px)">
 </head>
@@ -162,6 +165,9 @@
       <select class="cfg-inp cfg-select" id="filter-distrito-usuarios" aria-label="Filtrar usuarios por distrito" data-change="renderUsuarios">
         <option value="">Todos los distritos</option>
       </select>
+      <select class="cfg-inp cfg-select" id="filter-estado-usuarios" aria-label="Filtrar personas por estado" data-change="renderUsuarios">
+        <option value="">Todas las personas</option>
+      </select>
     </div>
     <div id="personas-seg" class="personas-seg"></div>
     <div id="personas-cards"><div class="skel-wrap" aria-busy="true"><span class="sr-only">Cargando…</span></div></div>
@@ -249,35 +255,9 @@
   <div id="tab-distritos" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Distritos</h1>
-      <p>Ranking de los distritos en el período elegido y evaluación de cada uno.</p>
+      <p>Ranking acumulado de todos los distritos, promedio por período y estado de cada uno. Toca un distrito para evaluarlo y ver sus estadísticas y su gente.</p>
     </div>
-    <div class="filtros-fila">
-      <div class="eval-pe-bar">
-        <span class="eval-pe-lbl">Período</span>
-        <div class="eval-pe-btns" id="dist-pe-btns">
-          <div class="loading-box" style="height:32px"><span class="spin"></span></div>
-        </div>
-      </div>
-      <input class="search-inp" id="search-distritos" aria-label="Buscar distrito" type="search" placeholder="Buscar distrito…" data-input="buscarDistritos">
-    </div>
-    <h2 class="cuenta-t">Ranking de distritos</h2>
-    <div id="dist-ranking">
-      <div class="loading-box"><span class="spin"></span></div>
-    </div>
-
-    <h2 class="cuenta-t" style="margin-top:var(--sec-main)">Evaluar un distrito</h2>
-    <div class="filtros-fila">
-      <label class="eval-pe-lbl" for="dist-eval-select">Distrito</label>
-      <select class="cfg-inp cfg-select" id="dist-eval-select" data-change="onDistSelectChange">
-        <option value="">Seleccionar distrito...</option>
-      </select>
-    </div>
-
-    <div id="dist-eval-area">
-      <div class="empty-box" style="margin-top:8px">
-        <div class="empty-txt">Selecciona un distrito para ver y editar su evaluación.</div>
-      </div>
-    </div>
+    <div id="distritos-host"><div class="loading-box"><span class="spin"></span></div></div>
   </div>
 
   <!-- ── TAB: REPORTES ── -->
@@ -288,11 +268,15 @@
         <button type="button" class="btn-out" data-act="repCsv"><i data-lucide="download"></i>Exportar CSV</button>
         <button type="button" class="btn-save btn-print-rpt" data-act="repPdf"><i data-lucide="printer"></i>Descargar PDF</button>
       </div>
-      <p>Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.</p>
+      <p id="rep-ayuda">Elige entre el resumen de todos los PE o el reporte detallado de uno. La hoja de abajo es lo que se imprime.</p>
     </div>
-    <div class="tarjeta rep-controles no-print" id="rep-controles"></div>
-    <div id="rpt-body">
-      <div class="loading-box"><span class="spin"></span></div>
+    <div class="rep-modo no-print" id="rep-modo"></div>
+    <div id="rg-host"></div>
+    <div id="rep-detalle" hidden>
+      <div class="tarjeta rep-controles no-print" id="rep-controles"></div>
+      <div id="rpt-body">
+        <div class="loading-box"><span class="spin"></span></div>
+      </div>
     </div>
   </div>
 
@@ -598,22 +582,28 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="core/store.js"></script>
 <script src="core/render.js"></script>
+<script src="core/avatar.js"></script>
 <script src="core/ui.js"></script>
 <script src="core/rubrica.js"></script>
 <script src="core/tareas.js"></script>
 <script src="core/evaluacion-perfil.js"></script>
 <script src="core/equipos.js"></script>
+<script src="core/estadisticas-distrito.js"></script>
+<script src="core/distritos.js"></script>
+<script src="core/distritos-admin.js"></script>
 <script src="core/selector.js"></script>
 <script src="core/asignar.js"></script>
 <script src="core/actividad-form.js"></script>
 <script src="core/personas.js"></script>
 <script src="core/perfil.js"></script>
+<script src="core/perfil-pe.js"></script>
 <script src="core/calendario.js"></script>
 <script src="core/cuenta.js"></script>
 <script src="core/fondo.js"></script>
 <script src="core/bienvenida.js"></script>
 <script src="core/seguimiento.js"></script>
 <script src="core/reporte-equipo.js"></script>
+<script src="core/reporte-general.js"></script>
 <script src="core/preferencias.js"></script>
 <script src="core/notificaciones.js"></script>
 <script src="core/buscador.js"></script>

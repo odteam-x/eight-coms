@@ -69,6 +69,9 @@ kbd, .rail-kbd { border-radius: var(--r-xs); }
    Todo botón del sitio es UNA de estas seis variantes. Las clases históricas
    se mapean aquí; el componente nuevo usa los nombres canónicos
    (.btn .btn--primario | --secundario | --texto | --peligro | --icono | --chip). */
+/* Las variantes canónicas llevan también la base: `.btn--texto` solo (así se usa en selector, asignar, bienvenida, reportes)
+   perdía display, radio y tipografía y se dibujaba como un botón del navegador de esquina viva. */
+.btn--primario, .btn--secundario, .btn--texto, .btn--peligro, .btn--icono, .btn--chip,
 .btn, .btn-save, .btn-login, .tk-btn--main, .btn-publish, .btn-save-cal, .btn-save-cfg, .btn-add-evento, .btn-confirm, .btn-print-rpt,
 .tk-btn, .btn-cfg-add, .btn-cfg-cancel, .btn-cancel, .btn-cancel-changes, .btn-draft, .btn-out, .btn-out-mobile, .btn-refresh, .cal2-btn, .btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);

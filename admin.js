@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
+        { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
         { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
@@ -92,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
         { tab:'roles',      icono:'sliders-horizontal', etiqueta:'Roles y perfiles' },
-        { tab:'distritos',  icono:'map-pin',       etiqueta:'Distritos'  },
         { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
       ]},
     ],
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderRubrica();
   renderPerfiles();
   renderCalendario();
-  renderDistPEBar();
+  DistritosAdmin.montar(document.getElementById('distritos-host'), () => ({ periodos: _periodos, distritos: _distritos, usuarios: _users }));
   populateDistritoFilters();
   initScrollEffects();
   actualizarRailProximo();
@@ -276,7 +276,7 @@ const _EVAL_ATAJOS = [
   { id: 'revisar',   txt: 'Con entregas por revisar', v2: true,  ico: 'inbox',        test: u => (_evalTareas[u.id]?.porRevisar || 0) > 0 },
   { id: 'vencidas',  txt: 'Con tareas vencidas',      v2: true,  ico: 'alarm-clock',  test: u => (_evalTareas[u.id]?.vencidas || 0) > 0 },
   { id: 'sinrol',    txt: 'Sin rol asignado',         v2: true,  ico: 'user-x',       test: u => !u.rol_id },
-  { id: 'pequeno',   txt: 'Rol con pocas personas',   v2: true,  ico: 'group',        test: u => !!_resV2[u.id]?.rol_pequeno },
+  { id: 'pequeno',   txt: 'Rol con pocas personas',   v2: true,  ico: 'users-round',  test: u => !!_resV2[u.id]?.rol_pequeno },
   { id: 'inactivos', txt: 'Inactivos en el período',  v2: false, ico: 'pause',        test: u => _evalInactivos.has(u.id) },
 ];
 
@@ -895,18 +895,22 @@ async function selectUsersPE(periodoId, btn) {
   renderUsuarios();
 }
 
-function renderUsuarios() {
+async function renderUsuarios() {
   renderPersonasCards();
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
   const distFilter = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
+  const estFilter = document.getElementById('filter-estado-usuarios')?.value || '';
+  // «Sin evaluar» y «Borrador» salen de los resultados del período (misma caché que las tarjetas).
+  if (estFilter) await cargarPersonasRes();
   const list = _users.filter(u =>
     (!q || (u.nombre||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.distrito||'').toLowerCase().includes(q)) &&
     (!distFilter
-      || (distFilter === '__none__' ? !u.distrito : u.distrito === distFilter))
+      || (distFilter === '__none__' ? !u.distrito : u.distrito === distFilter)) &&
+    pasaEstadoPersona(u, estFilter)
   );
   if (!list.length) {
-    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter ? 'Sin resultados.' : 'Sin usuarios.'}</div></div>`;
+    el.innerHTML = `<div class="empty-box"><div class="no-data-icon">${ICONS.users}</div><div class="empty-txt">${q || distFilter || estFilter ? 'Nadie coincide con los filtros elegidos.' : 'Sin usuarios.'}</div></div>`;
     renderIconos(el);
     return;
   }
@@ -934,7 +938,7 @@ function renderUsuarios() {
           return `
           <div class="tbl-row ${filaCls}">
             <div class="tbl-cell">
-              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;flex-shrink:0">${escHtml(initials(u.nombre||u.email))}</div>
+              ${Avatar.html(u, { tam: 'xs' })}
               <span>${escHtml(u.nombre || '—')}</span>
             </div>
             <div class="tbl-cell tbl-muted">${escHtml(u.email)}</div>
@@ -1770,100 +1774,25 @@ async function deleteCal(id) {
   renderCalendario();
 }
 
-/* ── TAB: DISTRITOS ── */
-function renderDistPEBar() {
-  const bar = document.getElementById('dist-pe-btns'); if (!bar) return;
-  if (!_periodos.length) {
-    bar.innerHTML = '<span style="color:var(--muted);font-size:.8rem">Sin períodos.</span>';
-    return;
-  }
-  if (!_activePEDist) _activePEDist = _periodos.find(p => p.activo) || _periodos[0];
-  bar.innerHTML = _periodos.map(p =>
-    `<button class="pb${p.id === _activePEDist?.id ? ' active' : ''}" data-act="peDist" data-arg="${p.id}">${escHtml(p.nombre)}</button>`
-  ).join('');
-  renderDistritoSelect();
-  renderDistritoRanking(_activePEDist?.id);
-}
-
-async function selectDistPE(periodoId, btn) {
-  _activePEDist = _periodos.find(p => p.id == periodoId);
-  document.querySelectorAll('#dist-pe-btns .pb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderDistritoRanking(periodoId);
-  if (_activeDistId) loadDistEval(_activeDistId);
-}
-
-function renderDistritoSelect() {
-  const sel = document.getElementById('dist-eval-select'); if (!sel) return;
-  sel.innerHTML = '<option value="">Seleccionar distrito...</option>' +
-    _distritos.map(d => `<option value="${d.id}">${escHtml(d.nombre)}</option>`).join('');
-}
-
-/** Buscador de distritos: repinta el ranking del PE seleccionado. */
-function buscarDistritos() { renderDistritoRanking(_activePEDist?.id); }
-
-function onDistSelectChange() {
-  const sel = document.getElementById('dist-eval-select'); if (!sel?.value) return;
-  _activeDistId = sel.value;
-  loadDistEval(sel.value);
-}
-
-async function renderDistritoRanking(periodoId) {
-  const el = document.getElementById('dist-ranking'); if (!el) return;
-  if (!periodoId) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-
-  const distEvals = await API.getEvalDistritosByPE(periodoId);
-
-  const q = (document.getElementById('search-distritos')?.value || '').toLowerCase().trim();
-  const ranked = distEvals
-    .filter(d => d.estado === 'publicado')
-    .map(d => {
-      const score    = calcDistScore(d.puntajes);
-      const distInfo = _distritos.find(x => x.id === d.distrito_id);
-      return { ...d, score, nombre: distInfo?.nombre || d.distrito_id };
-    })
-    .filter(d => !q || d.nombre.toLowerCase().includes(q))
-    .sort((a, b) => b.score - a.score);
-
-  if (!ranked.length) {
-    el.innerHTML = `<div class="empty-box"><div class="empty-icon">${ICONS.map}</div><div class="empty-txt">${q ? 'Sin resultados para "'+escHtml(q)+'".' : 'Sin evaluaciones publicadas para este período.'}</div></div>`;
-    renderIconos(el);
-    return;
-  }
-
-  const posClass = ['gold','silver','bronze'];
-  el.innerHTML = `
-    <div class="tbl" style="max-width:700px;margin:0 auto">
-      <div class="tbl-head" style="grid-template-columns:48px 1fr 80px 100px">
-        <div>#</div><div>Distrito</div><div style="text-align:center">Puntos</div><div style="text-align:center">Nivel</div>
-      </div>
-      <div class="tbl-body">
-        ${ranked.map((d, i) => `
-          <div class="tbl-row" style="grid-template-columns:48px 1fr 80px 100px;cursor:pointer"
-               data-act="elegirDistrito" data-arg="${escHtml(d.distrito_id)}">
-            <div class="tbl-cell"><span class="rank-num ${posClass[i] || ''}">${i + 1}</span></div>
-            <div class="tbl-cell"><strong>${escHtml(d.nombre)}</strong></div>
-            <div class="tbl-cell" style="justify-content:center">
-              <span class="num-display" style="color:${distScoreColor(d.score)}">${d.score}</span>
-              <span style="font-size:.65rem;color:var(--muted);margin-left:3px">/ ${MAX_DIST}</span>
-            </div>
-            <div class="tbl-cell" style="justify-content:center"><span class="nivel-badge ${distScoreClass(d.score)}" style="padding:2px 8px;font-size:.55rem">${distScoreLabel(d.score)}</span></div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-  renderIconos(el);
+/* ── TAB: DISTRITOS ──
+   La pantalla (ranking acumulado y panel de cada distrito) vive en core/distritos-admin.js. Aquí queda lo que ya era de
+   admin.js: el formulario de evaluación, que el panel del distrito coloca dentro de su pestaña «Evaluación». */
+function abrirEvalDistrito(distId, periodoId) {
+  _activePEDist = _periodos.find(p => String(p.id) === String(periodoId)) || _activePEDist;
+  _activeDistId = distId;
+  loadDistEval(distId);
 }
 
 async function loadDistEval(distId) {
   const area = document.getElementById('dist-eval-area'); if (!area) return;
   if (!_activePEDist || !distId) { area.innerHTML = ''; return; }
   area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
-  const [ev, historial] = await Promise.all([
+  const [ev, historial, est] = await Promise.all([
     API.getEvalDistrito(_activePEDist.id, distId),
     API.getEvalDistritoHistorial(distId),
+    API.getEstadisticasDistrito(_activePEDist.id, distId),   // lo que subió la secretaría (0043); sin 0043 = no disponible
   ]);
-  renderDistEvalForm(ev, distId, historial);
+  renderDistEvalForm(ev, distId, historial, est);
 }
 
 const _IG_FIELDS = [
@@ -1876,12 +1805,15 @@ const _IG_FIELDS = [
   { key:'pct_reels',           label:'Reels %',            placeholder:'22.6'   },
 ];
 
-function renderDistEvalForm(ev, distId, historial = []) {
+function renderDistEvalForm(ev, distId, historial = [], est = { ok: false, disponible: false, data: null }) {
   const area     = document.getElementById('dist-eval-area'); if (!area) return;
   const distrito = _distritos.find(d => d.id === distId);
   const puntajes = parseJSON(ev?.puntajes);
   const coms     = parseJSON(ev?.comentarios);
-  const igStats  = parseJSON(ev?.ig_stats);
+  // Si la evaluación aún no tiene cifras propias, se precargan las que envió la secretaría (el admin puede corregirlas).
+  const igPropias = parseJSON(ev?.ig_stats);
+  const delantera = !Object.values(igPropias).some(v => String(v ?? '').trim());
+  const igStats  = delantera && est?.data ? EstadisticasDistrito.igDeFila(est.data) : igPropias;
   const estado   = ev?.estado      || 'borrador';
   const isPub    = estado === 'publicado';
 
@@ -1931,7 +1863,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
 
       ${histHTML}
 
-      <div class="section-label" style="margin-top:4px">Estadísticas de Instagram</div>
+      ${EstadisticasDistrito.bloqueAdminHTML(est?.data, { disponible: est?.disponible !== false })}
+
+      <div class="section-label" style="margin-top:4px">Estadísticas de Instagram${delantera && est?.data ? ' <span class="ed-precarga">· precargadas de la secretaría</span>' : ''}</div>
       <div class="ig-stats-grid">
         ${_IG_FIELDS.map(f => `
           <div class="ig-stat-field">
@@ -1965,6 +1899,9 @@ function renderDistEvalForm(ev, distId, historial = []) {
            </div>`
       }
     </div>`;
+  EstadisticasDistrito.recordarFilaAdmin(est?.data);
+  renderIconos(area);
+  EstadisticasDistrito.animarBloqueAdmin(area);
 }
 
 function setDistScore(key, val, btn) {
@@ -1998,7 +1935,7 @@ async function saveDistEval(estado, distId) {
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   await loadDistEval(distId);
-  renderDistritoRanking(_activePEDist.id);
+  DistritosAdmin.refrescar();
 }
 
 /* Score helpers y modales → core/render.js.
@@ -2548,6 +2485,7 @@ function switchTabAdminHooks(tab) {
     Calendario.montar({ el: document.getElementById('agenda-host'), yo: CU.id, modo: 'admin', distritos: _distritos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   }
   if (tab === 'gestiones') renderGestiones();
+  if (tab === 'distritos') DistritosAdmin.abrir();   // cada vez que se vuelve: pudieron llegar estadísticas o evaluaciones
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();

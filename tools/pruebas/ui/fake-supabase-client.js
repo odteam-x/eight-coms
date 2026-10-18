@@ -48,7 +48,7 @@
     ],
     actividad_destinatarios: [{ actividad_id: 5, persona_id: U.m1 }, { actividad_id: 5, persona_id: U.m2 }],
     bienvenida_estado: [],
-    distritos: [{ id: '08-01', nombre: 'Distrito 08-01', activo: true }, { id: '08-02', nombre: 'Distrito 08-02', activo: true }],
+    distritos: ['01','02','03','04','05','06','07','08','09','10'].map(n => ({ id: '08-' + n, nombre: 'Distrito 08-' + n, activo: true })).concat([{ id: 'EXT', nombre: 'Invitado Externo', activo: true }]),
     profiles: [
       { id: U.admin, nombre: 'Admin General', email: 'admin@x.cl', es_admin: true, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: true },
       { id: U.sec, nombre: 'Sofía Secretaria', email: 'sofia@x.cl', es_admin: false, tipo_miembro: 'secretario', distrito: '08-01', rol_id: 3, aprobado: true },
@@ -68,7 +68,7 @@
     ],
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
-    calendario: [], config: [], periodo_participantes: [], trabajos_entregados: [],
+    calendario: [], config: [], periodo_participantes: [{ periodo_id: P.pe3, user_id: U.m5, activo: false }], trabajos_entregados: [],
     etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
       { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, alcance: 'equipo', creada_por: U.admin },
@@ -86,7 +86,16 @@
       ...[['encuadre', 30], ['tecnico', 25], ['diseno', 20], ['planificacion', 15], ['revision', 10]].map(([k, p]) => ({ perfil_id: 1, criterio_key: k, peso: p })),
       ...[['narrativa', 35], ['ortografia', 25], ['revision', 20], ['planificacion', 20]].map(([k, p]) => ({ perfil_id: 2, criterio_key: k, peso: p })),
     ],
-    evaluaciones: [], evaluaciones_distrito: [], tareas: [], tarea_eventos: [],
+    // Evaluaciones de distrito de ejemplo (las 10 de la tabla de referencia). PE1 y PE2 publicados; PE3 con 9 distritos (08-07 sin evaluar, solo borrador).
+    evaluaciones: [], evaluaciones_distrito: (() => {
+      const T = { '08-05': [25, 21, 23], '08-08': [24, 17, 28], '08-09': [18, 25, 21], '08-10': [23, 19, 22], '08-01': [19, 15, 24], '08-06': [19, 21, 18], '08-04': [23, 18, 16], '08-03': [25, 15, 14], '08-02': [21, 13, 12], '08-07': [9, 11, null] };
+      const pj = t => { const b = Math.floor(t / 4), r = t - b * 4; return { cgo: b + (r > 0 ? 1 : 0), cct: b + (r > 1 ? 1 : 0), com: b + (r > 2 ? 1 : 0), cee: b }; };
+      let id = 1; const out = [];
+      for (const [d, v] of Object.entries(T)) v.forEach((t, i) => { if (t != null) out.push({ id: 'ed' + id++, periodo_id: [P.pe1, P.pe2, P.pe3][i], distrito_id: d, evaluador_id: U.admin, ig_stats: {}, puntajes: pj(t), comentarios: {}, estado: 'publicado', created_at: ahora(), updated_at: ahora() }); });
+      out.push({ id: 'ed' + id++, periodo_id: P.pe3, distrito_id: '08-07', evaluador_id: U.admin, ig_stats: {}, puntajes: pj(12), comentarios: {}, estado: 'borrador', created_at: ahora(), updated_at: ahora() });
+      return out;
+    })(), tareas: [], tarea_eventos: [],
+    estadisticas_distrito: [],
   };
   let seq = { eval: 1, tarea: 1, ev: 1, perfil: 3 };
 
@@ -329,6 +338,18 @@
         if (prev) { Object.assign(prev, p, { updated_at: ahora() }); return prev; }
         Object.assign(p, { id: seq.eval++, created_at: ahora(), updated_at: ahora() }); rows.push(p); return p;
       }
+      if (this.t === 'estadisticas_distrito') {
+        // Igual que 0043: una secretaría escribe solo su distrito; cifras tipadas; captura obligatoria en la carpeta del distrito/período.
+        if (!esAdmin() && !(esSec() && p.distrito_id === me().distrito)) throw new Error('new row violates row-level security policy for table "estadisticas_distrito"');
+        for (const k of ['visualizaciones', 'cuentas_alcanzadas', 'visitas_perfil']) if (!(Number.isFinite(p[k]) && p[k] >= 0)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_' + k + '_check"');
+        if (!Number.isFinite(p.seguidores_neto)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_seguidores_neto_check"');
+        for (const k of ['pct_publicaciones', 'pct_historias', 'pct_reels']) if (!(Number.isFinite(p[k]) && p[k] >= 0 && p[k] <= 100)) throw new Error('new row for relation "estadisticas_distrito" violates check constraint "estadisticas_distrito_' + k + '_check"');
+        if (!/^[A-Za-z0-9_-]+\/[^/]+\/[A-Za-z0-9._-]+\.(webp|jpe?g)$/.test(p.captura_path || '') || p.captura_path.split('/')[0] !== p.distrito_id || p.captura_path.split('/')[1] !== p.periodo_id) throw new Error('La captura de prueba es obligatoria y debe estar en la carpeta de este distrito y período.');
+        const nombre = me().nombre || '';
+        const prev = rows.find(r => r.periodo_id === p.periodo_id && r.distrito_id === p.distrito_id);
+        if (prev) { Object.assign(prev, p, { subido_por: meId, subido_por_nombre: nombre, actualizado_en: ahora() }); return prev; }
+        Object.assign(p, { id: rows.length + 1, subido_por: meId, subido_por_nombre: nombre, creado_en: ahora(), actualizado_en: ahora() }); rows.push(p); return p;
+      }
       if (this.t === 'persona_roles') { if (!esAdmin()) throw new Error('new row violates row-level security policy for table "persona_roles"'); rows.push(p); return p; }
       if (this.t === 'periodos_evaluacion') { Object.assign(p, { id: 'aaaaaaaa-0000-0000-0000-0000000000' + (10 + rows.length), created_at: ahora(), activo: false, modelo: p.modelo || 'legacy' }); rows.push(p); return p; }
       if (!('id' in p)) p.id = (rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0)) + 1;
@@ -389,24 +410,57 @@
     });
     return Object.values(por);
   }
-  // ── Avisos de la campana (migración 0022): datos de ejemplo, el estado leído se guarda en sessionStorage ──
+  // ── Avisos de la campana (0022/0040): datos de ejemplo; el estado leído y las preferencias se guardan en sessionStorage ──
+  // ?v40=0 simula una base SIN 0040 (nombres antiguos, sin categoría ni preferencias) para ver la degradación.
+  const _v40 = new URLSearchParams(location.search).get('v40') !== '0';
+  const META = {
+    calificacion_nueva:    { cat: 'calificaciones', esencial: true,  titulo: 'Calificación nueva', desc: 'Publican una calificación o evaluación tuya.', dest: { m: 'perfil', sec: 'perfil', admin: 'evaluar' }, ref: 'evaluacion' },
+    calificacion_cambiada: { cat: 'calificaciones', esencial: true,  titulo: 'Calificación modificada', desc: 'Corrigen una calificación ya publicada.', dest: { m: 'perfil', sec: 'perfil', admin: 'evaluar' }, ref: 'evaluacion' },
+    observacion_nueva:     { cat: 'calificaciones', esencial: false, titulo: 'Observación nueva', desc: 'Recibes una observación o retroalimentación.', dest: { m: 'perfil', sec: 'perfil', admin: 'evaluar' }, ref: 'evaluacion' },
+    tarea_asignada:        { cat: 'tareas', esencial: true,  titulo: 'Tarea asignada', desc: 'Te asignan una tarea.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    tarea_colectiva_asignada: { cat: 'tareas', esencial: true, titulo: 'Tarea colectiva asignada', desc: 'A tu equipo le asignan una tarea.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    tarea_cambio:          { cat: 'tareas', esencial: true,  titulo: 'Cambios en una tarea', desc: 'Cambia el responsable, las instrucciones o la fecha límite.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    tarea_por_vencer:      { cat: 'tareas', esencial: false, titulo: 'Tarea por vencer', desc: 'Recordatorio: una tarea tuya vence hoy o mañana.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    tarea_vencida:         { cat: 'tareas', esencial: true,  titulo: 'Tarea vencida', desc: 'Pasó la fecha límite de una tarea tuya.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    entrega_registrada:    { cat: 'tareas', esencial: false, titulo: 'Entrega registrada', desc: 'Alguien entregó una tarea y espera tu revisión.', dest: { m: 'trabajos', sec: 'tareas', admin: 'tareas' }, ref: 'tarea' },
+    correccion_solicitada: { cat: 'tareas', esencial: true,  titulo: 'Corrección solicitada', desc: 'Te devuelven una entrega con observaciones.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    equipo_incorporado:    { cat: 'equipos', esencial: true, titulo: 'Incorporación a un equipo', desc: 'Te incorporan a un equipo.', dest: { m: 'inicio', sec: 'inicio', admin: 'inicio' }, ref: 'equipo' },
+    equipo_retiro:         { cat: 'equipos', esencial: true, titulo: 'Retiro de un equipo', desc: 'Te retiran de un equipo.', dest: { m: 'inicio', sec: 'inicio', admin: 'inicio' }, ref: 'equipo' },
+    estado_cambiado:       { cat: 'actividades', esencial: false, titulo: 'Cambio de estado', desc: 'Cambia de forma importante el estado de algo tuyo.', dest: { m: 'trabajos', sec: 'trabajos', admin: 'tareas' }, ref: 'tarea' },
+    actividad_nueva:       { cat: 'actividades', esencial: false, titulo: 'Actividad nueva', desc: 'Agregan una actividad al calendario que te incluye.', dest: { m: 'calendario', sec: 'calendario', admin: 'agenda' }, ref: 'actividad' },
+    actividad_recordatorio: { cat: 'actividades', esencial: false, titulo: 'Actividad de mañana', desc: 'Recordatorio de una actividad del día siguiente.', dest: { m: 'calendario', sec: 'calendario', admin: 'agenda' }, ref: 'actividad' },
+    solicitud_acceso:      { cat: 'cuenta', esencial: true, titulo: 'Solicitud de acceso', desc: 'Alguien se registra y espera tu aprobación.', dest: { admin: 'usuarios' }, ref: 'persona', solo: ['admin'] },
+    acceso_aprobado:       { cat: 'cuenta', esencial: true, titulo: 'Acceso aprobado', desc: 'Aprueban tu acceso al portal.', dest: { m: 'inicio', sec: 'inicio', admin: 'overview' }, ref: 'persona' },
+    evaluaciones_sin_publicar: { cat: 'calificaciones', esencial: false, titulo: 'Evaluaciones sin publicar', desc: 'Se acerca el cierre y faltan evaluaciones.', dest: { admin: 'evaluar' }, ref: 'periodo', solo: ['admin'] },
+  };
+  const LEGADO = { calificacion_nueva: 'nota_publicada', correccion_solicitada: 'tarea_devuelta', entrega_registrada: 'entrega_por_revisar' };
+  const _t0 = () => DB.tareas[0]?.id ?? 1;
   const AVISOS = [
-    { id: 1, roles: ['m', 'sec'], tipo: 'tarea_devuelta', datos: { tarea: 'Retratos del equipo', revisor: 'Secretaría', observacion: 'Falta la versión vertical.' }, min: 120 },
-    { id: 2, roles: ['m', 'sec'], tipo: 'tarea_asignada', datos: { tarea: 'Cobertura de la jornada', asignador: 'Administración', fecha_limite: '25/10/2026', prioridad: 'media' }, min: 300 },
+    { id: 1, roles: ['m', 'sec'], tipo: 'correccion_solicitada', datos: { tarea: 'Retratos del equipo', revisor: 'Secretaría', observacion: 'Falta la versión vertical.' }, min: 120, ref: 't' },
+    { id: 2, roles: ['m', 'sec'], tipo: 'tarea_asignada', datos: { tarea: 'Cobertura de la jornada', asignador: 'Administración', fecha_limite: '25/10/2026', prioridad: 'media' }, min: 300, ref: 't' },
     { id: 3, roles: ['m', 'sec', 'admin'], tipo: 'actividad_nueva', datos: { actividad: 'Jornada de creadores', fecha: '19/10/2026', etiqueta: 'Jornada' }, min: 60 * 26 },
-    { id: 4, roles: ['m'], tipo: 'nota_publicada', datos: { periodo: 'PE1' }, min: 60 * 24 * 9 },
-    { id: 5, roles: ['admin', 'sec'], tipo: 'entrega_por_revisar', datos: { tarea: 'Reel de la semana', persona: 'Ana Fotógrafa', entregada: '16/10/2026', a_tiempo: 'Sí' }, min: 30 },
+    { id: 4, roles: ['m'], tipo: 'calificacion_nueva', datos: { periodo: 'PE1', evaluador: 'Secretaría' }, min: 60 * 24 * 9 },
+    { id: 5, roles: ['admin', 'sec'], tipo: 'entrega_registrada', datos: { tarea: 'Reel de la semana', persona: 'Ana Fotógrafa', entregada: '16/10/2026', a_tiempo: 'Sí' }, min: 30, ref: 't' },
     { id: 6, roles: ['admin'], tipo: 'solicitud_acceso', datos: { persona: 'Keiry Polonia', correo: 'keiry@ejemplo.cl' }, min: 90 },
     { id: 7, roles: ['admin'], tipo: 'evaluaciones_sin_publicar', datos: { periodo: 'PE2', pendientes: 3, cierre: '27/10/2026' }, min: 60 * 5 },
+    { id: 8, roles: ['m', 'sec'], tipo: 'equipo_incorporado', datos: { equipo: 'Cobertura fotográfica', rol_equipo: 'Fotógrafa', agregado_por: 'Administración' }, min: 45 },
+    { id: 9, roles: ['m', 'sec'], tipo: 'tarea_cambio', datos: { tarea: 'Cobertura de la jornada', cambio: 'Fecha límite', antes: '25/10/2026', ahora: '28/10/2026', motivo: 'Se movió el evento' }, min: 200, ref: 't' },
+    { id: 10, roles: ['m'], tipo: 'observacion_nueva', datos: { periodo: 'PE1', autor: 'Secretaría' }, min: 60 * 24 * 3 },
   ];
   const _rolAv = as === 'admin' ? 'admin' : (as === 'sec' ? 'sec' : 'm');
   const _llaveAv = 'fake_av_leidas_' + as;
+  const _llavePf = 'fake_av_prefs_' + as;
   const _leidasAv = () => { try { return JSON.parse(sessionStorage.getItem(_llaveAv) || '[]'); } catch { return []; } };
   const _guardaLeidasAv = (v) => { try { sessionStorage.setItem(_llaveAv, JSON.stringify(v)); } catch { /* */ } };
-  const _misAvisos = () => AVISOS.filter(x => x.roles.includes(_rolAv)).map(x => ({
-    id: x.id, tipo: x.tipo, datos: x.datos, ref_id: 'ref-' + x.id,
-    creada: new Date(Date.now() - x.min * 60000).toISOString(), leida_en: _leidasAv().includes(x.id) ? ahora() : null,
-  }));
+  const _prefsAv = () => { try { return JSON.parse(sessionStorage.getItem(_llavePf) || '{}'); } catch { return {}; } };
+  const _misAvisos = () => AVISOS.filter(x => x.roles.includes(_rolAv)).map(x => {
+    const m = META[x.tipo];
+    const fila = {
+      id: x.id, tipo: _v40 ? x.tipo : (LEGADO[x.tipo] || x.tipo), datos: x.datos, ref_id: x.ref ? String(_t0()) : 'ref-' + x.id,
+      creada: new Date(Date.now() - x.min * 60000).toISOString(), leida_en: _leidasAv().includes(x.id) ? ahora() : null,
+    };
+    return _v40 ? { ...fila, categoria: m.cat, esencial: m.esencial, ref_tipo: x.ref ? 'tarea' : m.ref, destino: m.dest[_rolAv] || m.dest.m || 'inicio' } : fila;
+  });
   const hoyISO = dia(0);
   const nombreRol = id => DB.roles.find(r => r.id === id)?.nombre ?? null;
   const RPC = {
@@ -513,15 +567,49 @@
       return null;
     },
     bienvenida_reiniciar: () => { DB.bienvenida_estado = DB.bienvenida_estado.filter(x => x.persona_id !== meId); return null; },
-    mis_notificaciones: ({ p_limite = 40, p_antes = null }) => {
+    mis_notificaciones: ({ p_limite = 40, p_antes = null, p_categoria = null, p_solo_sin_leer = false }) => {
       if (!meId) throw new Error('Se requiere sesion.');
+      if (!_v40 && (p_categoria || p_solo_sin_leer)) throw Object.assign(new Error('Could not find the function public.mis_notificaciones'), { code: 'PGRST202' });
       let l = _misAvisos().sort((x, y) => y.creada.localeCompare(x.creada));
       if (p_antes) l = l.filter(x => x.creada < p_antes);
+      if (p_categoria) l = l.filter(x => x.categoria === p_categoria);
+      if (p_solo_sin_leer) l = l.filter(x => !x.leida_en);
       return l.slice(0, Math.max(1, Math.min(p_limite, 100)));
     },
     notif_no_leidas: () => { if (!meId) throw new Error('Se requiere sesion.'); return _misAvisos().filter(x => !x.leida_en).length; },
+    notif_resumen: () => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      if (!_v40) throw Object.assign(new Error('Could not find the function public.notif_resumen'), { code: 'PGRST202' });
+      const por = {}; _misAvisos().forEach(x => { const c = (por[x.categoria] = por[x.categoria] || { categoria: x.categoria, total: 0, sin_leer: 0 }); c.total++; if (!x.leida_en) c.sin_leer++; });
+      return Object.values(por);
+    },
     notif_marcar_leida: ({ p_id }) => { const v = _leidasAv(); if (!_misAvisos().some(x => x.id === p_id)) return false; if (!v.includes(p_id)) { v.push(p_id); _guardaLeidasAv(v); } return true; },
-    notif_marcar_todas: () => { const n = _misAvisos().filter(x => !x.leida_en); _guardaLeidasAv(_misAvisos().map(x => x.id)); return n.length; },
+    notif_marcar_todas: ({ p_categoria = null } = {}) => {
+      const n = _misAvisos().filter(x => !x.leida_en && (!p_categoria || x.categoria === p_categoria));
+      _guardaLeidasAv([...new Set([..._leidasAv(), ...n.map(x => x.id)])]); return n.length;
+    },
+    mis_preferencias_notif: () => {
+      if (!meId) throw new Error('Se requiere sesion.');
+      if (!_v40) throw Object.assign(new Error('Could not find the function public.mis_preferencias_notif'), { code: 'PGRST202' });
+      const pf = _prefsAv();
+      return Object.entries(META).filter(([, m]) => !m.solo || m.solo.includes(_rolAv))
+        .map(([tipo, m]) => ({ tipo, categoria: m.cat, titulo: m.titulo, descripcion: m.desc, esencial: m.esencial, correo: m.esencial || pf[tipo] !== false }));
+    },
+    guardar_preferencias_notif: ({ p_prefs }) => {
+      const pf = _prefsAv();
+      for (const [t, v] of Object.entries(p_prefs || {})) {
+        if (!META[t]) throw new Error('Tipo de aviso desconocido: ' + t + '.');
+        if (META[t].esencial) throw new Error('El aviso «' + META[t].titulo + '» es esencial y no se puede desactivar.');
+        pf[t] = !!v;
+      }
+      try { sessionStorage.setItem(_llavePf, JSON.stringify(pf)); } catch { /* */ }
+      return Object.keys(p_prefs || {}).length;
+    },
+    notif_estado_envios: () => {
+      if (!esAdmin()) throw new Error('Solo la administración ve el estado de los envíos.');
+      return [{ tipo: 'tarea_asignada', correo_estado: 'enviado', motivo: null, total: 14 }, { tipo: 'calificacion_nueva', correo_estado: 'simulado', motivo: 'modo_prueba', total: 3 },
+              { tipo: 'tarea_por_vencer', correo_estado: 'omitido', motivo: 'preferencia', total: 2 }, { tipo: 'entrega_registrada', correo_estado: 'pendiente', motivo: null, total: 1 }];
+    },
     set_periodo_activo: ({ p_id }) => { DB.periodos_evaluacion.forEach(p => p.activo = p.id === p_id); return null; },
     resultados_periodo: a => { if (!meId) throw new Error('Se requiere sesion.'); return resultados(a.p_periodo, a.p_borradores); },
     resumen_tareas_periodo: a => resumen(a.p_periodo),
@@ -754,6 +842,7 @@
   // Tablas nuevas: visibilidad y escritura mínimas
   const visiblesBase = visibles;
   visibles = (table, rows) => {
+    if (table === 'estadisticas_distrito') return rows.filter(r => esAdmin() || (esSec() && r.distrito_id === me().distrito));
     if (table === 'equipos') return rows.filter(eqVisible);
     if (table === 'equipo_miembros') return rows.filter(m => esAdmin() || m.persona_id === meId || (!m.hasta && eqVig(m.equipo_id).some(x => x.persona_id === meId)) || (esSec() && distritoIds().includes(m.persona_id)));
     if (table === 'equipo_eventos') return esAdmin() ? rows : [];
@@ -804,11 +893,18 @@
     from: t => new Q(t),
     rpc: async (n, a) => { try { if (!RPC[n]) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${n}` } }; return { data: RPC[n](a || {}), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } },
     auth: {
-      getSession: async () => ({ data: { session: { user: { id: meId, email: me().email, user_metadata: {} } } } }),
-      getUser: async () => ({ data: { user: { id: meId, email: me().email } }, error: null }),
+      // ?as=anon: sin sesión (para ver el login y la recuperación de contraseña)
+      getSession: async () => (as === 'anon' ? { data: { session: null } } : { data: { session: { user: { id: meId, email: me().email, user_metadata: {} } } } }),
+      getUser: async () => (as === 'anon' ? { data: { user: null }, error: null } : { data: { user: { id: meId, email: me().email } }, error: null }),
+      signInWithPassword: async () => ({ data: null, error: { message: 'Invalid login credentials' } }),
+      resetPasswordForEmail: async () => ({ data: {}, error: null }),
       signOut: async () => ({}), signUp: async ({ email }) => (String(email).includes('existe') ? { data: null, error: { message: 'User already registered' } } : { data: { user: { email } }, error: null }), onAuthStateChange: cb => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
-    storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
+    storage: { from: bucket => ({
+      upload: async (path, file) => { if (bucket === 'capturas-distrito') { if (!esAdmin() && !(esSec() && path.split('/')[0] === me().distrito)) return { error: { message: 'new row violates row-level security policy for table "objects"' } }; (DB._capturas = DB._capturas || {})[path] = file; } return { error: null }; },
+      remove: async paths => { (paths || []).forEach(x => { if (DB._capturas) delete DB._capturas[x]; }); return { error: null }; },
+      createSignedUrl: async path => ({ data: { signedUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="800" height="450" fill="#e8eef7"/><text x="40" y="80" font-family="sans-serif" font-size="28" fill="#334">Captura de prueba (simulador)</text><text x="40" y="130" font-family="sans-serif" font-size="20" fill="#556">' + String(path).replace(/[<&>]/g, "") + '</text></svg>') }, error: null }),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
   };
   window.__FAKE = { DB, U, P, as };
 })();

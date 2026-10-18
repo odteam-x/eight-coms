@@ -330,7 +330,7 @@ function abrirHoja() {
   // El avatar del rail no existe en móvil: se pinta el de la hoja.
   const av = document.getElementById('av-hoja');
   const src = document.getElementById('av-desktop');
-  if (av && src) av.innerHTML = src.innerHTML;
+  if (av && src) { av.className = src.className; av.innerHTML = src.innerHTML; }
   // «Instalar» solo se ofrece si la app aún no está instalada.
   const inst = document.getElementById('bb-instalar');
   if (inst) inst.hidden = typeof Pwa !== 'undefined' && Pwa.instalada();
