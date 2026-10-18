@@ -1029,10 +1029,39 @@ const API = {
   _rpcAusente(error) {
     return /Could not find the function|does not exist|PGRST202|42883/i.test((error?.code || '') + ' ' + (error?.message || ''));
   },
-  async getNotificaciones({ limite = 40, antes = null } = {}) {
-    const { data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes });
+  async getNotificaciones({ limite = 40, antes = null, categoria = null, soloSinLeer = false } = {}) {
+    // Los filtros por categoría y «sin leer» los aplica la base desde 0040; sin ella se pide la lista simple.
+    const args = { p_limite: limite, p_antes: antes };
+    if (categoria) args.p_categoria = categoria;
+    if (soloSinLeer) args.p_solo_sin_leer = true;
+    let { data, error } = await SB.rpc('mis_notificaciones', args);
+    if (error && (categoria || soloSinLeer) && API._rpcAusente(error)) {
+      ({ data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes }));
+    }
     if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
     return { ok: true, data: data ?? [] };
+  },
+  /** Total y sin leer por categoría (0040). Sin 0040: ok:false, noDisponible. */
+  async getNotifResumen() {
+    const { data, error } = await SB.rpc('notif_resumen');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error), data: [] };
+    return { ok: true, data: (data ?? []).map(r => ({ categoria: r.categoria, total: Number(r.total), sin_leer: Number(r.sin_leer) })) };
+  },
+  /** Qué avisos puede recibir esta persona por correo y cuáles tiene activados (0040). */
+  async getPreferenciasNotif() {
+    const { data, error } = await SB.rpc('mis_preferencias_notif');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
+    return { ok: true, data: data ?? [] };
+  },
+  /** { tipo: true|false }. La base rechaza los esenciales: nunca se confía en el cliente para esto. */
+  async guardarPreferenciasNotif(prefs) {
+    const { error } = await SB.rpc('guardar_preferencias_notif', { p_prefs: prefs });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+  /** Estado de los correos de los últimos días (solo administración). */
+  async getEstadoEnvios(dias = 7) {
+    const { data, error } = await SB.rpc('notif_estado_envios', { p_dias: dias });
+    return error ? { ok: false, error: error.message, noDisponible: API._rpcAusente(error) } : { ok: true, data: data ?? [] };
   },
   async getNotifNoLeidas() {
     const { data, error } = await SB.rpc('notif_no_leidas');
@@ -1043,8 +1072,8 @@ const API = {
     const { error } = await SB.rpc('notif_marcar_leida', { p_id: id });
     return error ? { ok: false, error: error.message } : { ok: true };
   },
-  async marcarNotifTodas() {
-    const { data, error } = await SB.rpc('notif_marcar_todas');
+  async marcarNotifTodas(categoria = null) {
+    const { data, error } = await SB.rpc('notif_marcar_todas', categoria ? { p_categoria: categoria } : {});
     return error ? { ok: false, error: error.message } : { ok: true, n: Number(data) || 0 };
   },
 

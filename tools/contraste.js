@@ -26,7 +26,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
-const CSS  = ['shared.css', 'admin.css', 'user.css', 'secretario.css', 'login.css', 'rubrica.css', 'tareas.css', 'perfil.css', 'inicio.css', 'marca.css', 'premium.css', 'evolucion.css', 'movil.css', 'ayuda/ayuda.css'];
+const CSS  = ['shared.css', 'admin.css', 'user.css', 'secretario.css', 'login.css', 'rubrica.css', 'tareas.css', 'perfil.css', 'inicio.css', 'marca.css', 'premium.css', 'evolucion.css', 'avisos.css', 'movil.css', 'ayuda/ayuda.css'];
 
 /* ══ EXCEPCIONES DE HEX ════════════════════════════════════════════════
  * Cada una necesita motivo. Si añades una sin motivo, el siguiente que lea

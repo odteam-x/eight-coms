@@ -110,6 +110,9 @@ const ACCIONES = {
   avisosFiltro:     (arg)         => Notif.filtro(arg),
   avisosTodas:      ()            => Notif.todas(),
   avisosMas:        ()            => Notif.mas(),
+  avisosPrefs:      ()            => Notif.prefs(),
+  avisosLista:      ()            => Notif.volver(),
+  avisoPref:        (arg)         => Notif.pref(arg),
   cuentaDesdeHoja:  ()            => { cerrarHoja(); switchTab('cuenta', null); },
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
   // Mis preferencias de rol (core/preferencias.js)
