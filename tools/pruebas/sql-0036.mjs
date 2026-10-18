@@ -1,0 +1,102 @@
+// Pruebas de 0036 (vistas de equipos): listado con indicadores, tareas con avance, resultados del equipo.
+import { crear, montar, CADENA_BASE, sql } from './base-eq.mjs';
+
+const t = crear();
+const { db, ok, q, as, root, rejects, allowed, fin } = t;
+const CADENA = [...CADENA_BASE, '0031_equipos.sql', '0032_tareas_equipo.sql', '0033_calificaciones.sql', '0034_calificacion_tareas.sql', '0035_resultados_integrados.sql', '0036_equipos_vistas.sql'];
+const X = await montar(t, CADENA);
+const { P, PE1, PE2, ARCH } = X;
+console.log('— 0036 aplicada sin errores');
+await db.exec(sql('0036_equipos_vistas.sql'));
+ok(true, 'reaplicar 0036 es idempotente');
+
+await as(P.ADMIN);
+const E1 = (await q(`SELECT public.equipo_guardar(NULL,'${PE1}','Cobertura','Equipo de cobertura',NULL,NULL) id`))[0].id;
+const E2 = (await q(`SELECT public.equipo_guardar(NULL,'${PE1}','Distrito 08-01','',NULL,'08-01') id`))[0].id;
+const E3 = (await q(`SELECT public.equipo_guardar(NULL,'${PE2}','Otro PE','',NULL,NULL) id`))[0].id;
+await db.exec(`SELECT public.equipo_agregar_miembros(${E1}, ARRAY['${P.M1}','${P.M2}','${P.M3}']::uuid[], true, 'Prueba de excepción de ámbito')`);
+await db.exec(`SELECT public.equipo_agregar_miembros(${E2}, ARRAY['${P.M1}','${P.M5}']::uuid[])`);
+await db.exec(`SELECT public.equipo_agregar_miembros(${E3}, ARRAY['${P.M4}']::uuid[])`);
+await db.exec(`UPDATE equipos SET responsable_id='${P.M1}' WHERE id=${E1}`).catch(() => {});
+
+console.log('\n[listado: quién ve qué equipos]');
+let l = await q(`SELECT nombre, integrantes, tareas_total FROM equipos_resumen()`);
+ok(l.length === 3, 'la administración ve los 3 equipos (' + l.map(x => x.nombre).join(', ') + ')');
+l = await q(`SELECT nombre FROM equipos_resumen('${PE1}')`);
+ok(l.length === 2, 'filtrar por PE trae solo los de ese PE');
+await as(P.M2);
+l = await q(`SELECT nombre, soy_integrante FROM equipos_resumen()`);
+ok(l.length === 1 && l[0].nombre === 'Cobertura' && l[0].soy_integrante, 'M2 ve solo su equipo y sabe que es integrante');
+await as(P.M4);
+l = await q(`SELECT nombre FROM equipos_resumen()`);
+ok(l.length === 1 && l[0].nombre === 'Otro PE', 'M4 ve solo el suyo');
+await as(P.M5);
+ok((await q(`SELECT nombre FROM equipos_resumen()`)).map(x => x.nombre).join() === 'Distrito 08-01', 'M5 ve solo «Distrito 08-01»');
+await as(P.SEC1);
+l = await q(`SELECT nombre FROM equipos_resumen() ORDER BY nombre`);
+ok(l.map(x => x.nombre).join() === 'Cobertura,Distrito 08-01', 'la secretaría 08-01 ve los equipos con gente de su distrito: ' + l.map(x => x.nombre).join());
+await as(P.SEC2);
+ok((await q(`SELECT nombre FROM equipos_resumen() ORDER BY nombre`)).map(x => x.nombre).join() === 'Cobertura,Otro PE', 'la secretaría 08-02 ve los suyos (M3 y M4)');
+await as(null, 'anon');
+await rejects(`SELECT * FROM equipos_resumen()`, 'denied|permission|denegado', 'anónimo no ejecuta');
+
+console.log('\n[tareas del equipo: avance, estado y quién puede revisar]');
+await as(P.ADMIN);
+const T1 = (await q(`INSERT INTO tareas_equipo(equipo_id,periodo_id,titulo,fecha_limite,peso) VALUES (${E1},'${PE1}','Entregable A',current_date+5,1) RETURNING id`))[0].id;
+const T2 = (await q(`INSERT INTO tareas_equipo(equipo_id,periodo_id,titulo,fecha_limite,peso) VALUES (${E1},'${PE1}','Entregable B',current_date-2,3) RETURNING id`))[0].id;
+await as(P.M2);
+await db.exec(`UPDATE tareas_equipo SET estado='en_curso' WHERE id=${T1}`);
+await db.exec(`SELECT public.tarea_equipo_aportar(${T1}, 'avance', 'Guion', NULL, 30)`);
+await as(P.M3);
+await db.exec(`SELECT public.tarea_equipo_aportar(${T1}, 'avance', 'Grabación', NULL, 60)`);
+let tr = (await q(`SELECT titulo, avance, aportes, participantes, vencida, soy_participante, puedo_revisar FROM tareas_equipo_estado(${E1}) ORDER BY titulo`));
+ok(tr[0].avance === 60 && tr[0].aportes === 2 && tr[0].participantes === 3, 'avance = último % reportado (60) con 2 aportes de personas distintas');
+ok(tr[1].vencida === true && tr[1].avance === 0, 'una vencida sin avance reportado: 0 % y marcada vencida');
+ok(tr[0].soy_participante === true && tr[0].puedo_revisar === false, 'M3 participa y NO revisa');
+await as(P.ADMIN);
+ok((await q(`SELECT puedo_revisar FROM tareas_equipo_estado(${E1}) LIMIT 1`))[0].puedo_revisar === true, 'la administración sí puede revisar');
+await as(P.M3);
+await db.exec(`UPDATE tareas_equipo SET estado='entregada', entrega_nota='Entregado', entrega_url='https://x.example/a' WHERE id=${T1}`);
+tr = (await q(`SELECT titulo, avance, entregada_por_nombre FROM tareas_equipo_estado(${E1}) WHERE titulo='Entregable A'`));
+ok(tr[0].avance === 100 && tr[0].entregada_por_nombre === 'M3', 'entregada = 100 % y se dice quién entregó (M3)');
+await as(P.M4);
+ok((await q(`SELECT count(*)::int n FROM tareas_equipo_estado(${E1})`))[0].n === 0, 'M4 (no es del equipo) no ve sus tareas');
+ok((await q(`SELECT count(*)::int n FROM tareas_equipo_estado()`))[0].n === 0, 'ni preguntando por todas');
+await as(P.M2);
+ok((await q(`SELECT count(*)::int n FROM tareas_equipo_estado()`))[0].n === 2, 'M2 ve las 2 de su equipo sin indicar equipo');
+
+console.log('\n[resultados del equipo: cada tarea UNA vez]');
+await as(P.ADMIN);
+await db.exec(`UPDATE tareas_equipo SET estado='aprobada', puntos=8 WHERE id=${T1}`);
+await db.exec(`UPDATE tareas_equipo SET estado='anulada', anulacion_motivo='Se canceló la entrega' WHERE id=${T2}`);
+const T3 = (await q(`INSERT INTO tareas_equipo(equipo_id,periodo_id,titulo,peso) VALUES (${E1},'${PE1}','Entregable C',3) RETURNING id`))[0].id;
+await as(P.M2); await db.exec(`UPDATE tareas_equipo SET estado='entregada', entrega_nota='Listo C' WHERE id=${T3}`);
+await as(P.ADMIN); await db.exec(`UPDATE tareas_equipo SET estado='aprobada', puntos=4 WHERE id=${T3}`);
+let er = await q(`SELECT persona_id, nombre, tareas_cuentan, tareas_total, nota::float n FROM equipo_resultados(${E1}) ORDER BY persona_id NULLS FIRST`);
+// equipo: T1 (peso 1, 8) y T3 (peso 3, 4) → 100·(0.8+1.2)/4 = 50
+ok(er[0].persona_id === null && er[0].n === 50 && er[0].tareas_cuentan === 2 && er[0].tareas_total === 2, 'equipo: 2 tareas calificadas (la anulada fuera), nota 100·(1·0.8+3·0.4)/4 = 50 → ' + JSON.stringify(er[0]));
+ok(er.length === 4 && er.slice(1).every(x => x.n === 50 && x.tareas_cuentan === 2), 'cada integrante recibe las MISMAS 2 tareas (no 2×3): nota 50 y 2 que cuentan');
+await db.exec(`SELECT public.nota_individual_equipo(${T3}, '${P.M3}', 1, 'Entregó su parte fuera de plazo y sin revisar')`);
+er = await q(`SELECT persona_id, nota::float n, con_nota_individual c FROM equipo_resultados(${E1}) ORDER BY persona_id NULLS FIRST`);
+const m3 = er.find(x => x.persona_id === P.M3);
+ok(er[0].n === 50 && Math.abs(m3.n - 27.5) < 0.01 && m3.c === 1, 'la nota del EQUIPO no se mueve por una nota individual; la de M3 sí (' + m3.n + ')');
+await as(P.M2);
+er = await q(`SELECT persona_id, nota::float n FROM equipo_resultados(${E1})`);
+ok(er.length === 2 && er.some(x => x.persona_id === null) && er.some(x => x.persona_id === P.M2), 'M2 ve el resultado del equipo y su propia fila, no la de otros');
+await as(P.M4);
+ok((await q(`SELECT count(*)::int n FROM equipo_resultados(${E1})`))[0].n === 0, 'M4 no ve resultados de un equipo ajeno');
+await as(P.SEC1);
+er = await q(`SELECT persona_id FROM equipo_resultados(${E1})`);
+ok(er.some(x => x.persona_id === P.M1) && er.some(x => x.persona_id === P.M2) && !er.some(x => x.persona_id === P.M3), 'la secretaría 08-01 ve las filas de su distrito (M1, M2) y no la de M3');
+
+console.log('\n[alertas de ámbito en el listado]');
+await as(P.ADMIN);
+await db.exec(`UPDATE periodo_participantes SET activo=true WHERE false`);
+await root();
+await db.exec(`INSERT INTO periodo_participantes(periodo_id,user_id,activo) VALUES ('${PE1}','${P.M5}',false)`);
+await as(P.ADMIN);
+ok((await q(`SELECT alertas FROM equipos_resumen('${PE1}') WHERE nombre='Distrito 08-01'`))[0].alertas === 1, 'M5 dejó de participar: el equipo muestra 1 alerta (nada se cambió en silencio)');
+await as(P.M5);
+ok((await q(`SELECT alertas FROM equipos_resumen('${PE1}')`))[0].alertas === 0, 'y un integrante no ve las alertas de gestión');
+
+fin();

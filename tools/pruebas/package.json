@@ -4,9 +4,9 @@
   "type": "module",
   "description": "Pruebas de las migraciones y de la UI. NO forma parte del sitio: el sitio sigue sin build ni npm.",
   "scripts": {
-    "sql": "node sql-0015.mjs && node sql-0015.mjs --con-0020 && node sql-0016.mjs && node sql-0017.mjs && node sql-0018.mjs && node sql-0020.mjs && node sql-0021.mjs && node sql-0022.mjs && node sql-0023.mjs && node sql-0024.mjs && node sql-0025.mjs && node sql-0026.mjs && node sql-0030.mjs && node sql-0040.mjs",
+    "sql": "node sql-0015.mjs && node sql-0015.mjs --con-0020 && node sql-0016.mjs && node sql-0017.mjs && node sql-0018.mjs && node sql-0020.mjs && node sql-0021.mjs && node sql-0022.mjs && node sql-0023.mjs && node sql-0024.mjs && node sql-0025.mjs && node sql-0026.mjs && node sql-0030.mjs && node sql-0031.mjs && node sql-0032.mjs && node sql-0033.mjs && node sql-0034.mjs && node sql-0035.mjs && node sql-0036.mjs && node sql-0025.mjs --con-equipos && node sql-0040.mjs",
     "correo": "node correo.mjs",
-    "front": "node front.mjs && node front-rediseno.mjs",
+    "front": "node front.mjs && node front-rediseno.mjs && node front-equipos.mjs",
     "ui": "node ui/server.mjs",
     "todo": "npm run sql && npm run correo && npm run front"
   },

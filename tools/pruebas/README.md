@@ -7,7 +7,7 @@ desarrollo**. Tiene su propio `package.json` y no se despliega con nada (nadie l
 cd tools/pruebas
 npm install
 npm run todo      # SQL (0015 y 0016) + helpers de core/rubrica.js
-npm run ui        # sitio real en http://localhost:3100 con un Supabase simulado
+npm run ui        # sitio real en http://localhost:3100 con un Supabase simulado (otra sesión puede estar usando ese puerto: `node ui/server.mjs <raíz> <puerto>`)
 ```
 
 ## Qué prueba cada cosa
@@ -19,7 +19,17 @@ npm run ui        # sitio real en http://localhost:3100 con un Supabase simulado
 | `sql-0021.mjs` | `0021_roles_preferencias.sql`: textos del rol, roles **permitidos** (solo la administración los escribe), **preferencias** que no conceden nada y exigen un predeterminado habilitado, rol y actividad en la tarea (la secretaría no puede salirse de lo permitido, la administración sí y queda marcado), historial del cambio de rol, `personas_asignables` filtrado por permisos, y que lo anterior se conserve | 82 |
 | `sql-0024.mjs` | `0024_actividades_alcance.sql`: alcance equipo / distrito / selección, quién ve qué (el resto del distrito **no** ve una selección ajena), `guardar_actividad` para administración y secretaría, avisos solo a quien corresponde (con las funciones reales de 0019), compatibilidad con clientes anteriores y aplicación sin 0019 | 54 |
 | `sql-0025.mjs` | `0025_seguimiento_bienvenida.sql`: `seguimiento_global` (administración todo, secretaría su distrito, miembro su fila, borradores ocultos), `reporte_actividades` con numerador y denominador, y el asistente de bienvenida (perfil fijado por el servidor, existentes omitidos) | 62 |
+| `sql-0031.mjs` | `0031_equipos.sql`: crear/editar equipos solo la administración y solo en PE v2, nombre único por PE, **sin integrantes duplicados** (función e índice), elegibilidad (aprobado, no admin, participa en el PE), ámbito de distrito y excepción con motivo, **alertas en vez de cambios silenciosos** al cambiar de distrito o dejar de participar, retiro con motivo e historial, reincorporación, quién ve qué (miembro, secretaría, anónimo), estados y archivado, gestión archivada | 66 |
+| `sql-0032.mjs` | `0032_tareas_equipo.sql`: **una sola fila** para el equipo, participantes al crear, quién asigna (admin; secretaría solo su ámbito), quién la ve, transiciones persistidas, quién entregó fijado por el servidor, aportes firmados por quien llama, prórroga con motivo, altas/bajas con tareas abiertas, anular/bloquear/reabrir, archivar con tareas abiertas | 81 |
+| `sql-0033.mjs` | `0033_calificaciones.sql`: valores iniciales de las reglas por PE, quién las edita, peso (la tarea propia pesa 1), nota original/actual, corregir/anular/restaurar con justificación, historial completo con ponderaciones, nota individual dentro del grupo (y que otros no la vean), una tarea con historial no se borra | 73 |
+| `sql-0034.mjs` | `0034_calificacion_tareas.sql`: la fórmula ponderada a mano (50.0, no 60), qué cuenta y qué no (pendiente, vencida, anulada, nota anulada), iniciativa propia, mínimo de tareas, colectiva una vez por persona con su multiplicador, quién cuenta al entrar/salir, visibilidad y que las funciones internas no sean llamables | 36 |
+| `sql-0035.mjs` | `0035_resultados_integrados.sql`: **la prueba de la causa raíz** (una tarea aprobada llega al resultado individual), perfil = seguimiento = administración, corregir/anular se refleja al instante, peso 0 = resultado de siempre, tarea colectiva, visibilidad y que las anuladas no cuenten | 31 |
+| `sql-0036.mjs` | `0036_equipos_vistas.sql`: listado por rol, avance, tareas visibles, resultados del equipo (cada tarea una vez), alertas solo para quien gestiona | 25 |
+| `sql-0025.mjs --con-equipos` | La misma prueba de 0025 con 0031–0035 aplicadas **sobre datos que ya existían**: los resultados no cambian, la nota original se conserva, los PE anteriores quedan en peso 0 | 66 |
+| `front-equipos.mjs` | Cableado de equipos/evaluación en las tres portales (orden de scripts y CSS, CSP), acciones registradas, sin hex, API, punto de montaje del perfil, razones cubiertas, **escape de HTML** y botones por perspectiva | 58 |
 | `front.mjs` | Los helpers de presentación de `core/rubrica.js` (niveles, perfil vigente, criterios aplicables, HTML escapado, rankings) y que los ids/acciones del HTML nuevo existan | 47 |
+
+`base-eq.mjs` (pruebas 0031–0036) monta el esquema mínimo + las migraciones previas **imitando los permisos por defecto de Supabase**: lo que se crea nace con `GRANT` y cada migración debe `REVOKE`; así una función interna que el cliente pudiera llamar hace fallar la prueba.
 
 `stub.sql` **no es el esquema real**: reproduce lo mínimo que 0015 y 0016 necesitan de
 las migraciones anteriores. Si cambias una función de la que dependen (`is_admin`,
@@ -40,3 +50,13 @@ Entra con `?as=`: `admin.html?as=admin`, `secretario.html?as=sec`, `user.html?as
 pintar**; las reglas de verdad las prueban los `sql-*.mjs`. Para ver cómo se comporta
 el frontend desplegado antes que el SQL, borra una tabla del simulador desde la consola
 (`delete __FAKE.DB.tareas`) y recarga la pestaña.
+
+
+## Nota sobre Windows
+
+`sql-0026.mjs` (y a veces otras) termina con `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` al salir: es un fallo de PGlite/libuv **al cerrar el proceso**, posterior a los resultados, que corta una cadena `&&`. Para una corrida completa ejecuta cada archivo por separado (`for f in sql-*.mjs; do node $f | tail -1; done`).
+
+## Pruebas manuales hechas con el simulador (no automatizadas)
+
+`admin.html?as=admin` → Equipos (lista, reglas del PE, detalle, aprobar una tarea del equipo); `user.html?as=m1` → Mi perfil
+(«Cómo se compone tu evaluación», el anillo ya incluye la nota de tareas) y Entregas (Mis equipos + tareas de equipo).
