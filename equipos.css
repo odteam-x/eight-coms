@@ -107,3 +107,8 @@
   .eq-detalle-acc { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .eq-card { transition: none; } }
+
+/* ── Participación por período (Personas → Gestión) ─────────────────── */
+.gp-pe-lista { list-style: none; margin: var(--sp-3) 0; padding: 0; display: grid; gap: var(--sp-2); }
+.gp-pe-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); background: var(--surface-2); border-radius: var(--r-fila); }
+.gp-pe-todos { justify-content: flex-start; gap: var(--sp-2); flex-wrap: wrap; }
