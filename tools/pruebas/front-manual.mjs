@@ -1,0 +1,30 @@
+// El manual de administración es PRIVADO (0044): el sitio solo publica una carcasa; el texto sale de la base solo para is_admin().
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const rd = f => fs.readFileSync(ROOT + f, 'utf8');
+let pass = 0, fail = 0;
+const ok = (c, m) => { c ? pass++ : (fail++, console.log('  ✗ FALLA:', m)); if (c) console.log('  ✓', m); };
+
+const shell = rd('ayuda/admin.html');
+console.log('[la carcasa pública no trae el manual]');
+ok(!/Equipos y tareas del equipo|Aprobar accesos|CORREO_MODO|Cómo cuentan las tareas/.test(shell), 'ayuda/admin.html no contiene el texto del manual');
+ok(shell.length < 6000, `ayuda/admin.html es solo una carcasa (${shell.length} bytes)`);
+ok(/id="ay-estado"/.test(shell) && /<main id="contenido"/.test(shell), 'tiene el estado y el contenedor que se rellena tras comprobar la sesión');
+ok(/supabase-js@2\.\d+\.\d+[^>]*integrity="sha384-/.test(shell) && /\.\.\/config\.js[\s\S]*\.\.\/supabase-client\.js[\s\S]*\.\.\/auth\.js[\s\S]*admin-privado\.js/.test(shell), 'carga el cliente con SRI y, en orden, config, cliente, auth y la lógica');
+ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(shell), 'sin <script> en línea (CSP)');
+console.log('\n[la lógica pide el manual solo a un administrador]');
+const js = rd('ayuda/admin-privado.js');
+ok(/Auth\.getProfile\(\)/.test(js) && /!perfil\.es_admin/.test(js) && /from\('manuales_privados'\)/.test(js), 'comprueba la sesión y es_admin, y pide el contenido a manuales_privados');
+ok(/location\.replace\('\.\.\/index\.html'\)/.test(js), 'sin sesión vuelve al inicio de sesión');
+ok(js.indexOf('es_admin') < js.indexOf("from('manuales_privados')"), 'primero comprueba el permiso, después pide el contenido');
+console.log('\n[nada del manual en archivos públicos]');
+ok(fs.readdirSync(ROOT + 'ayuda/img').every(f => !f.startsWith('a-')), 'las capturas del admin ya no están en el sitio');
+const gen = rd('tools/generar-manuales.mjs');
+ok(/privado: true/.test(gen) && /\.manuales-privados/.test(gen) && /img\.startsWith\('a-'\)/.test(gen), 'el generador marca el manual como privado y lo escribe fuera del sitio, sin capturas');
+ok(/^\.manuales-privados\/$/m.test(rd('.gitignore')), '.manuales-privados/ está en .gitignore (no se versiona ni se despliega)');
+const mig = rd('supabase/migrations/0044_manuales_privados.sql');
+ok(/USING \(public\.is_admin\(\)\)/.test(mig) && /ENABLE ROW LEVEL SECURITY/.test(mig) && !/FOR (INSERT|UPDATE|DELETE|ALL)/.test(mig.replace(/--.*$/gm, '')), 'la tabla solo tiene lectura para is_admin() y ninguna política de escritura');
+ok(rd('ayuda/miembro.html').includes('Manual para miembros') && rd('ayuda/secretario.html').includes('Manual para secretar'), 'los manuales de miembro y secretaría siguen públicos y completos');
+console.log(`\n${pass} correctas, ${fail} fallidas`);
+process.exit(fail ? 1 : 0);

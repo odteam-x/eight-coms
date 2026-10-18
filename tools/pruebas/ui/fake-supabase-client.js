@@ -96,6 +96,7 @@
       return out;
     })(), tareas: [], tarea_eventos: [],
     estadisticas_distrito: [],
+    manuales_privados: [{ slug: 'admin', titulo: 'Manual para administración', html: '<div class="ay-hero"><h1>Manual de prueba (simulador)</h1></div><section id="equipos"><h2>Equipos</h2><p>Contenido privado de ejemplo.</p></section>' }],
   };
   let seq = { eval: 1, tarea: 1, ev: 1, perfil: 3 };
 
@@ -842,6 +843,7 @@
   // Tablas nuevas: visibilidad y escritura mínimas
   const visiblesBase = visibles;
   visibles = (table, rows) => {
+    if (table === 'manuales_privados') return esAdmin() ? rows : [];
     if (table === 'estadisticas_distrito') return rows.filter(r => esAdmin() || (esSec() && r.distrito_id === me().distrito));
     if (table === 'equipos') return rows.filter(eqVisible);
     if (table === 'equipo_miembros') return rows.filter(m => esAdmin() || m.persona_id === meId || (!m.hasta && eqVig(m.equipo_id).some(x => x.persona_id === meId)) || (esSec() && distritoIds().includes(m.persona_id)));

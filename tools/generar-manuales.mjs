@@ -15,7 +15,7 @@ const b = t => `<b>${t}</b>`;                       // un botón, icono o menú 
 const pasos = (...p) => `<ol class="pasos">${p.map(x => `<li>${x}</li>`).join('')}</ol>`;
 const nota = (tipo, t) => `<aside class="nota nota--${tipo}"><b>${{ consejo: 'Consejo', ojo: 'Importante', ejemplo: 'Ejemplo' }[tipo]}.</b> ${t}</aside>`;
 const tienePC = img => fs.existsSync(new URL(`img/${img}-pc.jpg`, SALIDA));
-const captura = (img, pie) => tienePC(img)
+const captura = (img, pie) => img.startsWith('a-') ? '' : tienePC(img)
   ? `<figure class="captura captura--dual"><div class="captura-marco"><picture><source media="(min-width: 900px)" srcset="img/${img}-pc.jpg"><img src="img/${img}.jpg" alt="${esc(pie)}" loading="lazy"></picture></div><figcaption>${pie}</figcaption></figure>`
   : `<figure class="captura"><div class="captura-marco"><img src="img/${img}.jpg" alt="${esc(pie)}" loading="lazy"></div><figcaption>${pie}</figcaption></figure>`;
 const pcCel = (pc, cel) => `<div class="pccel"><div><h4>En computadora</h4>${pc}</div><div><h4>En celular</h4>${cel}</div></div>`;
@@ -433,7 +433,7 @@ ${lista(
 
 /* ── Manual de la administración ─────────────────────────────────────── */
 const admin = {
-  archivo: 'admin', titulo: 'Manual para administración', sub: 'Cómo gestionar el portal de EIGHT CREATORS LABs',
+  archivo: 'admin', privado: true, titulo: 'Manual para administración', sub: 'Cómo gestionar el portal de EIGHT CREATORS LABs',
   resumen: `Tienes el control completo: personas y accesos, evaluaciones, tareas y equipos, la nota de tareas, distritos con sus estadísticas, calendario, reportes, correos y la configuración de la rúbrica. Este manual explica <b>cada pantalla paso a paso</b> y separa lo que usas cada día (operación) de lo que configuras de vez en cuando.`,
   permisos: [
     ['Ver y gestionar a todas las personas', 'Sí'],
@@ -871,7 +871,7 @@ function pagina(m) {
     <h1>${m.titulo}</h1>
     <p class="ay-sub">${m.sub}</p>
     <p>${m.resumen}</p>
-    <p class="ay-aviso">Las capturas son del entorno de pruebas del portal con <b>datos de ejemplo</b> (nombres y cifras inventados). Si lees este manual en computadora verás las capturas de computadora; en el celular, las de celular.</p>
+    ${m.privado ? '<p class="ay-aviso">Este manual es <b>privado</b>: solo lo ves con tu sesión de administración.</p>' : '<p class="ay-aviso">Las capturas son del entorno de pruebas del portal con <b>datos de ejemplo</b> (nombres y cifras inventados). Si lees este manual en computadora verás las capturas de computadora; en el celular, las de celular.</p>'}
   </div>
   <nav class="ay-toc" aria-labelledby="ay-toc-t">
     <h2 id="ay-toc-t">Contenido</h2>
@@ -892,7 +892,32 @@ function pagina(m) {
 `;
 }
 
+const SUPABASE_CDN = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
 for (const m of [miembro, secretario, admin]) {
-  fs.writeFileSync(new URL(m.archivo + '.html', SALIDA), pagina(m));
-  console.log('ayuda/' + m.archivo + '.html');
+  const html = pagina(m);
+  if (!m.privado) { fs.writeFileSync(new URL(m.archivo + '.html', SALIDA), html); console.log('ayuda/' + m.archivo + '.html'); continue; }
+  // Manual PRIVADO: el sitio publica solo una carcasa; el contenido va a .manuales-privados/ (no se versiona ni se despliega) para
+  // publicarlo en la tabla manuales_privados (0044), que solo la administración puede leer.
+  const A = '<main id="contenido" class="ay-main">', ini = html.indexOf(A) + A.length, fin = html.indexOf('</main>');
+  const fragmento = html.slice(ini, fin);
+  if (fragmento.includes('$manual$')) throw new Error('El contenido no puede llevar $manual$');
+  const carcasa = html.slice(0, ini) + `
+  <div class="ay-hero"><p class="ay-sup">EIGHT CREATORS LABs · CELIDER 08 Santiago</p><h1>${m.titulo}</h1><p class="ay-sub">${m.sub}</p>
+    <p id="ay-estado" role="status">Comprobando tu acceso…</p></div>
+` + html.slice(fin).replace('</body>', `${SUPABASE_CDN}
+<script src="../config.js"></script>
+<script src="../supabase-client.js"></script>
+<script src="../auth.js"></script>
+<script src="admin-privado.js"></script>
+</body>`);
+  fs.writeFileSync(new URL(m.archivo + '.html', SALIDA), carcasa);
+  const dir = new URL('../.manuales-privados/', import.meta.url);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(new URL(m.archivo + '.fragmento.html', dir), fragmento);
+  fs.writeFileSync(new URL(m.archivo + '.sql', dir), `-- Publica el manual «${m.archivo}» (privado). Generado por tools/generar-manuales.mjs; no se versiona.
+INSERT INTO public.manuales_privados (slug, titulo, html, actualizado_en)
+VALUES ('${m.archivo}', '${m.titulo.replace(/'/g, "''")}', $manual$${fragmento}$manual$, NOW())
+ON CONFLICT (slug) DO UPDATE SET titulo = EXCLUDED.titulo, html = EXCLUDED.html, actualizado_en = NOW();
+`);
+  console.log('ayuda/' + m.archivo + '.html (carcasa)  +  .manuales-privados/' + m.archivo + '.sql (' + Math.round(fragmento.length / 1024) + ' KB, a publicar en la base)');
 }
