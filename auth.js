@@ -102,9 +102,22 @@ const Auth = (() => {
     return true;
   }
 
+  /**
+   * Un enlace de correo (`portal.html#ir/pestaña/objeto/id`) abierto SIN sesión no debe perderse al pasar por
+   * el login: se recuerda solo el fragmento `#ir/…` (nunca datos) y core/notificaciones.js lo abre tras entrar,
+   * si el portal es el mismo. La sesión sigue siendo obligatoria y la RLS decide qué se ve.
+   */
+  function _recordarDestino() {
+    try {
+      if (/^#ir\/[\w\/-]{1,120}$/.test(location.hash)) {
+        sessionStorage.setItem('ec-ir', JSON.stringify({ p: location.pathname.split('/').pop(), h: location.hash }));
+      }
+    } catch (e) { /* sessionStorage bloqueado: se pierde el atajo, no el acceso */ }
+  }
+
   async function requireAuth(adminOnly = null) {
     const profile = await getProfile();
-    if (!profile) { window.location.replace('index.html'); return null; }
+    if (!profile) { _recordarDestino(); window.location.replace('index.html'); return null; }
     if (await _bloquearSiPendiente(profile)) return null;
     if (adminOnly === true  && !profile.es_admin) { window.location.replace(_portalFor(profile)); return null; }
     if (adminOnly === false &&  profile.es_admin) { window.location.replace('admin.html');          return null; }
@@ -117,7 +130,7 @@ const Auth = (() => {
    */
   async function requireRole(role) {
     const profile = await getProfile();
-    if (!profile) { window.location.replace('index.html'); return null; }
+    if (!profile) { _recordarDestino(); window.location.replace('index.html'); return null; }
     if (await _bloquearSiPendiente(profile)) return null;
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
     if (profile.tipo_miembro !== role) {
@@ -133,7 +146,7 @@ const Auth = (() => {
    */
   async function requireAnyRole(roles) {
     const profile = await getProfile();
-    if (!profile) { window.location.replace('index.html'); return null; }
+    if (!profile) { _recordarDestino(); window.location.replace('index.html'); return null; }
     if (await _bloquearSiPendiente(profile)) return null;
     if (profile.es_admin) { window.location.replace('admin.html'); return null; }
     if (!roles.includes(profile.tipo_miembro)) {

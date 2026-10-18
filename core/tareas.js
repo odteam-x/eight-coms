@@ -25,6 +25,7 @@ const Tareas = (() => {
     entregada: { txt: 'Entregada',  cls: 'entregada' },
     devuelta:  { txt: 'Devuelta',   cls: 'devuelta'  },
     aprobada:  { txt: 'Aprobada',   cls: 'aprobada'  },
+    anulada:   { txt: 'Anulada',    cls: 'devuelta'  },
   };
   const PRIORIDAD = { alta: 'Alta', normal: 'Normal', baja: 'Baja' };
   const ABIERTAS  = ['asignada', 'en_curso', 'devuelta', 'bloqueada'];
@@ -278,6 +279,8 @@ const Tareas = (() => {
     switch (f.tipo) {
       case 'info':
         return `<p class="tk-info">${escHtml(f.texto)}</p>`;
+      case 'html':      // el llamador escapa todo dato humano antes (ver core/equipos.js)
+        return `<div class="tk-campo">${f.html}</div>`;
       case 'puntos':
         return `<div class="tk-campo">${lab}<div class="tk-puntos" role="radiogroup" aria-label="Puntos">${Array.from({ length: 11 }, (_, n) => `<label class="tk-punto"><input type="radio" name="${id}" value="${n}"${n === Number(f.valor) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div>${pie}</div>`;
       case 'texto':
@@ -444,13 +447,17 @@ const Tareas = (() => {
     abrirModal({
       titulo: 'Aprobar y puntuar', confirmar: 'Aprobar',
       campos: [
-        { id: 'info', tipo: 'info', texto: `«${t.titulo}». Los puntos quedan en el historial de la persona; no entran solos en su evaluación.` },
+        { id: 'info', tipo: 'info', texto: `«${t.titulo}». Estos puntos cuentan en la evaluación de la persona según las reglas del PE (nota de tareas): se combinan con las demás tareas calificadas, ponderadas por su peso.` },
         { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: 8 },
+        { id: 'peso', tipo: 'select', label: 'Peso de la tarea', valor: String(Number(t.peso ?? 1)), ayuda: 'Cuánto pesa frente a las demás al promediar la nota de tareas (migración 0033).',
+          opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) },
       ],
       onConfirm: async v => {
         const n = Number(v.puntos);
         if (!Number.isInteger(n) || n < 0 || n > 10) return 'Elige unos puntos entre 0 y 10.';
-        let err = await aplicar(c, t, { estado: 'aprobada', puntos: n }, `Aprobada con ${n} puntos`);
+        const patch = { estado: 'aprobada', puntos: n };
+        if (Number(v.peso) !== Number(t.peso ?? 1)) patch.peso = Number(v.peso);
+        let err = await aplicar(c, t, patch, `Aprobada con ${n} puntos`);
         // Antes de aplicar 0017 la columna no existe: se aprueba sin puntos y se avisa.
         if (err && /puntos/i.test(err) && /column|schema|PGRST/i.test(err)) {
           err = await aplicar(c, t, { estado: 'aprobada' }, 'Aprobada (la base aún no guarda puntos: aplica 0017)');
@@ -584,7 +591,7 @@ const Tareas = (() => {
           <li><strong>Iniciativa</strong> ← iniciativas validadas.</li>
           <li>Respuesta y colaboración no se miden con tareas: valóralas con lo que observaste.</li>
         </ul>
-        <p class="tk-evid-p">${poca ? '<strong>Pocas tareas con plazo:</strong> interprétalo con cautela. ' : ''}Son hechos para apoyar tu criterio; no puntúan ni rellenan nada por sí solos.</p>
+        <p class="tk-evid-p">${poca ? '<strong>Pocas tareas con plazo:</strong> interprétalo con cautela. ' : ''}Son hechos para apoyar tu criterio; la nota de las tareas aprobadas entra aparte en el resultado, según las reglas del PE.</p>
         ${tareas.length ? `<details class="v2-det"><summary>Ver las ${tareas.length} tareas</summary>
           <ul class="tk-evid-lista">${tareas.map(t => `<li><span class="tk-pill tk-pill--${(ESTADOS[t.estado] || ESTADOS.asignada).cls}">${escHtml((ESTADOS[t.estado] || ESTADOS.asignada).txt)}</span>
             ${escHtml(t.titulo)}${t.origen === 'propia' ? ' <em>(iniciativa propia)</em>' : ''} · ${plazoHTML(t)}</li>`).join('')}</ul></details>` : ''}

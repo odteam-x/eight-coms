@@ -308,12 +308,15 @@ const Perfil = (() => {
             <h3 class="pf-h" id="${inst.id}-h-rol">${inst.modo === 'propio' ? 'Tu lugar en el rol' : 'Lugar en el rol'}</h3>
             ${_lugarEnRolHTML(inst, item)}
           </section>
+          <section class="pf-card pf-card--ancha ev-seccion" id="${inst.id}-eval" aria-labelledby="${inst.id}-eval-h"></section>
           ${tareas ? `<section class="pf-card pf-card--ancha" aria-labelledby="${inst.id}-h-tareas">
             <div class="pf-card-cab"><h3 class="pf-h" id="${inst.id}-h-tareas">Tareas del período</h3>
               <button type="button" class="pf-enlace" data-act="perfilTab" data-arg="tareas">Ver todas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
             ${tareas}
           </section>` : ''}
         </div>`;
+      // 0033–0035: de dónde sale el resultado (evaluación + nota de tareas) y qué tareas cuentan.
+      if (typeof EvaluacionPerfil !== 'undefined') EvaluacionPerfil.montar(document.getElementById(`${inst.id}-eval`), { periodo: inst.periodo, personaId: inst.persona.id, fila: item.fila, propio: inst.modo === 'propio' });
       return;
     }
     if (item && !item.v2 && item.row) { _panelResumenLegacy(inst, cuerpo, item); return; }
@@ -337,6 +340,12 @@ const Perfil = (() => {
 
   function _vacioPeriodo(inst, cuerpo, item) {
     const pe = inst.periodo.pe;
+    // Sin evaluación publicada, las tareas ya calificadas se muestran igual (resultado parcial).
+    if (item?.v2 && typeof EvaluacionPerfil !== 'undefined') {
+      cuerpo.innerHTML = `<section class="pf-card pf-card--ancha ev-seccion" id="${inst.id}-eval" aria-labelledby="${inst.id}-eval-h"></section>`;
+      EvaluacionPerfil.montar(document.getElementById(`${inst.id}-eval`), { periodo: inst.periodo, personaId: inst.persona.id, fila: null, propio: inst.modo === 'propio' });
+      return;
+    }
     renderVacio(cuerpo, inst.modo === 'propio' ? `Aún no hay evaluación para ${pe}.` : `${inst.persona.nombre || 'La persona'} no tiene evaluación publicada en ${pe}.`,
                 { periodo: inst.periodo, calendario: _cfg.calendario?.() });
   }
@@ -450,7 +459,7 @@ const Perfil = (() => {
             <div class="pf-tarea-m">${Tareas.plazoHTML(t)}</div>
           </div></li>`;
       }).join('')}</ul>` : `<div class="empty-box"><div class="empty-txt">Sin tareas en este período.</div></div>`}
-      <p class="pf-nota">Los hechos de las tareas apoyan la evaluación; no puntúan nada por sí solos.</p>`;
+      <p class="pf-nota">Las tareas aprobadas cuentan en tu resultado según las reglas del PE; el desglose está en el Resumen.</p>`;
   }
 
   /* ── Evolución ─────────────────────────────────────────────────────── */

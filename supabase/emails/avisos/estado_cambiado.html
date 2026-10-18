@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light">
-<title>Se movió el plazo</title></head>
+<title>Cambió el estado de algo tuyo</title></head>
 <body style="margin:0;padding:0;background:#061326">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326">Nueva fecha límite: {{fecha_nueva}}.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#061326">Revisa el cambio.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#061326"><tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0A1D38;border-radius:28px;overflow:hidden">
     <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#002247;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#005286;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#0087F1;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#00CBFF;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#A7E8FF;height:6px;font-size:0;line-height:0">&nbsp;</td><td style="background:#FF6063;height:6px;font-size:0;line-height:0">&nbsp;</td></tr></table></td></tr>
@@ -14,19 +14,23 @@
       </tr></table>
     </td></tr>
     <tr><td style="padding:32px 36px 8px">
-      <h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF">Se movió el plazo</h1>
-      <p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF">Hola {{nombre}}, cambió la fecha límite de una de tus tareas.</p>
+      <h1 style="margin:0 0 16px;font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:#F3F8FF">Cambió el estado de algo tuyo</h1>
+      <p style="margin:0 0 16px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#F3F8FF">Hola {{nombre}}, cambió el estado de <b>{{elemento}}</b>.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;background:#10264A;border-radius:16px">
-        <tr><td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Tarea</td>
-        <td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{tarea}}</td></tr>
+        <tr><td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Elemento</td>
+        <td style="padding:14px 20px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{elemento}}</td></tr>
+        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Tipo</td>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{objeto}}</td></tr>
+        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Equipo</td>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{equipo}}</td></tr>
         <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Antes</td>
-        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{fecha_anterior}}</td></tr>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{antes}}</td></tr>
         <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Ahora</td>
-        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{fecha_nueva}}</td></tr>
-        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Motivo</td>
-        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{motivo}}</td></tr>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{ahora}}</td></tr>
+        <tr><td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#8FB3D1;width:38%;vertical-align:top">Cambiado por</td>
+        <td style="padding:14px 20px;border-top:1px solid #1B3A66;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F3F8FF;vertical-align:top">{{cambiado_por}}</td></tr>
       </table><table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="background:#FF6063;border-radius:999px">
-        <a href="{{enlace}}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px">Abrir la tarea</a></td></tr></table>
+        <a href="{{enlace}}" style="display:inline-block;padding:15px 32px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#002247;text-decoration:none;border-radius:999px">Ver el detalle</a></td></tr></table>
        <p style="margin:0 0 24px;font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8FB3D1">Si el botón no funciona, copia este enlace en tu navegador:<br><a href="{{enlace}}" style="color:#A7E8FF;word-break:break-all">{{enlace}}</a></p>
       
     </td></tr>

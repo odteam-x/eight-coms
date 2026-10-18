@@ -368,6 +368,9 @@ const API = {
     return { ok: true, rows: (data ?? []).map(r => ({
       ...r, nucleo: n(r.nucleo), tecnico: n(r.tecnico), individual: n(r.individual),
       percentil: n(r.percentil), general: n(r.general), n_rol: Number(r.n_rol) || 0,
+      // 0035: la nota de tareas ya está dentro de individual y general; estas columnas dicen cuánto viene de dónde.
+      individual_eval: n(r.individual_eval), general_eval: n(r.general_eval), tareas: n(r.tareas),
+      tareas_n: Number(r.tareas_n) || 0, peso_tareas: n(r.peso_tareas) ?? 0,
     })) };
   },
 
@@ -716,6 +719,130 @@ const API = {
     return { ok: true, porUsuario: Object.fromEntries((data ?? []).map(r => [r.user_id, r])) };
   },
 
+  /* ══ Equipos, tareas colectivas y calificaciones (migraciones 0031–0036) ═══════════════════════
+   * Todas devuelven { ok, ... }. `noDisponible` = la migración aún no está aplicada (la interfaz lo explica, no finge
+   * que no hay datos). Los permisos y los cálculos viven en la base; aquí solo se llama.                          */
+  _sinEquipos(error) { return !!error && (this._sinTareas(error) || this._rpcAusente(error)); },
+  async _rpc(nombre, args = {}) {
+    const { data, error } = await SB.rpc(nombre, args);
+    if (error) return { ok: false, error: error.message, noDisponible: this._sinEquipos(error) };
+    return { ok: true, data };
+  },
+
+  async getEquipos({ periodoId = null } = {}) {
+    const r = await this._rpc('equipos_resumen', { p_periodo: periodoId });
+    return r.ok ? { ok: true, equipos: r.data ?? [] } : r;
+  },
+  async getMiembrosVigentes() {
+    const { data, error } = await SB.from('equipo_miembros').select('equipo_id, persona_id').is('hasta', null);
+    return error ? { ok: false, filas: [], error: error.message } : { ok: true, filas: data ?? [] };
+  },
+  async getEquipoIntegrantes(equipoId, { bajas = false } = {}) {
+    const r = await this._rpc('equipo_integrantes', { p_equipo: equipoId, p_incluir_bajas: bajas });
+    return r.ok ? { ok: true, integrantes: r.data ?? [] } : r;
+  },
+  async getEquipoEventos(equipoId) {
+    const { data, error } = await SB.from('equipo_eventos').select('*').eq('equipo_id', equipoId).order('created_at', { ascending: false }).limit(100);
+    return error ? { ok: false, error: error.message, noDisponible: this._sinEquipos(error) } : { ok: true, eventos: data ?? [] };
+  },
+  async guardarEquipo({ id = null, periodoId = null, nombre, descripcion = '', responsableId = null, distrito = null }) {
+    const r = await this._rpc('equipo_guardar', { p_id: id, p_periodo: periodoId, p_nombre: nombre, p_descripcion: descripcion, p_responsable: responsableId || null, p_distrito: distrito || null });
+    return r.ok ? { ok: true, id: r.data } : r;
+  },
+  async cambiarEstadoEquipo(equipoId, estado, motivo = null) {
+    return this._rpc('equipo_cambiar_estado', { p_equipo: equipoId, p_estado: estado, p_motivo: motivo });
+  },
+  async agregarMiembrosEquipo(equipoId, personas, { excepcion = false, motivo = null } = {}) {
+    const r = await this._rpc('equipo_agregar_miembros', { p_equipo: equipoId, p_personas: personas, p_excepcion: excepcion, p_motivo: motivo });
+    return r.ok ? { ok: true, agregados: r.data?.agregados ?? [], omitidos: r.data?.omitidos ?? [] } : r;
+  },
+  async retirarMiembroEquipo(equipoId, personaId, motivo) {
+    return this._rpc('equipo_retirar_miembro', { p_equipo: equipoId, p_persona: personaId, p_motivo: motivo });
+  },
+  async getEquipoResultados(equipoId) {
+    const r = await this._rpc('equipo_resultados', { p_equipo: equipoId });
+    return r.ok ? { ok: true, filas: (r.data ?? []).map(f => ({ ...f, nota: f.nota == null ? null : Number(f.nota) })) } : r;
+  },
+
+  /** Tareas colectivas con su avance. Sin equipo: todas las que la persona puede ver. */
+  async getTareasEquipo({ equipoId = null, periodoId = null } = {}) {
+    const r = await this._rpc('tareas_equipo_estado', { p_equipo: equipoId, p_periodo: periodoId });
+    return r.ok ? { ok: true, tareas: r.data ?? [] } : r;
+  },
+  async crearTareaEquipo({ equipo_id, titulo, descripcion = '', instrucciones = '', criterios_evaluacion = '', criterios = [], prioridad = 'normal', fecha_limite = null, responsable_id = null, peso = 1 }) {
+    const fila = { equipo_id, periodo_id: null, titulo, descripcion, instrucciones, criterios_evaluacion, criterios, prioridad, fecha_limite: fecha_limite || null, responsable_id: responsable_id || null, peso };
+    delete fila.periodo_id;                    // el servidor toma el PE del equipo
+    const { data, error } = await SB.from('tareas_equipo').insert(fila).select().single();
+    return error ? { ok: false, error: error.message } : { ok: true, tarea: data };
+  },
+  async actualizarTareaEquipo(id, patch) {
+    const { data, error } = await SB.from('tareas_equipo').update(patch).eq('id', id).select().maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    if (!data) return { ok: false, error: 'No tienes acceso a esa tarea.' };
+    return { ok: true, tarea: data };
+  },
+  async prorrogarTareaEquipo(id, nuevaFecha, motivo) {
+    return this._rpc('tarea_equipo_prorrogar', { p_id: id, p_nueva: nuevaFecha, p_motivo: motivo });
+  },
+  async aportarTareaEquipo(id, { tipo, nota = null, url = null, avance = null }) {
+    return this._rpc('tarea_equipo_aportar', { p_tarea: id, p_tipo: tipo, p_nota: nota, p_url: url, p_avance: avance });
+  },
+  async getParticipacionTareaEquipo(id) {
+    const r = await this._rpc('tarea_equipo_participacion', { p_tarea: id });
+    return r.ok ? { ok: true, filas: r.data ?? [] } : r;
+  },
+  async getAportesTareaEquipo(id) {
+    const { data, error } = await SB.from('tarea_equipo_aportes').select('*').eq('tarea_id', id).order('created_at', { ascending: false });
+    return error ? { ok: false, error: error.message } : { ok: true, aportes: data ?? [] };
+  },
+  async getEventosTareaEquipo(id) {
+    const { data, error } = await SB.from('tarea_equipo_eventos').select('*').eq('tarea_id', id).order('created_at');
+    return error ? { ok: false, error: error.message } : { ok: true, eventos: data ?? [] };
+  },
+
+  /** Notas: corregir / anular / restaurar (solo administración) y nota individual dentro del grupo. */
+  async corregirNota(tipo, id, puntos, motivo) { return this._rpc('corregir_nota_tarea', { p_tipo: tipo, p_id: id, p_puntos: puntos, p_motivo: motivo }); },
+  async anularNota(tipo, id, motivo) { return this._rpc('anular_nota_tarea', { p_tipo: tipo, p_id: id, p_motivo: motivo }); },
+  async restaurarNota(tipo, id, motivo) { return this._rpc('restaurar_nota_tarea', { p_tipo: tipo, p_id: id, p_motivo: motivo }); },
+  async notaIndividualEquipo(tareaId, personaId, puntos, motivo) {
+    return this._rpc('nota_individual_equipo', { p_tarea: tareaId, p_persona: personaId, p_puntos: puntos, p_motivo: motivo });
+  },
+  async getHistorialNotasPersona(periodoId, personaId) {
+    const { data, error } = await SB.from('calificaciones_historial').select('*').eq('periodo_id', periodoId).eq('persona_id', personaId).order('created_at', { ascending: false });
+    return error ? { ok: false, error: error.message } : { ok: true, filas: data ?? [] };
+  },
+  async getHistorialNotas(tipo, id) {
+    const { data, error } = await SB.from('calificaciones_historial').select('*').eq('tarea_tipo', tipo).eq('tarea_id', id).order('created_at');
+    return error ? { ok: false, error: error.message } : { ok: true, filas: data ?? [] };
+  },
+
+  /** Desglose de la nota de tareas de una persona (la propia si no se indica). Misma fuente que resultados_periodo. */
+  async getCalifDetalle(periodoId, personaId = null) {
+    const r = await this._rpc('tareas_calificacion_detalle', { p_periodo: periodoId, p_persona: personaId });
+    return r.ok ? { ok: true, filas: (r.data ?? []).map(f => ({ ...f, peso_efectivo: Number(f.peso_efectivo), aporte_pct: f.aporte_pct == null ? null : Number(f.aporte_pct), aporte_puntos: f.aporte_puntos == null ? null : Number(f.aporte_puntos) })) } : r;
+  },
+  async getCalifResumen(periodoId) {
+    const r = await this._rpc('tareas_calificacion_resumen', { p_periodo: periodoId });
+    return r.ok ? { ok: true, porPersona: Object.fromEntries((r.data ?? []).map(f => [f.persona_id, { ...f, nota: f.nota == null ? null : Number(f.nota), peso_tareas: Number(f.peso_tareas) }])) } : r;
+  },
+  /** Reglas de calificación del PE (cualquiera con sesión las lee: explican cómo se calcula). */
+  async getCalifConfig(periodoId) {
+    const r = await this._rpc('calif_config', { p_periodo: periodoId });
+    const c = r.ok ? (r.data ?? [])[0] : null;
+    if (!r.ok) return r;
+    return { ok: true, config: c ? { ...c, peso_tareas: Number(c.peso_tareas), mult_individual: Number(c.mult_individual), mult_colectiva: Number(c.mult_colectiva) } : null };
+  },
+  async guardarCalifConfig(periodoId, c, motivo = null) {
+    return this._rpc('calif_config_guardar', {
+      p_periodo: periodoId, p_peso_tareas: c.peso_tareas, p_mult_individual: c.mult_individual, p_mult_colectiva: c.mult_colectiva,
+      p_minimo_tareas: c.minimo_tareas, p_contar_propias: c.contar_propias, p_vencidas_como_cero: c.vencidas_como_cero, p_motivo: motivo,
+    });
+  },
+  async getCalifConfigHist(periodoId) {
+    const { data, error } = await SB.from('periodo_calif_config_hist').select('*').eq('periodo_id', periodoId).order('created_at', { ascending: false }).limit(30);
+    return error ? { ok: false, error: error.message } : { ok: true, filas: data ?? [] };
+  },
+
   /**
    * FASE 1 — CONTEXTO. Todo lo que no depende del período elegido.
    * Cuatro consultas en paralelo: un solo round-trip. Con esto ya se pinta
@@ -1029,10 +1156,39 @@ const API = {
   _rpcAusente(error) {
     return /Could not find the function|does not exist|PGRST202|42883/i.test((error?.code || '') + ' ' + (error?.message || ''));
   },
-  async getNotificaciones({ limite = 40, antes = null } = {}) {
-    const { data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes });
+  async getNotificaciones({ limite = 40, antes = null, categoria = null, soloSinLeer = false } = {}) {
+    // Los filtros por categoría y «sin leer» los aplica la base desde 0040; sin ella se pide la lista simple.
+    const args = { p_limite: limite, p_antes: antes };
+    if (categoria) args.p_categoria = categoria;
+    if (soloSinLeer) args.p_solo_sin_leer = true;
+    let { data, error } = await SB.rpc('mis_notificaciones', args);
+    if (error && (categoria || soloSinLeer) && API._rpcAusente(error)) {
+      ({ data, error } = await SB.rpc('mis_notificaciones', { p_limite: limite, p_antes: antes }));
+    }
     if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
     return { ok: true, data: data ?? [] };
+  },
+  /** Total y sin leer por categoría (0040). Sin 0040: ok:false, noDisponible. */
+  async getNotifResumen() {
+    const { data, error } = await SB.rpc('notif_resumen');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error), data: [] };
+    return { ok: true, data: (data ?? []).map(r => ({ categoria: r.categoria, total: Number(r.total), sin_leer: Number(r.sin_leer) })) };
+  },
+  /** Qué avisos puede recibir esta persona por correo y cuáles tiene activados (0040). */
+  async getPreferenciasNotif() {
+    const { data, error } = await SB.rpc('mis_preferencias_notif');
+    if (error) return { ok: false, error: error.message, noDisponible: API._rpcAusente(error) };
+    return { ok: true, data: data ?? [] };
+  },
+  /** { tipo: true|false }. La base rechaza los esenciales: nunca se confía en el cliente para esto. */
+  async guardarPreferenciasNotif(prefs) {
+    const { error } = await SB.rpc('guardar_preferencias_notif', { p_prefs: prefs });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+  /** Estado de los correos de los últimos días (solo administración). */
+  async getEstadoEnvios(dias = 7) {
+    const { data, error } = await SB.rpc('notif_estado_envios', { p_dias: dias });
+    return error ? { ok: false, error: error.message, noDisponible: API._rpcAusente(error) } : { ok: true, data: data ?? [] };
   },
   async getNotifNoLeidas() {
     const { data, error } = await SB.rpc('notif_no_leidas');
@@ -1043,8 +1199,8 @@ const API = {
     const { error } = await SB.rpc('notif_marcar_leida', { p_id: id });
     return error ? { ok: false, error: error.message } : { ok: true };
   },
-  async marcarNotifTodas() {
-    const { data, error } = await SB.rpc('notif_marcar_todas');
+  async marcarNotifTodas(categoria = null) {
+    const { data, error } = await SB.rpc('notif_marcar_todas', categoria ? { p_categoria: categoria } : {});
     return error ? { ok: false, error: error.message } : { ok: true, n: Number(data) || 0 };
   },
 

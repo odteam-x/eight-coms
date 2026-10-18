@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
+        { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
@@ -2419,6 +2420,16 @@ async function renderResumenV2(el, periodo) {
    ══════════════════════════════════════════════════ */
 let _activePETareas = null;
 
+/* ── TAB: EQUIPOS (core/equipos.js + core/evaluacion-perfil.js) ── */
+function abrirEquipos() {
+  const host = document.getElementById('eq-host'); if (!host) return;
+  Equipos.montarAdmin(host, {
+    yo: CU.id, periodos: _periodos, distritos: (typeof _distritos !== 'undefined' ? _distritos : []).map(d => ({ nombre: d.nombre ?? d })),
+    personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email, email: u.email, distrito: u.distrito, rol_nombre: u.rol_nombre || u.roles?.nombre || '' })),
+    onCambio: () => { if (typeof PanelAdmin !== 'undefined') _periodos.forEach(p => PanelAdmin.invalidar?.(p.id)); },
+  });
+}
+
 function abrirTareas() {
   if (!_periodos.length) {
     document.getElementById('tareas-lista').innerHTML = '<div class="empty-box"><div class="empty-txt">No hay períodos. Crea uno en Períodos.</div></div>';
@@ -2460,7 +2471,7 @@ function montarTareas() {
 const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
-  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', reportes:'reportes', seguimiento:'seguimiento',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
@@ -2541,6 +2552,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'gestiones') renderGestiones();
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
+  if (tab === 'equipos') abrirEquipos();
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }

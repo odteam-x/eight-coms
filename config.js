@@ -89,6 +89,8 @@ const _ACCIONES_SIMPLES = new Set([
   'selBuscar', 'asigRol', 'asigAck', 'asigCrit', 'actfDistrito',
   // seguimiento global
   'segBuscar', 'segFiltro',
+  // equipos (core/equipos.js)
+  'eqFiltrar',
 ]);
 
 const ACCIONES = {
@@ -110,6 +112,9 @@ const ACCIONES = {
   avisosFiltro:     (arg)         => Notif.filtro(arg),
   avisosTodas:      ()            => Notif.todas(),
   avisosMas:        ()            => Notif.mas(),
+  avisosPrefs:      ()            => Notif.prefs(),
+  avisosLista:      ()            => Notif.volver(),
+  avisoPref:        (arg)         => Notif.pref(arg),
   cuentaDesdeHoja:  ()            => { cerrarHoja(); switchTab('cuenta', null); },
   cuentaGuardarNombre: (a, el) => Cuenta.guardarNombre(el),
   // Mis preferencias de rol (core/preferencias.js)
@@ -124,6 +129,8 @@ const ACCIONES = {
   selQuitar:     (a, el) => Selector.de(a)?.quitar(el.dataset.arg2),
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
+  eq:            (a, el) => Equipos.accion(a, el.dataset.arg2),
+  evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),
   asigAtras:     ()      => Asignar.atras(),
   asigSugerir:   ()      => Asignar.sugerir(),

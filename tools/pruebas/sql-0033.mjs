@@ -1,0 +1,160 @@
+// Pruebas de 0033 (calificaciones de tareas: peso, anulación, justificación, historial, reglas por PE).
+import { crear, montar, CADENA_BASE, sql } from './base-eq.mjs';
+
+const t = crear();
+const { db, ok, q, as, root, rejects, allowed, fin } = t;
+const X = await montar(t, [...CADENA_BASE, '0031_equipos.sql', '0032_tareas_equipo.sql', '0033_calificaciones.sql']);
+const { P, PE1, PE2, LEG, ARCH } = X;
+console.log('— 0033 aplicada sin errores');
+await db.exec(sql('0033_calificaciones.sql'));
+ok(true, 'reaplicar 0033 es idempotente');
+
+const nueva = async (quien, para, extra = '') => {
+  await as(quien);
+  return (await q(`INSERT INTO tareas(periodo_id,titulo,asignada_a,fecha_limite${extra ? ',' + extra.split('|')[0] : ''})
+                   VALUES ('${PE1}','T','${para}', current_date+5${extra ? ',' + extra.split('|')[1] : ''}) RETURNING id`))[0].id;
+};
+const entregar = async (id, m) => {
+  await as(m);
+  await db.exec(`UPDATE tareas SET estado='en_curso' WHERE id=${id}`);
+  await db.exec(`UPDATE tareas SET estado='entregada', entrega_nota='listo' WHERE id=${id}`);
+};
+
+console.log('\n[reglas del PE: valores iniciales documentados]');
+await root();
+ok((await q(`SELECT peso_tareas::float p, confirmado FROM periodo_calif_config WHERE periodo_id='${PE1}'`))[0].p === 20, 'un PE nuevo nace con peso_tareas = 20 (provisional)');
+ok((await q(`SELECT confirmado FROM periodo_calif_config WHERE periodo_id='${PE1}'`))[0].confirmado === false, '...y SIN confirmar');
+ok((await q(`SELECT count(*)::int n FROM periodo_calif_config WHERE periodo_id='${LEG}'`))[0].n === 0, 'un PE clásico no tiene reglas de tareas');
+await db.exec(`DELETE FROM periodo_calif_config WHERE periodo_id='${PE2}'`);
+await db.exec(sql('0033_calificaciones.sql'));
+ok((await q(`SELECT peso_tareas::float p FROM periodo_calif_config WHERE periodo_id='${PE2}'`))[0].p === 0, 'el relleno de PE ya existentes deja peso 0: los resultados publicados no cambian');
+
+console.log('\n[reglas del PE: quién las toca]');
+await as(P.SEC1);
+await rejects(`SELECT public.calif_config_guardar('${PE1}', 30)`, 'administracion', 'una secretaría no define reglas');
+await as(P.M1);
+await rejects(`UPDATE periodo_calif_config SET peso_tareas=100 WHERE periodo_id='${PE1}'`, 'denied|permission|denegado', 'un miembro no las escribe directo');
+ok((await q(`SELECT count(*)::int n FROM calif_config('${PE1}')`))[0].n === 1, 'pero sí las puede leer (entiende cómo se calcula)');
+await as(P.ADMIN);
+await rejects(`SELECT public.calif_config_guardar('${LEG}', 30)`, 'rubrica por roles', 'no hay reglas para un PE clásico');
+await rejects(`SELECT public.calif_config_guardar('${PE1}', 120)`, '0 a 100', 'peso fuera de 0–100');
+await rejects(`SELECT public.calif_config_guardar('${PE1}', 30, 0, 1)`, 'mayores que 0', 'ponderación 0 se rechaza');
+await rejects(`SELECT public.calif_config_guardar('${PE1}', 30, 1, 1, 0)`, 'minimo', 'mínimo de tareas ≥ 1');
+await rejects(`SELECT public.calif_config_guardar('${ARCH}', 30)`, 'rubrica por roles|archivada', 'una gestión archivada es solo lectura');
+await allowed(`SELECT public.calif_config_guardar('${PE1}', 25, 1, 2, 2, true, false)`, 'la administración define: 25 % tareas, colectivas ×2, mínimo 2');
+const cfg = (await q(`SELECT * FROM calif_config('${PE1}')`))[0];
+ok(Number(cfg.peso_tareas) === 25 && Number(cfg.mult_colectiva) === 2 && cfg.minimo_tareas === 2 && cfg.confirmado === true, 'quedan guardadas y confirmadas');
+ok((await q(`SELECT count(*)::int n FROM periodo_calif_config_hist WHERE periodo_id='${PE1}'`))[0].n === 1, 'el cambio queda en el historial de reglas');
+// con evaluaciones publicadas, cambiar las reglas cambia resultados → exige motivo
+await db.exec(`UPDATE profiles SET rol_id=${X.FOTO} WHERE id='${P.M1}'`);
+const perfil = (await q(`SELECT public.perfil_vigente(${X.FOTO}, '${PE1}') id`))[0].id;
+const nuc = (await q(`SELECT key FROM criterios_v2 WHERE gestion_id=${X.G} AND tipo='nucleo' AND tipo_campo='escala' AND activo`)).map(x => x.key);
+const tec = await q(`SELECT criterio_key k, peso FROM perfil_criterios WHERE perfil_id=${perfil}`);
+const pun = Object.fromEntries([...nuc.map(k => [k, 8]), ...tec.map(x => [x.k, Math.floor(x.peso * 0.8)])]);
+await db.exec(`INSERT INTO evaluaciones(periodo_id,evaluado_id,puntajes,estado) VALUES ('${PE1}','${P.M1}','${JSON.stringify(pun)}','publicado')`);
+await rejects(`SELECT public.calif_config_guardar('${PE1}', 30)`, 'publicadas', 'con evaluaciones publicadas, cambiar las reglas exige motivo');
+await allowed(`SELECT public.calif_config_guardar('${PE1}', 30, 1, 2, 2, true, false, 'Acuerdo del comité de evaluación')`, 'con motivo sí');
+ok((await q(`SELECT motivo FROM periodo_calif_config_hist WHERE periodo_id='${PE1}' ORDER BY id DESC LIMIT 1`))[0].motivo.startsWith('Acuerdo'), 'el motivo queda registrado');
+
+console.log('\n[tarea individual: peso y nota original]');
+const T1 = await nueva(P.ADMIN, P.M1, 'peso|3');
+ok(Number((await q(`SELECT peso FROM tareas WHERE id=${T1}`))[0].peso) === 3, 'quien asigna fija el peso de la tarea (3)');
+const T2 = await nueva(P.M2, P.M2, 'peso|9');
+ok(Number((await q(`SELECT peso FROM tareas WHERE id=${T2}`))[0].peso) === 1, 'en una tarea PROPIA el peso es 1 aunque se intente otro');
+await as(P.M1);
+await rejects(`UPDATE tareas SET peso=10 WHERE id=${T1}`, 'peso', 'el receptor no sube el peso de su tarea');
+await entregar(T1, P.M1);
+await as(P.SEC1);
+await allowed(`UPDATE tareas SET peso=2 WHERE id=${T1}`, 'quien revisa sí puede ajustar el peso');
+await allowed(`UPDATE tareas SET estado='aprobada', puntos=7 WHERE id=${T1}`, 'aprueba con 7');
+let tk = (await q(`SELECT puntos, puntos_original, peso FROM tareas WHERE id=${T1}`))[0];
+ok(tk.puntos === 7 && tk.puntos_original === 7 && Number(tk.peso) === 2, 'nota actual, nota original y peso guardados');
+ok((await q(`SELECT accion, puntos_nuevo FROM calificaciones_historial WHERE tarea_id=${T1} AND tarea_tipo='individual'`))[0].accion === 'calificada', 'el historial registra «calificada»');
+const ctx = (await q(`SELECT contexto FROM calificaciones_historial WHERE tarea_id=${T1} AND tarea_tipo='individual'`))[0].contexto;
+ok(Number(ctx.peso_tarea) === 2 && Number(ctx.peso_tareas_pct) === 30, 'y las ponderaciones aplicadas en ese momento: ' + JSON.stringify(ctx));
+await as(P.ADMIN);
+await rejects(`UPDATE tareas SET puntos=9 WHERE id=${T1}`, 'justificacion', 'ni la administración corrige por UPDATE directo');
+
+console.log('\n[corregir, anular y restaurar la nota, con justificación]');
+await as(P.SEC1);
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 9, 'Me equivoque al puntuar')`, 'administracion', 'la secretaría no corrige la nota (solo administración)');
+await as(P.M1);
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 10, 'Quiero mas puntos')`, 'administracion', 'el miembro, menos');
+await as(P.ADMIN);
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 9, 'x')`, 'justificacion', 'sin justificación no hay corrección');
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 7, 'Mismo valor de antes')`, 'distintos', 'corregir al mismo valor no es corregir');
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 11, 'Fuera de rango total')`, '0 a 10', 'fuera de 0–10');
+await allowed(`SELECT public.corregir_nota_tarea('individual', ${T1}, 9, 'La entrega incluía el material extra')`, 'la administración corrige 7 → 9 con justificación');
+tk = (await q(`SELECT puntos, puntos_original FROM tareas WHERE id=${T1}`))[0];
+ok(tk.puntos === 9 && tk.puntos_original === 7, 'actual 9; la ORIGINAL sigue siendo 7');
+let h = await q(`SELECT accion, puntos_anterior, puntos_nuevo, motivo FROM calificaciones_historial WHERE tarea_id=${T1} AND tarea_tipo='individual' ORDER BY id`);
+ok(h.length === 2 && h[1].accion === 'corregida' && h[1].puntos_anterior === 7 && h[1].puntos_nuevo === 9 && /material extra/.test(h[1].motivo), 'historial: calificada 7 → corregida 7→9 con su motivo');
+await allowed(`SELECT public.anular_nota_tarea('individual', ${T1}, 'La entrega resultó ser de una tarea anterior')`, 'anular la nota (la tarea sigue aprobada)');
+tk = (await q(`SELECT estado, puntos, nota_anulada_en IS NOT NULL a FROM tareas WHERE id=${T1}`))[0];
+ok(tk.estado === 'aprobada' && tk.puntos === 9 && tk.a, 'sigue aprobada, la nota se conserva, marcada como anulada');
+await rejects(`SELECT public.anular_nota_tarea('individual', ${T1}, 'Otra vez la anulo')`, 'ya esta anulada', 'no se anula dos veces');
+await rejects(`SELECT public.corregir_nota_tarea('individual', ${T1}, 5, 'Corrijo una anulada')`, 'restaurala', 'una nota anulada no se corrige: se restaura primero');
+await allowed(`SELECT public.restaurar_nota_tarea('individual', ${T1}, 'Se verificó que sí correspondía')`, 'restaurar');
+ok((await q(`SELECT nota_anulada_en IS NULL r FROM tareas WHERE id=${T1}`))[0].r, 'la marca de anulación desaparece');
+h = await q(`SELECT accion FROM calificaciones_historial WHERE tarea_id=${T1} AND tarea_tipo='individual' ORDER BY id`);
+ok(h.map(x => x.accion).join() === 'calificada,corregida,anulada,restaurada', 'historial completo: ' + h.map(x => x.accion).join());
+
+console.log('\n[reabrir y anular la tarea]');
+await allowed(`UPDATE tareas SET estado='entregada' WHERE id=${T1}`, 'la administración reabre la tarea');
+tk = (await q(`SELECT puntos, puntos_original FROM tareas WHERE id=${T1}`))[0];
+ok(tk.puntos === null && tk.puntos_original === null, 'reabrir borra la nota vigente...');
+ok((await q(`SELECT accion FROM calificaciones_historial WHERE tarea_id=${T1} AND tarea_tipo='individual' ORDER BY id DESC LIMIT 1`))[0].accion === 'reabierta', '...pero el historial lo registra («reabierta»)');
+await rejects(`DELETE FROM tareas WHERE id=${T1}`, 'historial de calificaciones', 'una tarea con historial no se borra');
+await as(P.SEC1);
+await rejects(`UPDATE tareas SET estado='anulada' WHERE id=${T1}`, 'motivo', 'anular exige motivo');
+await allowed(`UPDATE tareas SET estado='anulada', anulacion_motivo='Se canceló la cobertura' WHERE id=${T1}`, 'quien revisa anula con motivo');
+tk = (await q(`SELECT estado, anulada_por, anulacion_motivo FROM tareas WHERE id=${T1}`))[0];
+ok(tk.estado === 'anulada' && tk.anulada_por === P.SEC1 && /cobertura/.test(tk.anulacion_motivo), 'queda anulada, con quién y por qué');
+ok((await q(`SELECT motivo FROM tarea_eventos WHERE tarea_id=${T1} AND a='anulada'`))[0].motivo.includes('cobertura'), 'el historial de la tarea guarda el motivo');
+await as(P.M1);
+await rejects(`UPDATE tareas SET estado='en_curso' WHERE id=${T1}`, 'anulada', 'el miembro no revive una anulada');
+await as(P.ADMIN);
+await allowed(`UPDATE tareas SET estado='asignada' WHERE id=${T1}`, 'solo la administración la reabre');
+
+console.log('\n[tarea colectiva: nota del grupo, correcciones y nota individual]');
+await as(P.ADMIN);
+const E1 = (await q(`SELECT public.equipo_guardar(NULL,'${PE1}','Cobertura') id`))[0].id;
+await db.exec(`SELECT public.equipo_agregar_miembros(${E1}, ARRAY['${P.M1}','${P.M2}','${P.M3}']::uuid[], true, 'Prueba de excepción de ámbito')`);
+const TE = (await q(`INSERT INTO tareas_equipo(equipo_id,periodo_id,titulo,peso) VALUES (${E1},'${PE1}','Grupal',2) RETURNING id`))[0].id;
+await as(P.M1);
+await db.exec(`UPDATE tareas_equipo SET estado='entregada', entrega_nota='Entrega del grupo' WHERE id=${TE}`);
+await as(P.ADMIN);
+await db.exec(`UPDATE tareas_equipo SET estado='aprobada', puntos=8 WHERE id=${TE}`);
+ok((await q(`SELECT accion, puntos_nuevo, persona_id FROM calificaciones_historial WHERE tarea_tipo='equipo' AND tarea_id=${TE}`))[0].accion === 'calificada', 'la nota del grupo se registra («calificada», persona NULL)');
+await rejects(`UPDATE tareas_equipo SET puntos=10 WHERE id=${TE}`, 'puntos', 'no se corrige por UPDATE directo');
+await allowed(`SELECT public.corregir_nota_tarea('equipo', ${TE}, 9, 'El entregable se completó tras la revisión')`, 'la administración corrige la nota del grupo');
+await as(P.M2);
+await rejects(`SELECT public.nota_individual_equipo(${TE}, '${P.M3}', 3, 'No trabajó nada en esto, según yo')`, 'No puedes calificar', 'un integrante no califica a otro');
+await as(P.ADMIN);
+await rejects(`SELECT public.nota_individual_equipo(${TE}, '${P.M3}', 3, 'poco')`, 'evidencia', 'una nota individual distinta exige evidencia/motivo (≥10)');
+await rejects(`SELECT public.nota_individual_equipo(${TE}, '${P.M5}', 3, 'Persona que no participó en la tarea')`, 'no participa', 'solo a quien participa');
+await allowed(`SELECT public.nota_individual_equipo(${TE}, '${P.M3}', 4, 'No hizo su parte del guion, ver aportes y revisión del 3 de nov')`, 'con evidencia se registra la nota individual de M3');
+await as(P.M3);
+ok((await q(`SELECT puntos_individual p FROM tarea_equipo_participacion(${TE}) WHERE nombre='M3'`))[0].p === 4, 'M3 ve su propia nota individual y el motivo');
+await as(P.M2);
+ok((await q(`SELECT count(*)::int n FROM tarea_equipo_participacion(${TE}) WHERE puntos_individual IS NOT NULL`))[0].n === 0, 'M2 NO ve la nota individual de otra persona');
+ok((await q(`SELECT count(*)::int n FROM calificaciones_historial WHERE persona_id='${P.M3}'`))[0].n === 0, 'ni su historial');
+await as(P.M3);
+ok((await q(`SELECT count(*)::int n FROM calificaciones_historial WHERE persona_id='${P.M3}' AND accion='individual'`))[0].n === 1, 'M3 sí ve el suyo');
+ok((await q(`SELECT count(*)::int n FROM calificaciones_historial WHERE tarea_tipo='equipo' AND persona_id IS NULL`))[0].n === 2, 'y el historial de la nota del GRUPO (calificada + corregida)');
+await as(P.M4);
+ok((await q(`SELECT count(*)::int n FROM calificaciones_historial`))[0].n === 0, 'M4 (ajeno) no ve ningún historial');
+await as(P.ADMIN);
+await allowed(`SELECT public.nota_individual_equipo(${TE}, '${P.M3}', NULL, 'Se retira la nota individual: sí entregó su parte')`, 'retirar la nota individual: vuelve a valer la del grupo');
+ok((await q(`SELECT accion FROM calificaciones_historial WHERE persona_id='${P.M3}' ORDER BY id DESC LIMIT 1`))[0].accion === 'individual_retirada', 'queda «individual_retirada»');
+await allowed(`SELECT public.anular_nota_tarea('equipo', ${TE}, 'Se descubrió un error en los criterios')`, 'anular la nota del grupo');
+await allowed(`SELECT public.restaurar_nota_tarea('equipo', ${TE}, 'Se corrigieron los criterios')`, 'y restaurarla');
+await db.exec(`DELETE FROM tareas_equipo WHERE id=${TE}`);
+ok((await q(`SELECT count(*)::int n FROM tareas_equipo WHERE id=${TE}`))[0].n === 1, 'la tarea colectiva calificada sigue ahí');
+
+console.log('\n[permisos básicos]');
+await as(null, 'anon');
+await rejects(`SELECT count(*) FROM calificaciones_historial`, 'denied|permission|denegado', 'anónimo no lee el historial');
+await rejects(`SELECT public.corregir_nota_tarea('individual', 1, 5, 'Anonimo corrigiendo')`, 'denied|permission|denegado|sesion', 'ni ejecuta las funciones de nota');
+
+fin();

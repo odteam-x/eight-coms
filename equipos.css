@@ -1,0 +1,109 @@
+/* ══════════════════════════════════════════════════════════════════════
+   EQUIPOS, TAREAS COLECTIVAS Y «CÓMO SE COMPONE TU EVALUACIÓN»
+   (core/equipos.js, core/evaluacion-perfil.js — migraciones 0031–0036)
+   Solo tokens (ningún hex fuera de :root). Carga después de evolucion.css y antes de movil.css.
+   Los componentes canónicos (.etiqueta, .tk-card, .pf-card, .pf-kpi, .btn-save, .tk-btn…) vienen de
+   marca.css / shared.css / perfil.css / tareas.css: aquí solo va lo propio de estas pantallas.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Filtros y cabecera de la lista ─────────────────────────────────── */
+.eq-filtros { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: flex-end; }
+.eq-f { display: grid; gap: var(--sp-1); font-size: var(--fs-xs); color: var(--txt-2); min-width: 0; }
+.eq-f > span { font-family: var(--font-ui); font-weight: 600; }
+.eq-f--busca { flex: 1 1 220px; }
+.eq-lista-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin: var(--sp-4) 0; color: var(--txt-2); font-size: var(--fs-sm); }
+
+/* ── Tarjetas de equipo ─────────────────────────────────────────────── */
+.eq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--sp-4); }
+.eq-card {
+  display: grid; gap: var(--sp-2); text-align: left; width: 100%; padding: var(--sp-4);
+  background: var(--surface-1); color: var(--txt); border: 1px solid var(--trazo); border-radius: var(--r-cont); cursor: pointer;
+  font: inherit; min-width: 0;
+}
+.eq-card:hover { background: var(--surface-2); border-color: var(--data); }
+.eq-card:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.eq-card-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-2); }
+.eq-card-t { font-family: var(--font-display); font-size: var(--fs-lg); letter-spacing: var(--tr-display); overflow-wrap: anywhere; }
+.eq-card-sub { font-size: var(--fs-sm); color: var(--txt-2); overflow-wrap: anywhere; }
+.eq-card-pie { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-1); }
+
+/* ── Avance ─────────────────────────────────────────────────────────── */
+.eq-avance { display: flex; align-items: center; gap: var(--sp-2); }
+.eq-avance .barra-track { flex: 1; }
+.eq-avance b { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--txt); min-width: 3.5ch; text-align: right; }
+
+/* ── Detalle ────────────────────────────────────────────────────────── */
+.eq-detalle { display: grid; gap: var(--sp-5); }
+.eq-detalle-cab { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--sp-4); }
+.eq-detalle-cab > div:nth-child(2) { flex: 1 1 260px; min-width: 0; }
+.eq-detalle-t { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin: 0; font-family: var(--font-display); font-size: var(--fs-xl); letter-spacing: var(--tr-display); overflow-wrap: anywhere; }
+.eq-detalle-acc { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.eq-kpis { margin-bottom: 0; }
+.eq-sec { display: grid; gap: var(--sp-3); }
+.eq-integrante { position: relative; display: grid; gap: var(--sp-2); }
+.eq-retirar { justify-self: start; }
+
+/* ── Personas en lista simple (vista de miembro) ────────────────────── */
+.eq-pers-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.eq-pers { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);
+  background: var(--surface-2); border-radius: var(--r-control); font-size: var(--fs-sm); color: var(--txt); }
+.eq-pers-av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r-control); background: var(--surface-3); color: var(--txt); font-size: var(--fs-xs); font-weight: 700; }
+
+/* ── Tarea del equipo ───────────────────────────────────────────────── */
+.eq-tarea-meta { margin: var(--sp-1) 0; font-size: var(--fs-sm); color: var(--txt-2); display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.eq-nota { display: inline-flex; flex-wrap: wrap; gap: var(--sp-1); align-items: baseline; margin: var(--sp-2) 0; padding: var(--sp-1) var(--sp-3);
+  background: var(--surface-2); border-radius: var(--r-control); font-size: var(--fs-sm); color: var(--txt); }
+.eq-nota b { font-family: var(--font-display); color: var(--data-txt); }
+.eq-nota--anulada { text-decoration: line-through; color: var(--txt-muted); }
+.eq-nota--anulada b { color: var(--txt-muted); }
+.eq-tarea--anulada { opacity: .7; }
+
+/* ── Historiales ────────────────────────────────────────────────────── */
+.eq-hist { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); font-size: var(--fs-sm); color: var(--txt); }
+.eq-hist li { padding-left: var(--sp-3); border-left: 2px solid var(--trazo); overflow-wrap: anywhere; }
+.eq-hist-f { color: var(--txt-muted); font-size: var(--fs-xs); }
+
+/* ── Cómo se compone la evaluación ──────────────────────────────────── */
+.ev-formula { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--sp-3); margin: var(--sp-3) 0; }
+.ev-pieza { display: grid; gap: var(--sp-1); align-content: start; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-fila); min-width: 130px; flex: 1 1 130px; }
+.ev-pieza-l { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); }
+.ev-pieza b { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--txt); letter-spacing: var(--tr-display); }
+.ev-pieza small { font-size: var(--fs-xs); color: var(--txt-muted); }
+.ev-pieza--res { background: var(--surface-3); }
+.ev-pieza--res b { color: var(--data-txt); }
+.ev-op { align-self: center; font-family: var(--font-display); font-size: var(--fs-lg); color: var(--txt-muted); }
+.ev-tipo { display: block; font-weight: 400; color: var(--txt-muted); font-size: var(--fs-xs); }
+.ev-no td { color: var(--txt-2); }
+.ev-razon { font-size: var(--fs-xs); color: var(--txt-2); min-width: 11rem; }
+.ev-tabla td, .ev-tabla th { white-space: normal; }
+.ev-tabla td:first-child, .ev-tabla th:first-child, .eq-sec .v2-tabla td:first-child, .eq-sec .v2-tabla th:first-child { text-align: left; }
+.ev-nota-formula { margin: var(--sp-3) 0 0; font-size: var(--fs-xs); color: var(--txt-muted); }
+.ev-aviso { border-left: 3px solid var(--marca); padding-left: var(--sp-3); }
+.ev-hist { margin-top: var(--sp-3); }
+.ev-dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--sp-3); margin: var(--sp-3) 0; }
+.ev-dl > div { padding: var(--sp-3); background: var(--surface-2); border-radius: var(--r-fila); }
+.ev-dl dt { font-size: var(--fs-xs); color: var(--txt-2); font-family: var(--font-ui); font-weight: 600; }
+.ev-dl dd { margin: var(--sp-1) 0 0; display: grid; gap: var(--sp-1); }
+.ev-dl dd b { font-family: var(--font-display); font-size: var(--fs-lg); color: var(--txt); }
+.ev-dl dd small { color: var(--txt-muted); font-size: var(--fs-xs); }
+.ev-reglas { margin-bottom: var(--sp-5); }
+.ev-reglas-sum { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); cursor: pointer; list-style: none; }
+.ev-reglas-sum::-webkit-details-marker { display: none; }
+.ev-reglas-sum:focus-visible { outline: 2px solid var(--action); outline-offset: 4px; border-radius: var(--r-fila); }
+.ev-reglas-res { margin-left: auto; font-size: var(--fs-sm); color: var(--txt-2); }
+.ev-reglas-res b { color: var(--txt); font-family: var(--font-display); }
+.ev-reglas-acc { margin: var(--sp-3) 0 0; }
+
+/* ── Celular: la tabla de piezas pasa a tarjetas ────────────────────── */
+@media (max-width: 767px) {
+  .ev-tabla thead { display: none; }
+  .ev-tabla, .ev-tabla tbody, .ev-tabla tfoot, .ev-tabla tr, .ev-tabla td, .ev-tabla th { display: block; width: 100%; }
+  .ev-tabla tr { padding: var(--sp-3) 0; border-bottom: 1px solid var(--trazo); }
+  .ev-tabla td:nth-child(2)::before { content: 'Nota: '; color: var(--txt-muted); }
+  .ev-tabla td:nth-child(3)::before { content: 'Peso: '; color: var(--txt-muted); }
+  .ev-tabla td:nth-child(4)::before { content: 'Aporta: '; color: var(--txt-muted); }
+  .ev-tabla td:nth-child(5)::before { content: 'Puntos: '; color: var(--txt-muted); }
+  .eq-grid { grid-template-columns: 1fr; }
+  .eq-detalle-acc { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .eq-card { transition: none; } }
