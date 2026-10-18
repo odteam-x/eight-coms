@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="marca.css">
   <link rel="stylesheet" href="premium.css">
   <link rel="stylesheet" href="evolucion.css">
+  <link rel="stylesheet" href="reporte-general.css">
   <link rel="stylesheet" href="derechos.css">
   <link rel="stylesheet" href="movil.css" media="(max-width: 767px)">
 </head>
@@ -271,11 +272,15 @@
         <button type="button" class="btn-out" data-act="repCsv"><i data-lucide="download"></i>Exportar CSV</button>
         <button type="button" class="btn-save btn-print-rpt" data-act="repPdf"><i data-lucide="printer"></i>Descargar PDF</button>
       </div>
-      <p>Elige el período, el alcance y las secciones. La hoja de abajo es lo que se imprime.</p>
+      <p id="rep-ayuda">Elige entre el resumen de todos los PE o el reporte detallado de uno. La hoja de abajo es lo que se imprime.</p>
     </div>
-    <div class="tarjeta rep-controles no-print" id="rep-controles"></div>
-    <div id="rpt-body">
-      <div class="loading-box"><span class="spin"></span></div>
+    <div class="rep-modo no-print" id="rep-modo"></div>
+    <div id="rg-host"></div>
+    <div id="rep-detalle" hidden>
+      <div class="tarjeta rep-controles no-print" id="rep-controles"></div>
+      <div id="rpt-body">
+        <div class="loading-box"><span class="spin"></span></div>
+      </div>
     </div>
   </div>
 
@@ -595,6 +600,7 @@
 <script src="core/bienvenida.js"></script>
 <script src="core/seguimiento.js"></script>
 <script src="core/reporte-equipo.js"></script>
+<script src="core/reporte-general.js"></script>
 <script src="core/preferencias.js"></script>
 <script src="core/notificaciones.js"></script>
 <script src="core/buscador.js"></script>

@@ -68,6 +68,8 @@ const _ACCIONES_SIMPLES = new Set([
   // buscadores y selectores de admin.html (data-input / data-change)
   'renderEvalUserList', 'repCambio', 'renderActividades', 'renderUsuarios', 'renderRoles', 'renderPeriodos',
   'renderCriterios', 'renderRubrica', 'renderCalendario',
+  // reporte general de todos los PE (core/reporte-general.js)
+  'rgFiltro',
   'buscarDistritos', 'onDistSelectChange', 'handleAvatarUpload',
   // selectores de la tabla de usuarios (llevaban onchange= inline)
   'onCambioDistritoUsuario', 'onCambioTipoUsuario',
@@ -206,6 +208,14 @@ const ACCIONES = {
   rubricaVista:   (a) => { _rubVista = a; renderRubricaTab(); },
   panelCmp:       (a) => PanelAdmin.setVista(a),
   repPeriodo:     (a) => Reportes.setPeriodo(a),
+  repModo:        (a) => Reportes.setModo(a),
+  // Reporte general de todos los PE (core/reporte-general.js)
+  rgDetalle:      (a) => ReporteGeneral.detalle(a),
+  rgPersonas:     (a) => ReporteGeneral.personas(a),
+  rgAbrirPE:      (a) => ReporteGeneral.abrirPE(a),
+  rgLimpiar:      ()  => ReporteGeneral.limpiar(),
+  rgFiltrosToggle: () => ReporteGeneral.filtrosToggle(),
+  rgActualizar:   ()  => ReporteGeneral.cargar(),
   repSeccion:     (a) => Reportes.toggleSeccion(a),
   repPdf:         ()  => Reportes.pdf(),
   repCsv:         ()  => Reportes.csv(),

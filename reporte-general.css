@@ -1,0 +1,100 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Reporte general de los Puntos de Encuentro (core/reporte-general.js)
+   Carga DESPUÉS de evolucion.css y ANTES de movil.css. Solo tokens: cero hex.
+   Reutiliza .tarjeta / .tarjeta--kpi / .panel-kpis / .filtros-fila / .barra-track / .etiqueta / .rpt-hoja /
+   .seg-tabla (la lista de personas): aquí solo está lo que es propio de esta pantalla.
+   El estado nunca va solo en color: cada insignia lleva su texto.
+   La tabla comparativa NO usa .seg-tabla: su detalle lleva tablas anidadas y las reglas de descendiente de
+   .seg-tabla (padding, bloques en celular) se filtrarían a ellas. Todo aquí va por hijo directo (>).
+   ══════════════════════════════════════════════════════════════════════ */
+
+.rg { display: flex; flex-direction: column; gap: var(--sp-4); }
+.rep-modo { margin-bottom: var(--sp-4); }
+
+/* ── Controles ──────────────────────────────────────────────────────── */
+.rg-controles { display: flex; flex-direction: column; gap: var(--sp-3); }
+.rg-controles .filtros-fila { margin-bottom: 0; }
+.rg-filtros-btn { display: none; }
+.rg-selects .cfg-select { flex: 1 1 170px; max-width: 240px; }
+@media (max-width: 767px) {
+  .rg-filtros-btn { display: inline-flex; flex: none; }
+  .rg-busca .search-inp { flex: 1 1 0; min-width: 0; }
+  .rg-selects[hidden] { display: none; }
+  .rg-selects .cfg-select { flex: 1 1 100%; max-width: none; }
+}
+.rg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt-2); }
+.rg-fecha b { color: var(--txt); font-weight: 600; }
+
+/* ── Tarjetas de totales ────────────────────────────────────────────── */
+.rg-kpis { margin: var(--sp-4) 0 var(--sp-5); }
+.rg-kpi { background: var(--surface-2); }
+.rg-kpi .kpi-sub { overflow-wrap: anywhere; }
+.rg-kpi--alerta .kpi-num { color: var(--sba-txt); }
+
+/* ── Tabla comparativa ──────────────────────────────────────────────── */
+.rg-tabla { width: 100%; border-collapse: separate; border-spacing: 0; }
+.rg-tabla > thead > tr > th { padding: var(--sp-3); text-align: left; vertical-align: bottom; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+.rg-tabla > tbody > tr.rg-fila > th, .rg-tabla > tbody > tr.rg-fila > td { padding: var(--sp-3); text-align: left; vertical-align: top; border-top: 1px solid var(--trazo); font-weight: 400; }
+.rg-tabla > tbody > tr.rg-fila > th { min-width: 190px; }
+.rg-tabla > tbody > tr.rg-fila > td { min-width: 110px; }
+.rg-tabla > tbody > tr.rg-fila small { display: block; margin-top: 2px; font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--txt-2); overflow-wrap: anywhere; }
+.rg-tabla > tbody > tr.rg-fila > td b { display: block; font: 700 var(--fs-md)/1.2 var(--font-display); color: var(--txt); }
+.rg-tabla > tbody > tr.rg-fila > td b.rg-venc { color: var(--sba-txt); }
+.rg-fila--vacia .rg-pe-t { color: var(--txt-2); }
+.rg-pe-btn { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 44px; padding: 0; background: none; border: 0; cursor: pointer; text-align: left; color: var(--txt); }
+.rg-pe-t { font: 700 var(--fs-lg)/1.15 var(--font-display); overflow-wrap: anywhere; }
+.rg-pe-btn:hover .rg-pe-t { color: var(--action); text-decoration: underline; }
+.rg-pe-btn:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; border-radius: var(--r-xs); }
+.rg-chev { flex: none; width: 20px; height: 20px; color: var(--txt-2); transition: transform .15s; }
+.rg-pe-btn[aria-expanded="true"] .rg-chev { transform: rotate(180deg); }
+.rg-pe-meta { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); margin: var(--sp-1) 0; }
+.rg-barra { margin-top: var(--sp-2); max-width: 160px; }
+
+/* ── Detalle de un PE (de dónde sale cada cifra) ────────────────────── */
+.rg-tabla > tbody > tr.rg-fila--abierta > th, .rg-tabla > tbody > tr.rg-fila--abierta > td { background: var(--surface-2); }
+.rg-tabla > tbody > tr.rg-det[hidden] { display: none; }
+.rg-tabla > tbody > tr.rg-det > td { padding: 0; background: var(--surface-2); }
+.rg-det-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--sp-4); padding: var(--sp-4); }
+.rg-mini { min-width: 0; }
+.rg-mini h4 { margin: 0 0 var(--sp-2); font: 600 var(--fs-md)/1.3 var(--font-ui); color: var(--txt); }
+.rg-mini-t { width: 100%; border-collapse: collapse; font: 400 var(--fs-sm)/1.4 var(--font-body); color: var(--txt); }
+.rg-mini-t th, .rg-mini-t td { padding: var(--sp-1) var(--sp-2); text-align: left; border-top: 1px solid var(--trazo); overflow-wrap: break-word; font-weight: 400; }
+.rg-mini-t thead th { border-top: 0; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+.rg-mini-t td, .rg-mini-t thead th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.rg-lista { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-1); font: 400 var(--fs-sm)/1.5 var(--font-body); color: var(--txt); }
+.rg-lista b { font-weight: 700; }
+.rg-det-acc { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); padding: 0 var(--sp-4) var(--sp-4); }
+.rg-personas { padding: 0 var(--sp-4) var(--sp-4); }
+.rg-personas:empty { display: none; }
+.rg-pers-t th[scope="row"] { min-width: 150px; }
+.rg-como { margin-top: var(--sp-4); }
+
+/* ── Ancho justo: con el riel lateral la tabla de 7 columnas no cabe por debajo de 1100 px; cada fila pasa a tarjeta ── */
+@media (max-width: 1099px) {
+  .rg-tabla, .rg-tabla > tbody, .rg-tabla > tbody > tr, .rg-tabla > tbody > tr > th, .rg-tabla > tbody > tr > td { display: block; }
+  .rg-tabla > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .rg-tabla > tbody > tr.rg-fila { padding: var(--sp-3); border-top: 1px solid var(--trazo); }
+  .rg-tabla > tbody > tr.rg-fila > th, .rg-tabla > tbody > tr.rg-fila > td { min-width: 0; border-top: 0; padding: var(--sp-1) 0; }
+  .rg-tabla > tbody > tr.rg-fila > td { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-2); }
+  .rg-tabla > tbody > tr.rg-fila > td::before { content: attr(data-label); flex: 0 0 120px; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+  .rg-tabla > tbody > tr.rg-fila > td b { display: inline; }
+  .rg-tabla > tbody > tr.rg-fila > td small { flex: 1 0 100%; padding-left: 128px; margin-top: -2px; }
+  .rg-tabla > tbody > tr.rg-fila > td .rg-barra { flex: 1 0 100%; margin: 0 0 0 128px; max-width: none; }
+  .rg-tabla > tbody > tr.rg-det[hidden] { display: none; }
+}
+
+/* ── Celular: el detalle ocupa todo el ancho ── */
+@media (max-width: 767px) {
+  .rg-det-grid { padding: var(--sp-3); }
+  .rg-det-acc, .rg-personas { padding-inline: var(--sp-3); }
+  .rg-det-acc .btn--secundario, .rg-det-acc .btn--texto { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .rg-chev { transition: none; } }
+
+/* ── Impresión: solo la hoja; el detalle y los controles no se imprimen ── */
+@media print {
+  body.imprimiendo-reporte .rg-tabla > tbody > tr.rg-det { display: none; }
+  body.imprimiendo-reporte .rg-pe-btn { min-height: 0; }
+  body.imprimiendo-reporte .rg-chev { display: none; }
+  body.imprimiendo-reporte .rg-fila { break-inside: avoid; }
+}
