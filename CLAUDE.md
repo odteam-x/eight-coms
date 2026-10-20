@@ -582,3 +582,12 @@ The reset email redirects to `index.html`. Supabase delivers the token in the UR
 ## Language
 
 All UI text is in **Spanish**. Variable names mix Spanish and English.
+
+## Gafetes con QR verificable (0052)
+
+- `core/gafete.js` dibuja el gafete en `<canvas>` (PNG ×2, descargable) y lo muestra en un panel; el botón sale en el perfil propio («Mi gafete») y, para la administración, en el de cualquier persona (`Perfil.configurar({ gafete: { esAdmin: true } })`).
+- El QR lleva `https://<host>/v/<token>`: token aleatorio de 96 bits (`gafetes.token`), nunca el id ni el correo. `vercel.json` reescribe `/v/:token` → `verificar.html` (página pública, sin sesión, `noindex`; rutas absolutas porque la URL tiene dos niveles). El simulador (`ui/server.mjs`) reproduce el rewrite.
+- La tabla `gafetes` no tiene permisos para nadie: todo pasa por `obtener_gafete`, `regenerar_gafete`, `revocar_gafete` (administración) y `verificar_gafete` (única ejecutable por anon; está en `PERMITIDAS_ANON` de `cadena.mjs`). Un gafete revocado solo lo reactiva la administración.
+- Récord público = nombre, foto, rol, distrito, cargo, ingreso y nº de PE con evaluación **publicada**. Nunca correo, notas ni comentarios. Cuenta sin aprobar, token desconocido o revocado responden igual: `{valido:false}`.
+- Los datos que se imprimen salen de `verificar_gafete(token)`: lo impreso y lo verificable no pueden divergir. QR con `qrcode-generator` (MIT), vendorizado en `core/vendor/qrcode.js` (sin CDN). Pruebas: `sql-0052.mjs`, `front-gafete.mjs`.
+- Wallet digital: no hay `.pkpass` (exige certificado de Apple Developer). Camino sin cuenta de pago: apps como Pass2U Wallet crean el pase desde el enlace del QR.

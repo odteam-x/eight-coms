@@ -1,0 +1,21 @@
+/* Verificación pública de gafetes (/v/<token>). Solo tokens de shared.css: paleta cerrada. */
+body.verificar { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: var(--bg); color: var(--txt); }
+.vf { width: 100%; max-width: 440px; }
+.vf-cargando { text-align: center; color: var(--txt-2); }
+.vf-card { position: relative; padding: 28px 24px 22px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-hi); text-align: center; overflow: hidden; }
+.vf-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, var(--navy-900) 0 16.66%, var(--blue-700) 0 33.33%, var(--blue-500) 0 50%, var(--cyan-400) 0 66.66%, var(--cyan-200) 0 83.33%, var(--coral) 0 100%); }
+.vf-sup { margin: 6px 0 14px; font: 600 12px/1.3 'Barlow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-2); }
+.vf-sello { width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; font: 700 30px/1 'Barlow Condensed', sans-serif; background: var(--data); color: var(--navy-900); }
+.vf-sello--mal { background: var(--alert); }
+.vf-card h1 { margin: 0; font: 700 30px/1.1 'Barlow Condensed', sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+.vf-sub { margin: 6px 0 18px; color: var(--txt-2); font-size: 15px; }
+.vf-foto { display: block; width: 168px; height: 168px; margin: 0 auto 14px; border-radius: 14px; object-fit: cover; border: 3px solid var(--txt); background: var(--surface-1); }
+.vf-foto--ini { display: grid; place-items: center; font: 700 56px/1 'Barlow Condensed', sans-serif; color: var(--txt); }
+.vf-nombre { margin: 0 0 14px; font: 700 28px/1.1 'Barlow Condensed', sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+.vf-datos { margin: 0 0 16px; display: grid; gap: 8px; text-align: left; }
+.vf-datos > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; border-radius: 8px; background: var(--surface-1); border-left: 4px solid var(--data); }
+.vf-datos dt { color: var(--txt-2); font-size: 14px; }
+.vf-datos dd { margin: 0; font-weight: 600; text-align: right; }
+.vf-pie { margin: 0; font-size: 13px; line-height: 1.45; color: var(--txt-2); }
+.vf-mal p { color: var(--txt-2); }
+@media (max-width: 380px) { .vf-card { padding: 24px 16px 18px; } .vf-datos > div { flex-direction: column; gap: 2px; } .vf-datos dd { text-align: left; } }

@@ -168,7 +168,10 @@ const Perfil = (() => {
     }
     chips = [...chips, p.distrito ? (/^distrito/i.test(p.distrito) ? p.distrito : `Distrito ${p.distrito}`) : '', _tipo(p)].filter(Boolean);
 
-    const acciones = (_cfg.acciones || []).map(a => `
+    const accionesCfg = [...(_cfg.acciones || [])];
+    // El gafete lo ve cada persona en su propio perfil; la administración, en el de cualquiera (0052).
+    if (inst.modo === 'propio' || _cfg.gafete?.esAdmin) accionesCfg.push({ act: 'perfilGafete', etiqueta: inst.modo === 'propio' ? 'Mi gafete' : 'Gafete', icono: 'id-card' });
+    const acciones = accionesCfg.map(a => `
       <button type="button" class="perfil-accion" data-act="${escHtml(a.act)}" data-arg="${escHtml(p.id)}">
         <i data-lucide="${escHtml(a.icono || 'arrow-right')}" aria-hidden="true"></i><span>${escHtml(a.etiqueta)}</span>
       </button>`).join('');

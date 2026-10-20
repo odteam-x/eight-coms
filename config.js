@@ -193,6 +193,7 @@ const ACCIONES = {
   abrirBuscador: () => Buscador.abrir(),
   busIr:         (a) => Buscador.ir(a),
   perfilNuevaTarea: (a) => Perfil.nuevaTarea(a),
+  perfilGafete:     (a) => Gafete.abrir(a),
   // Admin: Personas (admin-personas.js)
   personasVista:       (a)     => personasVista(a),
   evaluarDesdePerfil:  (a)     => evaluarDesdePerfil(a),

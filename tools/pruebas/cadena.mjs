@@ -104,7 +104,7 @@ for (const n of existentes) {
 // Funciones SECURITY DEFINER ejecutables por anon: solo las que las políticas necesitan (lista cerrada).
 const PERMITIDAS_ANON = new Set([
   'is_admin', 'is_secretario', 'get_my_distrito', 'get_district_member_ids', 'gestion_escribible', 'gestion_id_escribible',
-  'hay_gestion_abierta', 'mi_distrito', 'auth_uid_stub', 'uid',
+  'hay_gestion_abierta', 'verificar_gafete', 'mi_distrito', 'auth_uid_stub', 'uid',
 ]);
 const defANON = await q(`SELECT p.proname, pg_get_function_identity_arguments(p.oid) args
   FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace

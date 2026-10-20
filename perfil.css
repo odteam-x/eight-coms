@@ -407,3 +407,9 @@ button.pcard { cursor: pointer; }
 .pcard.sup-marca .pcard-yo { background: var(--coral); }
 .pcard .avatar { background: var(--blue-700); box-shadow: inset 0 0 0 2px var(--cyan-400); }
 .pcard--mini.sup-marca { border-radius: var(--r-card); }
+
+/* Gafete (core/gafete.js) */
+.gafete-wrap { display: grid; gap: var(--sp-4); justify-items: center; }
+.gafete-lienzo { width: min(100%, 340px); height: auto; aspect-ratio: 638 / 1011; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.gafete-acc { display: flex; flex-wrap: wrap; gap: var(--sp-3); justify-content: center; }
+.gafete-nota { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.5; color: var(--txt-2); }

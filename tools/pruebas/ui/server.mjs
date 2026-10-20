@@ -28,6 +28,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (p === '/') p = '/index.html';
+  if (/^\/v\/[^/]+\/?$/.test(p)) p = '/verificar.html';   // rewrite de vercel.json: /v/:token → verificar.html
   Object.entries(headersDe(p)).forEach(([k, v]) => res.setHeader(k, v));
   if (p === '/__medir.js') { res.setHeader('Content-Type', MIME['.js']); return res.end(fs.readFileSync(path.join(AQUI, 'medir.js'))); }
   if (p === '/supabase-client.js') { res.setHeader('Content-Type', MIME['.js']); return res.end(FAKE); }

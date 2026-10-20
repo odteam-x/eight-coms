@@ -38,6 +38,7 @@ function initPersonas() {
     modo: 'admin',
     resolver: id => { const u = _users.find(x => String(x.id) === String(id)); return u ? personaDeUsuario(u) : null; },
     calendario: () => _calendario,
+    gafete: { esAdmin: true },
     periodoId: () => _activePEUsers?.id ?? null,
     tareas: { yo: CU.id, esAdmin: true, personas: () => _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) },
     acciones: [

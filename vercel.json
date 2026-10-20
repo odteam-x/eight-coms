@@ -1,4 +1,5 @@
 {
+  "rewrites": [{ "source": "/v/:token", "destination": "/verificar.html" }],
   "headers": [
     {
       "source": "/sw.js",
