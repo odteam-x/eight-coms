@@ -125,6 +125,65 @@ const Gafete = (() => {
     c.strokeStyle = 'rgba(167,232,255,.35)'; c.lineWidth = 3; _rr(c, 1.5, 1.5, W - 3, H - 3, 38); c.stroke();
   }
 
+  /**
+   * Imagen principal del pase de Google Wallet (1032×812, 5:4): patrón, foto con marco coral y la insignia. Sin texto
+   * (Google lo desaconseja: no se localiza); los datos van en los campos del pase.
+   */
+  async function dibujarHero(canvas, d) {
+    const w = 1032, h = 812;
+    canvas.width = w; canvas.height = h;
+    const c = canvas.getContext('2d');
+    const [patron, icono, foto] = await Promise.all([_img('img/patrones/patron-7.webp'), _img('icono-512.png'), d.avatar_url ? _img(d.avatar_url, true) : null]);
+    c.fillStyle = C.navy; c.fillRect(0, 0, w, h);
+    if (patron) for (let y = 0; y < h; y += 300) for (let x = 0; x < w; x += 300) c.drawImage(patron, x, y, 300, 300);
+    const g = c.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, 'rgba(0,22,51,.35)'); g.addColorStop(.6, 'rgba(0,34,71,.6)'); g.addColorStop(1, 'rgba(0,22,51,.92)');
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    FRANJA.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 6, 0, w / 6 + 1, 14); });
+    c.save(); c.translate(w / 2, 400); c.rotate(-2 * Math.PI / 180);
+    const L = 480, k = -L / 2;
+    c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 40; c.shadowOffsetY = 20;
+    c.fillStyle = C.cyan; _rr(c, k + 22, k + 22, L, L, 48); c.fill(); c.shadowColor = 'transparent';
+    c.fillStyle = C.coral; _rr(c, k, k, L, L, 48); c.fill();
+    c.save(); _rr(c, k + 12, k + 12, L - 24, L - 24, 38); c.clip();
+    if (foto) { const s = Math.max((L - 24) / foto.width, (L - 24) / foto.height), fw = foto.width * s, fh = foto.height * s; c.drawImage(foto, k + 12 + (L - 24 - fw) / 2, k + 12 + (L - 24 - fh) / 2, fw, fh); }
+    else { c.fillStyle = C.navy; c.fillRect(k, k, L, L); _txt(c, String(d.nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), 0, 60, { fuente: '700 190px "Barlow Condensed", sans-serif', color: '#fff', alinear: 'center' }); }
+    c.restore(); c.restore();
+    const R = 92, cx = w / 2, cy = 690;
+    c.fillStyle = 'rgba(255,96,99,.25)'; c.beginPath(); c.arc(cx, cy, R + 14, 0, 7); c.fill();
+    c.fillStyle = C.coral; c.beginPath(); c.arc(cx, cy, R + 6, 0, 7); c.fill();
+    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 7); c.clip(); c.fillStyle = C.navy; c.fillRect(cx - R, cy - R, R * 2, R * 2);
+    if (icono) { const s = R * 2 * 1.42; c.drawImage(icono, cx - s / 2, cy - s / 2, s, s); }
+    c.restore();
+  }
+
+  /** «Añadir a Google Wallet»: sube la imagen del pase, pide el enlace firmado a la función y abre Google Wallet. */
+  async function _agregarWallet(d, boton) {
+    const rotulo = boton.querySelector('span'), antes = rotulo.textContent;
+    boton.disabled = true; rotulo.textContent = 'Preparando…';
+    try {
+      const { data: s } = await SB.auth.getUser();
+      const uid = s?.user?.id; if (!uid) throw new Error('Inicia sesión de nuevo.');
+      const lienzo = document.createElement('canvas');
+      await dibujarHero(lienzo, d);
+      const blob = await new Promise(res => lienzo.toBlob(res, 'image/jpeg', .9));
+      if (!blob) throw new Error('No se pudo preparar la imagen (la foto bloquea la exportación).');
+      const sube = await SB.storage.from('avatars').upload(`${uid}/wallet-hero.jpg`, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '60' });
+      if (sube.error) throw sube.error;
+      const { data, error } = await SB.functions.invoke('gafete-wallet', { body: { v: Date.now() } });
+      if (error) {
+        let det = null; try { det = await error.context?.json?.(); } catch (e) { /* sin cuerpo */ }
+        if (det?.codigo === 'no_configurado') { showToast('Google Wallet aún no está activado en este portal. Pídele a la administración que lo configure.', 'info'); return; }
+        throw new Error(det?.error || error.message);
+      }
+      if (!data?.url) throw new Error('Respuesta inesperada.');
+      location.assign(data.url);
+    } catch (e) {
+      debug?.('gafete-wallet', e);
+      showToast('No se pudo añadir a Google Wallet. ' + (e?.message || ''), 'error');
+    } finally { boton.disabled = false; rotulo.textContent = antes; }
+  }
+
   function _urlDe(token) { return `${location.origin}/v/${token}`; }
 
   async function abrir(personaId, { esAdmin } = {}) {
@@ -155,12 +214,15 @@ const Gafete = (() => {
 
   async function _montar(cuerpo, personaId, token, d, esAdmin) {
     const url = _urlDe(token);
+    const yo = (await SB.auth.getUser()).data?.user?.id;
+    const propio = !personaId || personaId === yo;
     cuerpo.innerHTML = `
       <div class="gafete-wrap">
         <canvas class="gafete-lienzo" aria-label="Gafete de ${escHtml(d.nombre)}" role="img"></canvas>
         <div class="gafete-acc">
           <button type="button" class="btn-out" data-gafete="descargar"><i data-lucide="download" aria-hidden="true"></i><span>Descargar PNG</span></button>
           <button type="button" class="btn-out" data-gafete="enlace"><i data-lucide="link" aria-hidden="true"></i><span>Copiar enlace</span></button>
+          ${propio ? '<button type="button" class="btn-out" data-gafete="wallet"><i data-lucide="smartphone" aria-hidden="true"></i><span>Añadir a Google Wallet</span></button>' : ''}
           <button type="button" class="btn-out" data-gafete="regenerar"><i data-lucide="refresh" aria-hidden="true"></i><span>Nuevo código</span></button>
           ${esAdmin ? '<button type="button" class="btn-out" data-gafete="revocar"><i data-lucide="user-x" aria-hidden="true"></i><span>Revocar</span></button>' : ''}
         </div>
@@ -180,6 +242,8 @@ const Gafete = (() => {
           a.download = `gafete-${String(d.nombre).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
           document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         }, 'image/png');
+      } else if (k === 'wallet') {
+        _agregarWallet(d, b);
       } else if (k === 'enlace') {
         try { await navigator.clipboard.writeText(url); showToast('Enlace copiado.', 'success'); } catch (e) { showToast(url, 'info'); }
       } else if (k === 'regenerar') {
@@ -196,5 +260,5 @@ const Gafete = (() => {
     };
   }
 
-  return { abrir, dibujar };
+  return { abrir, dibujar, dibujarHero };
 })();

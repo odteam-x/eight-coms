@@ -591,3 +591,9 @@ All UI text is in **Spanish**. Variable names mix Spanish and English.
 - Récord público = nombre, foto, rol, distrito, cargo, ingreso y nº de PE con evaluación **publicada**. Nunca correo, notas ni comentarios. Cuenta sin aprobar, token desconocido o revocado responden igual: `{valido:false}`.
 - Los datos que se imprimen salen de `verificar_gafete(token)`: lo impreso y lo verificable no pueden divergir. QR con `qrcode-generator` (MIT), vendorizado en `core/vendor/qrcode.js` (sin CDN). Pruebas: `sql-0052.mjs`, `front-gafete.mjs`.
 - Wallet digital: no hay `.pkpass` (exige certificado de Apple Developer). Camino sin cuenta de pago: apps como Pass2U Wallet crean el pase desde el enlace del QR.
+
+### Google Wallet (Android)
+
+- Botón «Añadir a Google Wallet» en `core/gafete.js` (solo en el gafete propio): dibuja la imagen del pase (`dibujarHero`, 1032×812, sin texto), la sube a `avatars/<uid>/wallet-hero.jpg` y llama a la función `gafete-wallet`, que crea/actualiza el pase por la API de Google Wallet y devuelve el enlace firmado (RS256, cuenta de servicio). Lógica pura y probada: `supabase/functions/gafete-wallet/nucleo.mjs` + `tools/pruebas/wallet.mjs`. Logo del pase: `img/wallet/logo-660.png`.
+- Secretos: `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SA_JSON`. Sin ellos la función responde 503 `no_configurado` y el portal lo explica. Alta paso a paso: `docs/google-wallet.md`.
+- Apple Wallet: NO hay `.pkpass`. iOS rechaza pases sin firma de un certificado de Apple Developer (probado: un `.pkpass` sin firma se abre como ZIP). Camino sin pagar: apps como Pass2U.
