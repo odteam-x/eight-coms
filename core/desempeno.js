@@ -20,7 +20,8 @@
  * REGLAS DE LECTURA
  *   · Solo cuentan las evaluaciones PUBLICADAS (un borrador no es un resultado). Se dice cuántas quedan fuera.
  *   · La rúbrica por roles (0–100) y la clásica (otra escala) NUNCA se mezclan: un selector las separa y cada
- *     una dibuja y promedia por su lado.
+ *     una dibuja y promedia por su lado. Los PE antiguos (clásica) se comparan solo entre sí: por puntaje total
+ *     y por cada uno de sus criterios (los puntajes publicados que ya guarda `evaluaciones`, leídos tal cual).
  *   · Un PE en el que la persona no participa no existe para ella.
  *   · Promedio del equipo = media simple de los resultados publicados de ese período (cada persona una vez).
  *   · Variación = último valor menos el del período anterior con dato; nunca se interpola un hueco.
@@ -51,17 +52,32 @@ const Desempeno = (() => {
   const ID = { evo: 'des-ch-evo', rol: 'des-ch-rol', pers: 'des-ch-pers', mio: 'des-ch-mio' };
 
   /* ── Lectura de filas ─────────────────────────────────────────────────── */
-  const metricaDe = () => (S.modelo === 'v2' ? S.metrica : 'total_clasico');
+  /** Métricas de cada estructura: por roles (columnas de la base) o clásica (total + un criterio por columna). */
+  // Los criterios de la clásica salen del Store del portal; el panel de administración puede abrir esta pestaña antes de que el
+  // Store los tenga, así que si faltan se piden una vez a la API existente (filas crudas: nombre = label).
+  const criteriosClasica = () => {
+    const del = typeof getCriterios === 'function' ? getCriterios() : [];
+    return (del.length ? del : (S?.crits || [])).map(c => ({ ...c, nombre: c.nombre || c.label || c.key }));
+  };
+  const metricasDe = () => (S.modelo === 'v2' ? METRICAS
+    : [{ k: 'total_clasico', l: 'Puntaje total' }, ...criteriosClasica().map(c => ({ k: 'c:' + c.key, l: c.nombre }))]);
+  const metricaDe = () => S.metrica;
+  const criterioDe = k => criteriosClasica().find(c => 'c:' + c.key === k);
+  /** Puntaje de un criterio de la clásica: el publicado de `evaluaciones`, leído por (período, persona). */
+  const puntajeClasico = (r, k) => { const v = S.pun?.get(r.periodo_id + '|' + r.persona_id)?.[k.slice(2)]; return v == null || v === '' ? null : num(v); };
   /** Valor publicado de una fila, o null (sin evaluación, borrador, no participa o de otra rúbrica). */
   function valor(r, m = metricaDe()) {
     if (!r || !r.participa || r.estado_eval !== 'publicado' || r.modelo !== S.modelo) return null;
+    if (typeof m === 'string' && m.startsWith('c:')) return puntajeClasico(r, m);
     return num(r[m]);
   }
   const maxEscala = () => {
     if (S.modelo === 'v2') return 100;
+    const c = criterioDe(S.metrica);
+    if (c) return maxDe(c);
     return typeof hayCriterios === 'function' && hayCriterios() ? MAX_TOTAL() : null;
   };
-  const etiquetaMetrica = () => (S.modelo === 'v2' ? METRICAS.find(x => x.k === S.metrica).l : 'Puntaje total (clásica)');
+  const etiquetaMetrica = () => (metricasDe().find(x => x.k === S.metrica) || { l: 'Puntaje total (clásica)' }).l;
   const deEscala = () => { const m = maxEscala(); return m ? ` de ${m}` : ''; };
 
   function periodosDe(rows, modelo) {
@@ -101,7 +117,7 @@ const Desempeno = (() => {
     : { clase: scoreClass(v), label: scoreLabel(v), color: scoreColorTxt(v) });
   const valorHTML = (v, conNivel = false) => {
     if (v == null) return '<span class="des-nd" aria-label="Sin dato">—</span>';
-    const n = conNivel && (S.modelo === 'v2' ? S.metrica === 'individual' || S.metrica === 'general' : true) ? nivelDe(v) : null;
+    const n = conNivel && (S.modelo === 'v2' ? S.metrica === 'individual' || S.metrica === 'general' : S.metrica === 'total_clasico') ? nivelDe(v) : null;
     return `<span class="seg-val"><b${n ? ` style="color:${n.color}"` : ''}>${escHtml(fmt(v))}</b></span>${n ? `<span class="nivel-badge ${escHtml(n.clase)}">${escHtml(n.label)}</span>` : ''}`;
   };
 
@@ -126,11 +142,12 @@ const Desempeno = (() => {
     const distritos = [...new Set(S.rows.map(r => r.distrito).filter(Boolean))].sort();
     const opt = (v, t, sel) => `<option value="${escHtml(v)}"${sel ? ' selected' : ''}>${escHtml(t)}</option>`;
     host.innerHTML = `
-      ${modelos.length > 1 ? `<label class="eq-f"><span>Rúbrica</span><select class="cfg-inp cfg-select" id="des-modelo" data-change="desFiltro">${opt('v2', 'Por roles (0–100)', S.modelo === 'v2')}${opt('legacy', 'Clásica', S.modelo !== 'v2')}</select></label>` : ''}
-      ${S.modelo === 'v2' ? `<label class="eq-f"><span>Métrica</span><select class="cfg-inp cfg-select" id="des-metrica" data-change="desFiltro">${METRICAS.map(m => opt(m.k, m.l, m.k === S.metrica)).join('')}</select></label>` : ''}
+      ${modelos.length > 1 ? `<label class="eq-f"><span>Rúbrica</span><select class="cfg-inp cfg-select" id="des-modelo" data-change="desFiltro">${opt('v2', 'Por roles (períodos nuevos)', S.modelo === 'v2')}${opt('legacy', 'Clásica (períodos antiguos)', S.modelo !== 'v2')}</select></label>` : ''}
+      <label class="eq-f"><span>Métrica</span><select class="cfg-inp cfg-select" id="des-metrica" data-change="desFiltro">${metricasDe().map(m => opt(m.k, m.l, m.k === S.metrica)).join('')}</select></label>
       ${roles.length > 1 ? `<label class="eq-f"><span>Rol</span><select class="cfg-inp cfg-select" id="des-rol" data-change="desFiltro">${opt('', 'Todos los roles', !S.rol)}${roles.map(([id, n]) => opt(id, n, id === S.rol)).join('')}</select></label>` : ''}
       ${distritos.length > 1 ? `<label class="eq-f"><span>Distrito</span><select class="cfg-inp cfg-select" id="des-distrito" data-change="desFiltro">${opt('', 'Todos los distritos', !S.distrito)}${distritos.map(d => opt(d, typeof _distritoNombre === 'function' ? _distritoNombre(d) : d, d === S.distrito)).join('')}</select></label>` : ''}
       <label class="eq-f eq-f--busca"><span>Buscar persona</span><input class="search-inp" id="des-q" type="search" placeholder="Buscar persona…" data-input="desFiltro" value="${escHtml(S.q)}"></label>
+      ${modelos.length > 1 ? `<p class="des-nota des-ayuda">Cada estructura de evaluación se compara solo con los períodos que usan la misma estructura: elige arriba cuál ver.</p>` : ''}
       <fieldset class="des-periodos"><legend>Períodos incluidos</legend>
         ${S.periodos.map(p => `<label class="tk-check"><input type="checkbox" class="des-per" value="${escHtml(p.id)}" data-change="desFiltro"${S.per.has(p.id) ? ' checked' : ''}><span>${escHtml(p.nombre)}${p.activo ? ' · activo' : ''}</span></label>`).join('') || '<span class="des-nd">Sin períodos con esta rúbrica.</span>'}
       </fieldset>`;
@@ -379,12 +396,23 @@ const Desempeno = (() => {
     const previo = S && S.host === host && S.modo === 'admin' ? S : null;
     const rows = res.rows;
     const modelo = previo?.modelo && rows.some(r => r.modelo === previo.modelo) ? previo.modelo : (rows.some(r => r.modelo === 'v2') ? 'v2' : 'legacy');
-    S = { host, modo: 'admin', rows, modelo, metrica: previo?.metrica || 'individual', rol: previo?.rol || '', distrito: previo?.distrito || '', q: previo?.q || '',
+    S = { host, modo: 'admin', rows, modelo, pun: new Map(), metrica: previo && previo.modelo === modelo ? previo.metrica : (modelo === 'v2' ? 'individual' : 'total_clasico'), rol: previo?.rol || '', distrito: previo?.distrito || '', q: previo?.q || '',
       personas: new Set(previo?.personas || []), cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null, per: new Set(), periodos: [] };
     prepararPeriodos(previo);
+    await cargarPuntajesAdmin(rows);
     host.innerHTML = `<div class="filtros-fila des-ctrl" id="des-ctrl"></div><div id="des-cuerpo"></div>`;
     controlesAdmin();
     pintarAdmin();
+  }
+  /** Puntajes publicados por criterio de los PE clásicos (los mismos de `evaluaciones`; una consulta por período antiguo). */
+  async function cargarPuntajesAdmin(rows) {
+    S.pun = new Map();
+    const ids = [...new Set(rows.filter(r => r.modelo !== 'v2').map(r => r.periodo_id))];
+    if (!ids.length || typeof API.getEvaluacionesByPE !== 'function') return;
+    S.crits = S.crits || [];
+    if (!criteriosClasica().length && typeof API.getCriterios === 'function') S.crits = await Promise.resolve(API.getCriterios(true)).catch(() => []);
+    const listas = await Promise.all(ids.map(id => Promise.resolve(API.getEvaluacionesByPE(id)).catch(() => [])));
+    listas.forEach((ev, i) => (ev || []).filter(e => e.estado === 'publicado').forEach(e => S.pun.set(ids[i] + '|' + e.evaluado_id, typeof parseJSON === 'function' ? parseJSON(e.puntajes) : (e.puntajes || {}))));
   }
   /** Períodos de la rúbrica elegida; por defecto, todos los que ya tienen algún resultado publicado. */
   function prepararPeriodos(previo) {
@@ -397,6 +425,7 @@ const Desempeno = (() => {
   /* ══════════════════════════════════════════════════════════════════════
      MI DESEMPEÑO (solo la propia trayectoria)
      ══════════════════════════════════════════════════════════════════════ */
+  const columnasPropias = () => (S.modelo === 'v2' ? COLUMNAS_V2 : metricasDe());
   const COLUMNAS_V2 = [
     { k: 'individual',  l: 'Individual' }, { k: 'nucleo', l: 'Núcleo' }, { k: 'tecnico', l: 'Técnico' },
     { k: 'general',     l: 'General' },    { k: 'tareas_nota', l: 'Nota de tareas' },
@@ -434,14 +463,14 @@ const Desempeno = (() => {
 
   function celdaPropia(r, k) {
     if (r.estado_eval !== 'publicado') return '<span class="des-nd">—</span>';
-    const v = num(r[k]);
+    const v = k.startsWith('c:') ? puntajeClasico(r, k) : num(r[k]);
     if (v == null) return '<span class="des-nd">—</span>';
     const nv = k === 'individual' || k === 'total_clasico' ? nivelDe(v) : null;
     return `<span class="seg-val"><b${nv ? ` style="color:${nv.color}"` : ''}>${escHtml(fmt(v))}</b></span>${nv ? `<span class="nivel-badge ${escHtml(nv.clase)}">${escHtml(nv.label)}</span>` : ''}`;
   }
   function seccionEvolucionPropia(fs) {
     const pub = publicadas(fs);
-    const cols = S.modelo === 'v2' ? COLUMNAS_V2 : [{ k: 'total_clasico', l: 'Puntaje total' }];
+    const cols = columnasPropias();
     const alt = fs.map(r => `${r.periodo_nombre}: ${r.estado_eval === 'publicado' ? (S.modelo === 'v2' ? `individual ${fmt(num(r.individual))}, núcleo ${fmt(num(r.nucleo))}, técnico ${fmt(num(r.tecnico))}` : `${fmt(num(r.total_clasico))}${deEscala()}`) : 'sin publicar'}`).join('. ') + '.';
     const filasT = fs.map((r, i) => {
       const previo = fs.slice(0, i).reverse().find(x => x.estado_eval === 'publicado' && valor(x, S.modelo === 'v2' ? 'individual' : 'total_clasico') != null);
@@ -482,9 +511,9 @@ const Desempeno = (() => {
     if (!pub.some(r => r.periodo_id === S.cmpB)) S.cmpB = pub[pub.length - 1].periodo_id;
     const A = pub.find(r => r.periodo_id === S.cmpA), B = pub.find(r => r.periodo_id === S.cmpB);
     const sel = id => pub.map(r => `<option value="${escHtml(r.periodo_id)}"${r.periodo_id === id ? ' selected' : ''}>${escHtml(r.periodo_nombre)}</option>`).join('');
-    const cols = S.modelo === 'v2' ? COLUMNAS_V2 : [{ k: 'total_clasico', l: 'Puntaje total' }];
+    const cols = columnasPropias();
     const filasT = cols.map(c => {
-      const a = num(A[c.k]), b = num(B[c.k]);
+      const a = c.k.startsWith('c:') ? puntajeClasico(A, c.k) : num(A[c.k]), b = c.k.startsWith('c:') ? puntajeClasico(B, c.k) : num(B[c.k]);
       return `<tr><th scope="row">${escHtml(c.l)}</th><td data-label="${escHtml(A.periodo_nombre)}" class="seg-celda">${valorHTMLPropio(a)}</td><td data-label="${escHtml(B.periodo_nombre)}" class="seg-celda">${valorHTMLPropio(b)}</td>
         <td data-label="Cambio" class="seg-celda">${a != null && b != null ? deltaHTML(b, a, { decimales: 1, ref: A.periodo_nombre }) : '<span class="des-nd">—</span>'}</td></tr>`;
     }).join('');
@@ -531,7 +560,7 @@ const Desempeno = (() => {
     const modelos = [...new Set(S.rows.filter(r => r.persona_id === S.yo && r.participa).map(r => r.modelo))];
     const opt = (v, t, sel) => `<option value="${escHtml(v)}"${sel ? ' selected' : ''}>${escHtml(t)}</option>`;
     host.innerHTML = modelos.length > 1
-      ? `<label class="eq-f"><span>Rúbrica</span><select class="cfg-inp cfg-select" id="des-modelo" data-change="desFiltro">${opt('v2', 'Por roles (0–100)', S.modelo === 'v2')}${opt('legacy', 'Clásica', S.modelo !== 'v2')}</select></label>` : '';
+      ? `<label class="eq-f"><span>Rúbrica</span><select class="cfg-inp cfg-select" id="des-modelo" data-change="desFiltro">${opt('v2', 'Por roles (períodos nuevos)', S.modelo === 'v2')}${opt('legacy', 'Clásica (períodos antiguos)', S.modelo !== 'v2')}</select></label><p class="des-nota des-ayuda">Cada estructura de evaluación se compara solo con los períodos que usan la misma estructura.</p>` : '';
     host.hidden = !modelos.length || modelos.length < 2;
   }
 
@@ -548,7 +577,11 @@ const Desempeno = (() => {
     if (!mios.length) { host.innerHTML = vacio('Todavía no participas en ningún período. Cuando entres a uno, aquí verás tu trayectoria.'); return; }
     const previo = S && S.host === host && S.modo === 'propio' ? S : null;
     const modelo = previo?.modelo && mios.some(r => r.modelo === previo.modelo) ? previo.modelo : (mios.some(r => r.modelo === 'v2') ? 'v2' : 'legacy');
-    S = { host, modo: 'propio', rows: mios, yo, modelo, metrica: 'individual', rol: '', distrito: '', q: '', personas: new Set(), per: new Set(), periodos: [], cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null };
+    S = { host, modo: 'propio', rows: mios, yo, modelo, pun: new Map(), metrica: modelo === 'v2' ? 'individual' : 'total_clasico', rol: '', distrito: '', q: '', personas: new Set(), per: new Set(), periodos: [], cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null };
+    if (mios.some(r => r.modelo !== 'v2') && typeof API.getMiHistorial === 'function') {   // mis puntajes publicados por criterio (clásica)
+      const h = await Promise.resolve(API.getMiHistorial()).catch(() => null);
+      if (h && h.ok) for (const [pid, v] of Object.entries(h.porPeriodo || {})) S.pun.set(pid + '|' + yo, v.puntajes || {});
+    }
     host.innerHTML = `<div class="filtros-fila des-ctrl" id="des-ctrl"></div><div id="des-cuerpo"></div>`;
     controlesPropio();
     pintarPropio();
@@ -566,11 +599,11 @@ const Desempeno = (() => {
       return;
     }
     if (id === 'des-modelo') {
-      S.modelo = el.value === 'legacy' ? 'legacy' : 'v2'; S.personas = new Set(); S.cmpA = S.cmpB = null;
+      S.modelo = el.value === 'legacy' ? 'legacy' : 'v2'; S.metrica = S.modelo === 'v2' ? 'individual' : 'total_clasico'; S.personas = new Set(); S.cmpA = S.cmpB = null;
       if (S.modo === 'admin') { prepararPeriodos(null); controlesAdmin(); pintarAdmin(); } else pintarPropio();
       return;
     }
-    if (id === 'des-metrica') { S.metrica = METRICAS.some(m => m.k === el.value) ? el.value : 'individual'; return pintarAdmin(); }
+    if (id === 'des-metrica') { S.metrica = metricasDe().some(m => m.k === el.value) ? el.value : metricasDe()[0].k; return pintarAdmin(); }
     if (id === 'des-rol') { S.rol = el.value; return pintarAdmin(); }
     if (id === 'des-distrito') { S.distrito = el.value; return pintarAdmin(); }
     if (id === 'des-q') { S.q = el.value; return pintarAdmin(); }

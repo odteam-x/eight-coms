@@ -37,7 +37,7 @@ ok(!/0\.6|0\.4/.test(src.replace(/\/\*[\s\S]*?\*\//g, '')), 'no aparece la fórm
 
 console.log('\n[comportamiento con datos]');
 const el = id => ({ id, innerHTML: '', hidden: false, dataset: {}, classList: { contains: () => false } });
-function entorno(rows) {
+function entorno(rows, evals = []) {
   const dom = {};
   const graficos = {};
   const toasts = [];
@@ -50,12 +50,13 @@ function entorno(rows) {
     deltaHTML: (a, b, o = {}) => (a == null || b == null ? '' : `<delta>${Math.round((a - b) * 10) / 10}${o.ref ? ' vs ' + o.ref : ''}</delta>`),
     nivelV2: v => (v >= 87 ? { key: 'sex', label: 'Excelente' } : v >= 67 ? { key: 'sbu', label: 'Bueno' } : v >= 37 ? { key: 'spr', label: 'En proceso' } : { key: 'sba', label: 'Bajo' }),
     scoreColorTxtV2: () => 'var(--x)', scoreClass: () => 'sbu', scoreLabel: () => 'Bueno', scoreColorTxt: () => 'var(--x)',
-    MAX_TOTAL: () => 30, hayCriterios: () => true,
+    MAX_TOTAL: () => 30, hayCriterios: () => true, maxDe: c => c.max || 4, parseJSON: v => (typeof v === 'string' ? JSON.parse(v) : v || {}),
+    getCriterios: () => [{ key: 'pla', nombre: 'Planificación', max: 4 }, { key: 'rev', nombre: 'Revisión', max: 4 }],
     token: n => n, conAlfa: c => c, borrarGrafico: id => { delete graficos[id]; },
     pintarGrafico: (id, construir) => { graficos[id] = construir(); },
     renderCargando: () => {}, renderError: () => {}, renderIconos: () => {}, animarEntrada: () => {},
     showToast: m => toasts.push(m), _distritoNombre: d => d,
-    API: { getSeguimientoGlobal: async () => ({ ok: true, rows }) },
+    API: { getSeguimientoGlobal: async () => ({ ok: true, rows }), getEvaluacionesByPE: async id => evals.filter(e => e.periodo_id === id), getMiHistorial: async () => ({ ok: true, porPeriodo: Object.fromEntries(evals.filter(e => e.evaluado_id === 'p1').map(e => [e.periodo_id, { puntajes: e.puntajes }])) }) },
   };
   vm.createContext(ctx);
   vm.runInContext(src + '\nthis.Desempeno = Desempeno;', ctx);
@@ -138,6 +139,39 @@ const P = (n, v, extra = {}) => ({ ...extra, periodo_id: 'id' + n, periodo_nombr
   // la clásica
   ctx.Desempeno.cambio({ id: 'des-modelo', value: 'legacy' });
   ok(/Clásico/.test(dom['des-cuerpo'].innerHTML) && !/PE1/.test(dom['des-cuerpo'].innerHTML), 'con la clásica solo aparece su período');
+}
+
+// ── PE antiguos (clásica): se comparan solo entre sí, por total y por criterio ──
+{
+  const cl = (n, pid, total, extra = {}) => fila({ modelo: 'legacy', periodo_id: pid, periodo_nombre: 'PE' + n, periodo_orden: n, individual: null, nucleo: null, tecnico: null, general: null, total_clasico: total, ...extra });
+  const rows = [
+    cl(1, 'l1', 20), cl(2, 'l2', 25), cl(3, 'l3', 24, { estado_eval: 'borrador' }),
+    cl(1, 'l1', 18, { persona_id: 'p2', nombre: 'Beto' }), cl(2, 'l2', 22, { persona_id: 'p2', nombre: 'Beto' }),
+    fila({ ...P(4, 85), periodo_id: 'n4', periodo_nombre: 'PE4 nuevo', periodo_orden: 4 }),                       // por roles: no entra en la vista clásica
+  ];
+  const ev = (pid, who, pla, rev, estado = 'publicado') => ({ periodo_id: pid, evaluado_id: who, estado, puntajes: { pla, rev } });
+  const evals = [ev('l1', 'p1', 2, 3), ev('l2', 'p1', 4, 3), ev('l3', 'p1', 4, 4, 'borrador'), ev('l1', 'p2', 1, 2), ev('l2', 'p2', 3, 2)];
+  const { ctx, dom, graficos } = entorno(rows, evals);
+  await ctx.Desempeno.montarAdmin(dom['host'] = el('host'));
+  ctx.Desempeno.cambio({ id: 'des-modelo', value: 'legacy' });
+  let h = dom['des-cuerpo'].innerHTML;
+  ok(graficos['des-ch-evo'].data.labels.join() === 'PE1,PE2' && !/PE4 nuevo/.test(h), 'los PE antiguos solo se comparan con PE antiguos (el de roles no entra; un PE con solo borradores no se incluye)');
+  ok(JSON.stringify(graficos['des-ch-evo'].data.datasets[0].data.slice(0, 2)) === '[19,23.5]', 'puntaje total: promedio por período publicado (19, 23.5); el borrador no entra');
+  ok(/Puntaje total/.test(dom['des-ctrl'].innerHTML) && /Planificación/.test(dom['des-ctrl'].innerHTML), 'la métrica ofrece el total y cada criterio de la rúbrica clásica');
+  ctx.Desempeno.cambio({ id: 'des-metrica', value: 'c:pla' });
+  const d = graficos['des-ch-evo'].data.datasets[0].data;
+  ok(d[0] === 1.5 && d[1] === 3.5, 'por criterio (Planificación): promedio de los puntajes publicados (1.5, 3.5): ' + d.slice(0, 2));
+  ok(graficos['des-ch-evo'].options.scales.y.max === 4, 'la escala de un criterio es su propio máximo (4), no la del total');
+  ok(/Comparar dos períodos/.test(h) && /<delta>/.test(dom['des-cuerpo'].innerHTML), 'comparar dos PE antiguos persona por persona, por criterio');
+  // volver a roles: se limpia la métrica por criterio
+  ctx.Desempeno.cambio({ id: 'des-modelo', value: 'v2' });
+  ok(!/Planificación/.test(dom['des-cuerpo'].innerHTML) && /PE4 nuevo/.test(dom['des-cuerpo'].innerHTML), 'al volver a la rúbrica por roles no queda nada de la clásica');
+  // Mi desempeño con criterios
+  const m = entorno(rows, evals);
+  await m.ctx.Desempeno.montarPropio(m.dom['host'] = el('host'), { yo: 'p1' });
+  m.ctx.Desempeno.cambio({ id: 'des-modelo', value: 'legacy' });
+  const hm = m.dom['des-cuerpo'].innerHTML;
+  ok(/Planificación/.test(hm) && /Revisión/.test(hm) && !/Beto/.test(hm), 'Mi desempeño (clásica): total y criterios propios, sin otras personas');
 }
 
 // ── Sin datos / sin migración ──
