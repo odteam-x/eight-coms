@@ -174,6 +174,27 @@ const P = (n, v, extra = {}) => ({ ...extra, periodo_id: 'id' + n, periodo_nombr
   ok(/Planificación/.test(hm) && /Revisión/.test(hm) && !/Beto/.test(hm), 'Mi desempeño (clásica): total y criterios propios, sin otras personas');
 }
 
+// ── Desempeño individual primero, equipo debajo ──
+{
+  const nombres = ['Ana', 'Beto', 'Cata', 'Dani'];
+  const rows = [];
+  nombres.forEach((n, i) => [1, 2, 3].forEach(k => rows.push(fila({ ...P(k, 50 + i * 8 + k * 3), persona_id: 'q' + i, nombre: n }))));
+  const { ctx, dom, graficos } = entorno(rows);
+  await ctx.Desempeno.montarAdmin(dom['host'] = el('host'));
+  const h = dom['des-cuerpo'].innerHTML;
+  ok(h.indexOf('Desempeño individual') > -1 && h.indexOf('Desempeño del equipo por período') > h.indexOf('Desempeño individual'), 'primero «Desempeño individual», después el del equipo por período');
+  ok(h.indexOf('id="des-h-ind"') < h.indexOf('id="des-h-evo"') && h.indexOf('id="des-h-det"') < h.indexOf('id="des-h-evo"'), 'tarjetas y detalle de la persona van antes que la evolución del equipo');
+  ok((h.match(/<button type="button" class="des-card/g) || []).length === 4, 'una tarjeta por persona');
+  ok(h.indexOf('>Dani<') < h.indexOf('>Ana<'), 'tarjetas ordenadas por el último resultado (Dani 83 antes que Ana 59)');
+  ok(/id="des-h-det">Dani</.test(h), 'el detalle abre con la mejor persona elegida');
+  const det = graficos['des-ch-mio'].data.datasets;
+  ok(det.some(d => d.label === 'Promedio del equipo'), 'el gráfico individual lleva la línea del promedio del equipo');
+  ok(/FRENTE AL EQUIPO/.test(h), 'el detalle dice cuánto está la persona sobre o bajo el equipo');
+  ctx.Desempeno.accion('ver', 'q0');
+  ok(/id="des-h-det">Ana</.test(dom['des-det'].innerHTML), 'tocar una tarjeta cambia el detalle a esa persona');
+  ok(!/id="des-h-evo"[^]*id="des-h-evo"/.test(h), 'sin ids duplicados entre el detalle y la evolución del equipo');
+}
+
 // ── Sin datos / sin migración ──
 {
   const { ctx, dom } = entorno([]);

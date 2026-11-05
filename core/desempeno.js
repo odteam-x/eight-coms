@@ -4,9 +4,11 @@
  * ───────────────────────────────
  * Dos lecturas de lo que YA está en la base, sin tablas nuevas, sin registro paralelo y sin fórmulas propias:
  *
- *   · montarAdmin(host)       — pestaña «Desempeño» de la administración: todo el equipo, todos los períodos,
- *                               comparar períodos, comparar varias personas a la vez y filtrar por persona,
- *                               rol, distrito y período.
+ *   · montarAdmin(host)       — pestaña «Desempeño» de la administración. ARRIBA, cada persona: tarjetas con su
+ *                               último resultado y tendencia, el detalle de la persona elegida frente al promedio
+ *                               del equipo, comparar varias personas a la vez y comparar dos períodos persona por
+ *                               persona. ABAJO, el equipo por período (KPIs, evolución, promedio por rol).
+ *                               Filtros: rúbrica, métrica, rol, distrito, períodos y búsqueda.
  *   · montarPropio(host, {yo}) — «Mi desempeño» (miembros y secretarías): solo la propia trayectoria.
  *
  * FUENTE ÚNICA: API.getSeguimientoGlobal() → seguimiento_global() (0025/0035), que a su vez lee
@@ -120,6 +122,19 @@ const Desempeno = (() => {
     const n = conNivel && (S.modelo === 'v2' ? S.metrica === 'individual' || S.metrica === 'general' : S.metrica === 'total_clasico') ? nivelDe(v) : null;
     return `<span class="seg-val"><b${n ? ` style="color:${n.color}"` : ''}>${escHtml(fmt(v))}</b></span>${n ? `<span class="nivel-badge ${escHtml(n.clase)}">${escHtml(n.label)}</span>` : ''}`;
   };
+
+  const principal = () => (S.modelo === 'v2' ? 'individual' : 'total_clasico');
+  /** Ejecuta fn con la métrica principal (resultado individual / puntaje total) aunque el filtro muestre un criterio. */
+  const conPrincipal = fn => { const m = S.metrica; S.metrica = principal(); try { return fn(); } finally { S.metrica = m; } };
+  /** Promedio del grupo (con los filtros de rol y distrito) por período, en la métrica principal: la vara con la que se mira a cada persona. */
+  function mediasEquipo(rs) {
+    const m = new Map();
+    for (const p of S.periodos) {
+      const v = rs.filter(r => r.periodo_id === p.id).map(r => valor(r, principal())).filter(x => x != null);
+      if (v.length) m.set(p.id, media(v));
+    }
+    return m;
+  }
 
   /* ── Piezas de presentación ───────────────────────────────────────────── */
   const kpi = (val, lbl, sub, extra = '') => `<div class="kpi"><div class="kpi__val">${val}</div><div class="kpi__lbl">${escHtml(lbl)}</div><div class="seg-kpi-sub">${escHtml(sub)}${extra ? ` ${extra}` : ''}</div></div>`;
@@ -274,6 +289,66 @@ const Desempeno = (() => {
     });
   }
 
+  /* — Desempeño individual: una tarjeta por persona y el detalle de la elegida — */
+  function chispa(vals) {
+    const pts = vals.map((v, i) => ({ v, i })).filter(x => x.v != null);
+    if (pts.length < 2) return '';
+    const mx = S.modelo === 'v2' ? 100 : (typeof hayCriterios === 'function' && hayCriterios() ? MAX_TOTAL() : Math.max(...pts.map(x => x.v), 1));
+    const n = vals.length;
+    const xy = pts.map(x => `${(4 + (n === 1 ? 0 : x.i / (n - 1)) * 92).toFixed(1)},${(26 - Math.max(0, Math.min(1, x.v / mx)) * 22).toFixed(1)}`).join(' ');
+    return `<svg class="des-chispa" viewBox="0 0 100 30" aria-hidden="true" focusable="false"><polyline points="${xy}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  }
+  function tarjetaPersona(p, est) {
+    const vals = est.map(e => valor(p.porPer.get(e.p.id), principal()));
+    const con = vals.map((v, i) => ({ v, i })).filter(x => x.v != null);
+    const u = con[con.length - 1], a = con[con.length - 2];
+    const nv = u ? nivelDe(u.v) : null, on = p.id === S.sel;
+    return `<li><button type="button" class="des-card${on ? ' des-card--on' : ''}" data-act="des" data-arg="ver" data-arg2="${escHtml(p.id)}" aria-pressed="${on}">
+      <span class="des-card-n">${escHtml(p.nombre)}</span>
+      <span class="des-card-s">${escHtml(p.rol)}${p.distrito ? ' · ' + escHtml(p.distrito) : ''}</span>
+      <span class="des-card-v">${u ? `<b style="color:${nv.color}">${escHtml(fmt(u.v))}</b><span class="nivel-badge ${escHtml(nv.clase)}">${escHtml(nv.label)}</span>` : '<span class="des-nd">Sin resultado publicado</span>'}</span>
+      <span class="des-card-p">${u ? `${escHtml(est[u.i].p.nombre)}${a ? ' ' + deltaHTML(u.v, a.v, { decimales: 1, ref: est[a.i].p.nombre }) : ''}` : ''}</span>
+      ${chispa(vals)}</button></li>`;
+  }
+  /** Personas visibles (filtros + búsqueda), de mayor a menor resultado en el último período con dato. */
+  function listaPersonas(rs, est) {
+    const q = S.q.toLowerCase().trim();
+    const { ult } = ultimoYPrevio(est);
+    return [...personasDe(rs).values()].filter(p => !q || p.nombre.toLowerCase().includes(q))
+      .map(p => ({ ...p, u: ult ? valor(p.porPer.get(ult.p.id), principal()) : null }))
+      .sort((x, y) => (y.u ?? -1) - (x.u ?? -1) || x.nombre.localeCompare(y.nombre, 'es'));
+  }
+  function seccionIndividual(rs, est, lista) {
+    if (!lista.length) return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-ind"><h2 class="pf-h" id="des-h-ind">Cada persona</h2>${vacio('Nadie coincide con los filtros.')}</section>`;
+    return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-ind">
+      <h2 class="pf-h" id="des-h-ind">Cada persona <small>${escHtml(etiquetaPrincipal())} · toca una tarjeta para ver su detalle</small></h2>
+      <ul class="des-cards">${lista.map(p => tarjetaPersona(p, est)).join('')}</ul>
+    </section>
+    <div id="des-det">${detallePersona(rs, est)}</div>`;
+  }
+  const etiquetaPrincipal = () => (S.modelo === 'v2' ? 'Resultado individual (0–100)' : 'Puntaje total (rúbrica clásica)');
+  function detallePersona(rs, est) {
+    const p = personasDe(rs).get(S.sel);
+    if (!p) return '';
+    const ids = new Set(est.map(e => e.p.id));
+    const fs = [...p.porPer.values()].filter(r => ids.has(r.periodo_id)).sort((a, b) => a.periodo_orden - b.periodo_orden);
+    const o = { nombre: p.nombre, equipo: mediasEquipo(rs) };
+    S.det = { fs, o };
+    return `<div class="des-det-cab"><div><h2 class="pf-h" id="des-h-det">${escHtml(p.nombre)}</h2>
+      <p class="des-det-s">${escHtml(p.rol)}${p.distrito ? ' · ' + escHtml(p.distrito) : ''} — frente al promedio del equipo${S.rol || S.distrito ? ' (con los filtros aplicados)' : ''}</p></div>
+      <button type="button" class="btn--secundario" data-act="perfilVer" data-arg="${escHtml(p.id)}">Ver perfil completo</button></div>
+      ${conPrincipal(() => seccionKpisPropio(fs, o) + seccionEvolucionPropia(fs, o))}`;
+  }
+  function repintarDetalle() {
+    const el = document.getElementById('des-det');
+    if (!el) return;
+    borrarGrafico(ID.mio);
+    el.innerHTML = detallePersona(S.rs, S.est);
+    if (S.det) pintarEvolucionPropia(S.det.fs, S.det.o);
+    document.querySelectorAll('.des-card').forEach(b => { const on = b.dataset.arg2 === S.sel; b.classList.toggle('des-card--on', on); b.setAttribute('aria-pressed', String(on)); });
+    if (typeof renderIconos === 'function') renderIconos(el);
+  }
+
   /* — Comparar varias personas a la vez — */
   function seccionPersonas(rs, est) {
     const pers = [...personasDe(rs).values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -350,15 +425,20 @@ const Desempeno = (() => {
     if (!cuerpo) return;
     const rs = filas();
     const est = periodosSel().map(p => ({ p, ...estadistica(p.id, rs) }));
-    S.est = est; S.rs = rs;
+    S.est = est; S.rs = rs; S.det = null;
     const fuera = est.reduce((a, e) => a + e.fuera, 0);
-    cuerpo.innerHTML = `${seccionKpisAdmin(rs, est)}
-      ${fuera ? `<p class="des-nota">${fuera} evaluación${fuera === 1 ? '' : 'es'} sin publicar no ${fuera === 1 ? 'entra' : 'entran'} en estas cifras: solo cuentan los resultados publicados.</p>` : ''}
-      ${seccionEvolucion(est)}
-      ${seccionComparar(rs)}
-      ${seccionPorRol(rs, est)}
+    const lista = listaPersonas(rs, est);
+    if (!lista.some(p => p.id === S.sel)) S.sel = lista[0]?.id || null;
+    cuerpo.innerHTML = `${fuera ? `<p class="des-nota">${fuera} evaluación${fuera === 1 ? '' : 'es'} sin publicar no ${fuera === 1 ? 'entra' : 'entran'} en estas cifras: solo cuentan los resultados publicados.</p>` : ''}
+      <h2 class="des-grupo-t">Desempeño individual</h2>
+      ${seccionIndividual(rs, est, lista)}
       ${seccionPersonas(rs, est)}
+      ${seccionComparar(rs)}
       ${seccionTodas(rs, est)}
+      <h2 class="des-grupo-t">Desempeño del equipo por período</h2>
+      ${seccionKpisAdmin(rs, est)}
+      ${seccionEvolucion(est)}
+      ${seccionPorRol(rs, est)}
       <details class="seg-como"><summary>¿Cómo se calcula?</summary><ul class="rol-lista">
         <li><b>Fuente</b>: los mismos resultados del Seguimiento y del perfil de cada persona; aquí no se recalcula nada.</li>
         <li><b>Promedio del equipo</b>: media simple de los resultados publicados del período, una vez por persona.</li>
@@ -368,6 +448,7 @@ const Desempeno = (() => {
       </ul></details>`;
     const elegidas = [...S.personas].map(id => personasDe(rs).get(id)).filter(Boolean);
     pintarEvolucion(est); pintarPorRol(rs, est); pintarPersonas(elegidas, est);
+    if (S.det) pintarEvolucionPropia(S.det.fs, S.det.o);
     if (typeof renderIconos === 'function') renderIconos(cuerpo);
     if (typeof animarEntrada === 'function') animarEntrada(cuerpo);
   }
@@ -397,7 +478,7 @@ const Desempeno = (() => {
     const rows = res.rows;
     const modelo = previo?.modelo && rows.some(r => r.modelo === previo.modelo) ? previo.modelo : (rows.some(r => r.modelo === 'v2') ? 'v2' : 'legacy');
     S = { host, modo: 'admin', rows, modelo, pun: new Map(), metrica: previo && previo.modelo === modelo ? previo.metrica : (modelo === 'v2' ? 'individual' : 'total_clasico'), rol: previo?.rol || '', distrito: previo?.distrito || '', q: previo?.q || '',
-      personas: new Set(previo?.personas || []), cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null, per: new Set(), periodos: [] };
+      personas: new Set(previo?.personas || []), sel: previo?.sel || null, cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null, per: new Set(), periodos: [] };
     prepararPeriodos(previo);
     await cargarPuntajesAdmin(rows);
     host.innerHTML = `<div class="filtros-fila des-ctrl" id="des-ctrl"></div><div id="des-cuerpo"></div>`;
@@ -442,22 +523,26 @@ const Desempeno = (() => {
     return d > umbral ? { k: 'sube', t: 'Al alza', d } : d < -umbral ? { k: 'baja', t: 'A la baja', d } : { k: 'igual', t: 'Estable', d };
   }
 
-  function seccionKpisPropio(fs) {
+  function seccionKpisPropio(fs, o = {}) {
+    const de = !!o.nombre;                                  // vista de una persona elegida por la administración
     const pub = publicadas(fs);
     const m = S.modelo === 'v2' ? 'individual' : 'total_clasico';
-    if (!pub.length) return vacio('Todavía no tienes evaluaciones publicadas con esta rúbrica. Cuando se publique la primera, aquí aparecerá tu trayectoria.');
+    if (!pub.length) return vacio(de ? 'Esta persona todavía no tiene evaluaciones publicadas con esta rúbrica.' : 'Todavía no tienes evaluaciones publicadas con esta rúbrica. Cuando se publique la primera, aquí aparecerá tu trayectoria.');
     const vals = pub.map(r => valor(r, m));
     const u = pub[pub.length - 1], a = pub[pub.length - 2];
     const mejor = pub.reduce((b, r) => (valor(r, m) > valor(b, m) ? r : b), pub[0]);
     const tend = tendencia(vals);
     const conPlazo = fs.reduce((x, r) => x + (Number(r.con_plazo) || 0), 0), aTiempo = fs.reduce((x, r) => x + (Number(r.a_tiempo) || 0), 0);
     const nv = nivelDe(vals[vals.length - 1]);
+    const eq = o.equipo ? o.equipo.get(u.periodo_id) : null;
+    const dif = eq != null ? Math.round((vals[vals.length - 1] - eq) * 10) / 10 : null;
     return `<div class="kpi-row seg-kpis">
-      ${kpi(`<span style="color:${nv.color}">${escHtml(fmt(vals[vals.length - 1]))}</span>`, 'TU ÚLTIMO RESULTADO', `${u.periodo_nombre}${deEscala()} · ${nv.label}`, a ? deltaHTML(valor(u, m), valor(a, m), { decimales: 1, ref: a.periodo_nombre }) : '')}
-      ${kpi(escHtml(fmt(media(vals))), 'TU PROMEDIO', `${pub.length} período${pub.length === 1 ? '' : 's'} publicado${pub.length === 1 ? '' : 's'}`)}
-      ${kpi(escHtml(fmt(valor(mejor, m))), 'TU MEJOR PERÍODO', mejor.periodo_nombre)}
+      ${kpi(`<span style="color:${nv.color}">${escHtml(fmt(vals[vals.length - 1]))}</span>`, (de ? 'ÚLTIMO RESULTADO' : 'TU ÚLTIMO RESULTADO'), `${u.periodo_nombre}${deEscala()} · ${nv.label}`, a ? deltaHTML(valor(u, m), valor(a, m), { decimales: 1, ref: a.periodo_nombre }) : '')}
+      ${kpi(escHtml(fmt(media(vals))), (de ? 'PROMEDIO' : 'TU PROMEDIO'), `${pub.length} período${pub.length === 1 ? '' : 's'} publicado${pub.length === 1 ? '' : 's'}`)}
+      ${kpi(escHtml(fmt(valor(mejor, m))), (de ? 'MEJOR PERÍODO' : 'TU MEJOR PERÍODO'), mejor.periodo_nombre)}
       ${kpi(tend ? escHtml(tend.t) : '—', 'TENDENCIA', tend ? `Último resultado frente al promedio de los ${vals.length - 1} anterior${vals.length - 1 === 1 ? '' : 'es'}` : 'Hacen falta dos períodos publicados')}
       ${kpi(conPlazo ? Math.round(aTiempo / conPlazo * 100) + ' %' : '—', 'ENTREGAS A TIEMPO', `${aTiempo} de ${conPlazo} entregas con plazo`)}
+      ${dif != null ? kpi(escHtml((dif > 0 ? '+' : dif < 0 ? '−' : '') + fmt(Math.abs(dif))), 'FRENTE AL EQUIPO', `Promedio del equipo en ${u.periodo_nombre}: ${fmt(eq)}`) : ''}
     </div>`;
   }
 
@@ -468,7 +553,13 @@ const Desempeno = (() => {
     const nv = k === 'individual' || k === 'total_clasico' ? nivelDe(v) : null;
     return `<span class="seg-val"><b${nv ? ` style="color:${nv.color}"` : ''}>${escHtml(fmt(v))}</b></span>${nv ? `<span class="nivel-badge ${escHtml(nv.clase)}">${escHtml(nv.label)}</span>` : ''}`;
   }
-  function seccionEvolucionPropia(fs) {
+  function celdasEquipo(r, m, equipo) {
+    const eq = equipo.get(r.periodo_id), v = r.estado_eval === 'publicado' ? valor(r, m) : null;
+    return `<td data-label="Promedio del equipo" class="seg-celda">${valorHTMLPropio(eq ?? null)}</td>
+      <td data-label="Frente al equipo" class="seg-celda">${v != null && eq != null ? deltaHTML(v, eq, { decimales: 1, ref: 'el equipo' }) : '<span class="des-nd">—</span>'}</td>`;
+  }
+  function seccionEvolucionPropia(fs, o = {}) {
+    const de = !!o.nombre;
     const pub = publicadas(fs);
     const cols = columnasPropias();
     const alt = fs.map(r => `${r.periodo_nombre}: ${r.estado_eval === 'publicado' ? (S.modelo === 'v2' ? `individual ${fmt(num(r.individual))}, núcleo ${fmt(num(r.nucleo))}, técnico ${fmt(num(r.tecnico))}` : `${fmt(num(r.total_clasico))}${deEscala()}`) : 'sin publicar'}`).join('. ') + '.';
@@ -479,27 +570,29 @@ const Desempeno = (() => {
       return `<tr><th scope="row">${escHtml(r.periodo_nombre)}${r.periodo_activo ? ' <span class="etiqueta etq-azul">Activo</span>' : ''}</th>
         ${cols.map(c => `<td data-label="${escHtml(c.l)}" class="seg-celda">${celdaPropia(r, c.k)}</td>`).join('')}
         <td data-label="Tareas" class="seg-celda">${escHtml(aTiempo)}</td>
-        <td data-label="Cambio" class="seg-celda">${r.estado_eval !== 'publicado' ? '<span class="etiqueta etq-gris">Sin publicar</span>' : (previo ? deltaHTML(valor(r, m), valor(previo, m), { decimales: 1, ref: previo.periodo_nombre }) : '<span class="des-nd">—</span>')}</td></tr>`;
+        <td data-label="Cambio" class="seg-celda">${r.estado_eval !== 'publicado' ? '<span class="etiqueta etq-gris">Sin publicar</span>' : (previo ? deltaHTML(valor(r, m), valor(previo, m), { decimales: 1, ref: previo.periodo_nombre }) : '<span class="des-nd">—</span>')}</td>${o.equipo ? celdasEquipo(r, m, o.equipo) : ''}</tr>`;
     }).join('');
-    return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-evo">
-      <h2 class="pf-h" id="des-h-evo">Tu evolución <small>${S.modelo === 'v2' ? 'escala 0–100' : 'puntaje total de la rúbrica clásica'}</small></h2>
-      ${pub.length >= 2 ? grafico(ID.mio, 'Tu evolución por período', alt) : '<p class="pf-vacio">La línea aparece cuando tengas dos períodos publicados.</p>'}
+    return `<section class="pf-card pf-card--ancha" aria-labelledby="${de ? 'des-h-pev' : 'des-h-evo'}">
+      <h2 class="pf-h" id="${de ? 'des-h-pev' : 'des-h-evo'}">${de ? 'Evolución' : 'Tu evolución'} <small>${S.modelo === 'v2' ? 'escala 0–100' : 'puntaje total de la rúbrica clásica'}</small></h2>
+      ${pub.length >= 2 ? grafico(ID.mio, de ? 'Evolución de ' + o.nombre : 'Tu evolución por período', alt) : `<p class="pf-vacio">La línea aparece cuando ${de ? 'haya' : 'tengas'} dos períodos publicados.</p>`}
       <div class="seg-tabla-wrap"><table class="seg-tabla seg-tabla--persona">
-        <caption class="sr-only">Tus resultados por período</caption>
-        <thead><tr><th scope="col">Período</th>${cols.map(c => `<th scope="col">${escHtml(c.l)}</th>`).join('')}<th scope="col">Tareas</th><th scope="col">Cambio</th></tr></thead>
+        <caption class="sr-only">${de ? 'Resultados por período' : 'Tus resultados por período'}</caption>
+        <thead><tr><th scope="col">Período</th>${cols.map(c => `<th scope="col">${escHtml(c.l)}</th>`).join('')}<th scope="col">Tareas</th><th scope="col">Cambio</th>${o.equipo ? '<th scope="col">Promedio del equipo</th><th scope="col">Frente al equipo</th>' : ''}</tr></thead>
         <tbody>${filasT}</tbody></table></div>
     </section>`;
   }
-  function pintarEvolucionPropia(fs) {
+  function pintarEvolucionPropia(fs, o = {}) {
     if (!document.getElementById(ID.mio)) return;
     const pub = publicadas(fs);
+    const esc = conPrincipal(escalaY);
     pintarGrafico(ID.mio, () => {
       const serie = (label, k, i) => ({ label, data: pub.map(r => num(r[k])), ...estiloLinea(i, token(COLOR_SERIE[i])) });
       const ds = S.modelo === 'v2'
         ? [{ ...serie('Individual', 'individual', 0), fill: true, backgroundColor: conAlfa(token('--data'), .12) }, serie('Núcleo', 'nucleo', 1), serie('Técnico', 'tecnico', 2)]
         : [{ ...serie('Puntaje total', 'total_clasico', 0), fill: true, backgroundColor: conAlfa(token('--data'), .12) }];
+      if (o.equipo) ds.push({ label: 'Promedio del equipo', data: pub.map(r => o.equipo.get(r.periodo_id) ?? null), ...estiloLinea(4, token('--txt-2')), borderDash: [4, 4] });
       return { type: 'line', data: { labels: pub.map(r => r.periodo_nombre), datasets: ds },
-        options: { plugins: { legend: { display: ds.length > 1 } }, scales: escalaY() } };
+        options: { plugins: { legend: { display: ds.length > 1 } }, scales: esc } };
     });
   }
 
@@ -625,6 +718,7 @@ const Desempeno = (() => {
   }
   function accion(a, arg2) {
     if (!S) return;
+    if (a === 'ver') { S.sel = arg2; return repintarDetalle(); }
     if (a === 'quitar') S.personas.delete(arg2);
     else if (a === 'limpiar') S.personas.clear();
     else return;

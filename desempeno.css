@@ -33,3 +33,24 @@
 @media (min-width: 980px) {
   .des-elegir { grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); }
 }
+
+/* ── Desempeño individual: tarjetas por persona y detalle ───────────────────────────────────────── */
+.des-grupo-t { margin: var(--sp-6) 0 var(--sp-3); font-family: var(--font-display); font-size: var(--fs-xl); letter-spacing: var(--tr-display); color: var(--txt); }
+.des-grupo-t:first-of-type { margin-top: var(--sp-3); }
+.des-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
+.des-card { display: grid; gap: var(--sp-1); width: 100%; height: 100%; text-align: left; padding: var(--sp-3) var(--sp-4); min-width: 0; font: inherit; color: var(--txt);
+  background: var(--surface-2); border: 1px solid var(--trazo); border-radius: var(--r-cont); cursor: pointer; }
+.des-card:hover { background: var(--surface-3); }
+.des-card:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.des-card--on { background: var(--surface-3); border-color: var(--data); box-shadow: inset 4px 0 0 var(--data); }
+.des-card-n { font-family: var(--font-ui); font-weight: 600; overflow-wrap: anywhere; }
+.des-card-s { font-size: var(--fs-xs); color: var(--txt-2); overflow-wrap: anywhere; }
+.des-card-v { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); margin-top: var(--sp-1); }
+.des-card-v b { font-family: var(--font-display); font-size: var(--fs-xl); letter-spacing: var(--tr-display); }
+.des-card-p { font-size: var(--fs-xs); color: var(--txt-2); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
+.des-chispa { width: 100%; height: 30px; margin-top: var(--sp-1); color: var(--data-txt); }
+.des-det { display: grid; gap: var(--sp-3); }
+.des-det-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); margin: var(--sp-5) 0 var(--sp-3); }
+.des-det-cab .pf-h { margin: 0; }
+.des-det-s { margin: var(--sp-1) 0 0; font-size: var(--fs-sm); color: var(--txt-2); }
+@media (prefers-reduced-motion: reduce) { .des-card { transition: none; } }
