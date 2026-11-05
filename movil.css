@@ -216,3 +216,25 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
   .bb-item, .bb-item.active { flex: 1 1 0; padding: 0 2px; }
   .bb-item.active .bb-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 }
+
+/* ── Cabecera de perfil en celular (auditoría global) ────────────────────────────────────────────────────────────────────
+   En 360 px medía 641 px de alto (el 87 % de la pantalla): avatar de 88 arriba, nombre en columna, chips, y el anillo de
+   120 debajo. Ahora avatar y nombre comparten fila, el anillo baja a 88 junto a su leyenda, y los márgenes se reducen:
+   mide ~300 px y las pestañas del perfil quedan a la vista sin desplazarse. */
+.perfil-cab { gap: var(--sp-4); padding-block: var(--sp-5) calc(var(--sp-5) + 28px); }
+.perfil-id, .perfil--panel .perfil-id { flex-direction: row; align-items: center; gap: var(--sp-4); }
+.perfil-av, .perfil--panel .perfil-av { --av: 64px; border-width: 3px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--cyan-400) 18%, transparent); }
+.perfil-nombre, .perfil--panel .perfil-nombre { font-size: var(--fs-xl); line-height: 1; }
+.perfil-chips { margin-top: var(--sp-2); }
+.perfil-resumen .anillo, .perfil--panel .perfil-resumen .anillo { --tam: 88px; }
+.perfil-resumen .anillo circle { stroke-width: 11; }
+@media (pointer: coarse) { .v2-det > summary { min-height: 44px; padding-block: 11px; box-sizing: border-box; } }
+/* El texto del perfil deja de ser una columna estrecha junto al avatar: avatar + nombre en la primera línea; chips, correo y
+   acciones ocupan el ancho completo debajo. */
+.perfil-id, .perfil--panel .perfil-id { flex-wrap: wrap; }
+.perfil-id-txt { display: contents; }
+.perfil-nombre { flex: 1 1 0; min-width: 0; }
+.perfil-chips, .perfil-email, .perfil-acciones { flex: 1 1 100%; margin-top: 0; }
+.perfil-acciones { gap: var(--sp-2); }
+.perfil-accion { flex: 1 1 auto; justify-content: center; padding-inline: var(--sp-3); }
+.perfil-accion i, .perfil-accion svg { display: none; }

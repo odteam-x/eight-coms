@@ -1120,3 +1120,11 @@ a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }
 }
 @media (min-width: 768px) and (max-width: 1023px) { .con-rail .amain { --rail-cur: var(--rail-w-min); } }
 @media (min-width: 1600px) { .con-rail .amain { --amain-max: 1440px; } }
+
+/* ═══ Etiqueta neutra = texto, no píldora (auditoría global) ═══════════════════════════════════════════════════════════
+   «Sin evaluar» ×15, «IG falta» ×10, «No participa»… repetidos en cada fila de Seguimiento y Distritos dibujaban una pared de
+   píldoras grises que escondía las pocas etiquetas que sí piden atención (ámbar, coral, rojo). Lo neutro —la ausencia de un
+   dato, un estado sin consecuencia— pasa a texto atenuado sin fondo ni punto; la información se conserva entera y el color
+   queda reservado para lo que importa. Contraste: --txt-2 sobre las superficies, ya medido por tools/contraste.js. */
+.etiqueta.etq-gris { min-height: 0; padding: 0; background: transparent; color: var(--txt-2); font-weight: 500; }
+.etiqueta.etq-gris::before { display: none; }

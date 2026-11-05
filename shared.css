@@ -280,6 +280,9 @@ html { scroll-behavior:smooth; scrollbar-width:thin; scrollbar-color:var(--scrol
 ::-webkit-scrollbar-track  { background:var(--s1); }
 ::-webkit-scrollbar-thumb  { background:var(--scrollbar-c); border-radius: 3px; }
 body { background:var(--bg); color:var(--txt); font-family:var(--font-body); font-size:16px; line-height:1.6; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased; transition:background .25s, color .25s; }
+/* El <small> del navegador es `smaller` (0.83 del padre): dentro de un texto en --fs-sm o --fs-xs bajaba a 11,6 px, por debajo del mínimo del
+   sistema. Sin tamaño propio, un <small> nunca baja de --fs-xs. */
+small { font-size: max(var(--fs-xs), .85em); }
 a { color:inherit; text-decoration:none; }
 button { cursor:pointer; border:none; background:none; font-family:inherit; color:inherit; }
 img { display:block; max-width:100%; }

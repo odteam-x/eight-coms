@@ -20,16 +20,17 @@
   window.__rec = function () {
     const out = { clip: [], texto: [], carrusel: [] };
     document.querySelectorAll('body *').forEach(el => {
-      if (!vis(el) || el.closest('[aria-hidden=true],[hidden],[inert],.sr-only,.skip-link')) return;
+      if (!vis(el) || el.closest('[aria-hidden=true],[hidden],[inert],.sr-only,.skip-link') || (el.closest('details:not([open])') && !el.closest('summary'))) return;
       const cs = getComputedStyle(el);
       if (cs.position === 'fixed') return;
       const r = el.getBoundingClientRect();
       // 1) ancestros que recortan
+      let sx = false, sy = false;   // ya pasó por un ancestro que hace scroll en ese eje: el usuario lo alcanza
       for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
         const pc = getComputedStyle(p);
         if (pc.position === 'fixed' && p !== el.parentElement) { /* sigue */ }
-        // un ancestro con scroll en el eje ofrece el contenido al usuario: no es recorte
-        if (/(auto|scroll)/.test(pc.overflowX) && r.right > p.getBoundingClientRect().right + 2) break;
+        if (/(auto|scroll)/.test(pc.overflowX)) sx = true;
+        if (/(auto|scroll)/.test(pc.overflowY)) sy = true;
         if (!recorta(pc)) continue;
         // un absoluto cuyo bloque contenedor está por encima del recortador no se recorta
         if (cs.position === 'absolute') {
@@ -38,7 +39,7 @@
         const pr = p.getBoundingClientRect();
         if (pr.width < 2 || pr.height < 2) continue;
         const dx = Math.max(pr.left - r.left, r.right - pr.right, 0), dy = Math.max(pr.top - r.top, r.bottom - pr.bottom, 0);
-        const ox = /(hidden|clip)/.test(pc.overflowX), oy = /(hidden|clip)/.test(pc.overflowY);
+        const ox = /(hidden|clip)/.test(pc.overflowX) && !sx, oy = /(hidden|clip)/.test(pc.overflowY) && !sy;
         if ((ox && dx > 2) || (oy && dy > 2)) {
           out.clip.push(sel(el) + ' (' + Math.round(r.width) + 'x' + Math.round(r.height) + ') en ' + sel(p) + ' −' + Math.round(ox ? dx : 0) + 'x/−' + Math.round(oy ? dy : 0) + 'y');
           break;

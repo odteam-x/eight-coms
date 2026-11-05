@@ -1,4 +1,4 @@
-# Auditoría global de UI/UX — primera pasada (noviembre 2026)
+# Auditoría global de UI/UX — dos pasadas (noviembre 2026)
 
 Rama `claude/amazing-moser-2f695c`, base = `7e1057d` (la rama de equipos/desempeño, que contiene `core/desempeno.js`,
 `equipos.css` y el centrado del admin; `main` todavía no los trae). **Esto es una primera pasada, no la reingeniería
@@ -61,3 +61,38 @@ Las pruebas SQL no se tocaron ni se corrieron (no hay `node_modules` instalado e
 
 `shared.css` (avatar), `equipos.css` + `core/equipos.js` (tarjeta de equipo), `movil.css` (barra inferior <360 px),
 `tools/pruebas/ui/audit-recortes.js` (nuevo), este documento.
+
+---
+
+## Segunda pasada — corrección de la primera
+
+**Error de la primera pasada:** el admin del simulador abre un modal «¿Con qué vas a trabajar?» (gestión y PE) que bloquea la
+carga de datos hasta que se elige. Mi barrido de las pestañas del admin corrió **con ese modal abierto, o sea sobre pestañas
+vacías**, y por eso salió «limpio». Desde ahora se usa `localStorage ec-admin-entrada = {"omitir":true}` antes de recargar
+(el simulador de tu repo no lo hace solo). Todo lo siguiente se midió con datos cargados (admin: 16 pestañas, secretaría: 10,
+miembro: 6; a 320/360/390 y 1440 px).
+
+| # | Hallazgo (medido) | Corrección | Antes → después |
+|---|---|---|---|
+| 7 | **Cabecera de perfil en celular:** avatar, nombre, chips, correo, 3 acciones y el anillo en una sola columna; con un nombre largo medía **641 px** de alto en 360 px (el 87 % de la pantalla). | `movil.css`: avatar + nombre en una línea, chips/correo/acciones a todo el ancho, anillo de 88 px, acciones sin icono en una fila | 641 → 375 px |
+| 8 | **Texto bajo el mínimo del sistema:** el `<small>` del navegador es «smaller» y dentro de un texto `--fs-sm` bajaba a 11,6–12,7 px (Distritos: «(de 84)», «(sobre 28)», «PE3»; Tareas: «· peso 1»). | `shared.css`: `small { font-size: max(var(--fs-xs), .85em) }` — en el origen, no por pantalla | 4 casos → 0 |
+| 9 | **Pared de píldoras grises:** «Sin evaluar» ×15 en Seguimiento, «IG falta» ×10 en Distritos, «No participa», «Admin»… escondían las pocas etiquetas que sí piden atención. | `premium.css`: `.etiqueta.etq-gris` pasa a texto atenuado (sin fondo ni punto). Contraste: sin fallos | Seguimiento 31 → 16 píldoras, Distritos 20 → 10 (conteo en simulador) |
+| 10 | **Tabla de Desempeño (1414 px en una tarjeta de 1112):** al desplazarse se pierde de quién es cada fila. | `evolucion.css`: columna de persona fija a la izquierda (≥768 px) | — |
+| 11 | `summary` de «Historial de notas» de 30 px de alto en el panel de perfil con puntero táctil. | `movil.css`: 44 px con `pointer: coarse` | 1 → 0 |
+| 12 | Detector: daba falsos positivos con contenido dentro de un scroll interno o de un `<details>` cerrado. | `audit-recortes.js` los ignora | — |
+
+**Resultado final con datos:** a 1440 px las 16 pestañas del admin y las 10 de la secretaría dan **cero** desbordes, recortes,
+controles sin nombre y textos bajo `--fs-xs`. El panel de perfil a 360 px con un nombre de 44 caracteres: cero recortes y
+cero objetivos táctiles pequeños.
+
+### Lo que sigue sin reproducirse
+- Captura 1 (media luna): sigue sin aparecer con el avatar real; el seguro de `min/max` queda. Si el usuario recuerda en qué
+  pantalla y a qué ancho salió, se puede cerrar de verdad.
+- Captura 2 (tarjetas vecinas cortadas): el código no tiene carrusel; lo más probable es que la captura sea un recorte de la
+  cuadrícula de 3 columnas. El simulador no trae equipos para el PE activo, así que la tarjeta nueva se verificó por el
+  marcado y las pruebas (`front-equipos.mjs`), no a ojo en pantalla.
+- Los pocos píxeles de «píldoras» antes/después son conteos de DOM del simulador, no una medida de percepción.
+
+### Pendiente real
+Reorganizar secciones/botones (requiere tu criterio sobre qué mover), rendimiento con Lighthouse en producción, y revisar a ojo
+el tema claro tras el cambio de `etq-gris` (el contraste numérico pasa; el aspecto no se vio en pantalla).

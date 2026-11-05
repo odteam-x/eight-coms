@@ -250,3 +250,11 @@
 .perfil-barra { border-radius: var(--r-cont); }
 .v2-resumen { border-radius: var(--r-card); }
 .tk-modal-acciones { border-radius: 0 0 var(--r-modal) var(--r-modal); }
+
+/* Tablas anchas (Seguimiento, Desempeño): la persona se queda fija a la izquierda mientras se recorren las columnas.
+   En escritorio la tabla de Desempeño mide más que su tarjeta (1414 en 1112 px): sin esto, al desplazarse se pierde de
+   quién es cada fila. Bajo 768 px las tablas son tarjetas y no aplica. */
+@media (min-width: 768px) {
+  .seg-tabla th.seg-persona, .seg-tabla td.seg-persona { position: sticky; left: 0; z-index: 1; background-color: var(--bg); box-shadow: 1px 0 0 var(--trazo); }
+  .pf-card .seg-tabla th.seg-persona, .pf-card .seg-tabla td.seg-persona { background-color: var(--surface-1); }
+}
