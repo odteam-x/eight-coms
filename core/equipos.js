@@ -200,16 +200,15 @@ const Equipos = (() => {
     const est = EST[e.estado] || EST.activo;
     return `
       <button type="button" class="eq-card" data-act="eq" data-arg="abrir" data-arg2="${e.equipo_id}" aria-label="Abrir el equipo ${escHtml(e.nombre)}">
-        <span class="eq-card-cab"><b class="eq-card-t">${escHtml(e.nombre)}</b><span class="etiqueta ${est.cls}">${est.txt}</span></span>
+        <span class="eq-card-cab"><b class="eq-card-t">${escHtml(e.nombre)}</b><span class="eq-estado eq-estado--${escHtml(e.estado || 'activo')}">${est.txt}</span></span>
         <span class="eq-card-sub">${escHtml(e.periodo_nombre)}${e.distrito ? ' · ' + escHtml(/^distrito/i.test(e.distrito) ? e.distrito : 'Distrito ' + e.distrito) : ''}</span>
         <span class="eq-card-sub">${e.responsable_nombre ? 'Responsable: ' + escHtml(e.responsable_nombre) : 'Sin responsable'}</span>
         ${barraAvance(e.avance_promedio)}
         <span class="eq-card-pie">
-          <span class="etiqueta etq-gris">${Number(e.integrantes)} integrante${e.integrantes === 1 ? '' : 's'}</span>
-          <span class="etiqueta ${e.tareas_abiertas ? 'etq-azul' : 'etq-gris'}">${Number(e.tareas_abiertas)} abierta${e.tareas_abiertas === 1 ? '' : 's'}</span>
+          <span class="eq-card-cifras">${Number(e.integrantes)} integrante${e.integrantes === 1 ? '' : 's'} · ${Number(e.tareas_abiertas)} abierta${e.tareas_abiertas === 1 ? '' : 's'}</span>
           ${e.tareas_por_revisar ? `<span class="etiqueta etq-ambar">${Number(e.tareas_por_revisar)} por revisar</span>` : ''}
           ${e.tareas_vencidas ? `<span class="etiqueta etq-coral">${Number(e.tareas_vencidas)} vencida${e.tareas_vencidas === 1 ? '' : 's'}</span>` : ''}
-          ${e.alertas ? `<span class="etiqueta etq-coral">${Number(e.alertas)} por revisar</span>` : ''}
+          ${e.alertas ? `<span class="etiqueta etq-coral">${Number(e.alertas)} alerta${e.alertas === 1 ? '' : 's'}</span>` : ''}
         </span>
       </button>`;
   }
@@ -614,10 +613,10 @@ const Equipos = (() => {
         <h3 class="pf-h" id="eq-h-mis">${S.modo === 'secretaria' ? 'Equipos' : 'Mis equipos'}</h3>
         <div class="eq-grid">${S.equipos.map(e => `
           <button type="button" class="eq-card" data-act="eq" data-arg="abrir-miembro" data-arg2="${e.equipo_id}" aria-label="Abrir el equipo ${escHtml(e.nombre)}">
-            <span class="eq-card-cab"><b class="eq-card-t">${escHtml(e.nombre)}</b><span class="etiqueta ${(EST[e.estado] || EST.activo).cls}">${(EST[e.estado] || EST.activo).txt}</span></span>
-            <span class="eq-card-sub">${e.responsable_nombre ? 'Responsable: ' + escHtml(e.responsable_nombre) : 'Sin responsable'} · ${Number(e.integrantes)} integrantes</span>
+            <span class="eq-card-cab"><b class="eq-card-t">${escHtml(e.nombre)}</b><span class="eq-estado eq-estado--${escHtml(e.estado || 'activo')}">${(EST[e.estado] || EST.activo).txt}</span></span>
+            <span class="eq-card-sub">${e.responsable_nombre ? 'Responsable: ' + escHtml(e.responsable_nombre) : 'Sin responsable'}</span>
             ${barraAvance(e.avance_promedio)}
-            <span class="eq-card-pie"><span class="etiqueta ${e.tareas_abiertas ? 'etq-azul' : 'etq-gris'}">${Number(e.tareas_abiertas)} abierta${e.tareas_abiertas === 1 ? '' : 's'}</span>
+            <span class="eq-card-pie"><span class="eq-card-cifras">${Number(e.integrantes)} integrante${e.integrantes === 1 ? '' : 's'} · ${Number(e.tareas_abiertas)} abierta${e.tareas_abiertas === 1 ? '' : 's'}</span>
               ${e.tareas_vencidas ? `<span class="etiqueta etq-coral">${Number(e.tareas_vencidas)} vencida${e.tareas_vencidas === 1 ? '' : 's'}</span>` : ''}</span>
           </button>`).join('')}</div>
         ${S.tareas.length ? `<h4 class="pf-sub">Tareas de equipo</h4><div class="tk-lista">${S.tareas.map(tareaHTML).join('')}</div>` : ''}

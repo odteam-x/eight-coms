@@ -340,6 +340,9 @@ img { display:block; max-width:100%; }
   position: relative; isolation: isolate; flex: none;
   display: inline-grid; place-items: center;
   width: var(--av); height: var(--av); aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden;
+  /* Un círculo nunca se deforma: en un contenedor flex/grid estrecho, un avatar sin mínimo se aplasta a elipse y su aro
+     cian queda como una media luna. min/max fijan el diámetro en cualquier contenedor. */
+  min-width: var(--av); max-width: var(--av); min-height: var(--av); max-height: var(--av);
   background: var(--navy-900); color: var(--on-brand);
   font-family: var(--font-display); font-weight: 700; font-size: calc(var(--av) * .4); line-height: 1; letter-spacing: .02em; text-transform: uppercase;
   user-select: none; -webkit-user-select: none;

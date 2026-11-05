@@ -207,3 +207,12 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .cab-btn svg, .cab-btn i { width: 24px; height: 24px; }
 /* La descripción bajo el título es contexto, no contenido: dos líneas como máximo y en tono suave */
 .pantalla-cab > p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--txt-2); }
+
+/* ── 320–359 px: la barra inferior con 6 destinos dejaba cada icono en 41 px (mínimo táctil: 44). A este ancho el destino activo
+   no se ensancha para mostrar su nombre (no cabe): se queda del mismo tamaño y se distingue por su cápsula; el nombre sigue
+   disponible para lector de pantalla y como aria-label. ───────────────────────────────────────────────────────────────── */
+@media (max-width: 359px) {
+  .bottom-bar { padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right)); gap: 2px; }
+  .bb-item, .bb-item.active { flex: 1 1 0; padding: 0 2px; }
+  .bb-item.active .bb-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}

@@ -115,3 +115,15 @@
 .tq-equipo { margin-top: var(--sec-main, var(--sp-6)); display: grid; gap: var(--sp-3); }
 .eq-grupo { display: grid; gap: var(--sp-3); margin-top: var(--sp-4); }
 .eq-grupo-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* ── Tarjeta de equipo, más calmada (auditoría global) ──────────────────
+   Antes: estado + 2 conteos + avisos, todo en píldoras (5-6 por tarjeta). Ahora el estado es un punto con texto, los
+   conteos normales van en una línea de texto y solo lo que pide atención (por revisar, vencidas, alertas) es etiqueta. */
+.eq-estado { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--txt-2); white-space: nowrap; }
+.eq-estado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--etq-gris, var(--txt-muted)); }
+.eq-estado--activo::before { background: var(--etq-verde); }
+.eq-estado--archivado::before { background: var(--etq-ambar); }
+.eq-card-cifras { font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt); }
+.eq-card-pie { align-items: center; }
+.eq-grid { align-items: stretch; }
+.eq-card { align-content: start; }
