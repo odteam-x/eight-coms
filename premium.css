@@ -1106,3 +1106,17 @@ a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }
 .panel .avisos-barra .chip-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
 .panel .avisos-barra .chip-row::-webkit-scrollbar { display: none; }
 .panel .avisos-barra .chip-row .chip { flex: none; }
+
+/* ── Admin: el contenido se centra en el espacio a la derecha del rail y la luz llega al borde ───────────
+   .amain llevaba margin-left = ancho del rail y un tope de 1200/1440 px: en pantallas anchas el contenido
+   quedaba pegado al rail, sobraba una franja a la derecha y el degradado (que vive en .amain) se cortaba en
+   el borde de la caja. Ahora la caja ocupa todo el ancho disponible y el tope pasa a ser relleno lateral:
+   el contenido queda centrado y la luz ambiental se extiende hasta el borde de la ventana. */
+@media (min-width: 768px) {
+  .con-rail .amain { --rail-cur: var(--rail-w); --amain-max: 1200px; max-width: none;
+    padding-left: max(24px, env(safe-area-inset-left), calc((100% - var(--rail-cur) - var(--amain-max)) / 2));
+    padding-right: max(24px, env(safe-area-inset-right), calc((100% - var(--rail-cur) - var(--amain-max)) / 2)); }
+  .con-rail.rail-colapsado .amain { --rail-cur: var(--rail-w-min); }
+}
+@media (min-width: 768px) and (max-width: 1023px) { .con-rail .amain { --rail-cur: var(--rail-w-min); } }
+@media (min-width: 1600px) { .con-rail .amain { --amain-max: 1440px; } }
