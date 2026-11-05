@@ -220,6 +220,7 @@ async function initUI() {
         { titulo: sec ? 'Mi espacio' : '', items: [
           { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+          { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
         ]},
@@ -665,7 +666,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -683,6 +684,7 @@ function switchTab(tab, btn) {
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
+  if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');

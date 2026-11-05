@@ -132,6 +132,7 @@ async function initUI() {
       grupos: [{ items: [
         { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
+        { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
         { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
         { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
       ]}],
@@ -260,7 +261,7 @@ function renderCalendario() {
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
 const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario' };
-const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
+const _userTabParent = { inicio:'inicio', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -273,6 +274,7 @@ function switchTab(tab, btn) {
   }
 
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
+  if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });

@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="premium.css">
   <link rel="stylesheet" href="evolucion.css">
   <link rel="stylesheet" href="equipos.css">
+  <link rel="stylesheet" href="desempeno.css">
   <link rel="stylesheet" href="estadisticas-distrito.css">
   <link rel="stylesheet" href="distritos.css">
   <link rel="stylesheet" href="reporte-general.css">
@@ -249,6 +250,15 @@
     </div>
     <div class="filtros-fila" id="seg-controles"></div>
     <div id="seguimiento-host"></div>
+  </div>
+
+  <!-- ── TAB: DESEMPEÑO (equipo, personas y períodos; core/desempeno.js) ── -->
+  <div id="tab-desempeno" class="atab-content">
+    <div class="pantalla-cab">
+      <h1 class="pantalla-t">Desempeño</h1>
+      <p>Cómo le va al equipo y a cada persona a lo largo de los períodos: evolución, comparación entre períodos y entre personas.</p>
+    </div>
+    <div id="desempeno-host"></div>
   </div>
 
   <!-- ── TAB: DISTRITOS ── -->
@@ -604,6 +614,7 @@
 <script src="core/fondo.js"></script>
 <script src="core/bienvenida.js"></script>
 <script src="core/seguimiento.js"></script>
+<script src="core/desempeno.js"></script>
 <script src="core/reporte-equipo.js"></script>
 <script src="core/reporte-general.js"></script>
 <script src="core/preferencias.js"></script>

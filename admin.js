@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
         { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
+        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
@@ -2406,7 +2407,7 @@ function montarTareas() {
 const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
-  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
@@ -2493,6 +2494,7 @@ function switchTabAdminHooks(tab) {
     Store.marcarCargado('overview'); loadOverview();
   }
   if (tab === 'reportes') Reportes.abrir();
+  if (tab === 'desempeno') Desempeno.montarAdmin(document.getElementById('desempeno-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'admin' }); }
 }
 
