@@ -79,13 +79,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     grupos: [
       { items: [
         { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel'    },
+        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
         { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
-        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
