@@ -216,20 +216,26 @@ async function initUI() {
       activo: 'inicio', calTab: 'calendario',
       pie: { nombre: CU.name || CU.user,
              badge: sec ? 'Secretario de Comunicaciones' : 'Creator' },
-      grupos: [
-        { titulo: sec ? 'Mi espacio' : '', items: [
-          { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
+      // Secretaría: cuatro destinos con sus secciones hermanas (core/rail.js · pintarHub). Antes eran nueve en dos grupos y «Entregas» / «Tareas» se confundían.
+      // Quien entra como creador ve los cinco de siempre, sin hubs.
+      grupos: sec ? [
+        { items: [
+          { tab:'inicio', icono:'house', etiqueta:'Inicio', fav: true },
+          { tab:'trabajos', icono:'folder-open', etiqueta:'Mi trabajo', fav: true, hijas: [
+            { tab:'trabajos', etiqueta:'Mis tareas' }, { tab:'calendario', etiqueta:'Calendario' } ] },
+          { tab:'distrito', icono:'map', etiqueta:'Mi distrito', fav: true, hijas: [
+            { tab:'distrito', etiqueta:'Distrito' }, { tab:'tareas', etiqueta:'Tareas del distrito' }, { tab:'seguimiento', etiqueta:'Seguimiento' }, { tab:'reportes', etiqueta:'Reportes' } ] },
+          { tab:'perfil', icono:'user-round', etiqueta:'Yo', fav: true, hijas: [
+            { tab:'perfil', etiqueta:'Mi perfil' }, { tab:'desempeno', etiqueta:'Mi desempeño' } ] },
+        ]},
+      ] : [
+        { items: [
+          { tab:'inicio',   icono:'house',       etiqueta:'Inicio' },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
-          { tab:'trabajos', icono:'folder-open', etiqueta: sec ? 'Mis tareas' : 'Entregas', fav: sec },
+          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas' },
         ]},
-        ...(sec ? [{ titulo: 'Mi distrito', items: [
-          { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
-          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas del distrito', fav: true },
-          { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
-          { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
-        ]}] : []),
       ],
     });
     montarAvatar(CU);

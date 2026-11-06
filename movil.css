@@ -257,3 +257,8 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .plegable[open] > summary { margin-bottom: var(--sp-3); }
 .plegable > summary:focus-visible { outline: 2px solid var(--action); outline-offset: 4px; border-radius: var(--r-fila); }
 @media (prefers-reduced-motion: reduce) { .plegable > summary::after { transition: none; } }
+
+/* Hub en celular: el rótulo del grupo sobra (la pestaña activa y la barra inferior ya lo dicen) y la fila no debe quedar bajo la cabecera fija. */
+.hub-nav { margin-top: var(--sp-3); margin-bottom: var(--sp-4); }
+.hub-nav-t { display: none; }
+.hub-nav-fila { width: 100%; }

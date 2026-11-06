@@ -110,3 +110,8 @@ Menú del administrador: **de 15 destinos a 4 + Configuración** (cabe en 778 px
 - *Actividades* pasa de Configuración a **Trabajo** (se usa a diario para crear eventos).
 - Ninguna pantalla cambió por dentro; las rutas y los enlaces de avisos siguen funcionando.
 **Pendiente de esta estructura:** aplicar el mismo esquema a la secretaría (hoy 10 destinos) y validar los nombres con quienes administran.
+
+## Fase 2 (hecha): misma estructura para la secretaría
+Menú de la secretaría: de **9 destinos en dos grupos a 4**: **Inicio** · **Mi trabajo** (Mis tareas · Calendario) · **Mi distrito** (Distrito · Tareas del distrito · Seguimiento · Reportes) · **Yo** (Mi perfil · Mi desempeño). Barra inferior móvil: los cuatro, directos (antes «Mis tareas» y «Tareas del distrito» convivían sin distinguirse).
+Medido a 390 px en las 9 secciones: 0 desbordes, 0 objetivos pequeños, 0 controles sin nombre, 0 recortes; el destino correcto se marca en cada sección y el título móvil dice la sección. Quien entra como creador sigue viendo sus cinco destinos de siempre.
+**Pendiente:** el portal del miembro (5 destinos) no necesita hubs; validar los nombres («Hoy», «Trabajo», «Resultados», «Yo») con usuarios reales antes de desplegar.
