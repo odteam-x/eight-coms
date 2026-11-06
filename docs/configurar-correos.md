@@ -94,3 +94,11 @@ Sin credenciales: `cd tools/pruebas && npm run sql && npm run correo` (cola, des
 
 ## 13. Qué sale por correo por defecto (0042)
 Solo los avisos **esenciales** (11: tarea asignada o cambiada, devolución, tarea vencida, calificación nueva o cambiada, equipo, acceso) salen por correo sin que nadie haga nada. Los **opcionales** (9: por vencer, entrega registrada, tarea aprobada, actividad nueva o recordatorio, observación, estado cambiado, evaluaciones sin publicar, tarea bloqueada) llegan siempre a la campana y solo van por correo si la persona los enciende en Avisos → Preferencias. Así 25 personas no generan ~50 correos por cada tarea y nota, y se cuida el tope de ~100 destinatarios al día de una cuenta Gmail personal. Para cambiar el valor de un tipo: `UPDATE notif_tipos SET correo_default = true WHERE tipo = '…' AND NOT esencial;`.
+
+## 14. Secreto de la tarea programada (0053) — hazlo ANTES de aplicar 0053
+La función `enviar-notificaciones` ya no acepta a cualquiera que tenga la clave anon (pública): exige la cabecera `x-cron-secret`.
+1. Genera un valor largo al azar (≥ 32 caracteres).
+2. Edge Functions → Secrets: `CRON_SECRET` = ese valor, y vuelve a desplegar `enviar-notificaciones`.
+3. Vault: `select vault.create_secret('<el valor>', 'cron_secret');`
+4. Aplica `supabase/migrations/0053_cron_secreto.sql` (el job lee el secreto de Vault; no queda en el repositorio).
+Si la función se despliega sin `CRON_SECRET`, responde 401 a todo (falla cerrado) y los avisos esperan en la cola sin perderse.

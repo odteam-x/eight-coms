@@ -17,13 +17,15 @@
 // SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los inyecta Supabase. SITIO_URL es opcional.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
-import { leerConfig, crearPuente, procesarLote } from './nucleo.mjs';
+import { leerConfig, crearPuente, procesarLote, llamadaAutorizada } from './nucleo.mjs';
 
 const LOTE = 25;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, motivo: 'Usa POST' }, 405);
+  // La clave anon es pública: pasa la verificación de JWT pero no identifica a nadie. El secreto de la tarea programada sí (docs/configurar-correos.md).
+  if (!llamadaAutorizada(req.headers.get('x-cron-secret'), Deno.env.get('CRON_SECRET'))) return json({ ok: false, motivo: 'No autorizado' }, 401);
   const cfg = leerConfig(Deno.env.toObject());
   if (cfg.errores.length) console.warn('Configuración de correo:', cfg.errores.join(' | '));
   if (!cfg.listo) {

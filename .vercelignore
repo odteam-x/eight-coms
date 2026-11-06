@@ -1,0 +1,13 @@
+# Lo que NO se despliega. El sitio es estático y Vercel sirve cada archivo que recibe: sin esta lista, cualquiera puede
+# descargar el esquema de la base, las migraciones (con las reglas de acceso), el código de las funciones de servidor,
+# las pruebas, la documentación interna y CLAUDE.md. Ninguno de estos archivos lo carga el sitio (comprobado en tools/pruebas/front-despliegue.mjs).
+supabase/
+docs/
+tools/
+.github/
+*.sql
+CLAUDE.md
+.env.example
+package.json
+package-lock.json
+node_modules/

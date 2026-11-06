@@ -248,5 +248,11 @@ const nf = fs.readFileSync(DIR + '../../core/notificaciones.js', 'utf8');
 ok(cat.every(t => new RegExp('\\b' + t.tipo + ':\\s*\\{').test(nf)), 'core/notificaciones.js tiene icono y texto para los ' + cat.length + ' tipos (ninguno cae en «Aviso» genérico)');
 for (const viejo of ['nota_publicada', 'nota_corregida', 'tarea_devuelta', 'plazo_movido', 'entrega_por_revisar']) ok(new RegExp(viejo + ':\\s*[\'"]').test(nf), 'y entiende el nombre anterior «' + viejo + '» (base sin 0040)');
 
+console.log('\n[secreto de la tarea programada]');
+ok(N.llamadaAutorizada('s'.repeat(32), 's'.repeat(32)) === true, 'acepta el secreto correcto');
+ok(N.llamadaAutorizada(null, 's'.repeat(32)) === false && N.llamadaAutorizada('', 's'.repeat(32)) === false, 'rechaza si no llega la cabecera');
+ok(N.llamadaAutorizada('x'.repeat(32), 's'.repeat(32)) === false && N.llamadaAutorizada('s'.repeat(31), 's'.repeat(32)) === false, 'rechaza un secreto distinto o de otra longitud');
+ok(N.llamadaAutorizada('', '') === false && N.llamadaAutorizada('corto', 'corto') === false && N.llamadaAutorizada('abc', undefined) === false, 'falla cerrado: sin secreto configurado (o muy corto) no se autoriza a nadie');
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

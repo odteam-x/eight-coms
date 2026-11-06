@@ -55,6 +55,20 @@ export function urlAviso({ sitio, es_admin, tipo_miembro, destino, ref_tipo, ref
 }
 
 /** Lee y valida la configuración. Nunca lanza: devuelve `errores` y `listo`. */
+/**
+ * ¿Quien llama conoce el secreto de la tarea programada? La función se invoca con la clave anon (pública: va en config.js) solo para pasar la
+ * verificación de JWT de Supabase, así que esa clave NO identifica a nadie. Se exige además un secreto propio (CRON_SECRET) en la cabecera
+ * x-cron-secret. Comparación en tiempo constante. Sin secreto configurado se rechaza todo (falla cerrado).
+ */
+export function llamadaAutorizada(recibido, esperado) {
+  const a = String(recibido ?? ''), b = String(esperado ?? '');
+  if (b.length < 16) return false;                       // secreto ausente o demasiado corto: no hay forma de autorizar
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
 export function leerConfig(env) {
   const get = (k) => String(env[k] ?? '').trim();
   const errores = [];
