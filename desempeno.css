@@ -54,3 +54,16 @@
 .des-det-cab .pf-h { margin: 0; }
 .des-det-s { margin: var(--sp-1) 0 0; font-size: var(--fs-sm); color: var(--txt-2); }
 @media (prefers-reduced-motion: reduce) { .des-card { transition: none; } }
+
+/* ── Tarjeta de persona, sin «look de plantilla» (auditoría global) ──────────────────────────────────────────────────────
+   Quitado: la franja cian de 4 px a la izquierda (inset shadow: con el radio grande se curvaba y quedaba como una media luna
+   pegada al borde), el borde cian completo al elegir, la píldora rellena de nivel junto a un número enorme y el radio de
+   contenedor (--r-cont) en un elemento de lista. Ahora: fila compacta, nivel como punto + texto, el elegido se marca con un
+   anillo de foco y fondo más claro (no solo color: también grosor). */
+.des-card { border-radius: var(--r-fila); background: var(--surface-1); padding: var(--sp-3) var(--sp-4); gap: 2px; }
+.des-card:hover { background: var(--surface-2); }
+.des-card--on { background: var(--surface-3); border-color: transparent; box-shadow: none; outline: 2px solid var(--action); outline-offset: -2px; }
+.des-card-v { gap: var(--sp-3); margin-top: var(--sp-2); align-items: baseline; }
+.des-card-v b { font-size: var(--fs-lg); line-height: 1; }
+.des-card .nivel-badge { padding: 0; background: transparent; color: var(--txt-2); font-weight: 600; gap: var(--sp-2); }
+.des-card .nivel-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--nivel); }
