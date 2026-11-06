@@ -413,3 +413,35 @@ button.pcard { cursor: pointer; }
 .gafete-lienzo { width: min(100%, 340px); height: auto; aspect-ratio: 638 / 1011; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
 .gafete-acc { display: flex; flex-wrap: wrap; gap: var(--sp-3); justify-content: center; }
 .gafete-nota { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.5; color: var(--txt-2); }
+
+/* ── Calendario: una actividad de varios días es UNA barra continua ────────────────────────────────────────────────────
+   Antes cada día llevaba un punto y no había forma de ver que eran la misma actividad. Ahora cada día de la actividad pinta
+   un tramo de barra en su carril (misma altura todos los días); los tramos se unen cruzando el hueco de la cuadrícula y el
+   título se escribe el primer día y cada lunes. Los eventos de un solo día siguen siendo puntos. */
+.cal2-grid { --cal-gap: 6px; --cal-pad: 8px; }
+.cal2-bandas { display: flex; flex-direction: column; gap: 2px; margin-block: 2px; min-width: 0; }
+.cal2-banda {
+  --ext: calc(var(--cal-pad) + 1px);                          /* borde + relleno de la celda: la barra llega al canto */
+  display: block; height: 18px; min-width: 0; margin-inline: calc(var(--ext) * -1);
+  background: color-mix(in srgb, var(--etq, var(--etq-gris)) 34%, var(--surface-3)); color: var(--txt);
+  font: 600 var(--fs-xs)/18px var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cal2-banda > span { display: block; padding-inline: calc(var(--ext) + 6px) 4px; overflow: hidden; text-overflow: ellipsis; }
+.cal2-banda--vacia { background: transparent; }
+.cal2-banda--ini, .cal2-banda--solo { margin-left: 0; border-radius: 6px 0 0 6px; }
+.cal2-banda--solo { margin-right: 0; border-radius: 6px; }
+.cal2-banda--ini > span, .cal2-banda--solo > span { padding-left: 6px; }
+.cal2-banda--ini, .cal2-banda--med { margin-right: calc((var(--ext) + var(--cal-gap) / 2) * -1); }
+.cal2-banda--med, .cal2-banda--fin { margin-left: calc((var(--ext) + var(--cal-gap) / 2) * -1); }
+.cal2-banda--fin { margin-right: 0; border-radius: 0 6px 6px 0; }
+.cal2-mas { font: 600 var(--fs-xs)/1 var(--font-ui); color: var(--txt-2); }
+@media (max-width: 600px) {
+  .cal2-grid { --cal-gap: 3px; --cal-pad: 4px; }
+  .cal2-banda { height: 10px; }
+  .cal2-banda > span { display: none; }                      /* en celular no cabe el título: la barra + la agenda del día lo dicen */
+}
+/* La barra se parte en el borde de la semana: cada fila termina y empieza con extremo redondeado, sin salirse de la cuadrícula. */
+.cal2-banda--corta-der { margin-right: 0; border-radius: 0 6px 6px 0; }
+.cal2-banda--corta-izq { margin-left: 0; border-radius: 6px 0 0 6px; }
+.cal2-banda--corta-izq > span { padding-left: 6px; }
+.cal2-banda--ini.cal2-banda--corta-der, .cal2-banda--fin.cal2-banda--corta-izq { border-radius: 6px; }

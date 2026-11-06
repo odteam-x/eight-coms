@@ -73,7 +73,7 @@ const Calendario = (() => {
       const ini = deIso(x.fecha_inicio), fin = deIso(x.fecha_fin || x.fecha_inicio);
       for (let d = new Date(ini); d <= fin && d - ini < 1000 * 3600 * 24 * 120; d.setDate(d.getDate() + 1)) {
         eventos.push({ fecha: iso(d), tipo: 'actividad', cls: 'act', tono: tonoDe(x.etiqueta_id), etiquetaId: x.etiqueta_id ?? null,
-          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.alcance === 'seleccion' ? 'Personas elegidas' : x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito });
+          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.alcance === 'seleccion' ? 'Personas elegidas' : x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito, multi: !!(x.fecha_fin && x.fecha_fin > x.fecha_inicio) });
       }
     }
     S.eventos = eventos;
@@ -97,21 +97,64 @@ const Calendario = (() => {
       : !S.ocultas.has(String(e.etiquetaId ?? 'none')));
   }
 
+  /** Actividades de varios días que tocan la cuadrícula visible, con un carril fijo cada una (la misma altura en todos sus días),
+   *  para que se lean como UNA barra continua y no como puntos sueltos. Solo coloca; no calcula nada de negocio. */
+  function _barras(dias) {
+    const desde = iso(dias[0]), hasta = iso(dias[dias.length - 1]);
+    const lista = (S.actividades || [])
+      .filter(x => x.fecha_fin && x.fecha_fin > x.fecha_inicio && x.fecha_inicio <= hasta && x.fecha_fin >= desde && !S.ocultas.has(String(x.etiqueta_id ?? 'none')))
+      .sort((a, b) => a.fecha_inicio.localeCompare(b.fecha_inicio) || b.fecha_fin.localeCompare(a.fecha_fin));
+    const carriles = [];                                         // carriles[i] = fecha_fin de lo último puesto en ese carril
+    const out = new Map();                                       // fecha -> [{ x, carril, pos, rotulo }]
+    for (const x of lista) {
+      const ini = x.fecha_inicio < desde ? desde : x.fecha_inicio, fin = x.fecha_fin > hasta ? hasta : x.fecha_fin;
+      let c = carriles.findIndex(f => f < ini); if (c < 0) c = carriles.length;
+      carriles[c] = fin;
+      const tono = (S.etiquetas.find(e => String(e.id) === String(x.etiqueta_id)) || {}).tono || 'gris';
+      for (let d = deIso(ini); iso(d) <= fin; d.setDate(d.getDate() + 1)) {
+        const f = iso(d), esIni = f === x.fecha_inicio, esFin = f === x.fecha_fin;
+        const pos = esIni && esFin ? 'solo' : esIni ? 'ini' : esFin ? 'fin' : 'med';
+        // el título se escribe el primer día y de nuevo el lunes de cada semana (si no, una barra larga queda muda)
+        const rotulo = esIni || d.getDay() === 1 || f === desde;
+        if (!out.has(f)) out.set(f, []);
+        out.get(f).push({ x, carril: c, pos, rotulo, tono, finSemana: d.getDay() === 0 && (pos === 'ini' || pos === 'med'), iniSemana: d.getDay() === 1 && (pos === 'med' || pos === 'fin') });
+      }
+    }
+    return { out, n: carriles.length };
+  }
+
+  function _bandasHTML(bs, n, max) {
+    if (!n) return '';
+    const filas = [];
+    for (let c = 0; c < Math.min(n, max); c++) {
+      const b = bs.find(x => x.carril === c);
+      filas.push(b
+        ? `<span class="cal2-banda cal2-banda--${b.pos}${b.finSemana ? ' cal2-banda--corta-der' : ''}${b.iniSemana ? ' cal2-banda--corta-izq' : ''}" style="--etq:var(--etq-${escHtml(b.tono)})" aria-hidden="true">${b.rotulo ? `<span>${escHtml(b.x.titulo)}</span>` : ''}</span>`
+        : '<span class="cal2-banda cal2-banda--vacia" aria-hidden="true"></span>');
+    }
+    const resto = bs.filter(x => x.carril >= max).length;
+    return `<span class="cal2-bandas" aria-hidden="true">${filas.join('')}${resto ? `<b class="cal2-mas">+${resto}</b>` : ''}</span>`;
+  }
+
   function _html() {
     const evs = _filtrados();
+    const barras = _barras(_celdas());
+    const CARRILES_VISIBLES = 2;
     const porDia = new Map();
     for (const e of evs) { if (!porDia.has(e.fecha)) porDia.set(e.fecha, []); porDia.get(e.fecha).push(e); }
     const hoy = hoyIso();
     const celdas = _celdas().map(d => {
       const f = iso(d), fuera = d.getMonth() !== S.mes.getMonth();
-      const lista = porDia.get(f) || [];
+      const lista = (porDia.get(f) || []).filter(e => !e.multi);   // los de varios días van como barra, no como punto
+      const bs = barras.out.get(f) || [];
       const pe = periodoDe(f);
       const primeroPe = pe && pe.inicio === f;
       return `<button type="button" class="cal2-dia${fuera ? ' cal2-dia--fuera' : ''}${f === hoy ? ' cal2-dia--hoy' : ''}${f === S.dia ? ' cal2-dia--sel' : ''}${pe ? ' cal2-dia--pe' : ''}"
-          data-act="calDia" data-arg="${f}" aria-label="${escHtml(`${d.getDate()} de ${MESES[d.getMonth()]}${lista.length ? ', ' + lista.length + ' evento' + (lista.length === 1 ? '' : 's') : ''}`)}"
+          data-act="calDia" data-arg="${f}" aria-label="${escHtml(`${d.getDate()} de ${MESES[d.getMonth()]}${(lista.length + bs.length) ? ', ' + (lista.length + bs.length) + ' evento' + ((lista.length + bs.length) === 1 ? '' : 's') + (bs.length ? ' (' + bs.map(b => b.x.titulo).join(', ') + ')' : '') : ''}`)}"
           aria-pressed="${f === S.dia}">
         <span class="cal2-num">${d.getDate()}</span>
         ${primeroPe ? `<span class="cal2-pe">${escHtml(pe.pe)}</span>` : ''}
+        ${_bandasHTML(bs, barras.n, CARRILES_VISIBLES)}
         <span class="cal2-puntos">${lista.slice(0, 4).map(e => `<i class="cal2-punto cal2-punto--${e.cls}"${e.tono ? ` style="--etq:var(--etq-${e.tono})"` : ''}></i>`).join('')}${lista.length > 4 ? `<b>+${lista.length - 4}</b>` : ''}</span>
       </button>`;
     }).join('');
