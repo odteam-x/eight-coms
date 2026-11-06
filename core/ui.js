@@ -192,7 +192,7 @@ function plegarEnCelular(raiz, selector = '.pf-card--ancha', { abiertas = 1 } = 
   if (!raiz || !window.matchMedia('(max-width: 767px)').matches) return;
   [...raiz.querySelectorAll(selector)].forEach((card, i) => {
     if (card.dataset.plegada || card.closest('details')) return;
-    const h = [...card.children].find(c => /^H[23]$/.test(c.tagName));
+    const h = [...card.children].find(c => /^H[23]$/.test(c.tagName) || c.classList.contains('panel-t-cab'));
     if (!h) return;
     card.dataset.plegada = '1';
     const det = document.createElement('details'); det.className = 'plegable'; if (i < abiertas) det.open = true;

@@ -142,3 +142,18 @@
 .pf-card-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--trazo); margin-bottom: var(--sp-3); }
 .inicio-eval .anillo { --tam: 148px; }
 @media (max-width: 899px) { .inicio-grid { grid-template-columns: minmax(0, 1fr); } .inicio-grid > .pf-card--cian { grid-row: auto; } }
+
+/* 23 · Un solo componente de pestañas: las pestañas internas (.seg: perfil, desempeño, distrito…) se dibujan igual que las de sección (.hub-btn):
+   texto + subrayado coral en la activa, peso 700. Antes eran tres estilos (cápsula, tarjeta, subrayado). */
+.seg { display: flex; gap: var(--sp-5); padding: 0; border-radius: 0; background: none; box-shadow: none; border-bottom: 1px solid var(--trazo); overflow-x: auto; }
+.seg-btn { min-height: 44px; padding: 0; border: 0; border-bottom: 3px solid transparent; border-radius: 0; margin-bottom: -1px; background: none; box-shadow: none;
+  color: var(--txt-2); font: 600 var(--fs-sm)/1 var(--font-ui); white-space: nowrap; }
+.seg-btn:hover { background: none; color: var(--txt); }
+.seg-btn.active, .seg-btn[aria-selected="true"] { background: none; box-shadow: none; color: var(--txt); font-weight: 700; border-bottom-color: var(--marca); }
+.seg-btn:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+
+/* 24 · Un solo indicador: .kpi, .pf-kpi, .v2-kpi y .tarjeta--kpi comparten forma (cifra sobre filete, sin ficha rellena). Lo que pide atención sube el filete a --marca. */
+.kpi, .pf-kpi, .v2-kpi, .tarjeta--kpi { background: none; border: 0; border-top: 1px solid var(--trazo); border-radius: 0; box-shadow: none; clip-path: none; padding: var(--sp-3) 0 0; }
+.kpi-aviso, .kpi--aviso, .pf-kpi--aviso, .v2-kpi--aviso { border-top: 3px solid var(--marca); }
+.v2-kpi-val, .pf-kpi-val { font-size: var(--fs-xl); line-height: .95; letter-spacing: var(--tr-display); }
+

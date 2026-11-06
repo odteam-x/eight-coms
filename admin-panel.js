@@ -119,6 +119,7 @@ const PanelAdmin = (() => {
         ${tarjeta('panel-t--ancha', 'Mapa de calor', `Cada fila es una persona y cada columna, una ${d.v2 ? 'competencia común' : 'criterio'}. El color es el nivel.`, mapaCalor(d))}
         ${tarjeta('panel-t--ancha', 'Los mejores resultados', '', ranking(d))}
       </div>`;
+    if (typeof plegarEnCelular === 'function') plegarEnCelular(el, '.panel-t', { abiertas: 2 });   // celular: avance y distribución a la vista; el resto, plegado
     renderIconos(el);
     dibujar(d, dist);
     tendencia();

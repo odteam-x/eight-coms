@@ -79,3 +79,9 @@
 .pd-detalle--fijo > summary { display: none; }          /* PE anterior: el formulario de trabajos no se pliega */
 .pd-detalle--fijo[open] > summary { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .pd-detalle > summary i { transition: none; } }
+
+/* Acción directa: «Entregar» al lado de la fila (3 pasos en vez de 5–6) */
+.pd-item { display: flex; align-items: center; gap: var(--sp-2); }
+.pd-item > .pd-fila { flex: 1 1 auto; min-width: 0; }
+.pd-entregar { flex: none; min-height: 44px; white-space: nowrap; }
+@media (max-width: 767px) { .pd-item { flex-wrap: wrap; } .pd-entregar { margin-left: auto; } }

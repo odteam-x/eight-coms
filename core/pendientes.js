@@ -86,7 +86,8 @@ const Pendientes = (() => {
 
   function filaHTML(t) {
     const c = cuando(t), eq = t.tipo === 'e';
-    return `<li><button type="button" class="pd-fila" data-act="pd" data-arg="abrir" data-arg2="${eq ? 'e' : 'i'}:${escHtml(t.id)}"
+    const puede = ['asignada', 'en_curso', 'devuelta'].includes(t.estado);
+    return `<li class="pd-item"><button type="button" class="pd-fila" data-act="pd" data-arg="abrir" data-arg2="${eq ? 'e' : 'i'}:${escHtml(t.id)}"
         aria-label="${escHtml(`${t.titulo}. ${eq ? 'Tarea de equipo ' + t.de : 'Tarea individual'}. ${c.txt}. Ir a la tarea`)}">
       <span class="pd-tipo pd-tipo--${eq ? 'equipo' : 'indiv'}" aria-hidden="true"><i data-lucide="${eq ? 'users' : 'user'}"></i></span>
       <span class="pd-txt">
@@ -94,7 +95,7 @@ const Pendientes = (() => {
         <span class="pd-sub"><b>${eq ? 'De equipo' : 'Individual'}</b>${eq && t.de ? ` · ${escHtml(t.de)}` : ''} · ${escHtml(estTxt(t.estado))}</span>
       </span>
       <span class="pd-cuando pd-cuando--${c.cls}">${escHtml(c.txt)}</span>
-    </button></li>`;
+    </button>${puede ? `<button type="button" class="btn-texto pd-entregar" data-act="pd" data-arg="entregar" data-arg2="${eq ? 'e' : 'i'}:${escHtml(t.id)}" aria-label="${escHtml(`${t.estado === 'devuelta' ? 'Entregar corregida' : 'Entregar'}: ${t.titulo}`)}">${t.estado === 'devuelta' ? 'Entregar corregida' : 'Entregar'}</button>` : ''}</li>`;
   }
 
   function render() {
@@ -158,9 +159,21 @@ const Pendientes = (() => {
     el.classList.add('pd-resalte'); setTimeout(() => el.classList.remove('pd-resalte'), 1800);
   }
 
+  /** Acción directa desde la fila: abre la tarjeta y dispara su botón «Entregar» (el modal y las reglas son los de siempre). */
+  function entregar(ref) {
+    abrir(ref);
+    const [tipo, id] = String(ref).split(':');
+    const sel = tipo === 'e' ? `[data-tarea-eq="${CSS.escape(id)}"]` : `[data-tarea="${CSS.escape(id)}"]`;
+    setTimeout(() => {
+      const b = document.querySelector(sel)?.querySelector('[data-arg="entregar"],[data-arg="t-entregar"]');
+      if (b) b.click(); else showToast('Abre la tarea para entregarla.', 'info');
+    }, 250);
+  }
+
   function accion(a, arg) {
     if (a === 'filtro') { S.filtro = S.filtro === arg ? 'todas' : arg; render(); }
     else if (a === 'abrir') abrir(arg);
+    else if (a === 'entregar') entregar(arg);
   }
 
   return { montar, accion, grupoDe, cuando, normalizar, pasa };

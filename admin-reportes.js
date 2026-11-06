@@ -244,8 +244,11 @@ const Reportes = (() => {
         ${orden.filter(k => E.sec.has(k) && (k !== 'tareas' || _d.v2)).map(k => fn[k](fs)).join('') || '<p class="cfg-hint">Elige al menos una sección.</p>'}
         <footer class="rpt-hoja-pie">Los resultados de la rúbrica por roles se calculan en la base de datos; este reporte solo los presenta.</footer>
       </article>`;
+    if (typeof plegarEnCelular === 'function') plegarEnCelular(body, '.rpt-sec', { abiertas: 1 });   // celular: resumen primero, el detalle plegado
     renderIconos(body);
   }
+  // al imprimir, todo abierto (un <details> cerrado no sale en el PDF)
+  window.addEventListener('beforeprint', () => document.querySelectorAll('.rpt-hoja details.plegable').forEach(d => { d.open = true; }));
 
   const csvEsc = v => { const s = String(v ?? ''); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   function csv() {

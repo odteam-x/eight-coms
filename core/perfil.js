@@ -561,7 +561,7 @@ const Perfil = (() => {
       console.error('[Perfil]', e);
       renderError(cuerpo, e.message || String(e), () => _pintarPanel(inst));
     }
-    if (seq === inst.seq) { _niveles(inst, cuerpo); animarEntrada(cuerpo); }
+    if (seq === inst.seq) { _niveles(inst, cuerpo); if (typeof plegarEnCelular === 'function') plegarEnCelular(cuerpo, '.pf-card--ancha', { abiertas: 1 }); animarEntrada(cuerpo); }
   }
 
   function _pintarCabecera(inst) {
