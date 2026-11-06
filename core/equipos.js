@@ -105,12 +105,12 @@ const Equipos = (() => {
     }
     out.push(b('t-detalle', 'Detalle'));
     return `
-      <article class="tk-card eq-tarea eq-tarea--${escHtml(t.estado)}" aria-label="${escHtml(t.titulo)}">
+      <article class="tk-card eq-tarea eq-tarea--${escHtml(t.estado)}" data-tarea-eq="${escHtml(t.id)}" aria-label="${escHtml(t.titulo)}">
         <div class="tk-card-cab">
           <div class="tk-card-t">${escHtml(t.titulo)}</div>
           <span class="tk-pill tk-pill--${est.cls}">${escHtml(t.estado === 'entregada' && t.puedo_revisar ? 'Por revisar' : est.txt)}</span>
         </div>
-        <p class="eq-tarea-meta"><span class="etiqueta etq-azul">Tarea de equipo</span>
+        <p class="eq-tarea-meta"><span class="tk-tipo">Tarea de equipo</span>
           <span>${escHtml(t.equipo_nombre)}</span> · ${Tareas.plazoHTML(t)}
           ${t.prioridad !== 'normal' ? ` · Prioridad ${escHtml(PRIORIDAD[t.prioridad] || t.prioridad)}` : ''}</p>
         ${t.descripcion ? `<p class="tk-desc">${escHtml(t.descripcion)}</p>` : ''}

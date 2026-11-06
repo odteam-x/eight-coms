@@ -126,3 +126,21 @@ Rastreo de los rasgos de plantilla en todo el CSS y su retirada:
 
 Verificado en pantalla (simulador, 1440 px): barras, chips, notas y tarjeta. Contraste sin fallos; pruebas `front*` verdes.
 No revisado a ojo: tema claro y celular del calendario.
+
+## Cuarta pasada — gráficas con librerías y tablero de tareas
+
+**Gráficas.** Se conectaron dos plugins de Chart.js 4.4.7 por CDN con SRI calculado (annotation 3.1.0, datalabels 2.2.0; 51 KB en total;
+la CSP no cambia: mismo origen jsdelivr). `core/charts.js` los envuelve: `bandasNivel()` (Bajo/En proceso/Bueno/Excelente tras la línea,
+umbrales de `NIVELES`/`NIVELES_V2`), `rellenoDegradado()`, `etiquetasValor()`, barras redondeadas y animación más suave. Aplicado en el
+Panel (distribución, comparación, tendencia) y en Desempeño (evolución, comparar personas, mi evolución, promedio por rol). Si un CDN falla,
+la gráfica sigue siendo válida sin la decoración. Nota: datalabels v2 **no se registra solo**; hay que llamar `Chart.register(ChartDataLabels)`.
+No se cambió de librería (ECharts, etc.): Chart.js ya está integrado con los tokens y el cambio de tema.
+
+**Tareas — «Qué me toca»** (`core/pendientes.js`, `pendientes.css`; miembro y secretaría, arriba de Entregas). Junta tareas individuales y
+de equipo y responde sin abrir cada tarjeta: de quién es (icono + «Individual» / «De equipo · nombre»), cuándo vence («Vence mañana»,
+«En 3 días», «Vencida hace 2 días»), qué hay que corregir. Cuatro mosaicos filtran (Vencidas, Vencen esta semana, Por corregir, En revisión);
+la lista se agrupa por urgencia; tocar una fila salta a su tarjeta y la resalta. Una bloqueada no cuenta como vencida; una devuelta ya vencida
+cuenta en las dos preguntas. Solo lee y agrupa (sin fórmulas ni migración). Las tarjetas existentes ganaron «Tarea individual / de equipo» y
+«Vence mañana». Pruebas: `front-pendientes.mjs` (23). Visto en pantalla a 1440 y 360 px.
+
+**Corregido de paso:** a 360 px el destino activo de la barra inferior se solapaba con el icono vecino; la regla de 320–359 sube a 320–379.

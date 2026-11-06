@@ -136,6 +136,7 @@ const ACCIONES = {
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
+  pd:            (a, el) => Pendientes.accion(a, el.dataset.arg2),
   des:           (a, el) => Desempeno.accion(a, el.dataset.arg2),
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
   partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),

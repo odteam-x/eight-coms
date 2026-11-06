@@ -1,0 +1,67 @@
+/* Tablero de pendientes (core/pendientes.js). Solo tokens; ningún hex. Carga después de equipos.css y antes de movil.css. */
+.pd { margin: 0 0 var(--sp-6); display: grid; gap: var(--sp-4); }
+.pd-cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-4); }
+.pd-cab .pf-h { margin: 0; }
+.pd-cab .pf-h small { margin-left: var(--sp-2); font: 400 var(--fs-sm)/1.3 var(--font-body); color: var(--txt-2); }
+
+/* Cuatro situaciones que se tocan para filtrar. El número manda; el color solo acompaña (nunca es la única señal: hay texto e icono). */
+.pd-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); }
+.pd-tile { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "ic n" "t t"; align-items: center; gap: var(--sp-1) var(--sp-2);
+  min-height: 76px; padding: var(--sp-3) var(--sp-4); text-align: left; border-radius: var(--r-fila); border: 0; cursor: pointer;
+  background: var(--surface-1); color: var(--txt); font: inherit; transition: background .15s var(--ease); }
+.pd-tile:hover { background: var(--surface-2); }
+.pd-tile:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.pd-tile i { grid-area: ic; width: 20px; height: 20px; color: var(--etq, var(--txt-2)); }
+.pd-tile b { grid-area: n; font: 700 var(--fs-xl)/1 var(--font-display); letter-spacing: var(--tr-display); font-variant-numeric: tabular-nums; }
+.pd-tile span { grid-area: t; font: 600 var(--fs-sm)/1.25 var(--font-ui); color: var(--txt-2); }
+.pd-tile--coral { --etq: var(--etq-coral); } .pd-tile--ambar { --etq: var(--etq-ambar); } .pd-tile--violeta { --etq: var(--etq-violeta); } .pd-tile--azul { --etq: var(--etq-azul); }
+.pd-tile--cero b { color: var(--txt-muted); }
+.pd-tile--on { background: var(--surface-3); outline: 2px solid var(--action); outline-offset: -2px; }
+.pd-tile--on span { color: var(--txt); }
+
+.pd-grupo { display: grid; gap: var(--sp-2); }
+.pd-grupo-t { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 0; font: 700 var(--fs-md)/1.2 var(--font-display); letter-spacing: var(--tr-titulo); }
+.pd-grupo-t span { font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--txt-2); }
+.pd-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--trazo); border-radius: var(--r-cont); overflow: hidden; }
+
+/* Una fila = una tarea. Izquierda: de quién es (persona / equipo). Centro: título y situación. Derecha: cuándo vence. */
+.pd-fila { width: 100%; min-height: 60px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); text-align: left; border: 0; cursor: pointer; background: var(--surface-1); color: var(--txt); font: inherit; transition: background .15s var(--ease); }
+.pd-fila:hover { background: var(--surface-2); }
+.pd-fila:focus-visible { outline: 2px solid var(--action); outline-offset: -2px; }
+.pd-tipo { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-3); color: var(--txt); }
+.pd-tipo i { width: 18px; height: 18px; }
+.pd-tipo--equipo { background: color-mix(in srgb, var(--etq-azul) 24%, var(--surface-3)); }
+.pd-txt { min-width: 0; display: grid; gap: 2px; }
+.pd-titulo { font: 600 var(--fs-md)/1.3 var(--font-ui); overflow-wrap: anywhere; }
+.pd-sub { font: 400 var(--fs-sm)/1.3 var(--font-body); color: var(--txt-2); overflow-wrap: anywhere; }
+.pd-sub b { font-weight: 600; color: var(--txt); }
+
+/* Cuándo vence: texto, no píldora. Vencida y «hoy / mañana» llevan punto de color + peso; el resto, tono normal. */
+.pd-cuando { display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; font: 500 var(--fs-sm)/1.2 var(--font-ui); color: var(--txt-2); }
+.pd-cuando--vencida, .pd-cuando--pronto { font-weight: 700; color: var(--txt); }
+.pd-cuando--vencida::before, .pd-cuando--pronto::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
+.pd-cuando--vencida::before { background: var(--etq-coral); }
+.pd-cuando--pronto::before { background: var(--etq-ambar); }
+
+.pd-vacio { display: flex; align-items: center; gap: var(--sp-3); margin: 0; padding: var(--sp-4); border-radius: var(--r-fila); background: var(--surface-1); color: var(--txt-2); font-size: var(--fs-sm); }
+.pd-vacio i { flex: none; width: 20px; height: 20px; color: var(--etq-verde); }
+.pd-pie { margin: 0; font-size: var(--fs-xs); color: var(--txt-muted); }
+.pd-limpiar { min-height: 44px; }
+
+/* La tarjeta a la que se llegó desde el tablero parpadea una vez: sin esto no se sabe cuál era. */
+.pd-resalte { animation: pdResalte 1.8s var(--ease); }
+@keyframes pdResalte { 0%, 55% { box-shadow: 0 0 0 3px var(--action); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) { .pd-resalte { animation: none; box-shadow: 0 0 0 3px var(--action); } .pd-tile, .pd-fila { transition: none; } }
+
+/* Etiquetas de tipo en las tarjetas de tarea (individual / equipo) y su plazo, con la misma lectura que el tablero. */
+.tk-tipo { display: inline-flex; align-items: center; gap: var(--sp-1); font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--txt); }
+.tk-tipo i { width: 14px; height: 14px; }
+.tk-plazo--pronto { font-weight: 700; color: var(--txt); }
+
+@media (max-width: 900px) { .pd-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) {
+  .pd-fila { grid-template-columns: auto minmax(0, 1fr); }
+  .pd-cuando { grid-column: 2; justify-self: start; }
+  .pd-tile b { font-size: var(--fs-lg); }
+}

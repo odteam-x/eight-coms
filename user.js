@@ -348,10 +348,20 @@ async function renderTrabajosTab() {
   if (!esPeriodoV2(per)) return renderTrabajosLegacy();
   await Tareas.montar({
     id: 'mis-tareas', el, periodoId: per?.id ?? null, yo: CU.id,
+    onCambio: () => montarPendientes(per),
     onNoDisponible: () => renderTrabajosLegacy(),
   });
   montarEquipos(el, per);
+  montarPendientes(per);
 }
+
+/* Tablero «Qué me toca»: individuales y de equipo juntas, con su plazo (core/pendientes.js). */
+function montarPendientes(per) {
+  const host = document.getElementById('pendientes-host'); if (!host) return;
+  if (!per || !esPeriodoV2(per)) { host.innerHTML = ''; return; }
+  Pendientes.montar(host, { periodoId: per.id, yo: CU.id });
+}
+
 
 /* Equipos y tareas colectivas del período (migraciones 0031–0036): bajo las tareas individuales, en su propio bloque. */
 function montarEquipos(despuesDe, per) {
@@ -364,6 +374,7 @@ function montarEquipos(despuesDe, per) {
 async function renderTrabajosLegacy() {
   const el = document.getElementById('trabajos-body'); if (!el) return;
   const eh = document.getElementById('equipos-host'); if (eh) eh.innerHTML = '';
+  const ph = document.getElementById('pendientes-host'); if (ph) ph.innerHTML = '';
   renderCargando(el);
   // La API indexa por periodo_id (UUID); _trabajosPE es solo la etiqueta.
   const pidTrab = Store.periodos().find(p => p.pe === _trabajosPE)?.id ?? null;

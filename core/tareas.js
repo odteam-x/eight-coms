@@ -68,8 +68,8 @@ const Tareas = (() => {
       return `<span class="tk-plazo">Plazo ${escHtml(fechaCorta(t.fecha_limite))} · en pausa${prorrogada}</span>`;
     }
     const n = diasHasta(t.fecha_limite);
-    const txt = n < 0 ? `Vencida hace ${-n} día${n === -1 ? '' : 's'}` : n === 0 ? 'Vence hoy' : `Vence en ${n} día${n === 1 ? '' : 's'}`;
-    return `<span class="tk-plazo${n < 0 ? ' tk-plazo--vencida' : ''}">${txt} (${escHtml(fechaCorta(t.fecha_limite))})${prorrogada}</span>`;
+    const txt = n < 0 ? `Vencida hace ${-n} día${n === -1 ? '' : 's'}` : n === 0 ? 'Vence hoy' : n === 1 ? 'Vence mañana' : `Vence en ${n} días`;
+    return `<span class="tk-plazo${n < 0 ? ' tk-plazo--vencida' : n <= 1 ? ' tk-plazo--pronto' : ''}">${txt} (${escHtml(fechaCorta(t.fecha_limite))})${prorrogada}</span>`;
   }
 
   /* ── Qué botones ve cada quien ──────────────────────────────────────── */
@@ -118,6 +118,7 @@ const Tareas = (() => {
           <span class="tk-pill tk-pill--${est.cls}">${escHtml(estTxt)}${t.estado === 'aprobada' && t.puntos != null ? ` · ${t.puntos}/10` : ''}</span>
         </header>
         <div class="tk-meta">
+          <span class="tk-tipo">Tarea individual</span>
           ${c.revisor && nombre ? `<span class="tk-persona">${escHtml(nombre)}</span>` : ''}
           ${t.rol_id != null && rolesNom.has(Number(t.rol_id)) ? `<span class="tk-tag" title="Rol con el que se hace este trabajo">Rol: ${escHtml(rolesNom.get(Number(t.rol_id)))}</span>` : ''}
           ${t.rol_excepcion ? '<span class="tk-tag tk-tag--alta" title="La administración asignó un rol que la persona no tiene habilitado">Excepción de rol</span>' : ''}
