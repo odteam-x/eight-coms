@@ -11,7 +11,7 @@ console.log('[la carcasa pública no trae el manual]');
 ok(!/Equipos y tareas del equipo|Aprobar accesos|CORREO_MODO|Cómo cuentan las tareas/.test(shell), 'ayuda/admin.html no contiene el texto del manual');
 ok(shell.length < 6000, `ayuda/admin.html es solo una carcasa (${shell.length} bytes)`);
 ok(/id="ay-estado"/.test(shell) && /<main id="contenido"/.test(shell), 'tiene el estado y el contenedor que se rellena tras comprobar la sesión');
-ok(/supabase-js@2\.\d+\.\d+[^>]*integrity="sha384-/.test(shell) && /\.\.\/config\.js[\s\S]*\.\.\/supabase-client\.js[\s\S]*\.\.\/auth\.js[\s\S]*admin-privado\.js/.test(shell), 'carga el cliente con SRI y, en orden, config, cliente, auth y la lógica');
+ok(/supabase-js-2\.\d+\.\d+\.min\.js[^>]*integrity="sha384-/.test(shell) && /\.\.\/config\.js[\s\S]*\.\.\/supabase-client\.js[\s\S]*\.\.\/auth\.js[\s\S]*admin-privado\.js/.test(shell), 'carga el cliente con SRI y, en orden, config, cliente, auth y la lógica');
 ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(shell), 'sin <script> en línea (CSP)');
 console.log('\n[la lógica pide el manual solo a un administrador]');
 const js = rd('ayuda/admin-privado.js');

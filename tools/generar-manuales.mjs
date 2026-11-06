@@ -892,7 +892,7 @@ function pagina(m) {
 `;
 }
 
-const SUPABASE_CDN = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
+const SUPABASE_CDN = '<script src="../vendor/supabase-js-2.112.2.min.js" integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
 for (const m of [miembro, secretario, admin]) {
   const html = pagina(m);
   if (!m.privado) { fs.writeFileSync(new URL(m.archivo + '.html', SALIDA), html); console.log('ayuda/' + m.archivo + '.html'); continue; }

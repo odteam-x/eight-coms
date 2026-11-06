@@ -12,7 +12,7 @@ ok(vj.rewrites?.some(r => r.source === '/v/:token' && r.destination === '/verifi
 ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(vf), 'sin <script> en línea (CSP)');
 ok(/name="robots" content="noindex, nofollow"/.test(vf), 'no se indexa');
 ok(/href="\/shared\.css"/.test(vf) && /src="\/verificar\.js"/.test(vf) && /src="\/config\.js"/.test(vf), 'rutas absolutas (la URL tiene dos niveles)');
-ok(/supabase-js@2\.\d+\.\d+[^>]*integrity="sha384-/.test(vf), 'supabase-js con versión fija e integridad');
+ok(/supabase-js-2\.\d+\.\d+\.min\.js[^>]*integrity="sha384-/.test(vf), 'supabase-js con versión fija e integridad');
 ok(!/auth\.js|requireAuth|getProfile/.test(vf + js), 'no pide sesión: es pública');
 ok(/rpc\('verificar_gafete', \{ p_token: t \}\)/.test(js) && /\^\[0-9a-f\]\{24\}\$/.test(js), 'valida el formato del token antes de consultar y usa solo verificar_gafete');
 ok(!/from\('(profiles|gafetes|evaluaciones)'\)/.test(js), 'nunca consulta tablas: solo la función pública');

@@ -14,4 +14,18 @@ const prohibido = /(?:href|src)=["'][^"']*(?:\/|^)(?:docs|supabase|tools)\/|fetc
 const malos = sitio.filter(f => prohibido.test(leer(f)));
 t('ningún html/js/css del sitio referencia docs/, supabase/, tools/ ni .sql', malos.length === 0);
 if (malos.length) console.log('    ', malos.join(', '));
-console.log(`\n${ok} correctas, ${mal} fallidas`); process.exit(mal ? 1 : 0);
+console.log('[librerías alojadas en el propio sitio]');
+import('node:crypto').then(async ({ createHash }) => {
+  const csp = JSON.parse(leer('vercel.json')).headers.flatMap(h => h.headers).find(h => h.key === 'Content-Security-Policy').value;
+  t('la CSP ya no admite ningún CDN para scripts', /script-src 'self'(;|$)/.test(csp) && !/jsdelivr/.test(csp));
+  t("la CSP tiene object-src 'none' y connect-src sin comodín", /object-src 'none'/.test(csp) && !/connect-src[^;]*[*]/.test(csp));
+  for (const h of ['admin.html', 'index.html', 'secretario.html', 'user.html', 'verificar.html', 'ayuda/admin.html']) {
+    const s = leer(h);
+    t(h + ': sin scripts de terceros', !/<script[^>]+src="https?:/.test(s));
+    for (const m of s.matchAll(/<script src="((?:[.][.][/])?vendor[/][^"]+)" integrity="sha384-([^"]+)"/g)) {
+      const hash = createHash('sha384').update(fs.readFileSync(path.join(R, h.startsWith('ayuda') ? 'ayuda' : '.', m[1]))).digest('base64');
+      t(h + ': ' + path.basename(m[1]) + ' coincide con su SRI', hash === m[2]);
+    }
+  }
+  console.log('\n' + ok + ' correctas, ' + mal + ' fallidas'); process.exit(mal ? 1 : 0);
+});
