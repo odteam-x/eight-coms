@@ -108,3 +108,21 @@ Criterio: **el color y la píldora se reservan para lo que pide una decisión o 
 
 No se movieron secciones de navegación: la estructura actual (operación vs configuración, 3 destinos del miembro, 5 de la
 secretaría) ya sigue ese principio y no hay evidencia medida que justifique cambiarla.
+
+## Tercera pasada — «look de plantilla» y calendario
+
+**La media luna de la captura 1 era esto:** el chip de persona del comparador de Desempeño (`.des-chip`) marcaba su serie con
+`border-left: 4px`; en una píldora, un borde izquierdo grueso sigue la curva y queda como una media luna cian. Reproducido y
+corregido (punto de color en su lugar). El arreglo del avatar de la primera pasada era una hipótesis equivocada; se deja como seguro.
+
+Rastreo de los rasgos de plantilla en todo el CSS y su retirada:
+- **Franja lateral de color** (`border-left` / `inset Npx 0 0`): chips de comparar, notas (`.des-nota`, `.ev-aviso`), tarjeta de
+  persona elegida, filas elegidas del selector y de la bienvenida, avisos de asignación y el toast. Ahora: notas = bloque
+  tenue sin franja; elegido = fondo más claro (+ anillo en la tarjeta); avisos = tinte de fondo; toast = punto de color.
+- **Degradados en contenedores** (tarjetas, paneles, modales, buscador): planos en `--surface-1`.
+- **Tarjeta de persona de Desempeño:** sin número enorme ni píldora de nivel; nivel como punto + texto.
+- **Calendario:** una actividad de varios días es una barra continua con su título (primer día y cada lunes), en un carril
+  fijo, que se parte en el borde de la semana; los eventos de un día siguen siendo puntos. En celular, barra sin título.
+
+Verificado en pantalla (simulador, 1440 px): barras, chips, notas y tarjeta. Contraste sin fallos; pruebas `front*` verdes.
+No revisado a ojo: tema claro y celular del calendario.
