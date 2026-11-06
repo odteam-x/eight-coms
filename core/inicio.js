@@ -107,7 +107,7 @@ const Inicio = (() => {
         return `<li class="pf-tarea"><span class="tk-pill tk-pill--${e.cls}">${escHtml(e.txt)}</span>
           <div class="pf-tarea-txt"><div class="pf-tarea-t">${escHtml(t.titulo)}</div><div class="pf-tarea-m">${Tareas.plazoHTML(t)}</div></div></li>`;
       }).join('')}</ul>
-      ${abiertas.length > 4 ? `<p class="pf-nota">y ${abiertas.length - 4} más en Entregas.</p>` : ''}`;
+      ${abiertas.length > 4 ? `<button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ver las ${abiertas.length - 4} restantes en Entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button>` : ''}`;
   }
 
   function _fechasHTML(hitos) {

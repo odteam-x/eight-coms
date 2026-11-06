@@ -40,3 +40,10 @@ Cabe en pantalla, sin scroll, «Entrar / Crear cuenta» claro, enlace de contras
 
 ## Qué se cambió en este commit
 Solo T1 (nombre accesible del rail y tooltip para tablet). El resto son propuestas: cambian el flujo y conviene decidirlas contigo antes (sobre todo M1, M2 y A3).
+
+## Actualización: M1 y M2 atendidos
+- **M1 (tareas duplicadas en Entregas):** las tarjetas con botones y los equipos van ahora dentro de «Detalle y acciones de mis tareas» (plegado por defecto cuando existe el tablero).
+  Tocar una fila del tablero abre el detalle, salta a la tarjeta y la resalta. Entregas a 390 px: **6,5 → 2,8 pantallas**. En PE anteriores (formulario de trabajos) no se pliega.
+  Si el tablero no carga (sin migraciones) el detalle queda abierto.
+- **M2 (misma lista en tres sitios):** Inicio ya mostraba solo las 4 más urgentes; ahora «y N más» es un botón a Entregas. **Sigue pendiente:** el Inicio solo cuenta tareas
+  individuales (no las de equipo) y Mi perfil conserva su propia lista de tareas.

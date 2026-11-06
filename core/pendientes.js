@@ -138,7 +138,7 @@ const Pendientes = (() => {
       typeof API.getTareasEquipo === 'function' ? API.getTareasEquipo({ periodoId }) : Promise.resolve({ ok: false }),
     ]);
     if (S.host !== host || S.periodoId !== periodoId) return;          // llegó tarde: el usuario ya cambió de período
-    if (!a.ok && !b.ok) { host.innerHTML = ''; return; }                // sin migraciones 0016/0032 no hay tablero que mostrar
+    if (!a.ok && !b.ok) { host.innerHTML = ''; const d = document.getElementById('pd-detalle'); if (d) d.open = true; return; }   // sin tablero, el detalle es lo único que hay: a la vista
     S.items = normalizar(a.ok ? a.tareas : [], b.ok ? b.tareas : []);
     render();
   }
@@ -147,6 +147,8 @@ const Pendientes = (() => {
   function abrir(ref) {
     const [tipo, id] = String(ref).split(':');
     const sel = tipo === 'e' ? `[data-tarea-eq="${CSS.escape(id)}"]` : `[data-tarea="${CSS.escape(id)}"]`;
+    const det = document.getElementById('pd-detalle');
+    if (det && !det.open) det.open = true;                 // el detalle va plegado: hay que abrirlo antes de poder llegar a la tarjeta
     const el = document.querySelector(sel);
     if (!el) { showToast('Esa tarea no está en esta lista.', 'info'); return; }
     const calmado = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

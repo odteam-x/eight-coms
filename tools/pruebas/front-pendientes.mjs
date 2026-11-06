@@ -40,6 +40,7 @@ for (const h of ['user.html', 'secretario.html']) {
   t(h + ': carga pendientes.js y pendientes.css', s.includes('core/pendientes.js') && s.includes('pendientes.css') && s.includes('id="pendientes-host"'));
   t(h + ': pendientes.js va después de tareas.js y equipos.js', s.indexOf('core/pendientes.js') > s.indexOf('core/equipos.js') && s.indexOf('core/equipos.js') > s.indexOf('core/tareas.js'));
 }
+t('el detalle de tareas va en un <details id=pd-detalle> en las dos páginas', leer('user.html').includes('id="pd-detalle"') && leer('secretario.html').includes('id="pd-detalle"') && leer('core/pendientes.js').includes("getElementById('pd-detalle')"));
 t('ACCIONES.pd registrada', /pd:\s+\(a, el\) => Pendientes\.accion/.test(leer('config.js')));
 t('las tarjetas de equipo llevan data-tarea-eq (destino del salto)', leer('core/equipos.js').includes('data-tarea-eq='));
 t('pendientes.css: sin colores hex', !/#[0-9a-fA-F]{3,8}\b/.test(leer('pendientes.css').replace(/\/\*[\s\S]*?\*\//g, '')));

@@ -748,14 +748,22 @@ async function renderTrabajosTab() {
   const per = Store.periodos().find(p => p.pe === _trabajosPE) || null;
   // Los períodos anteriores a la rúbrica por roles siguen con «registrar trabajo».
   setEl('trabajos-titulo', esPeriodoV2(per) ? 'Mis tareas' : 'Mis trabajos');
-  if (!esPeriodoV2(per)) return renderTrabajosLegacy();
+  if (!esPeriodoV2(per)) { plegarDetalleTareas(true); return renderTrabajosLegacy(); }
+  plegarDetalleTareas(false);
   await Tareas.montar({
     id: 'mis-tareas', el, periodoId: per?.id ?? null, yo: CU.id,
     onCambio: () => montarPendientes(per),
-    onNoDisponible: () => renderTrabajosLegacy(),
+    onNoDisponible: () => { plegarDetalleTareas(true); renderTrabajosLegacy(); },
   });
   montarEquipos(el, per);
   montarPendientes(per);
+}
+
+/* El detalle de las tareas (tarjetas y botones) va plegado cuando el tablero «Qué me toca» ya las lista: antes cada tarea salía dos veces. */
+function plegarDetalleTareas(abierto) {
+  const d = document.getElementById('pd-detalle'); if (!d) return;
+  d.classList.toggle('pd-detalle--fijo', !!abierto);      // sin tablero (PE anterior): el formulario va siempre a la vista, sin pestaña
+  if (abierto) d.open = true;
 }
 
 /* Tablero «Qué me toca»: individuales y de equipo juntas, con su plazo (core/pendientes.js). */

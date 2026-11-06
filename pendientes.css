@@ -65,3 +65,17 @@
   .pd-cuando { grid-column: 2; justify-self: start; }
   .pd-tile b { font-size: var(--fs-lg); }
 }
+
+/* Detalle plegable de las tareas (tarjetas con sus botones): cerrado por defecto cuando el tablero ya las lista. */
+.pd-detalle { margin-top: var(--sp-4); }
+.pd-detalle > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-fila);
+  background: var(--surface-1); cursor: pointer; list-style: none; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt); }
+.pd-detalle > summary::-webkit-details-marker { display: none; }
+.pd-detalle > summary:hover { background: var(--surface-2); }
+.pd-detalle > summary:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.pd-detalle > summary i { width: 18px; height: 18px; transition: transform .2s var(--ease); }
+.pd-detalle[open] > summary i { transform: rotate(180deg); }
+.pd-detalle[open] > summary { margin-bottom: var(--sp-4); }
+.pd-detalle--fijo > summary { display: none; }          /* PE anterior: el formulario de trabajos no se pliega */
+.pd-detalle--fijo[open] > summary { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .pd-detalle > summary i { transition: none; } }
