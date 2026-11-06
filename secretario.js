@@ -219,14 +219,18 @@ async function initUI() {
       // Secretaría: cuatro destinos con sus secciones hermanas (core/rail.js · pintarHub). Antes eran nueve en dos grupos y «Entregas» / «Tareas» se confundían.
       // Quien entra como creador ve los cinco de siempre, sin hubs.
       grupos: sec ? [
-        { items: [
-          { tab:'inicio', icono:'house', etiqueta:'Inicio', fav: true },
-          { tab:'trabajos', icono:'folder-open', etiqueta:'Mi trabajo', fav: true, hijas: [
-            { tab:'trabajos', etiqueta:'Mis tareas' }, { tab:'calendario', etiqueta:'Calendario' } ] },
-          { tab:'distrito', icono:'map', etiqueta:'Mi distrito', fav: true, hijas: [
+        // Lo personal (igual que el miembro) va a la vista, cada cosa con su nombre: ocultar Desempeño y Calendario tras un grupo genérico
+        // («Yo», «Mi trabajo») hizo que nadie los encontrara. Solo lo del distrito se agrupa (hub).
+        { titulo: 'Mi espacio', items: [
+          { tab:'inicio',     icono:'house',       etiqueta:'Inicio', fav: true },
+          { tab:'trabajos',   icono:'folder-open', etiqueta:'Mis tareas', fav: true },
+          { tab:'calendario', icono:'calendar',    etiqueta:'Calendario', fav: true },
+          { tab:'desempeno',  icono:'line-chart',  etiqueta:'Mi desempeño', fav: true },
+          { tab:'perfil',     icono:'user-round',  etiqueta:'Mi perfil' },
+        ]},
+        { titulo: 'Mi distrito', items: [
+          { tab:'distrito', icono:'map', etiqueta:'Mi distrito', hijas: [
             { tab:'distrito', etiqueta:'Distrito' }, { tab:'tareas', etiqueta:'Tareas del distrito' }, { tab:'seguimiento', etiqueta:'Seguimiento' }, { tab:'reportes', etiqueta:'Reportes' } ] },
-          { tab:'perfil', icono:'user-round', etiqueta:'Yo', fav: true, hijas: [
-            { tab:'perfil', etiqueta:'Mi perfil' }, { tab:'desempeno', etiqueta:'Mi desempeño' } ] },
         ]},
       ] : [
         { items: [
@@ -754,6 +758,7 @@ async function renderTrabajosTab() {
   const per = Store.periodos().find(p => p.pe === _trabajosPE) || null;
   // Los períodos anteriores a la rúbrica por roles siguen con «registrar trabajo».
   setEl('trabajos-titulo', esPeriodoV2(per) ? 'Mis tareas' : 'Mis trabajos');
+  const _ht = document.getElementById('trabajos-titulo'); if (_ht) _ht.hidden = esPeriodoV2(per);   // con tablero, el h1 de la pantalla ya lo dice: un título repetido solo añade altura
   if (!esPeriodoV2(per)) { plegarDetalleTareas(true); return renderTrabajosLegacy(); }
   plegarDetalleTareas(false);
   await Tareas.montar({

@@ -1,0 +1,48 @@
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   IDENTIDAD DEL SISTEMA — «TRAZO»  (documento: docs/identidad-del-sistema.md)
+   Carga después de premium.css y evolucion.css, antes de movil.css. Solo estructura y ritmo: NINGÚN color nuevo (la paleta sigue cerrada).
+
+   Idea: el sitio es un cuaderno de seguimiento, no un panel de juego. Se organiza con TRAZOS (filetes finos), tipografía y espacio —no con cajas
+   dentro de cajas, brillos, sombras ni píldoras—. El coral marca DÓNDE estás y qué pide atención; nada más.
+   ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* 1 · Ritmo: una escala corta y apretada (antes cada bloque se separaba 32–48 px) */
+:root { --sec-hero: var(--sp-5); --sec-main: var(--sp-6); --sec-sub: var(--sp-3); }
+.pantalla-cab { margin-bottom: var(--sp-4); gap: var(--sp-2) var(--sp-5); }
+.pantalla-cab p { font-size: var(--fs-sm); }
+.pe-row { margin-bottom: var(--sp-3); }
+.hist-sec { margin-bottom: var(--sp-5); }
+.hist-sub { margin-bottom: var(--sp-3); }
+.pf-card, .tarjeta { margin-bottom: 0; }
+.pf-card--ancha + .pf-card--ancha { margin-top: var(--sp-4); }
+
+/* 2 · Secciones dentro de una pantalla: rótulo + filete, no un recuadro de superficie propia dentro de otro */
+.pd { gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.pd-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--trazo); }
+
+/* 3 · Secciones hermanas (hub): pestañas de texto con subrayado. Antes una píldora con barra coral curva debajo.
+   El coral subraya SOLO la pestaña actual; el texto sube a --txt y el peso a 700 (no depende del color). */
+.hub-nav { display: block; margin: 0 0 var(--sp-4); border-bottom: 1px solid var(--trazo); }
+.hub-nav-t { display: none; }
+.hub-nav-fila { display: flex; gap: var(--sp-5); padding: 0; border-radius: 0; background: none; overflow-x: auto; }
+.hub-btn { min-height: 44px; padding: 0; border: 0; border-bottom: 3px solid transparent; border-radius: 0; margin-bottom: -1px; background: none; box-shadow: none;
+  color: var(--txt-2); font: 600 var(--fs-sm)/1 var(--font-ui); }
+.hub-btn:hover { background: none; color: var(--txt); }
+.hub-btn--on { background: none; box-shadow: none; color: var(--txt); font-weight: 700; border-bottom-color: var(--marca); }
+
+/* 4 · Línea de tiempo de períodos (Entregas): cada período es una columna bajo un filete, no una tarjeta con borde grueso, sombra dura y resplandor */
+.lt { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--sp-5) var(--sp-6); }
+.lt-periodo { background: none; border: 0; border-top: 1px solid var(--trazo); border-radius: 0; box-shadow: none; padding: var(--sp-3) 0 0; }
+.lt-periodo--actual { border-top: 3px solid var(--marca); box-shadow: none; }
+.lt-cab { margin-bottom: var(--sp-3); }
+.lt-pe { font-size: 1.9rem; }
+.lt-cab .tag-marca { padding: 0; background: none; border-radius: 0; color: var(--txt); font: 700 var(--fs-xs)/1 var(--font-ui); letter-spacing: .04em; text-transform: uppercase; }
+.lt-hitos { gap: var(--sp-3); }
+.lt-hito--hoy .lt-punto { box-shadow: none; }
+.lt-fecha { font-size: 1.05rem; }
+
+/* 5 · Sin sombras ni brillos decorativos (solo las de capas flotantes: menús, diálogos, avisos) */
+.pf-card, .tarjeta, .pcard, .kpi, .eq-card, .pd-tile, .pd-lista { box-shadow: none; }
+
+/* 6 · Encabezados: un nivel de rótulo en secciones (no títulos gigantes repetidos) */
+.pf-h { font-size: var(--fs-lg); letter-spacing: var(--tr-titulo); }

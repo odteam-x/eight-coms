@@ -345,6 +345,7 @@ async function renderTrabajosTab() {
   const per = Store.periodos().find(p => p.pe === _trabajosPE) || null;
   // Los períodos anteriores a la rúbrica por roles siguen con «registrar trabajo».
   setEl('trabajos-titulo', esPeriodoV2(per) ? 'Mis tareas' : 'Mis trabajos');
+  const _ht = document.getElementById('trabajos-titulo'); if (_ht) _ht.hidden = esPeriodoV2(per);   // con tablero, el h1 de la pantalla ya lo dice: un título repetido solo añade altura
   if (!esPeriodoV2(per)) { plegarDetalleTareas(true); return renderTrabajosLegacy(); }
   plegarDetalleTareas(false);
   await Tareas.montar({
