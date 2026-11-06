@@ -82,3 +82,27 @@
 .cal2-dia--pe { background: color-mix(in srgb, var(--data) 5%, transparent); }
 .cal2-dia--sel { box-shadow: none; background: var(--surface-2); outline: 2px solid var(--action); outline-offset: -2px; }
 @media (max-width: 767px) { .cal2-dia { min-height: 56px; } }
+
+/* 13 · Filtros de lista (Todas · Por revisar · Abiertas…): pestañas de texto con subrayado, no una fila de píldoras con una rellena de coral */
+.tk-filtros { gap: var(--sp-5); border-bottom: 1px solid var(--trazo); padding-bottom: 0; }
+.tk-chip { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: none; padding: 0; margin-bottom: -1px; color: var(--txt-2); font: 600 var(--fs-sm)/1 var(--font-ui); }
+.tk-chip:hover { background: none; color: var(--txt); }
+.tk-chip--on, .tk-chip--on:hover { background: none; color: var(--txt); font-weight: 700; border-bottom-color: var(--marca); }
+
+/* 14 · Acciones de una tarea: la principal con relleno, las demás como texto (cuatro píldoras con borde por tarjeta eran ruido) */
+.tk-acciones { gap: var(--sp-1) var(--sp-4); }
+.tk-btn:not(.tk-btn--main) { border: 0; background: none; padding-inline: 0; color: var(--txt-2); font-weight: 600; text-decoration: underline; text-decoration-color: var(--trazo); text-underline-offset: 4px; }
+.tk-btn:not(.tk-btn--main):hover { background: none; color: var(--txt); text-decoration-color: currentColor; }
+
+/* 15 · Cifras del distrito (Inicio de la secretaría): mismo criterio que los KPI. Lo urgente sube el filete a coral de 3 px, no un recuadro. */
+.pf-tk { background: none; border: 0; border-top: 1px solid var(--trazo); border-radius: 0; box-shadow: none; padding: var(--sp-3) 0 0; }
+.pf-tk--aviso { border-top: 3px solid var(--marca); }
+
+/* 16 · «Requiere atención»: lista con filetes, no una pila de recuadros. Lo vencido se distingue por el número (color de texto medido) y el icono, no por un borde. */
+.atencion-lista { gap: 0; }
+.atencion-item { background: none; border: 0; border-bottom: 1px solid var(--trazo); border-radius: 0; box-shadow: none; padding-inline: 0; }
+.atencion-item--aviso { background: none; border-color: var(--trazo); }
+.atencion-item--aviso .atencion-n { color: var(--sba-txt); }
+
+/* 17 · Datos de una regla / ficha (definition lists dentro de tarjetas): sin «tarjetas dentro de tarjetas» */
+.ev-dl > div { background: none; border-radius: 0; border-top: 1px solid var(--trazo); padding: var(--sp-3) 0 0; }

@@ -355,7 +355,9 @@ function pintarHub(tab) {
   let nav = document.getElementById('hub-nav');
   if (!hub || hub.hijas.length < 2) { nav?.remove(); return; }
   if (!nav) { nav = document.createElement('nav'); nav.id = 'hub-nav'; nav.className = 'hub-nav'; }
-  if (nav.parentElement !== panel) panel.insertBefore(nav, panel.firstChild);   // dentro de la pantalla activa, con su mismo relleno
+  // El relleno lateral de cada portal vive en un contenedor interno (.m-content en miembro/secretaría); fuera de él la fila queda pegada al menú.
+  const dentro = panel.querySelector(':scope > .m-content') || panel;
+  if (nav.parentElement !== dentro) dentro.insertBefore(nav, dentro.firstChild);
   nav.setAttribute('aria-label', hub.etiqueta);
   nav.innerHTML = '<span class="hub-nav-t">' + escHtml(hub.etiqueta) + '</span><div class="hub-nav-fila">' +
     hub.hijas.map(h => '<button type="button" class="hub-btn' + (h.tab === tab ? ' hub-btn--on' : '') + '" data-act="tab" data-arg="' + escHtml(h.tab) + '"' +
