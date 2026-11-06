@@ -144,6 +144,8 @@ const Desempeno = (() => {
   const escalaY = () => { const mx = maxEscala(); return { y: { min: 0, ...(mx ? { max: mx } : {}), ticks: { stepSize: mx === 100 ? 25 : undefined } } }; };
   const estiloLinea = (i, color, extra = {}) => ({ borderColor: color, backgroundColor: color, pointBackgroundColor: color, pointBorderColor: token('--bg', '#061326'),
     pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, borderWidth: 2, tension: .3, spanGaps: true, borderDash: DASH[i % DASH.length], pointStyle: PUNTO[i % PUNTO.length], ...extra });
+  /* Bandas de nivel tras la línea: solo donde el eje es una nota global (0–100, o el total clásico), no en un criterio suelto de 0–4. */
+  const bandas = () => { const mx = maxEscala(); if (!mx || (S.modelo !== 'v2' && criterioDe(S.metrica))) return {}; return bandasNivel(S.modelo, mx); };
   const limpiarGraficos = () => Object.values(ID).forEach(borrarGrafico);
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -218,11 +220,11 @@ const Desempeno = (() => {
     pintarGrafico(ID.evo, () => ({
       type: 'line',
       data: { labels: est.map(e => e.p.nombre), datasets: [
-        { label: 'Promedio', data: est.map(e => (e.n ? e.media : null)), ...estiloLinea(0, token('--data'), { fill: true, backgroundColor: conAlfa(token('--data'), .12) }) },
+        { label: 'Promedio', data: est.map(e => (e.n ? e.media : null)), ...estiloLinea(0, token('--data'), { fill: true, backgroundColor: rellenoDegradado(token('--data')) }) },
         { label: 'Máximo',   data: est.map(e => (e.n ? e.max : null)),   ...estiloLinea(1, token('--cyan-200')) },
         { label: 'Mínimo',   data: est.map(e => (e.n ? e.min : null)),   ...estiloLinea(2, token('--marca')) },
       ] },
-      options: { plugins: { legend: { display: true } }, scales: escalaY() },
+      options: { plugins: { legend: { display: true }, annotation: { annotations: bandas() } }, scales: escalaY() },
     }));
   }
 
@@ -282,7 +284,8 @@ const Desempeno = (() => {
           label: e.p.nombre,
           data: roles.map(rol => media(rs.filter(r => r.periodo_id === e.p.id && (r.rol_nombre || 'Sin rol') === rol).map(r => valor(r)).filter(v => v != null))),
           // Rampa de luminosidad del mismo color de dato: los períodos más recientes, más intensos.
-          backgroundColor: conAlfa(c, con.length === 1 ? 1 : .3 + .7 * k / (con.length - 1)), borderColor: c, borderWidth: 1, borderRadius: 4,
+          backgroundColor: conAlfa(c, con.length === 1 ? 1 : .3 + .7 * k / (con.length - 1)), borderColor: c, borderWidth: 1,
+          datalabels: roles.length * con.length <= 12 ? etiquetasValor({ decimales: 0 }) : undefined,
         })) },
         options: { plugins: { legend: { display: true } }, scales: escalaY() },
       };
@@ -394,7 +397,7 @@ const Desempeno = (() => {
       data: { labels: est.map(e => e.p.nombre), datasets: elegidas.map((p, i) => ({
         label: p.nombre, data: est.map(e => valor(p.porPer.get(e.p.id))), ...estiloLinea(i, token(COLOR_SERIE[i % COLOR_SERIE.length])),
       })) },
-      options: { plugins: { legend: { display: true } }, scales: escalaY() },
+      options: { plugins: { legend: { display: true }, annotation: { annotations: bandas() } }, scales: escalaY() },
     }));
   }
 
@@ -588,11 +591,11 @@ const Desempeno = (() => {
     pintarGrafico(ID.mio, () => {
       const serie = (label, k, i) => ({ label, data: pub.map(r => num(r[k])), ...estiloLinea(i, token(COLOR_SERIE[i])) });
       const ds = S.modelo === 'v2'
-        ? [{ ...serie('Individual', 'individual', 0), fill: true, backgroundColor: conAlfa(token('--data'), .12) }, serie('Núcleo', 'nucleo', 1), serie('Técnico', 'tecnico', 2)]
-        : [{ ...serie('Puntaje total', 'total_clasico', 0), fill: true, backgroundColor: conAlfa(token('--data'), .12) }];
+        ? [{ ...serie('Individual', 'individual', 0), fill: true, backgroundColor: rellenoDegradado(token('--data')) }, serie('Núcleo', 'nucleo', 1), serie('Técnico', 'tecnico', 2)]
+        : [{ ...serie('Puntaje total', 'total_clasico', 0), fill: true, backgroundColor: rellenoDegradado(token('--data')) }];
       if (o.equipo) ds.push({ label: 'Promedio del equipo', data: pub.map(r => o.equipo.get(r.periodo_id) ?? null), ...estiloLinea(4, token('--txt-2')), borderDash: [4, 4] });
       return { type: 'line', data: { labels: pub.map(r => r.periodo_nombre), datasets: ds },
-        options: { plugins: { legend: { display: ds.length > 1 } }, scales: esc } };
+        options: { plugins: { legend: { display: ds.length > 1 }, annotation: { annotations: conPrincipal(bandas) } }, scales: esc } };
     });
   }
 

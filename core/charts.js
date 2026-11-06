@@ -40,6 +40,52 @@ function conAlfa(hex, alfa) {
   return `rgba(${r},${g},${b},${alfa})`;
 }
 
+/* ── Plugins (annotation y datalabels, vía CDN con SRI) ──────────────────────
+   datalabels, una vez registrado, pintaría un número sobre TODOS los gráficos: se apaga por defecto y cada gráfico lo
+   pide con etiquetasValor(). Si el CDN de un plugin falla, las opciones que lo usan se ignoran y el gráfico sigue siendo válido. */
+if (typeof Chart !== 'undefined') {
+  if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);   // la v2 del plugin NO se registra sola
+  if (Chart.defaults.plugins.datalabels) Chart.defaults.plugins.datalabels.display = false;
+}
+
+/** Relleno degradado bajo una línea: del color (opaco a medias) arriba a transparente abajo. Escriptable: usa el área real. */
+function rellenoDegradado(color, arriba = .30) {
+  return ctx => {
+    const { chart } = ctx, a = chart.chartArea;
+    if (!a) return conAlfa(color, .12);
+    const g = chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+    g.addColorStop(0, conAlfa(color, arriba)); g.addColorStop(1, conAlfa(color, 0));
+    return g;
+  };
+}
+
+/** Bandas de nivel (Bajo / En proceso / Bueno / Excelente) tras la línea, con su nombre al borde: el gráfico dice qué significa
+ *  cada altura sin tener que ir a la tabla. Los umbrales salen de NIVELES / NIVELES_V2 (una sola definición). */
+function bandasNivel(modelo, max) {
+  const niv = (modelo === 'v2' ? NIVELES_V2 : NIVELES).slice().reverse();      // de abajo hacia arriba
+  const txt = token('--txt-2', '#B4BCC8'), out = {};
+  niv.forEach((n, i) => {
+    const min = n.min === -Infinity ? 0 : n.min, techo = niv[i + 1] ? niv[i + 1].min : max;
+    out['nivel' + i] = {
+      type: 'box', yMin: min, yMax: techo, drawTime: 'beforeDatasetsDraw', borderWidth: 0,
+      backgroundColor: conAlfa(token('--' + n.key, '#00CBFF'), .075),
+      label: { display: true, content: n.label, position: { x: 'end', y: 'center' }, xAdjust: -6, color: txt,
+               font: { family: 'Barlow, system-ui, sans-serif', size: 11, weight: '600' } },
+    };
+  });
+  return out;
+}
+
+/** Número sobre cada barra / punto. */
+function etiquetasValor({ decimales = 0, sufijo = '', alinear = 'end', ancla = 'end' } = {}) {
+  return {
+    display: ctx => ctx.dataset.data[ctx.dataIndex] != null,
+    color: token('--txt', '#F2F4F7'), anchor: ancla, align: alinear, offset: 2, clamp: true,
+    font: { family: 'Barlow, system-ui, sans-serif', size: 12, weight: '600' },
+    formatter: v => (v == null ? '' : Number(v).toFixed(decimales).replace('.', ',') + sufijo),
+  };
+}
+
 const _sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* La leyenda solo cabe en pantallas anchas: por debajo se come la mitad del
@@ -59,7 +105,9 @@ function opcionesBase() {
     responsive: true,
     // Sin esto el canvas crece sin límite dentro de un contenedor flexible.
     maintainAspectRatio: false,
-    animation: _sinMovimiento() ? false : { duration: 400 },
+    animation: _sinMovimiento() ? false : { duration: 600, easing: 'easeOutQuart' },
+    elements: { bar: { borderRadius: 6, borderSkipped: false }, line: { borderJoinStyle: 'round' } },
+    layout: { padding: { top: 8, right: 4 } },
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: {
@@ -75,7 +123,7 @@ function opcionesBase() {
         bodyColor: txt,
         padding: 10,
         cornerRadius: 8,
-        displayColors: true,
+        displayColors: true, usePointStyle: true, boxPadding: 4,
         titleFont: { family: 'Barlow, system-ui, sans-serif', weight: '600' },
         bodyFont:  { family: 'Source Sans 3, system-ui, sans-serif' },
       },

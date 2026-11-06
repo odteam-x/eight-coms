@@ -129,8 +129,8 @@ const PanelAdmin = (() => {
     const nivC = k => token('--' + k);
     pintarGrafico('pn-dist', () => ({
       type: 'bar',
-      data: { labels: Object.values(NIV), datasets: [{ data: Object.keys(NIV).map(k => dist[k]), backgroundColor: Object.keys(NIV).map(nivC), borderRadius: 10, maxBarThickness: 64 }] },
-      options: { plugins: { legend: { display: false } }, interaction: { mode: 'nearest', intersect: true }, scales: { y: { ticks: { precision: 0 } } } },
+      data: { labels: Object.values(NIV), datasets: [{ data: Object.keys(NIV).map(k => dist[k]), backgroundColor: Object.keys(NIV).map(nivC), borderRadius: 10, maxBarThickness: 64, datalabels: etiquetasValor() }] },
+      options: { plugins: { legend: { display: false } }, layout: { padding: { top: 22 } }, interaction: { mode: 'nearest', intersect: true }, scales: { y: { ticks: { precision: 0 } } } },
     }));
     comparacion();
     // Radar
@@ -162,8 +162,8 @@ const PanelAdmin = (() => {
     if (!lista.length) return;
     pintarGrafico('pn-cmp', () => ({
       type: 'bar',
-      data: { labels: lista.map(g => `${g.n} (${g.c})`), datasets: [{ data: lista.map(g => Math.round(g.m * 10) / 10), backgroundColor: lista.map(g => token('--' + nivelKey(g.m))), borderRadius: 10, maxBarThickness: 34 }] },
-      options: { indexAxis: 'y', plugins: { legend: { display: false } }, interaction: { mode: 'nearest', intersect: true }, scales: { x: { min: 0, max: 100, beginAtZero: true }, y: { beginAtZero: false } } },
+      data: { labels: lista.map(g => `${g.n} (${g.c})`), datasets: [{ data: lista.map(g => Math.round(g.m * 10) / 10), backgroundColor: lista.map(g => token('--' + nivelKey(g.m))), borderRadius: 10, maxBarThickness: 34, datalabels: etiquetasValor({ decimales: 1, alinear: 'end' }) }] },
+      options: { indexAxis: 'y', layout: { padding: { right: 36 } }, plugins: { legend: { display: false } }, interaction: { mode: 'nearest', intersect: true }, scales: { x: { min: 0, max: 100, beginAtZero: true }, y: { beginAtZero: false } } },
     }));
   }
 
@@ -184,10 +184,10 @@ const PanelAdmin = (() => {
     pintarGrafico('pn-tend', () => ({
       type: 'line',
       data: { labels: pts.map(p => p.n), datasets: [
-        { label: 'Promedio', data: pts.map(p => Math.round(p.m * 10) / 10), borderColor: token('--data'), backgroundColor: conAlfa(token('--data'), .18), fill: true, tension: .3, pointRadius: 5 },
+        { label: 'Promedio', data: pts.map(p => Math.round(p.m * 10) / 10), borderColor: token('--data'), backgroundColor: rellenoDegradado(token('--data')), fill: true, tension: .3, pointRadius: 5 },
         { label: 'Mejor', data: pts.map(p => Math.round(p.x * 10) / 10), borderColor: token('--cyan-200'), borderDash: [6, 5], tension: .3, pointRadius: 4, fill: false },
       ] },
-      options: { scales: { y: { min: 0, max: 100 } } },
+      options: { plugins: { annotation: { annotations: bandasNivel('v2', 100) } }, scales: { y: { min: 0, max: 100 } } },
     }));
   }
 
