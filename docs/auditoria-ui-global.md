@@ -96,3 +96,15 @@ cero objetivos táctiles pequeños.
 ### Pendiente real
 Reorganizar secciones/botones (requiere tu criterio sobre qué mover), rendimiento con Lighthouse en producción, y revisar a ojo
 el tema claro tras el cambio de `etq-gris` (el contraste numérico pasa; el aspecto no se vio en pantalla).
+
+## Reorganización de información (decidida por la auditoría)
+
+Criterio: **el color y la píldora se reservan para lo que pide una decisión o atención; lo normal va en texto.** Aplicado en:
+- Tarjeta de equipo: estado como punto + texto, conteos en una línea, píldoras solo para por revisar / vencidas / alertas.
+- Etiquetas neutras (`etq-gris`) como texto en todas las pantallas (Seguimiento, Distritos, Personas, Selector, equipos).
+- Selector de personas: «Rol habilitado» (el caso normal) pasa de verde a texto neutro; siguen en color la excepción
+  («Rol no habilitado», ámbar), la preferencia, la carga alta y las vencidas.
+- Cabecera de perfil en celular: identidad y nombre arriba, acciones a una fila, resumen debajo.
+
+No se movieron secciones de navegación: la estructura actual (operación vs configuración, 3 destinos del miembro, 5 de la
+secretaría) ya sigue ese principio y no hay evidencia medida que justifique cambiarla.

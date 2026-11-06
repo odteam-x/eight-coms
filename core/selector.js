@@ -74,7 +74,7 @@ const Selector = (() => {
       const out = [];
       if (p.rol_nombre) out.push(`<span class="etiqueta etq-gris">${escHtml(p.rol_nombre)}</span>`);
       if (S.rolId != null) {
-        if (p.permitido === true) out.push('<span class="etiqueta etq-verde" title="El rol está entre los que tiene habilitados">Rol habilitado</span>');
+        if (p.permitido === true) out.push('<span class="etiqueta etq-gris" title="El rol está entre los que tiene habilitados">Rol habilitado</span>');
         else if (p.permitido === false) out.push('<span class="etiqueta etq-ambar" title="No tiene habilitado ese rol: solo la administración puede asignárselo, como excepción">Rol no habilitado</span>');
         if (p.predeterminado) out.push('<span class="etiqueta etq-azul" title="Es el rol que más quiere hacer">Su rol predeterminado</span>');
         else if (p.prioridad != null) out.push(`<span class="etiqueta etq-azul" title="Lo puso entre sus preferencias">Prefiere este rol · n.º ${escHtml(p.prioridad)}</span>`);
