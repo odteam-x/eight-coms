@@ -220,7 +220,7 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
   .login-hero-tag { margin: 0; font-size: var(--fs-sm); }
   /* Crece con la altura de la ventana, pero nunca más de lo que cabe «CREATORS» en el ancho del panel (5/11 de la
      ventana menos su relleno): en una tablet vertical la palabra se partía («CREATOR / S»). */
-  .login-hero-h1 { font-size: clamp(2.4rem, min(1rem + 8.6vh, calc((45.4vw - 4rem) / 4.2)), 5.8rem); line-height: .98; letter-spacing: -.025em; }
+  .login-hero-h1 { font-size: clamp(2.4rem, min(1rem + 8.6vh, calc((45.4vw - 4rem) / 5.1)), 5.8rem); line-height: .98; letter-spacing: -.025em; }
   .login-hero-h1 em, .login-hero-h1 .login-hero-labs { display: block; }
   .login-hero-h1 .login-hero-labs { color: var(--on-brand); }
   .login-hero-h1 em::before, .login-hero-h1 .login-hero-labs::before { content: none; }
