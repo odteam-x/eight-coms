@@ -1,0 +1,2 @@
+# Librerías de terceros: byte a byte, sin conversión de saltos de línea (su hash SRI debe coincidir exactamente)
+vendor/* -text
