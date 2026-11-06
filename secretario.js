@@ -222,11 +222,11 @@ async function initUI() {
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
-          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
+          { tab:'trabajos', icono:'folder-open', etiqueta: sec ? 'Mis tareas' : 'Entregas', fav: sec },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
-          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
+          { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas del distrito', fav: true },
           { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
           { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),

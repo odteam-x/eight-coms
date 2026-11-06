@@ -171,12 +171,15 @@ const Calendario = (() => {
               <button type="button" class="cal2-btn" data-act="calMes" data-arg="1" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
             </div>
           </header>
+          <details class="cal2-filtros-det"${window.matchMedia('(max-width: 600px)').matches ? '' : ' open'}>
+          <summary>Qué mostrar</summary>
           <div class="cal2-filtros" role="group" aria-label="Qué mostrar (leyenda)">
             <button type="button" class="cal2-chip${S.ver.hitos ? ' on' : ''}" aria-pressed="${S.ver.hitos}" data-act="calFiltro" data-arg="hitos"><i class="cal2-punto cal2-punto--entrega"></i>Fechas de los períodos</button>
             <button type="button" class="cal2-chip${S.ver.tareas ? ' on' : ''}" aria-pressed="${S.ver.tareas}" data-act="calFiltro" data-arg="tareas"><i class="cal2-punto cal2-punto--tarea"></i>${S.modo === 'miembro' ? 'Mis tareas' : S.modo === 'secretario' ? 'Tareas del distrito' : 'Todas las tareas'}</button>
             ${(S.etiquetas || []).map(e => `<button type="button" class="cal2-chip${S.ocultas.has(String(e.id)) ? '' : ' on'}" aria-pressed="${!S.ocultas.has(String(e.id))}" data-act="calFiltro" data-arg="etq:${e.id}"><i class="cal2-punto cal2-punto--act" style="--etq:var(--etq-${escHtml(e.tono)})"></i>${escHtml(e.nombre)}</button>`).join('')}
             ${peHoy ? `<span class="cal2-hoy-pe">Hoy estás en <strong>${escHtml(peHoy.pe)}</strong></span>` : ''}
           </div>
+          </details>
           <div class="cal2-sem" aria-hidden="true">${DIAS.map(d => `<span>${d}</span>`).join('')}</div>
           <div class="cal2-grid">${celdas}</div>
         </section>

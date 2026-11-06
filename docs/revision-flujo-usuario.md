@@ -47,3 +47,9 @@ Solo T1 (nombre accesible del rail y tooltip para tablet). El resto son propuest
   Si el tablero no carga (sin migraciones) el detalle queda abierto.
 - **M2 (misma lista en tres sitios):** Inicio ya mostraba solo las 4 más urgentes; ahora «y N más» es un botón a Entregas. **Sigue pendiente:** el Inicio solo cuenta tareas
   individuales (no las de equipo) y Mi perfil conserva su propia lista de tareas.
+
+## Actualización 2: S1, A3 y M5
+- **S1:** en la barra de la secretaría, «Entregas» → **«Mis tareas»** y «Tareas» → **«Tareas del distrito»** (el título de cada pantalla ya decía lo segundo). El miembro sigue con «Entregas».
+- **A3:** en Evaluar, «Eliminar los N borradores» pasa al final del bloque de filtros, separado por una línea (ya pedía confirmación en un diálogo).
+- **M5:** los filtros del calendario van plegados en «Qué mostrar» en celular; el mes empieza a ~390 px en vez de bajo el pliegue. En pantalla ancha siguen abiertos.
+- Pendiente: M3 (hero de Inicio), M4 (Mi perfil de 6,9 pantallas), A1/A2 (admin en celular), Personas/Equipos con iconos parecidos, tareas de equipo en Inicio.
