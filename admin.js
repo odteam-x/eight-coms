@@ -78,20 +78,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
     grupos: [
       { items: [
-        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel'    },
-        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
-        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
-        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
-        { tab:'usuarios', icono:'id-card',          etiqueta:'Personas' },
-        { tab:'equipos',  icono:'team',             etiqueta:'Equipos'  },
-        { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
-        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
-        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
-        { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Hoy'    },
+        // Cuatro destinos con sus secciones hermanas dentro (core/rail.js · pintarHub): antes eran diez en una sola lista.
+        { tab:'usuarios', icono:'id-card', etiqueta:'Personas', hijas: [
+          { tab:'usuarios', etiqueta:'Personas' }, { tab:'equipos', etiqueta:'Equipos' }, { tab:'evaluar', etiqueta:'Evaluar' } ] },
+        { tab:'tareas', icono:'list-checks', etiqueta:'Trabajo', hijas: [
+          { tab:'tareas', etiqueta:'Tareas' }, { tab:'agenda', etiqueta:'Calendario' }, { tab:'calendario', etiqueta:'Actividades' } ] },
+        { tab:'desempeno', icono:'line-chart', etiqueta:'Resultados', hijas: [
+          { tab:'desempeno', etiqueta:'Desempeño' }, { tab:'seguimiento', etiqueta:'Seguimiento' }, { tab:'distritos', etiqueta:'Distritos' }, { tab:'reportes', etiqueta:'Reportes' } ] },
       ]},
       { titulo:'Configuración', plegado: true, items: [
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
-        { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
         { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
         { tab:'roles',      icono:'sliders-horizontal', etiqueta:'Roles y perfiles' },
         { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
@@ -1130,6 +1127,8 @@ async function resolverEntrada() {
 
   _gestionesEntrada = await API.getGestiones();
   if (!_gestionesEntrada.length) return null;
+  // Con UNA sola gestión no hay nada que elegir: se entra directo (período activo). La ventana solo aparece si hay varias.
+  if (_gestionesEntrada.length === 1) return { gestionId: _gestionesEntrada[0].id, periodoId: null };
 
   const pref = _leerEntrada();
   if (pref.omitir) {

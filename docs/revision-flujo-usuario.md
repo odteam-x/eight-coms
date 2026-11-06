@@ -100,3 +100,13 @@ Se recorrió el administrador en el propio navegador del usuario, a pantalla de 
 | Tareas · Calendario · Actividades | **Trabajo** (tareas, calendario y actividades en una sola agenda) |
 | Períodos · Rúbrica · Roles y perfiles · Gestiones | **Configuración** (plegada, con asistente para un período nuevo) |
 La idea: **«Hoy» responde qué hay que hacer; «Resultados» responde cómo vamos; «Personas» y «Trabajo» son donde se hace**. Requiere validarlo con quienes administran antes de mover nada.
+
+## Fase 1 de la nueva estructura (hecha)
+Menú del administrador: **de 15 destinos a 4 + Configuración** (cabe en 778 px de alto sin desplazarse):
+**Hoy** (antes Panel) · **Personas** (Personas · Equipos · Evaluar) · **Trabajo** (Tareas · Calendario · Actividades) · **Resultados** (Desempeño · Seguimiento · Distritos · Reportes) · *Configuración* (Períodos · Rúbrica · Roles y perfiles · Gestiones).
+- Una **fila de pestañas** bajo cada destino pasa de una sección hermana a otra en un clic (`core/rail.js · pintarHub`); el destino del menú queda activo en cualquiera de sus secciones y el título móvil dice la sección.
+- En celular la barra inferior queda **Hoy · Personas · Trabajo · Resultados · Más** (antes Panel · Desempeño · Evaluar · Tareas · Más).
+- **Sin ventana de entrada** cuando hay una sola gestión (antes preguntaba gestión y período en cada entrada); con varias gestiones se sigue preguntando.
+- *Actividades* pasa de Configuración a **Trabajo** (se usa a diario para crear eventos).
+- Ninguna pantalla cambió por dentro; las rutas y los enlaces de avisos siguen funcionando.
+**Pendiente de esta estructura:** aplicar el mismo esquema a la secretaría (hoy 10 destinos) y validar los nombres con quienes administran.

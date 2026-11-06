@@ -166,6 +166,7 @@ function _botonRail(it) {
   b.dataset.act = 'tab';
   b.dataset.arg = it.tab;
   b.dataset.tip = it.etiqueta;              // tooltip cuando está colapsado
+  if (it.hijas) b.dataset.tabs = it.hijas.map(h => h.tab).join(',');   // destino con secciones hermanas (hub): activo en cualquiera de ellas
   b.setAttribute('aria-label', it.etiqueta); // colapsado (tablet) el texto está oculto: sin esto el botón no tiene nombre
   b.innerHTML = `<i data-lucide="${escHtml(it.icono)}" class="rail-ico"></i>` +
                 `<span class="rail-txt">${escHtml(it.etiqueta)}</span>`;
@@ -204,7 +205,8 @@ function renderCabeceraMovil() {
 // Pantallas que no son un destino del menú (se llega desde la hoja «Más» o la cuenta).
 const _TITULOS_EXTRA = { cuenta: 'Mi cuenta' };
 function _tituloDe(tab) {
-  return _items().find(i => i.tab === tab)?.etiqueta || _TITULOS_EXTRA[tab] || _railCfg?.marca || '';
+  const hija = _items().flatMap(i => i.hijas || []).find(h => h.tab === tab);       // dentro de un hub, el título es el de la sección hermana
+  return hija?.etiqueta || _items().find(i => i.tab === tab)?.etiqueta || _TITULOS_EXTRA[tab] || _railCfg?.marca || '';
 }
 
 /* ══ BARRA INFERIOR (móvil) ════════════════════════════════════════════ */
@@ -229,6 +231,7 @@ function renderBottomBar() {
     b.className = 'bb-item';
     b.dataset.act = 'tab';
     b.dataset.arg = it.tab;
+    if (it.hijas) b.dataset.tabs = it.hijas.map(h => h.tab).join(',');
     b.innerHTML = `<i data-lucide="${escHtml(it.icono)}" class="bb-ico"></i>` +
                   `<span class="bb-txt">${escHtml(it.etiqueta)}</span>`;
     host.appendChild(b);
@@ -342,10 +345,27 @@ function cerrarHoja() { closeModal('bb-hoja'); }
 
 /* ══ ESTADO ════════════════════════════════════════════════════════════ */
 
+/**
+ * Secciones hermanas (hub). Un destino del menú puede agrupar varias pantallas (`hijas`): el menú queda corto y, dentro, una fila de
+ * pestañas permite pasar de una a otra sin volver al menú. No cambia ninguna pantalla: solo cómo se llega a ella.
+ */
+function pintarHub(tab) {
+  const main = document.getElementById('contenido'); if (!main || !_railCfg) return;
+  const hub = _items().find(i => (i.hijas || []).some(h => h.tab === tab));
+  let nav = document.getElementById('hub-nav');
+  if (!hub || hub.hijas.length < 2) { nav?.remove(); return; }
+  if (!nav) { nav = document.createElement('nav'); nav.id = 'hub-nav'; nav.className = 'hub-nav'; main.insertBefore(nav, main.firstChild); }
+  nav.setAttribute('aria-label', hub.etiqueta);
+  nav.innerHTML = '<span class="hub-nav-t">' + escHtml(hub.etiqueta) + '</span><div class="hub-nav-fila">' +
+    hub.hijas.map(h => '<button type="button" class="hub-btn' + (h.tab === tab ? ' hub-btn--on' : '') + '" data-act="tab" data-arg="' + escHtml(h.tab) + '"' +
+      (h.tab === tab ? ' aria-current="page"' : '') + '>' + escHtml(h.etiqueta) + '</button>').join('') + '</div>';
+}
+
 /** Marca el destino activo en el rail y en la barra, con aria-current. */
 function marcarActivo(tab) {
   if (!tab) return;
   if (_railCfg) _railCfg.activo = tab;
+  pintarHub(tab);
   // Solo los destinos: data-act="tab". El botón de tema también lleva
   // data-arg y no debe poder quedar marcado como activo.
   const seccion = document.getElementById('cab-movil-seccion');
@@ -356,7 +376,7 @@ function marcarActivo(tab) {
   }
 
   document.querySelectorAll('.rail-item[data-act="tab"], .bb-item[data-act="tab"]').forEach(b => {
-    const on = b.dataset.arg === tab;
+    const on = b.dataset.arg === tab || (b.dataset.tabs || '').split(',').includes(tab);
     b.classList.toggle('active', on);
     if (on) b.setAttribute('aria-current', 'page');
     else    b.removeAttribute('aria-current');
