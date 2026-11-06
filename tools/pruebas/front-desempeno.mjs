@@ -52,7 +52,7 @@ function entorno(rows, evals = []) {
     scoreColorTxtV2: () => 'var(--x)', scoreClass: () => 'sbu', scoreLabel: () => 'Bueno', scoreColorTxt: () => 'var(--x)',
     MAX_TOTAL: () => 30, hayCriterios: () => true, maxDe: c => c.max || 4, parseJSON: v => (typeof v === 'string' ? JSON.parse(v) : v || {}),
     getCriterios: () => [{ key: 'pla', nombre: 'Planificación', max: 4 }, { key: 'rev', nombre: 'Revisión', max: 4 }],
-    token: n => n, conAlfa: c => c, rellenoDegradado: c => c, bandasNivel: () => ({}), etiquetasValor: () => ({}), borrarGrafico: id => { delete graficos[id]; },
+    token: n => n, conAlfa: c => c, rellenoDegradado: c => c, plegarEnCelular() {}, bandasNivel: () => ({}), etiquetasValor: () => ({}), borrarGrafico: id => { delete graficos[id]; },
     pintarGrafico: (id, construir) => { graficos[id] = construir(); },
     renderCargando: () => {}, renderError: () => {}, renderIconos: () => {}, animarEntrada: () => {},
     showToast: m => toasts.push(m), _distritoNombre: d => d,

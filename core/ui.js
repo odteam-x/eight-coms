@@ -184,6 +184,25 @@ function animarEntrada(raiz) {
  */
 const _PANEL_ID = 'panel-lateral';
 
+/**
+ * En celular, convierte cada tarjeta `.pf-card` cuyo título (h2/h3) es hijo directo en un <details>: el título queda como cabecera que se
+ * toca y el resto se pliega. Las primeras `abiertas` quedan desplegadas. En pantalla ancha no hace nada. Llamar ANTES de pintar gráficos.
+ */
+function plegarEnCelular(raiz, selector = '.pf-card--ancha', { abiertas = 1 } = {}) {
+  if (!raiz || !window.matchMedia('(max-width: 767px)').matches) return;
+  [...raiz.querySelectorAll(selector)].forEach((card, i) => {
+    if (card.dataset.plegada || card.closest('details')) return;
+    const h = [...card.children].find(c => /^H[23]$/.test(c.tagName));
+    if (!h) return;
+    card.dataset.plegada = '1';
+    const det = document.createElement('details'); det.className = 'plegable'; if (i < abiertas) det.open = true;
+    const sum = document.createElement('summary'); sum.appendChild(h);
+    const cuerpo = document.createElement('div'); cuerpo.className = 'plegable-cuerpo';
+    while (card.firstChild) cuerpo.appendChild(card.firstChild);
+    det.append(sum, cuerpo); card.appendChild(det);
+  });
+}
+
 function abrirPanel({ titulo = '', subtitulo = '', compacto = false } = {}) {
   let ov = document.getElementById(_PANEL_ID);
   if (!ov) {

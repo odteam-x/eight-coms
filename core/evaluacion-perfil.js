@@ -111,7 +111,7 @@ const EvaluacionPerfil = (() => {
 
     host.innerHTML = `
       <div class="pf-card-cab"><h3 class="pf-h" id="${host.id}-h">Cómo se compone ${T.tu} evaluación</h3></div>
-      ${resumen}${tabla}${aviso}
+      ${resumen}${tabla && window.matchMedia('(max-width: 767px)').matches ? `<details class="v2-det ev-tabla-det"><summary>Ver el desglose por tarea</summary>${tabla}</details>` : tabla}${aviso}
       <details class="v2-det ev-hist"><summary>Historial de notas de tareas</summary><div data-hist><p class="pf-vacio">Cargando…</p></div></details>`;
     const det = host.querySelector('.ev-hist');
     det?.addEventListener('toggle', async () => {

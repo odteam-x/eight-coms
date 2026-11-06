@@ -240,3 +240,20 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .perfil-accion i, .perfil-accion svg { display: none; }
 
 @media (max-width: 420px) { .cal2-grid { --cal-gap: 2px; } }
+
+/* ── Inicio: el hero ocupaba ~380 px (el 45 % de la pantalla) antes de lo que hay que hacer. Más bajo: título y cuenta atrás en proporción. ── */
+.inicio-hero { gap: var(--sp-3); padding-block: var(--sp-4) calc(var(--sp-5) + 4px); }
+.inicio-titulo { margin-top: var(--sp-2); font-size: clamp(2.2rem, 11vw, 3rem); }
+.inicio-sub { margin-top: var(--sp-1); }
+.inicio-dias { font-size: 3.6rem; }
+.inicio-dias-lbl { font-size: var(--fs-sm); }
+
+/* ── Tarjetas largas plegables en celular (core/ui.js: plegarEnCelular) ── */
+.plegable > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 48px; cursor: pointer; list-style: none; }
+.plegable > summary::-webkit-details-marker { display: none; }
+.plegable > summary > h2, .plegable > summary > h3 { margin: 0; flex: 1 1 auto; min-width: 0; }
+.plegable > summary::after { content: ''; flex: none; width: 9px; height: 9px; border-right: 2px solid var(--txt-2); border-bottom: 2px solid var(--txt-2); transform: rotate(45deg) translateY(-2px); transition: transform .2s var(--ease); }
+.plegable[open] > summary::after { transform: rotate(-135deg); }
+.plegable[open] > summary { margin-bottom: var(--sp-3); }
+.plegable > summary:focus-visible { outline: 2px solid var(--action); outline-offset: 4px; border-radius: var(--r-fila); }
+@media (prefers-reduced-motion: reduce) { .plegable > summary::after { transition: none; } }

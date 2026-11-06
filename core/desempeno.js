@@ -449,6 +449,7 @@ const Desempeno = (() => {
         <li><b>Rúbricas</b>: la de roles (0–100) y la clásica están en escalas distintas; se eligen por separado y nunca se mezclan.</li>
         <li><b>Quién cuenta</b>: solo evaluaciones publicadas y solo personas que participan en ese período.</li>
       </ul></details>`;
+    plegarEnCelular(cuerpo, '.pf-card--ancha', { abiertas: 1 });
     const elegidas = [...S.personas].map(id => personasDe(rs).get(id)).filter(Boolean);
     pintarEvolucion(est); pintarPorRol(rs, est); pintarPersonas(elegidas, est);
     if (S.det) pintarEvolucionPropia(S.det.fs, S.det.o);
@@ -646,6 +647,7 @@ const Desempeno = (() => {
         <li><b>Cambio</b>: respecto al período publicado anterior; un período sin publicar no se interpola.</li>
         <li><b>Rúbricas</b>: la de roles (0–100) y la clásica están en escalas distintas; nunca se comparan entre sí.</li>
       </ul></details>`;
+    plegarEnCelular(cuerpo, '.pf-card--ancha', { abiertas: 1 });
     pintarEvolucionPropia(fs);
     if (typeof renderIconos === 'function') renderIconos(cuerpo);
     if (typeof animarEntrada === 'function') animarEntrada(cuerpo);

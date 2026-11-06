@@ -53,3 +53,24 @@ Solo T1 (nombre accesible del rail y tooltip para tablet). El resto son propuest
 - **A3:** en Evaluar, «Eliminar los N borradores» pasa al final del bloque de filtros, separado por una línea (ya pedía confirmación en un diálogo).
 - **M5:** los filtros del calendario van plegados en «Qué mostrar» en celular; el mes empieza a ~390 px en vez de bajo el pliegue. En pantalla ancha siguen abiertos.
 - Pendiente: M3 (hero de Inicio), M4 (Mi perfil de 6,9 pantallas), A1/A2 (admin en celular), Personas/Equipos con iconos parecidos, tareas de equipo en Inicio.
+
+## Actualización 3: M3, M4, A1 e iconos (medido a 390 px en el simulador)
+| Pantalla | Antes | Después | Cómo |
+|---|---|---|---|
+| Inicio (hero) | ~380 px | **224 px** | `movil.css`: título y cuenta atrás en proporción |
+| Mi perfil (miembro) | 6,9 pantallas | **3,8** | «Ver el desglose por tarea» plegado (`core/evaluacion-perfil.js`) |
+| Desempeño (admin) | 8,7 | **5,0** | `plegarEnCelular()` (`core/ui.js`): cada tarjeta ancha se pliega bajo su título; la primera queda abierta |
+| Desempeño (miembro) | 2,4 | 2,5 | sin cambio útil: ya era corto |
+| Entregas | 6,5 | 2,8 | (ya hecho) |
+- Iconos del admin: **Personas = tarjeta de identificación, Equipos = grupo**; antes los dos resolvían al mismo icono (`users-round` es alias de `users`).
+- Las gráficas siguen midiendo bien al abrir una sección plegada (comprobado: 314×260). En pantalla ancha nada cambia.
+
+## Ruta propuesta (en este orden)
+1. **Publicar lo hecho en una vista previa** (subir la rama; Vercel genera un enlace sin tocar producción) y revisarlo con usuarios reales de cada rol. *Es la única forma de ver datos y nombres reales.*
+2. **Panel del admin en celular (6,8 pantallas):** pasar sus tarjetas a `plegarEnCelular` (hoy no aplica porque su título no es hijo directo) y subir «Requiere atención» arriba.
+3. **Filtros de Desempeño y Evaluar:** una fila + «Más filtros»; en Desempeño ocupan 1,3 pantallas antes del primer dato.
+4. **Barra inferior del admin:** decidir con uso real si Personas entra en la barra (hoy Panel, Desempeño, Evaluar, Tareas, Más).
+5. **Tareas de equipo en Inicio** (hoy solo cuenta individuales) reutilizando los datos del tablero «Qué me toca».
+6. **Reportes (secretaría 8,6 pantallas):** resumen primero, detalle plegado.
+7. **Medir rendimiento real** (Lighthouse en la vista previa): ~11 hojas de estilo por página y `admin.js` de 149 KB son los candidatos; no se midió ni se tocó.
+8. **Tema claro y tablet a ojo** en la vista previa (no se revisaron en pantalla).
