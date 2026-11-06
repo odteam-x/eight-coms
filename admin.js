@@ -334,9 +334,9 @@ function renderEvalUserList() {
       <div class="eval-grupo"><span class="eval-grupo-t">Estado</span><div class="eval-chips">
         ${chip('evalFiltro', '', 'Todas', todos.length, !_evalEstado)}${chip('evalFiltro', 'pendiente', 'Pendientes', cuenta.pendiente, _evalEstado === 'pendiente')}${chip('evalFiltro', 'borrador', 'Borrador', cuenta.borrador, _evalEstado === 'borrador')}${chip('evalFiltro', 'publicado', 'Publicadas', cuenta.publicado, _evalEstado === 'publicado')}
       </div></div>
-      ${atajosVisibles.length ? `<div class="eval-grupo"><span class="eval-grupo-t">Atajos</span><div class="eval-chips">
+      ${atajosVisibles.length ? `<details class="eval-mas"${_evalFlag ? ' open' : ''}><summary>Más filtros <small>${atajosVisibles.length}</small></summary><div class="eval-chips">
         ${atajosVisibles.map(f => chip('evalAtajo', f.id, f.txt, cuentaAtajo[f.id], _evalFlag === f.id, f.ico)).join('')}
-      </div></div>` : ''}
+      </div></details>` : ''}
       ${cuenta.borrador ? `<div class="eval-grupo eval-grupo--peligro"><button type="button" class="btn-texto btn-texto--peligro" data-act="borrarBorradores"><i data-lucide="trash-2" aria-hidden="true"></i>${cuenta.borrador === 1 ? 'Eliminar el borrador' : 'Eliminar los ' + cuenta.borrador + ' borradores'}</button></div>` : ''}`;
     renderIconos(host);
   }

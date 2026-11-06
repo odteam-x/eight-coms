@@ -96,16 +96,20 @@ const Inicio = (() => {
     }
     if (!datos || datos.noDisponible) return `${cab('Para atender')}<p class="pf-vacio">Las tareas todavía no están activas.</p>`;
     if (datos.error) return `${cab('Para atender')}<p class="pf-vacio" role="alert">No se pudieron cargar las tareas.</p>`;
-    const abiertas = datos.tareas.filter(t => ['asignada', 'en_curso', 'devuelta', 'bloqueada'].includes(t.estado));
+    const hayP = typeof Pendientes !== 'undefined';
+    const norm = hayP ? Pendientes.normalizar(datos.tareas, datos.equipo || []) : datos.tareas.map(t => ({ tipo: 'i', titulo: t.titulo, estado: t.estado, fecha: t.fecha_limite ? String(t.fecha_limite).slice(0, 10) : null, de: '' }));
+    const abiertas = norm.filter(t => ['asignada', 'en_curso', 'devuelta', 'bloqueada'].includes(t.estado));
     const peso = t => (t.estado === 'devuelta' ? 0 : 1);
-    abiertas.sort((a, b) => peso(a) - peso(b) || String(a.fecha_limite || '9999').localeCompare(String(b.fecha_limite || '9999')));
-    if (!abiertas.length) return `${cab('Para atender')}<p class="pf-vacio">Sin tareas pendientes. ${datos.tareas.length ? 'Todo lo asignado está entregado.' : 'Cuando te asignen una, aparecerá aquí.'}</p>`;
+    abiertas.sort((a, b) => peso(a) - peso(b) || String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')));
+    const nEq = abiertas.filter(t => t.tipo === 'e').length;
+    if (!abiertas.length) return `${cab('Para atender')}<p class="pf-vacio">Sin tareas pendientes. ${norm.length ? 'Todo lo asignado está entregado.' : 'Cuando te asignen una, aparecerá aquí.'}</p>`;
     const E = Tareas.ESTADOS;
-    return `${cab(`Para atender <small>${abiertas.length} abierta${abiertas.length === 1 ? '' : 's'}</small>`)}
+    return `${cab(`Para atender <small>${abiertas.length} abierta${abiertas.length === 1 ? '' : 's'}${nEq ? ` · ${nEq} de equipo` : ''}</small>`)}
       <ul class="pf-tareas pf-tareas--compacta">${abiertas.slice(0, 4).map(t => {
-        const e = E[t.estado] || E.asignada;
+        const e = E[t.estado] || E.asignada, eq = t.tipo === 'e';
+        const cu = hayP ? Pendientes.cuando(t) : { txt: '', cls: 'nada' };
         return `<li class="pf-tarea"><span class="tk-pill tk-pill--${e.cls}">${escHtml(e.txt)}</span>
-          <div class="pf-tarea-txt"><div class="pf-tarea-t">${escHtml(t.titulo)}</div><div class="pf-tarea-m">${Tareas.plazoHTML(t)}</div></div></li>`;
+          <div class="pf-tarea-txt"><div class="pf-tarea-t">${escHtml(t.titulo)}</div><div class="pf-tarea-m">${eq ? `<b>De equipo${t.de ? ' · ' + escHtml(t.de) : ''}</b> · ` : ''}${escHtml(cu.txt)}</div></div></li>`;
       }).join('')}</ul>
       ${abiertas.length > 4 ? `<button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ver las ${abiertas.length - 4} restantes en Entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button>` : ''}`;
   }
@@ -141,7 +145,11 @@ const Inicio = (() => {
         _evaluacion(persona, periodo),
         periodo && esPeriodoV2(periodo)
           ? API.getTareas({ periodoId: periodo.id, userId: persona.id })
-              .then(r => ({ noDisponible: !!r.noDisponible, error: (!r.ok && !r.noDisponible) ? r.error : null, tareas: r.ok ? r.tareas : [] }))
+              .then(async r => {
+                let equipo = [];
+                try { if (typeof API.getTareasEquipo === 'function') { const q = await API.getTareasEquipo({ periodoId: periodo.id }); if (q && q.ok) equipo = q.tareas || []; } } catch (_) { /* sin equipos: solo individuales */ }
+                return { noDisponible: !!r.noDisponible, error: (!r.ok && !r.noDisponible) ? r.error : null, tareas: r.ok ? r.tareas : [], equipo };
+              })
           : Promise.resolve(null),
       ]);
     } catch (e) { falla = e; }

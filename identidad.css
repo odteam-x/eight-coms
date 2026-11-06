@@ -120,3 +120,25 @@
 
 /* 20 · Menú lateral en pantallas bajas (portátil, 720–820 px): «Próxima fecha» (ya está en Inicio y en el calendario) empujaba hacia abajo el último destino, que quedaba oculto tras un desplazamiento interno */
 @media (max-height: 820px) { .rail-prox { display: none; } }
+
+/* 21 · Evaluar: «Más filtros» plegado. Una sola fila (resumen + estado) en vez de tres bloques de chips; los atajos se abren con un clic y quedan abiertos si hay uno activo */
+.eval-mas { flex: 1 1 100%; }
+.eval-mas > summary { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 44px; cursor: pointer; list-style: none; color: var(--action); font: 600 var(--fs-sm)/1 var(--font-ui); }
+.eval-mas > summary::-webkit-details-marker { display: none; }
+.eval-mas > summary small { color: var(--txt-2); font-weight: 600; }
+.eval-mas > summary:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.eval-mas[open] > summary { margin-bottom: var(--sp-2); }
+
+/* 22 · Estilo «tablero» (referencias de tableros oscuros de la guía maestra): UNA cifra protagonista por pantalla y las demás subordinadas.
+   Rejilla de indicadores asimétrica: el primero ocupa el doble; la cifra principal en Barlow Condensed grande; el resto, más pequeño y en --txt-2.
+   Sin color nuevo, sin degradados ni sombras: jerarquía por tamaño y por filete. */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--sp-5) var(--sp-6); }
+.kpi-row > :first-child { grid-column: span 2; }
+.kpi-row > :first-child .kpi-n, .kpi-row > :first-child b { font-size: var(--fs-hero); line-height: .95; }
+.kpi-row > :not(:first-child) b { font-size: var(--fs-xl); color: var(--txt-2); }
+.inicio-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+.inicio-grid > .pf-card--cian { grid-row: span 2; }
+.inicio-grid > .pf-card--ancha { grid-column: 1 / -1; }
+.pf-card-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--trazo); margin-bottom: var(--sp-3); }
+.inicio-eval .anillo { --tam: 148px; }
+@media (max-width: 899px) { .inicio-grid { grid-template-columns: minmax(0, 1fr); } .inicio-grid > .pf-card--cian { grid-row: auto; } }
