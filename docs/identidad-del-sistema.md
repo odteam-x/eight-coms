@@ -25,3 +25,6 @@
 
 ## Lo que falta (honesto)
 Esta pasada cubre ritmo, pestañas de sección, línea de tiempo y la navegación. Quedan por llevar a la identidad: formularios y diálogos, el Panel del administrador, Reportes y los botones secundarios.
+
+## Aplicado en la segunda pasada
+Inicio sin resplandor ni patrón a plena intensidad; listas dentro de tarjetas separadas por filetes (sin «tarjeta dentro de tarjeta»); estado de tarea y nivel como punto + texto; cifras clave (KPI) como número sobre un filete; calendario como cuadrícula de filetes. Revisado en el simulador (miembro, 1100 px).

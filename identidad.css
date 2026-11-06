@@ -46,3 +46,39 @@
 
 /* 6 · Encabezados: un nivel de rótulo en secciones (no títulos gigantes repetidos) */
 .pf-h { font-size: var(--fs-lg); letter-spacing: var(--tr-titulo); }
+
+/* 7 · Inicio: portada sobria. El saludo y la cuenta atrás siguen siendo lo grande, pero sin resplandor, con el patrón de marca atenuado y sin la cuadrícula
+      de cuadros a toda intensidad detrás de cada letra. */
+.inicio-titulo { font-size: clamp(2.3rem, 5.2vw, 4rem); }
+.inicio-dias { font-size: clamp(3.6rem, 8vw, 6rem); text-shadow: none; }
+.inicio-hero { padding-block: var(--sp-5) calc(var(--sp-5) + 28px); }
+.sup-marca::before { opacity: .14; }
+
+/* 8 · Nada de «tarjeta dentro de tarjeta»: las listas de una tarjeta se separan con filetes, no con otra superficie redondeada */
+.pf-tareas, .pf-tareas--compacta, .pf-lista { background: none; border-radius: 0; padding: 0; box-shadow: none; }
+.pf-tarea { padding-block: var(--sp-3); background: none; border-radius: 0; }
+.pf-tarea + .pf-tarea { border-top: 1px solid var(--trazo); }
+
+/* 9 · Estado de una tarea: punto + texto, no una píldora con borde (hay una por fila y se acumulan). El color de texto es el ya medido de cada estado. */
+.tk-pill { display: inline-flex; align-items: center; gap: var(--sp-2); padding: 0; border: 0; border-radius: 0; background: none; font: 700 var(--fs-xs)/1.2 var(--font-ui); color: var(--txt-2); white-space: nowrap; }
+.tk-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.tk-pill--bloqueada::before { background: none; box-shadow: inset 0 0 0 2px currentColor; }
+
+/* 10 · Nivel («Bueno», «En proceso»…): punto + texto en cualquier superficie normal. La píldora rellena (cyan sólido) llamaba más que el número.
+        Sobre superficies de marca (.sup-marca) se conserva su variante con contorno, ya medida. */
+.nivel-badge { padding: 0; background: transparent; color: var(--txt-2); font-weight: 600; gap: var(--sp-2); }
+.nivel-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--nivel); flex: none; }
+.sup-marca .nivel-badge::before { display: none; }
+
+/* 11 · Cifras clave (KPI): número grande sobre un filete, sin fichas. Cinco fichas rellenas iguales en fila eran la cara más reconocible de «plantilla de panel». */
+.kpi, .pf-kpi, .v2-kpi, .tarjeta--kpi { background: none; border: 0; border-top: 1px solid var(--trazo); border-radius: 0; box-shadow: none; padding: var(--sp-3) 0 0; }
+.kpi-row, .pf-kpis { gap: var(--sp-5); }
+
+/* 12 · Calendario: cuadrícula de filetes, no un tablero de fichas redondeadas */
+.cal2-mes, .cal2-agenda { background: none; padding-inline: 0; border-radius: 0; }
+.cal2-grid { gap: 0; border-top: 1px solid var(--trazo); }
+.cal2-dia { border-radius: 0; background: none; border: 0; border-bottom: 1px solid var(--trazo); min-height: 76px; }
+.cal2-dia:hover { background: var(--surface-1); border: 0; border-bottom: 1px solid var(--trazo); }
+.cal2-dia--pe { background: color-mix(in srgb, var(--data) 5%, transparent); }
+.cal2-dia--sel { box-shadow: none; background: var(--surface-2); outline: 2px solid var(--action); outline-offset: -2px; }
+@media (max-width: 767px) { .cal2-dia { min-height: 56px; } }
