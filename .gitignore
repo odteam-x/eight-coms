@@ -25,3 +25,6 @@ node_modules/
 
 # Manuales privados generados (se publican en la base, no en el sitio)
 .manuales-privados/
+
+# Informes de análisis con hallazgos de seguridad: no se despliegan (el sitio sirve todo lo que se versiona)
+.informes-privados/
