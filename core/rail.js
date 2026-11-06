@@ -166,6 +166,7 @@ function _botonRail(it) {
   b.dataset.act = 'tab';
   b.dataset.arg = it.tab;
   b.dataset.tip = it.etiqueta;              // tooltip cuando está colapsado
+  b.setAttribute('aria-label', it.etiqueta); // colapsado (tablet) el texto está oculto: sin esto el botón no tiene nombre
   b.innerHTML = `<i data-lucide="${escHtml(it.icono)}" class="rail-ico"></i>` +
                 `<span class="rail-txt">${escHtml(it.etiqueta)}</span>`;
   return b;

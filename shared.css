@@ -985,7 +985,8 @@ body.gestion-archivada [aria-disabled="true"] {
 .rail-colapsado .rail-sep { margin:var(--sp-3) 0; padding-top:var(--sp-3); }
 
 @media (hover:hover) and (pointer:fine) {
-  .rail-colapsado .rail-item[data-tip]:hover::after {
+  /* Tablet (768–1023): el rail va colapsado por media query, sin la clase .rail-colapsado; sin tooltip nadie sabía qué era cada icono. */
+.rail-colapsado .rail-item[data-tip]:hover::after, .rail-colapsado .rail-item[data-tip]:focus-visible::after {
     content:attr(data-tip); position:absolute; left:calc(100% + var(--sp-2));
     top:50%; transform:translateY(-50%); white-space:nowrap;
     background:var(--surface-3); color:var(--txt);
@@ -1872,3 +1873,11 @@ select:-webkit-autofill {
 .rail-user { border-radius: var(--r-card); border: 1px solid var(--border); background: rgba(255,255,255,.05); }
 .rail-colapsado .rail-user { border: 0; background: none; }
 .pb--hoy::after { content: ''; position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
+@media (min-width: 768px) and (max-width: 1023px) and (hover: hover) and (pointer: fine) {
+  .rail .rail-item[data-tip]:hover::after, .rail .rail-item[data-tip]:focus-visible::after {
+    content: attr(data-tip); position: absolute; left: calc(100% + var(--sp-2)); top: 50%; transform: translateY(-50%); white-space: nowrap;
+    background: var(--surface-3); color: var(--txt); font-family: var(--font-ui); font-size: var(--fs-xs);
+    padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid var(--border); box-shadow: var(--shadow-md);
+    z-index: calc(var(--z-rail) + 1); pointer-events: none;
+  }
+}
