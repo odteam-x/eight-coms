@@ -73,3 +73,22 @@
 /* Personas elegidas para comparar: varias filas si hace falta, nunca una fila que se desplaza ni un chip estrujado en 4 líneas. */
 .des-chips { flex-wrap: wrap; overflow: visible; scroll-snap-type: none; }
 .des-chip { flex: 0 1 auto; max-width: 100%; min-width: 0; }
+
+/* Ritmo vertical (auditoría): #des-cuerpo era un bloque normal y sus tarjetas (.pf-card) quedaban pegadas, a 0–1 px una de otra, como si fueran una sola.
+   Ahora es una columna con separación entre secciones; los títulos de grupo separan más que las tarjetas entre sí. */
+#des-cuerpo { display: flex; flex-direction: column; gap: var(--sp-5); }
+#des-cuerpo > .des-grupo-t { margin: var(--sp-4) 0 calc(var(--sp-2) * -1); }
+#des-cuerpo > .des-grupo-t:first-child { margin-top: 0; }
+#des-cuerpo > .des-nota { margin: 0; }
+#des-cuerpo > .seg-como { margin: 0; }
+@media (max-width: 767px) { #des-cuerpo { gap: var(--sp-4); } }
+
+/* Comparar personas: estado vacío con propósito (antes: una línea de texto en un recuadro enorme y vacío). */
+.des-vacio { display: grid; justify-items: start; align-content: center; gap: var(--sp-3); min-height: 260px; padding: var(--sp-5) var(--sp-6); border-radius: var(--r-cont); background: var(--surface-2); }
+.des-vacio-fig { width: min(100%, 260px); height: auto; margin-bottom: var(--sp-2); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+.des-vacio-fig path:nth-child(1) { stroke: var(--data); }
+.des-vacio-fig path:nth-child(2) { stroke: var(--cyan-200); stroke-dasharray: 2 7; }
+.des-vacio-fig path:nth-child(3) { stroke: var(--txt-muted); stroke-dasharray: 8 6; }
+.des-vacio-t { margin: 0; font: 700 var(--fs-lg)/1.15 var(--font-display); letter-spacing: var(--tr-display); }
+.des-vacio-d { margin: 0; max-width: 52ch; color: var(--txt-2); font-size: var(--fs-sm); }
+.des-vacio-acc { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }

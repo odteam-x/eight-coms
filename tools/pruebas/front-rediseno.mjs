@@ -431,7 +431,7 @@ console.log('\n[avatar y tarjeta de persona]');
   ok(/\.pcard \{[^}]*background: var\(--surface-1\); border: 1px solid var\(--trazo\)/.test(pc), 'tarjeta de persona: fondo y borde en el contenedor exterior');
   const pj = fs.readFileSync(ROOT + 'core/personas.js', 'utf8');
   ok(/function personaMiniHTML/.test(pj), 'tarjeta de persona: variante compacta personaMiniHTML');
-  ok((pj.match(/class="pcard[^"]*sup-marca pat-\$\{Fondo\.clase\(p\)\}/g) || []).length >= 3, 'tarjeta de persona: el fondo personalizado (pat-N) va en el contenedor de la tarjeta');
+  ok(/_fondoPropio = p => \(p\.soyYo \? ` sup-marca pat-\$\{Fondo\.clase\(p\)\}`/.test(pj) && (pj.match(/_fondoPropio\(p\)/g) || []).length >= 1 && !/pcard--mini[^`]*pat-/.test(pj), 'tarjeta de persona: el fondo personalizado (pat-N) va en el contenedor y solo en la tarjeta propia; las de la lista van planas');
 }
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);

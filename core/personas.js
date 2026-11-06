@@ -27,13 +27,17 @@
  * @param {boolean} [p.soyYo]
  * @param {string}  [p.estado]      texto bajo el anillo cuando no hay valor
  */
+/** El fondo personalizado (pat-N) lo elige cada persona para SU tarjeta: solo se pinta en la propia. Una lista con diez tarjetas con patrón
+ *  rompe la regla «una superficie de marca por pantalla» y compite con los datos; las demás van planas. */
+const _fondoPropio = p => (p.soyYo ? ` sup-marca pat-${Fondo.clase(p)}` : '');
+
 function personaCardHTML(p) {
   const tiene = p.valor != null && !Number.isNaN(Number(p.valor));
   const max = p.max || 100;
   const chips = (p.chips || []).map(c => `<span class="etiqueta ${c.aviso ? 'etq-coral' : 'etq-gris'}">${escHtml(c.txt)}</span>`).join('');
   const sub = [p.rol || '—', p.distrito].filter(Boolean).map(escHtml).join(' · ');
   return `
-    <button type="button" class="pcard sup-marca pat-${Fondo.clase(p)}${p.soyYo ? ' pcard--yo' : ''}" data-act="perfilVer" data-arg="${escHtml(p.id)}"
+    <button type="button" class="pcard${_fondoPropio(p)}${p.soyYo ? ' pcard--yo' : ''}" data-act="perfilVer" data-arg="${escHtml(p.id)}"
             aria-label="Ver el perfil de ${escHtml(p.nombre || 'la persona')}">
       <span class="pcard-cab">
         ${Avatar.html(p, { tam: 'lg', clase: 'pcard-av' })}
@@ -61,8 +65,8 @@ function personaMiniHTML(p, { detalle = '', extra = '', abre = true } = {}) {
     <span class="pcard-txt"><span class="pcard-nombre">${escHtml(p.nombre || 'Sin nombre')}</span>${sub ? `<span class="pcard-rol">${escHtml(sub)}</span>` : ''}</span>
     ${extra ? `<span class="pcard-extra">${extra}</span>` : ''}`;
   return abre
-    ? `<button type="button" class="pcard pcard--mini sup-marca pat-${Fondo.clase(p)}" data-act="perfilVer" data-arg="${escHtml(p.id)}" aria-label="Ver el perfil de ${escHtml(p.nombre || 'la persona')}">${cuerpo}</button>`
-    : `<article class="pcard pcard--mini sup-marca pat-${Fondo.clase(p)}">${cuerpo}</article>`;
+    ? `<button type="button" class="pcard pcard--mini" data-act="perfilVer" data-arg="${escHtml(p.id)}" aria-label="Ver el perfil de ${escHtml(p.nombre || 'la persona')}">${cuerpo}</button>`
+    : `<article class="pcard pcard--mini">${cuerpo}</article>`;
 }
 
 /** Cuadrícula de tarjetas, con un mensaje si no hay nadie. */

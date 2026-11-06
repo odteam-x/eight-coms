@@ -456,3 +456,23 @@ button.pcard { cursor: pointer; }
   .cal2-filtros-det > summary::after { content: ''; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); }
   .cal2-filtros-det[open] > summary::after { transform: rotate(-135deg); }
 }
+
+/* ── Tarjeta de persona en listas: plana (auditoría) ─────────────────────────────────────────────────────────────────────
+   Antes cada tarjeta era una superficie de marca con patrón de cuadros: diez a la vez compiten con el dato (el número) y rompen la regla de
+   una sola superficie de marca por pantalla. Ahora superficie plana; el nivel se lee como punto + texto (no como píldora rellena); el patrón
+   elegido por la persona queda en SU tarjeta y en su cabecera de perfil. */
+.pcard:not(.sup-marca) .nivel-badge { padding: 0; background: transparent; color: var(--txt-2); font-weight: 600; gap: var(--sp-2); }
+.pcard:not(.sup-marca) .nivel-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--nivel); }
+.pcard:not(.sup-marca) .pcard-barra { background: var(--surface-3); }
+.pcard:not(.sup-marca) .avatar { background: var(--navy-900); box-shadow: inset 0 0 0 2px var(--cyan-400); }
+.pcard:not(.sup-marca):hover { background: var(--surface-2); }
+.pcard:not(.sup-marca) .pcard-sin { color: var(--txt-2); }
+
+/* ── Cabecera del perfil en el panel lateral: identidad a la izquierda y resultado a la derecha (antes una columna de ~470 px) ── */
+@media (min-width: 1024px) {
+  .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: var(--sp-5) var(--sp-6); }
+  .perfil--panel .perfil-nombre { font-size: clamp(1.9rem, 2.6vw, 2.6rem); }
+  .perfil--panel .perfil-resumen { flex-direction: column; align-items: center; text-align: center; min-width: 140px; }
+  .perfil--panel .perfil-resumen-txt { align-items: center; }
+  .perfil--panel .perfil-resumen .anillo { --tam: 112px; }
+}

@@ -121,6 +121,27 @@ async function cargarPersonasRes() {
   return _personasRes;
 }
 
+/* ── Roles sugeridos por las propias personas ─────────────────────────────────────────────────────────────────────────────────
+ * Cada persona ordena los roles que quiere hacer (preferencias_rol, 0021) y marca uno predeterminado. Eso es INFORMACIÓN, nunca un permiso:
+ * aquí solo se cuenta quién ya sugirió un rol que la administración todavía no ha atendido, para que el Panel lo avise.
+ * «Sugirió» = tiene un rol predeterminado (o, si no marcó ninguno, el de mayor prioridad) distinto de su rol asignado. */
+let _sugirieron = new Map();      // persona_id -> rol_id sugerido (solo las que difieren de su rol asignado)
+async function cargarSugerencias() {
+  const r = await API.getPreferenciasRol();
+  if (!r.ok) { _sugirieron = new Map(); return { ok: false, noDisponible: !!r.noDisponible }; }
+  const porPersona = new Map();
+  for (const p of r.rows) { if (!porPersona.has(p.persona_id)) porPersona.set(p.persona_id, []); porPersona.get(p.persona_id).push(p); }
+  const out = new Map();
+  for (const [id, lista] of porPersona) {
+    const u = _users.find(x => x.id === id);
+    if (!u || u.es_admin || u.aprobado === false) continue;
+    const elegido = lista.find(x => x.es_predeterminado) || [...lista].sort((a, b) => a.prioridad - b.prioridad)[0];
+    if (elegido && Number(elegido.rol_id) !== Number(u.rol_id)) out.set(id, elegido.rol_id);
+  }
+  _sugirieron = out;
+  return { ok: true };
+}
+
 /** Cambió el período de Personas (o algo que altera los resultados). */
 function invalidarPersonasRes() { _personasRes = null; }
 
@@ -136,6 +157,7 @@ const ESTADOS_PERSONA = [
   { k: 'sin_evaluar',  l: 'Sin evaluar' },
   { k: 'borrador',     l: 'Evaluación en borrador' },
   { k: 'sin_rol',      l: 'Sin rol' },
+  { k: 'sugirio_rol',  l: 'Sugirieron un rol' },
   { k: 'sin_distrito', l: 'Sin distrito' },
   { k: 'inactivas',    l: 'Inactivas en el período' },
   { k: 'admins',       l: 'Administradores' },
@@ -147,6 +169,7 @@ function estadosDePersona(u) {
   if (u.aprobado === false) e.add('pendientes');
   if (u.es_admin) { e.add('admins'); return e; }          // la administración no se evalúa
   if (!u.rol_id) e.add('sin_rol');
+  if (_sugirieron.has(u.id)) e.add('sugirio_rol');
   if (!u.distrito) e.add('sin_distrito');
   const inactiva = _inactivosPE.has(u.id);
   if (inactiva) e.add('inactivas');
@@ -183,6 +206,7 @@ async function renderPersonasCards() {
   const el = document.getElementById('personas-cards'); if (!el) return;
   // Los resultados se piden ANTES de filtrar: «sin evaluar» y «borrador» los necesitan.
   const res = await cargarPersonasRes();
+  await cargarSugerencias();
   pintarFiltroEstado();
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
   const dist = (document.getElementById('filter-distrito-usuarios')?.value || '').trim();
@@ -396,6 +420,14 @@ async function renderAtencion() {
 
   const pendientes = _users.filter(u => u.aprobado === false).length;
   if (pendientes) items.push({ n: pendientes, icono: 'user-x', txt: `persona${pendientes === 1 ? '' : 's'} esperando que apruebes su acceso`, tab: 'usuarios', filtro: 'pendientes', cta: 'Revisar accesos' });
+
+  // Roles: quién no tiene rol definido y quién ya sugirió uno (una sola definición con el filtro de Personas: estadosDePersona).
+  await cargarSugerencias();
+  const sinRol = _users.filter(u => estadosDePersona(u).has('sin_rol') && u.aprobado !== false).length;
+  const sugirieron = _users.filter(u => estadosDePersona(u).has('sugirio_rol')).length;
+  if (sinRol) items.push({ n: sinRol, icono: 'id-card', txt: `persona${sinRol === 1 ? '' : 's'} por definir un rol`, tab: 'usuarios', filtro: 'sin_rol', cta: 'Definir' });
+  if (sugirieron) items.push({ n: sugirieron, icono: 'team', txt: sugirieron === 1 ? 'persona sugirió un rol' : 'personas sugirieron un rol', tab: 'usuarios', filtro: 'sugirio_rol', cta: 'Ver' });
+
 
   if (pe) {
     const [evs, part] = await Promise.all([API.getEvaluacionesByPE(pe.id), API.getParticipantes(pe.id)]);

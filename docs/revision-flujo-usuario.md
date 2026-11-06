@@ -74,3 +74,29 @@ Solo T1 (nombre accesible del rail y tooltip para tablet). El resto son propuest
 6. **Reportes (secretaría 8,6 pantallas):** resumen primero, detalle plegado.
 7. **Medir rendimiento real** (Lighthouse en la vista previa): ~11 hojas de estilo por página y `admin.js` de 149 KB son los candidatos; no se midió ni se tocó.
 8. **Tema claro y tablet a ojo** en la vista previa (no se revisaron en pantalla).
+
+## Recorrido en el navegador del usuario (1351×778) y propuesta de estructura
+Se recorrió el administrador en el propio navegador del usuario, a pantalla de portátil (sobre el simulador local).
+
+**Hecho a raíz de ese recorrido y de las anotaciones del usuario**
+- **Panel:** «Requiere atención» avisa **«N personas por definir un rol»** y **«N personas sugirieron un rol — Ver»** (preferencias de rol que difieren del rol asignado); «Ver» abre Personas ya filtrada (nuevo filtro «Sugirieron un rol»). Es información: no cambia ningún rol.
+- **Espaciado:** en Desempeño las tarjetas estaban a 0–1 px una de otra («todo está junto»); ahora hay ritmo vertical entre secciones.
+- **Comparar personas:** el hueco vacío es un estado con propósito (título «Selecciona personas para comparar», explicación y atajos «las 3 / 5 con mejor resultado»).
+- **Seguimiento:** la celda fija de la persona ya no es una caja oscura de esquinas rectas (toma el fondo de su contenedor); el nivel en tablas es punto + texto.
+- **Tarjeta de persona:** plana en las listas (antes diez tarjetas con patrón de cuadros a la vez); el patrón elegido queda en la tarjeta propia y en la cabecera del perfil.
+- **Cabecera del perfil (panel):** identidad a la izquierda y resultado a la derecha (≈190 px de alto en lugar de ≈470).
+
+**Hallazgos nuevos (sin resolver)**
+1. **Ventana inicial «¿Con qué vas a trabajar?» en cada entrada del administrador:** dos decisiones antes de ver nada. Propuesta: entrar directo con el período activo y poner el selector de gestión/período en la cabecera; preguntar solo si hay más de una gestión abierta.
+2. **El menú lateral del administrador no cabe en un portátil (778 px de alto):** Calendario, Reportes y toda la Configuración quedan bajo un desplazamiento interno. Propuesta: agrupar con títulos plegables (Operación / Análisis / Configuración) y dejar «Próxima fecha» fuera del menú.
+3. **Evaluar:** el encabezado de filtros usa ~200 px antes de la primera persona; la columna de la lista es estrecha (270 px). Propuesta: filtros en una fila + «Más filtros», lista de 340 px.
+4. **Simulador:** muestra «Sin rol» en las tarjetas porque no entiende el `join` de roles con nombre de clave que usa el código real; no es un fallo de producción, pero puede confundir en las capturas.
+
+**Propuesta de estructura (para decidir)**
+| Hoy (16 secciones) | Propuesta (8 destinos) |
+|---|---|
+| Panel · Desempeño | **Hoy** (lo que requiere acción) · **Resultados** (Desempeño + Seguimiento + Distritos + Reportes como pestañas) |
+| Evaluar · Personas · Equipos | **Personas** (lista, perfil, roles, equipos) con **Evaluar** como acción principal de cada persona |
+| Tareas · Calendario · Actividades | **Trabajo** (tareas, calendario y actividades en una sola agenda) |
+| Períodos · Rúbrica · Roles y perfiles · Gestiones | **Configuración** (plegada, con asistente para un período nuevo) |
+La idea: **«Hoy» responde qué hay que hacer; «Resultados» responde cómo vamos; «Personas» y «Trabajo» son donde se hace**. Requiere validarlo con quienes administran antes de mover nada.

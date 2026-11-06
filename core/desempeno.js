@@ -373,7 +373,15 @@ const Desempeno = (() => {
   function cuerpoPersonas(elegidas, est) {
     const chips = elegidas.length ? `<div class="chip-row des-chips">${elegidas.map((p, i) => `<span class="des-chip des-chip--${i}">${escHtml(p.nombre)}<button type="button" class="btn--icono" data-act="des" data-arg="quitar" data-arg2="${escHtml(p.id)}" aria-label="Quitar a ${escHtml(p.nombre)}"><i data-lucide="x" aria-hidden="true"></i></button></span>`).join('')}
       <button type="button" class="btn--texto" data-act="des" data-arg="limpiar">Quitar todas</button></div>` : '';
-    if (!elegidas.length) return '<p class="pf-vacio">Marca a las personas que quieras comparar en la lista.</p>';
+    if (!elegidas.length) return `<div class="des-vacio">
+        <svg class="des-vacio-fig" viewBox="0 0 220 90" aria-hidden="true" focusable="false"><path d="M6 70 L58 52 L110 58 L162 30 L214 38" /><path d="M6 78 L58 66 L110 70 L162 54 L214 50" /><path d="M6 84 L58 80 L110 74 L162 72 L214 62" /></svg>
+        <h3 class="des-vacio-t">Selecciona personas para comparar</h3>
+        <p class="des-vacio-d">Marca hasta ${MAX_PERSONAS} en la lista: verás su resultado período a período en una misma gráfica, con la tabla de cambios debajo.</p>
+        <div class="des-vacio-acc">
+          <button type="button" class="btn--secundario" data-act="des" data-arg="top" data-arg2="3">Las 3 con mejor resultado</button>
+          <button type="button" class="btn--secundario" data-act="des" data-arg="top" data-arg2="${MAX_PERSONAS}">Las ${MAX_PERSONAS} con mejor resultado</button>
+        </div>
+      </div>`;
     if (!est.length) return `${chips}<p class="pf-vacio">Elige al menos un período.</p>`;
     const alt = elegidas.map(p => `${p.nombre}: ${est.map(e => `${e.p.nombre} ${fmt(valor(p.porPer.get(e.p.id)))}`).join(', ')}`).join('. ') + '.';
     const filasT = elegidas.map(p => {
@@ -726,6 +734,13 @@ const Desempeno = (() => {
     if (a === 'ver') { S.sel = arg2; return repintarDetalle(); }
     if (a === 'quitar') S.personas.delete(arg2);
     else if (a === 'limpiar') S.personas.clear();
+    else if (a === 'top') {                       // atajo: las N personas con el último resultado publicado más alto (solo ordena lo que la base ya entregó)
+      const n = Math.max(1, Math.min(MAX_PERSONAS, Number(arg2) || 3));
+      const ultimo = p => { const vs = S.est.map(e => valor(p.porPer.get(e.p.id))).filter(v => v != null); return vs.length ? vs[vs.length - 1] : null; };
+      const orden = [...personasDe(S.rs).values()].map(p => ({ p, v: ultimo(p) })).filter(x => x.v != null).sort((x, y) => y.v - x.v).slice(0, n);
+      if (!orden.length) { showToast('Todavía no hay resultados publicados para elegir.', 'info'); return; }
+      S.personas = new Set(orden.map(x => x.p.id));
+    }
     else return;
     document.querySelectorAll('#des-lista .des-pers').forEach(c => { c.checked = S.personas.has(c.value); });
     repintarPersonas();
