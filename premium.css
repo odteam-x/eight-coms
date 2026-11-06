@@ -200,9 +200,9 @@ a.fila-aj:hover, button.fila-aj:hover { background: var(--surface-2); }
    Permitidos mientras no salgan de los tonos de la marca: azules profundos
    hacia cianes para datos y relieve de superficies; el coral queda para el CTA. */
 .barra-fill, .eval-resumen-bar i, .cal2-pe { background: linear-gradient(90deg, var(--blue-500), var(--data)); }
-.pf-card, .cal2-mes, .cal2-agenda, .panel, .eval-resumen { background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 55%); }
+.pf-card, .cal2-mes, .cal2-agenda, .panel, .eval-resumen { background: var(--surface-1); }   /* plano: la elevación la da la superficie, no un degradado */
 .rail { background: linear-gradient(180deg, var(--navy-900) 0%, color-mix(in srgb, var(--navy-900) 70%, var(--blue-700)) 100%); }
-.tk-box, .modal-box, .bus-box { background: linear-gradient(180deg, var(--surface-2), var(--surface-1) 60%); }
+.tk-box, .modal-box, .bus-box { background: var(--surface-1); }
 
 
 /* ── Barra lateral rehecha ─────────────────────────────────────────────

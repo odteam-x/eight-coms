@@ -504,8 +504,8 @@ body.gestion-archivada [aria-disabled="true"] {
   position:fixed; bottom:max(var(--sp-5), env(safe-area-inset-bottom)); left:50%; z-index:var(--z-toast);
   transform:translateX(-50%) translateY(80px);
   width:max-content; max-width:min(520px, calc(100vw - var(--sp-5) * 2));
-  background:var(--surface-3); border:1px solid var(--trazo); border-left:4px solid var(--action);
-  border-radius:var(--r-fila);
+  background:var(--surface-3); border:1px solid var(--trazo);
+  border-radius:var(--r-fila); display:flex; align-items:baseline; gap:var(--sp-3); --tipo:var(--action);
   padding:var(--sp-3) var(--sp-4);
   font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; line-height:1.4; text-align:left;
   color:var(--txt);
@@ -514,9 +514,11 @@ body.gestion-archivada [aria-disabled="true"] {
   opacity:0; pointer-events:none;
 }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-.toast.toast--ok    { border-left-color:var(--data); }
-.toast.toast--error { border-left-color:var(--alert); }
-.toast.toast--info  { border-left-color:var(--action); }
+/* El tipo se marca con un punto delante del texto (no con un borde izquierdo, que se curva con el radio y se ve como media luna). */
+.toast::before { content:''; flex:none; width:8px; height:8px; border-radius:50%; background:var(--tipo); transform:translateY(-1px); }
+.toast.toast--ok    { --tipo:var(--data); }
+.toast.toast--error { --tipo:var(--alert); }
+.toast.toast--info  { --tipo:var(--action); }
 @media (max-width:767px) {
   .toast { bottom:calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-3)); }
 }
