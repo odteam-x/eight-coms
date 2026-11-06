@@ -535,6 +535,20 @@ const Desempeno = (() => {
     return d > umbral ? { k: 'sube', t: 'Al alza', d } : d < -umbral ? { k: 'baja', t: 'A la baja', d } : { k: 'igual', t: 'Estable', d };
   }
 
+  /* Aún no hay nada publicado: en vez de cifras en blanco y una tabla de guiones, se dice cuándo llegará (la fecha de entrega de scores de cada
+     período, tal como está en el calendario) y en qué punto está cada uno. Solo lee lo que ya existe. */
+  function seccionSinResultados(fs) {
+    const per = id => (typeof Store !== 'undefined' && Store.periodos ? (Store.periodos() || []) : []).find(p => String(p.id) === String(id));
+    const dia = f => (f && typeof fechaCortaISO === 'function' ? fechaCortaISO(String(f).slice(0, 10)) : '');
+    const estado = r => (r.estado_eval === 'sin_evaluar' ? 'Aún sin evaluación' : 'En preparación, sin publicar');
+    const filas = fs.map(r => { const p = per(r.periodo_id); const f = p && (p.entrega || p.jornada); return `<li><b>${escHtml(r.periodo_nombre)}</b><span>${escHtml(estado(r))}${f ? ' · se publica el ' + escHtml(dia(f)) : ''}</span></li>`; }).join('');
+    return `<section class="pf-card pf-card--ancha des-sin" aria-labelledby="des-h-sin">
+      <h2 class="pf-h" id="des-h-sin">Todavía no hay resultados publicados</h2>
+      <p class="des-sin-d">Tus resultados aparecen aquí cuando se publican, período a período, con lo que cambió y hacia dónde vas.</p>
+      <ul class="des-sin-lista">${filas}</ul>
+    </section>`;
+  }
+
   function seccionKpisPropio(fs, o = {}) {
     const de = !!o.nombre;                                  // vista de una persona elegida por la administración
     const pub = publicadas(fs);
@@ -643,6 +657,12 @@ const Desempeno = (() => {
     const fs = misFilas();
     if (!fs.length) { cuerpo.innerHTML = vacio('Todavía no participas en ningún período con esta rúbrica.'); return; }
     const sinPublicar = fs.filter(r => r.estado_eval !== 'publicado' && r.estado_eval !== 'sin_evaluar').length;
+    if (!publicadas(fs).length) {
+      cuerpo.innerHTML = `${seccionSinResultados(fs)}
+      <p class="des-nota">Aquí ves solo tu propia trayectoria. Los resultados de otras personas no se muestran.</p>`;
+      if (typeof renderIconos === 'function') renderIconos(cuerpo);
+      return;
+    }
     cuerpo.innerHTML = `${seccionKpisPropio(fs)}
       ${sinPublicar ? `<p class="des-nota">${sinPublicar} período${sinPublicar === 1 ? '' : 's'} con evaluación aún sin publicar: no ${sinPublicar === 1 ? 'entra' : 'entran'} en estas cifras.</p>` : ''}
       ${seccionEvolucionPropia(fs)}

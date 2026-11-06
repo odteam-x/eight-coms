@@ -111,13 +111,14 @@ const Calendario = (() => {
       let c = carriles.findIndex(f => f < ini); if (c < 0) c = carriles.length;
       carriles[c] = fin;
       const tono = (S.etiquetas.find(e => String(e.id) === String(x.etiqueta_id)) || {}).tono || 'gris';
+      const larga = (deIso(x.fecha_fin) - deIso(x.fecha_inicio)) / 864e5 > 14;     // más de dos semanas: franja fina, no una barra con título cada lunes
       for (let d = deIso(ini); iso(d) <= fin; d.setDate(d.getDate() + 1)) {
         const f = iso(d), esIni = f === x.fecha_inicio, esFin = f === x.fecha_fin;
         const pos = esIni && esFin ? 'solo' : esIni ? 'ini' : esFin ? 'fin' : 'med';
         // el título se escribe el primer día y de nuevo el lunes de cada semana (si no, una barra larga queda muda)
-        const rotulo = esIni || d.getDay() === 1 || f === desde;
+        const rotulo = !larga && (esIni || d.getDay() === 1 || f === desde);
         if (!out.has(f)) out.set(f, []);
-        out.get(f).push({ x, carril: c, pos, rotulo, tono, finSemana: d.getDay() === 0 && (pos === 'ini' || pos === 'med'), iniSemana: d.getDay() === 1 && (pos === 'med' || pos === 'fin') });
+        out.get(f).push({ x, carril: c, pos, rotulo, tono, larga, finSemana: d.getDay() === 0 && (pos === 'ini' || pos === 'med'), iniSemana: d.getDay() === 1 && (pos === 'med' || pos === 'fin') });
       }
     }
     return { out, n: carriles.length };
@@ -129,7 +130,7 @@ const Calendario = (() => {
     for (let c = 0; c < Math.min(n, max); c++) {
       const b = bs.find(x => x.carril === c);
       filas.push(b
-        ? `<span class="cal2-banda cal2-banda--${b.pos}${b.finSemana ? ' cal2-banda--corta-der' : ''}${b.iniSemana ? ' cal2-banda--corta-izq' : ''}" style="--etq:var(--etq-${escHtml(b.tono)})" aria-hidden="true">${b.rotulo ? `<span>${escHtml(b.x.titulo)}</span>` : ''}</span>`
+        ? `<span class="cal2-banda cal2-banda--${b.pos}${b.larga ? ' cal2-banda--larga' : ''}${b.finSemana ? ' cal2-banda--corta-der' : ''}${b.iniSemana ? ' cal2-banda--corta-izq' : ''}" style="--etq:var(--etq-${escHtml(b.tono)})" title="${escHtml(b.x.titulo)}" aria-hidden="true">${b.rotulo ? `<span>${escHtml(b.x.titulo)}</span>` : ''}</span>`
         : '<span class="cal2-banda cal2-banda--vacia" aria-hidden="true"></span>');
     }
     const resto = bs.filter(x => x.carril >= max).length;

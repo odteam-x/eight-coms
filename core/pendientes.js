@@ -104,6 +104,7 @@ const Pendientes = (() => {
     if (!todos.length) {
       S.host.innerHTML = `<section class="pd" aria-labelledby="pd-h"><h3 class="pf-h" id="pd-h">Qué me toca</h3>
         <p class="pd-vacio"><i data-lucide="check-circle" aria-hidden="true"></i> No tienes tareas pendientes en este período. Cuando te asignen una (o se la asignen a tu equipo), aparecerá aquí.</p></section>`;
+      const d = document.getElementById('pd-detalle'); if (d) d.open = true;   // sin tareas, el detalle es donde está «+ Mi iniciativa»: que no quede escondido
       renderIconos(S.host); return;
     }
     const visibles = S.filtro === 'todas' ? todos : todos.filter(t => pasa(S.filtro, t));

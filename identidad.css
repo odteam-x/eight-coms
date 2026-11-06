@@ -106,3 +106,17 @@
 
 /* 17 · Datos de una regla / ficha (definition lists dentro de tarjetas): sin «tarjetas dentro de tarjetas» */
 .ev-dl > div { background: none; border-radius: 0; border-top: 1px solid var(--trazo); padding: var(--sp-3) 0 0; }
+
+/* 18 · Mi desempeño sin resultados publicados: una lista de períodos con su estado, no una tabla de guiones */
+.des-sin-d { margin: 0 0 var(--sp-3); color: var(--txt-2); font-size: var(--fs-sm); max-width: 62ch; }
+.des-sin-lista { list-style: none; margin: 0; padding: 0; }
+.des-sin-lista li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-4); padding: var(--sp-3) 0; border-top: 1px solid var(--trazo); }
+.des-sin-lista b { font: 700 var(--fs-lg)/1 var(--font-display); letter-spacing: var(--tr-display); min-width: 4.5ch; }
+.des-sin-lista span { color: var(--txt-2); font-size: var(--fs-sm); }
+
+/* 19 · Actividad de más de dos semanas en el calendario: franja fina continua (el título está en la agenda del día y al pasar el cursor) */
+.cal2-banda--larga { height: 6px; margin-block: 3px; opacity: .85; }
+.cal2-banda--larga > span { display: none; }
+
+/* 20 · Menú lateral en pantallas bajas (portátil, 720–820 px): «Próxima fecha» (ya está en Inicio y en el calendario) empujaba hacia abajo el último destino, que quedaba oculto tras un desplazamiento interno */
+@media (max-height: 820px) { .rail-prox { display: none; } }
