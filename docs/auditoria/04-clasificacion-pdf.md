@@ -43,7 +43,7 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 | 4.2 Secretaría: Desempeño del distrito | **X → implementado en rama** | pestaña `desempeno-distrito` (`secretario.js`), reutiliza `core/desempeno.js` |
 | 4.2 Mi distrito, Tareas y revisiones, Seguimiento, Reportes, Calendario | **I** | `secretario.js:227-231` |
 | 4.3 Admin: Centro de control / Operaciones / Organización / Reportes / Configuración | **P** | `admin.js:81-97`: 10 entradas planas + engranaje (Períodos, Actividades, Rúbrica, Roles, Gestiones). Ya separa operación de configuración; no agrupa por responsabilidad |
-| 4.3 Admin: Auditoría | **X** | H-03 |
+| 4.3 Admin: Auditoría | **X → implementado en rama (0055, sin aplicar)** | `core/auditoria.js`, `auditoria_listar()` |
 | 4.4 Delimitación Panel/Desempeño/Seguimiento/Reportes/Perfil | **P** | responsabilidades solapadas (01 §2.1) |
 
 ## §5 Flujos
@@ -129,11 +129,11 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 
 | Funcionalidad | Estado | Evidencia |
 |---|---|---|
-| Centro de auditoría | **X** | H-03 |
+| Centro de auditoría | **X → implementado en rama (0055, sin aplicar)** | H-03 |
 | Bandeja de trabajo | **X** | |
 | Plan de mejora | **X** | |
 | Alertas inteligentes | **P** | recordatorios de vencimiento/víspera (pg_cron); sin detección de inconsistencias |
-| Historial de actividad | **X** | solo por tarea/equipo |
+| Historial de actividad | **P (rama)** | la pantalla Auditoría lista todas las acciones sensibles; no es un feed por persona/equipo |
 | Evaluación asistida (validar completitud y reglas antes de publicar) | **P** | validación en trigger al publicar; sin pantalla previa de cobertura |
 | Detección de anomalías | **X** | |
 | Gestión masiva con vista previa | **X** | |

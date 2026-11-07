@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ]},
       { items: [
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
+        { tab:'auditoria', icono:'history',         etiqueta:'Auditoría' },
       ]},
       { titulo:'Configuración', plegado: true, items: [
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
@@ -2485,7 +2486,7 @@ function montarTareas() {
 const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
-  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
@@ -2573,6 +2574,7 @@ function switchTabAdminHooks(tab) {
   }
   if (tab === 'reportes') Reportes.abrir();
   if (tab === 'desempeno') Desempeno.montarAdmin(document.getElementById('desempeno-host'));
+  if (tab === 'auditoria') Auditoria.montar(document.getElementById('auditoria-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'admin' }); }
 }
 

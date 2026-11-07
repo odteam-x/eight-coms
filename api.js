@@ -446,6 +446,13 @@ const API = {
     return { ok: true, data };
   },
 
+  /** Registro global de acciones (0055; solo administración): { ok, rows, total }. */
+  async getAuditoria({ desde = null, hasta = null, origen = null, buscar = null, limite = 50, offset = 0 } = {}) {
+    const r = await this._rpc('auditoria_listar', { p_desde: desde, p_hasta: hasta, p_origen: origen, p_buscar: buscar, p_limite: limite, p_offset: offset });
+    if (!r.ok) return r;
+    const rows = r.data ?? [];
+    return { ok: true, rows, total: rows.length ? Number(rows[0].total) : 0 };
+  },
   /* ── Rectificación de evaluaciones publicadas (migración 0053) ─────────────────────────────────
    * Una evaluación PUBLICADA no se modifica por UPDATE: se rectifica con motivo (nueva versión, valores antes/después
    * guardados) o se retira a borrador con motivo. Sin 0053 se conserva el guardado de siempre. */

@@ -250,3 +250,17 @@
 .perfil-barra { border-radius: var(--r-cont); }
 .v2-resumen { border-radius: var(--r-card); }
 .tk-modal-acciones { border-radius: 0 0 var(--r-modal) var(--r-modal); }
+
+/* ── Auditoría (core/auditoria.js): lista de acciones, tablas que pasan a tarjetas bajo 768 px ─────────── */
+.aud-tabla tbody td small { display: block; font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--txt-muted); overflow-wrap: anywhere; }
+.aud-tabla td { overflow-wrap: anywhere; }
+.aud-cuando { white-space: nowrap; }
+.aud-mut { color: var(--txt-muted); }
+.aud-det { margin-top: var(--sp-2); }
+.aud-det summary { cursor: pointer; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+.aud-detalle { margin: var(--sp-2) 0 0; padding-left: var(--sp-5); font-size: var(--fs-sm); color: var(--txt-2); }
+.aud-pag { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-4); font-size: var(--fs-sm); color: var(--txt-2); }
+@media (max-width: 767px) {
+  .aud-tabla td::before { content: attr(data-label); display: block; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt-2); }
+  .aud-cuando { white-space: normal; }
+}
