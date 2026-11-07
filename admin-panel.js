@@ -106,6 +106,9 @@ const PanelAdmin = (() => {
         ${tarjeta('', 'Distribución por nivel', 'Cuántas personas hay en cada nivel de resultado.', `
           <div class="chart-wrap" style="height:230px"><canvas id="pn-dist" aria-labelledby="pn-dist-alt"></canvas></div>
           <p class="chart-alt" id="pn-dist-alt">${Object.keys(NIV).map(k => `${NIV[k]}: ${dist[k]}`).join(' · ')}.</p>`)}
+      </div>
+      ${acordeonHTML({ id: 'panel-analisis', titulo: 'Análisis del período', resumen: 'Comparación, competencias, tendencia, mapa de calor y mejores resultados. Los resultados por persona están en Desempeño.', abierto: false, extra: 'panel-analisis', cuerpo: `
+      <div class="panel-grid">
         ${tarjeta('panel-t--ancha', 'Comparación', 'Para calibrar: ¿el equipo se mide parecido entre roles y distritos?', `
           <div class="panel-seg" id="pn-cmp-seg"></div>
           <div class="chart-wrap" style="height:280px"><canvas id="pn-cmp" aria-labelledby="pn-cmp-alt"></canvas></div>
@@ -118,7 +121,7 @@ const PanelAdmin = (() => {
           <p class="chart-alt" id="pn-tend-alt">Calculando…</p>`)}
         ${tarjeta('panel-t--ancha', 'Mapa de calor', `Cada fila es una persona y cada columna, una ${d.v2 ? 'competencia común' : 'criterio'}. El color es el nivel.`, mapaCalor(d))}
         ${tarjeta('panel-t--ancha', 'Los mejores resultados', '', ranking(d))}
-      </div>`;
+      </div>` })}`;
     renderIconos(el);
     dibujar(d, dist);
     tendencia();

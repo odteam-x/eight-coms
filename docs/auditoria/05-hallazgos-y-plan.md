@@ -6,6 +6,8 @@ Cada hallazgo: **problema · causa · evidencia · impacto · propuesta · ¿mig
 
 > **Avance 7-nov-2026:** H-01 implementado en rama (migración `0053`, `API.guardarEvaluacion`, tests `sql-0053`/`front-rectificacion`). **Pendiente de aplicar en producción** (a mano en el SQL Editor, después de 0052) y de revisión del usuario. Falta aún mostrar el historial de versiones en pantalla (irá con la pantalla de Auditoría, 5b).
 
+> **Avance 7-nov-2026 (#2/#4, parte sin migración):** menú de administración agrupado por responsabilidad y Panel con «Requiere atención» + KPIs primero y el análisis en un plegable. Sin cambios de pestañas ni de permisos. **No hecho:** unificar Mi perfil/Mi desempeño (miembro y secretaría) y «Desempeño del distrito» de secretaría (requieren decisión de producto).
+
 ### H-01 · Una evaluación publicada se puede editar o borrar sin versión, motivo ni rastro — **CRÍTICA** (PDF §3, §5.4, §6.5)
 - **Problema:** nada impide a la administración cambiar puntajes de una evaluación ya publicada; los reportes cambian y la persona solo recibe un aviso sin valores.
 - **Causa:** `evaluaciones` tiene `estado CHECK IN ('borrador','publicado')` y la política `evaluaciones_admin` es `FOR ALL` (admin). Los triggers de `evaluaciones` (`evaluaciones_validar_modelo`, 0015→0020→0023) validan el contenido pero **no comparan `OLD.estado`**; los únicos `OLD.estado` del repo están en `tareas` (`0016_tareas.sql:233,255,276`). `API.upsertEvaluacion` hace `upsert` por `(periodo_id,evaluado_id)` (`api.js:424`).

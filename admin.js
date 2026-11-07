@@ -76,17 +76,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Cabecera de cuenta de la hoja móvil, donde viven salir y el
     // selector de gestión: el rail no existe por debajo de 768px.
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
+    // Por responsabilidad (auditoría, PDF §4.3): la pregunta de cada grupo. Las pestañas (data-tab) no cambian,
+    // así que notificaciones, alias y atajos siguen apuntando a lo mismo. `fav` conserva las cuatro entradas de la barra
+    // inferior móvil que ya había (Panel, Desempeño, Evaluar, Tareas).
     grupos: [
-      { items: [
-        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel'    },
-        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
-        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
-        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
+      { titulo:'Centro de control', items: [
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel', fav: true },
+        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño', fav: true },
+        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
+      ]},
+      { titulo:'Operaciones', items: [
+        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar', fav: true },
+        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
+        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+      ]},
+      { titulo:'Organización', items: [
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
-        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
-        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+      ]},
+      { items: [
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
       ]},
       { titulo:'Configuración', plegado: true, items: [
