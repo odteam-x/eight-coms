@@ -541,6 +541,38 @@ function setBono(val, btn) {
   escalaActualizar(btn.closest('.escala'), val);
 }
 
+/**
+ * Motivo para cambiar una evaluación YA publicada (migración 0053). Devuelve el texto, o null si la persona cierra el
+ * cuadro sin darlo (la promesa se resuelve también al cerrarlo: no deja el guardado colgado).
+ */
+function pedirMotivoEvaluacion(accion) {
+  return new Promise(resolve => {
+    let hecho = false;
+    const fin = v => { if (!hecho) { hecho = true; resolve(v); } };
+    Tareas.abrirModal({
+      titulo: accion === 'retirar' ? 'Retirar evaluación publicada' : 'Rectificar evaluación publicada',
+      campos: [
+        { id: 'aviso', tipo: 'info', texto: accion === 'retirar'
+            ? 'La evaluación volverá a borrador y dejará de contar en los resultados hasta que se publique de nuevo. Queda registrada con tu motivo.'
+            : 'Se guardará una nueva versión. La anterior, tus cambios y el motivo quedan registrados, y la persona recibe un aviso de corrección.' },
+        { id: 'motivo', tipo: 'area', label: 'Motivo', req: true, filas: 3, max: 500, ph: 'Qué se corrige y por qué' },
+      ],
+      confirmar: accion === 'retirar' ? 'Retirar' : 'Rectificar',
+      onConfirm: v => {
+        if ((v.motivo || '').trim().length < 5) return 'Escribe un motivo de al menos 5 caracteres.';
+        fin(v.motivo.trim());
+        return null;
+      },
+    });
+    // Cerrar el cuadro (X, Escape, fuera) sin dar motivo = cancelar.
+    const m = document.getElementById('tk-modal');
+    if (m) {
+      const obs = new MutationObserver(() => { if (m.style.display === 'none') { obs.disconnect(); fin(null); } });
+      obs.observe(m, { attributes: true, attributeFilter: ['style'] });
+    }
+  });
+}
+
 async function saveEvaluacion(estado, evaluadoId) {
   if (!_activePE) return;
   if (esPeriodoV2(_activePE)) { await saveEvaluacionV2(estado, evaluadoId); return; }
@@ -555,7 +587,7 @@ async function saveEvaluacion(estado, evaluadoId) {
   if (gen) comentarios.general = gen;
   const bono_ext = parseInt(document.getElementById('sc-bono')?.value || 0);
 
-  const res = await API.upsertEvaluacion({
+  const res = await API.guardarEvaluacion({
     periodo_id:   _activePE.id,
     evaluado_id:  evaluadoId,
     evaluador_id: CU.id,
@@ -563,10 +595,11 @@ async function saveEvaluacion(estado, evaluadoId) {
     bono_ext,
     comentarios,
     estado,
-  });
+  }, pedirMotivoEvaluacion);
 
+  if (res.cancelado) return;
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
-  showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
+  showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
   renderEvalUserList();
   const [evNew, trabajos] = await Promise.all([
@@ -855,14 +888,15 @@ async function saveEvaluacionV2(estado, evaluadoId) {
   if (gen) comentarios.general = gen;
 
   // modelo y perfil_id los fija el servidor; el bono no existe en v2.
-  const res = await API.upsertEvaluacion({
+  const res = await API.guardarEvaluacion({
     periodo_id: _activePE.id, evaluado_id: evaluadoId, evaluador_id: CU.id,
     puntajes: _formV2.puntajes, bono_ext: 0, comentarios, estado,
     // Solo con 0020 aplicada: sin la columna, mandarla haría fallar el guardado.
     respuestas: API.v2Dinamico(_criteriosV2) ? respuestas : null,
-  });
+  }, pedirMotivoEvaluacion);
+  if (res.cancelado) return;
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
-  showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
+  showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
 
   await loadEvalPEData();
   const [evNew, trabajos] = await Promise.all([

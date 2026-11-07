@@ -446,6 +446,50 @@ const API = {
     return { ok: true, data };
   },
 
+  /* ── Rectificación de evaluaciones publicadas (migración 0053) ─────────────────────────────────
+   * Una evaluación PUBLICADA no se modifica por UPDATE: se rectifica con motivo (nueva versión, valores antes/después
+   * guardados) o se retira a borrador con motivo. Sin 0053 se conserva el guardado de siempre. */
+  _rectDisp: null,
+  async rectificacionDisponible() {
+    if (this._rectDisp !== null) return this._rectDisp;
+    const { error } = await SB.from('evaluaciones').select('version').limit(1);
+    return (this._rectDisp = !error);
+  },
+  async rectificarEvaluacion({ id, puntajes, comentarios, motivo, respuestas = null, bono = null }) {
+    const r = await this._rpc('rectificar_evaluacion', { p_id: id, p_puntajes: puntajes, p_comentarios: comentarios, p_motivo: motivo, p_respuestas: respuestas, p_bono: bono });
+    return r.ok ? { ok: true, version: r.data } : r;
+  },
+  async retirarEvaluacion(id, motivo) {
+    const r = await this._rpc('retirar_evaluacion', { p_id: id, p_motivo: motivo });
+    return r.ok ? { ok: true, version: r.data } : r;
+  },
+  async getVersionesEvaluacion(id) {
+    const r = await this._rpc('evaluacion_versiones', { p_id: id });
+    return r.ok ? { ok: true, rows: r.data ?? [] } : r;
+  },
+  /**
+   * Guardar desde *Evaluar*. Si la evaluación ya está publicada y 0053 está aplicada, no se hace un upsert silencioso:
+   * se pide un motivo (pedirMotivo(accion) → texto | null) y se rectifica o se retira. `cancelado` = la persona no dio motivo.
+   */
+  async guardarEvaluacion(datos, pedirMotivo) {
+    const previa = await this.getEvaluacion(datos.periodo_id, datos.evaluado_id);
+    if (previa?.estado === 'publicado' && await this.rectificacionDisponible()) {
+      if (datos.estado === 'publicado') {
+        const motivo = await pedirMotivo('rectificar');
+        if (!motivo) return { ok: false, cancelado: true };
+        const r = await this.rectificarEvaluacion({ id: previa.id, puntajes: datos.puntajes, comentarios: datos.comentarios, motivo,
+          respuestas: datos.respuestas || null, bono: datos.bono_ext ?? null });
+        return r.ok ? { ...r, rectificada: true } : r;
+      }
+      const motivo = await pedirMotivo('retirar');
+      if (!motivo) return { ok: false, cancelado: true };
+      const r = await this.retirarEvaluacion(previa.id, motivo);
+      if (!r.ok) return r;
+      return this.upsertEvaluacion(datos);   // ya es borrador: se guarda lo editado
+    }
+    return this.upsertEvaluacion(datos);
+  },
+
   // ── ADMIN: calendario ────────────────────────────────────────────
   /* Etiquetas y actividades (migración 0018). Si aún no se aplicó, devuelven disponible:false y el calendario sigue con lo demás. */
   _sinTabla(error) { return !!error && /does not exist|42P01|Could not find the table|schema cache/i.test((error.message || '') + (error.code || '')); },
