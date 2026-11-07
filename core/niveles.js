@@ -7,7 +7,8 @@
  *
  *   CLASICA   26 / 20 / 11 sobre 30      (rúbrica clásica; el máximo real lo da MAX_TOTAL())
  *   V2        87 / 67 / 37 sobre 100     (rúbrica por roles; = 26/20/11 de 30 redondeados)
- *   DISTRITO  24 / 17 / 10 sobre 28      (evaluación de distrito)  ⚠ NO es equivalente a los otros dos (ver DISTRITO_PCT)
+ *   DISTRITO  87 % / 67 % / 37 % de 28  (evaluación de distrito = 24,36 / 18,76 / 10,36 puntos). Decisión D-1: mismos
+ *             porcentajes que la rúbrica por roles. Antes eran 24 / 17 / 10 (85,7 / 60,7 / 35,7 %), que no equivalían.
  *
  * Solo cortes y etiquetas: ningún puntaje se calcula aquí. Debe cargarse antes de core/render.js.
  * ═══════════════════════════════════════════════════════════════════════════ */
@@ -22,7 +23,7 @@ const Niveles = (() => {
   const CORTES = {
     CLASICA:  { cortes: [26, 20, 11], sobre: 30  },
     V2:       { cortes: [87, 67, 37], sobre: 100 },
-    DISTRITO: { cortes: [24, 17, 10], sobre: 28  },
+    DISTRITO: { cortes: [87, 67, 37].map(p => p * 28 / 100), sobre: 28 },
   };
 
   const CLASICA  = tabla(CORTES.CLASICA.cortes).map(n => ({ ...n, color: `var(--${n.key})` }));

@@ -104,10 +104,9 @@ ok(JSON.stringify(N.CORTES.V2.cortes) === '[87,67,37]', 'v2: 87/67/37 sobre 100'
 ok(N.porcentajes('V2').every((p, i) => Math.abs(p - N.porcentajes('CLASICA')[i]) < 0.5), 'v2 es la clásica en porcentaje (±0,5 por redondeo)');
 ok(N.de(N.CLASICA, 25).label === 'Bueno' && N.de(N.CLASICA, 26).label === 'Excelente' && N.de(N.CLASICA, 10.9).label === 'Bajo', 'clásica: bordes 25 / 26 / 10,9');
 ok(X.nivelV2(87).label === 'Excelente' && X.nivelV2(86.9).label === 'Bueno' && X.nivelV2(36.9).label === 'Bajo', 'v2: bordes 87 / 86,9 / 36,9');
-ok(N.de(N.DISTRITO, 24).label === 'Excelente' && N.de(N.DISTRITO, 17).label === 'Bueno' && N.de(N.DISTRITO, 9.9).label === 'Bajo', 'distrito: bordes 24 / 17 / 9,9');
-// D-1 (docs/auditoria): los cortes de distrito NO son los mismos porcentajes. Se fija el hecho; si el comité los iguala, este test cambia a propósito.
-const pd = N.porcentajes('DISTRITO'), pc = N.porcentajes('CLASICA');
-ok(pd.some((p, i) => Math.abs(p - pc[i]) > 1), 'D-1 documentado: distrito (' + pd.map(x => x.toFixed(1)).join('/') + ' %) difiere de la clásica (' + pc.map(x => x.toFixed(1)).join('/') + ' %)');
+ok(N.de(N.DISTRITO, 25).label === 'Excelente' && N.de(N.DISTRITO, 24).label === 'Bueno' && N.de(N.DISTRITO, 19).label === 'Bueno' && N.de(N.DISTRITO, 18).label === 'En proceso' && N.de(N.DISTRITO, 10).label === 'Bajo', 'distrito: bordes 25 / 24 / 19 / 18 / 10');
+// D-1 resuelto: distrito usa los mismos porcentajes que la rúbrica por roles.
+ok(N.porcentajes('DISTRITO').every((p, i) => Math.abs(p - N.porcentajes('V2')[i]) < 0.01), 'D-1: distrito = mismos 87/67/37 % que la rúbrica por roles');
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

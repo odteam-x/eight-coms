@@ -12,6 +12,8 @@ Cada hallazgo: **problema · causa · evidencia · impacto · propuesta · ¿mig
 - **Propuesta:** estados `rectificada` (o versión numérica) + tabla `evaluaciones_versiones` (puntajes, respuestas, `perfil_id`, resultado calculado, responsable, fecha, **motivo ≥ 5**) + trigger que bloquee `UPDATE` de una publicada salvo mediante una RPC `rectificar_evaluacion(id, puntajes, motivo)`; `resultados_periodo()` sigue leyendo la versión vigente. El modelo ya existe para notas de tareas (`calificaciones_historial`, 0033): reutilizar el patrón.
 - **Migración:** **sí** (tabla + trigger + RPC; reversible). Requiere test de paridad: ningún resultado publicado cambia al aplicarla (patrón de `sql-0025 --con-equipos`).
 
+> **Avance 7-nov-2026:** 1a hecha (`core/niveles.js`, c410f09) y D-1 resuelto: distritos pasa a 87/67/37 % de 28. Quedan de H-02 la clásica en JS (D-2) y `MAX_TOTAL()` (D-4).
+
 ### H-02 · Dos motores de cálculo y tres escalas con cortes distintos — **ALTA** (PDF §6.1, §6.2)
 - **Problema:** v2 + tareas se calculan en SQL; la rúbrica clásica y el ranking de distritos, en JS; los niveles no coinciden (D-1) y la clásica trata un criterio ausente como 0 (D-2).
 - **Causa:** historia del proyecto (la clásica es anterior a `resultados_periodo()`); `NIVELES` (`core/render.js:32`), `NIVELES_V2` (`core/rubrica.js:18`) y `nivel` de distritos (`core/distritos.js:32`) son constantes independientes; `MAX_TOTAL()` depende de `criterios` vivos (D-4).
