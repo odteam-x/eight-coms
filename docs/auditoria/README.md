@@ -29,7 +29,9 @@ Fecha: 2026-11-07 · Base: `origin/main` @ `7e1057d` · Rama: `auditoria/arquite
 | `front`, `front-rediseno`, `front-equipos`, `front-estadisticas`, `front-distritos`, `front-manual`, `front-desempeno`, `front-gafete`, `wallet`, `iconos` | 0 fallidas (front-rediseno: 330) |
 | `node tools/contraste.js` | 172 pares, sin fallos |
 
-**Fallo de herramienta, no de pruebas:** `npm run todo` (encadenado) aborta con `EXIT 127` y `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 94` tras `sql-0026`. Al ejecutar los scripts uno a uno pasan todos. Documentado como H-11. No se corrió el simulador de UI (`npm run ui`) ni mediciones responsive.
+**Actualización:** `npm run todo` ahora usa `tools/pruebas/correr.mjs` (cada script por separado). Última corrida en la rama: 45 scripts, 0 fallidas.
+
+**Fallo de herramienta, no de pruebas (ya resuelto con ese runner):** `npm run todo` (encadenado) aborta con `EXIT 127` y `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 94` tras `sql-0026`. Al ejecutar los scripts uno a uno pasan todos. Documentado como H-11. No se corrió el simulador de UI (`npm run ui`) ni mediciones responsive.
 
 ## Resumen de hallazgos
 

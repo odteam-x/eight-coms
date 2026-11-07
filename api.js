@@ -1226,6 +1226,11 @@ const API = {
   },
 
   /** Mejor esfuerzo: un archivo huérfano no da acceso a nada, así que un fallo aquí no se le muestra a nadie. */
+  /** Versiones anteriores de las estadísticas de un distrito en un PE (0054). Admin: cualquiera; secretaría: la suya. */
+  async getHistorialEstadisticasDistrito(periodoId, distritoId) {
+    const r = await this._rpc('estadisticas_distrito_historial', { p_periodo: periodoId, p_distrito: distritoId });
+    return r.ok ? { ok: true, rows: r.data ?? [] } : r;
+  },
   async borrarCapturaDistrito(path) {
     if (!path) return;
     try { await SB.storage.from('capturas-distrito').remove([path]); } catch { /* huérfano inofensivo */ }

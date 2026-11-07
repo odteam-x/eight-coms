@@ -40,7 +40,7 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 |---|---|---|
 | 4.1 Miembro: Inicio / Desempeño / Mis tareas / Calendario / Perfil | **P** | `user.js:132-138`: Inicio, Mi perfil, Mi desempeño, Calendario, Entregas. Existen todos; falta separar bien Perfil (datos) de Desempeño (hoy Mi perfil trae Resumen/Criterios/Evolución) |
 | 4.2 Secretaría: Inicio con bandeja | **X** (bandeja) | no existe «bandeja»; hay bloque «Tu distrito» en Inicio |
-| 4.2 Secretaría: Desempeño del distrito | **X** | solo «Mi desempeño» propio (`secretario.js:223`) |
+| 4.2 Secretaría: Desempeño del distrito | **X → implementado en rama** | pestaña `desempeno-distrito` (`secretario.js`), reutiliza `core/desempeno.js` |
 | 4.2 Mi distrito, Tareas y revisiones, Seguimiento, Reportes, Calendario | **I** | `secretario.js:227-231` |
 | 4.3 Admin: Centro de control / Operaciones / Organización / Reportes / Configuración | **P** | `admin.js:81-97`: 10 entradas planas + engranaje (Períodos, Actividades, Rúbrica, Roles, Gestiones). Ya separa operación de configuración; no agrupa por responsabilidad |
 | 4.3 Admin: Auditoría | **X** | H-03 |
@@ -98,9 +98,9 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 | 6.7 Altas y bajas en el período; fechas efectivas | **I** | `equipo_miembros` (membresía activa única, nueva fila al re-agregar), `equipo_eventos` |
 | 6.7 Evitar reconocimiento idéntico | **I** | `nota_individual_equipo()` con evidencia ≥10; cuenta quien participó **o** aportó |
 | 6.8 Instagram: período, distrito, responsable, fecha, evidencia | **I** | 0043 (trigger fija `subido_por`, `actualizado_en`; `captura_path NOT NULL`) |
-| 6.8 Conservar valor anterior al corregir | **X** | `UPDATE` sobrescribe (`est_dist_actualizar`); sin tabla de historial |
+| 6.8 Conservar valor anterior al corregir | **X → implementado en rama (0054, sin aplicar)** | `estadisticas_distrito_hist` + trigger |
 | 6.8 Quién valida/cierra la cifra | **X** | no hay estado validada/cerrada; cualquier secretaría del distrito edita la fila |
-| 6.8 Captura reemplazada no elimina trazabilidad | **D** | el flujo documentado es «subir la nueva y borrar la anterior» (`0043:127`) |
+| 6.8 Captura reemplazada no elimina trazabilidad | **D → corregido en rama** | `core/estadisticas-distrito.js` ya no borra la anterior; el historial la referencia |
 
 ## §7 Recomendaciones por perfil
 

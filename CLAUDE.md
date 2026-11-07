@@ -580,9 +580,17 @@ Una evaluación **publicada no se modifica ni se borra por UPDATE/DELETE directo
 
 En su **Inicio**, bajo «Tu distrito»: una fila por persona con lo que ella puede resolver hoy (tareas **vencidas** = abiertas asignada/en curso/devuelta con fecha límite anterior a hoy — la bloqueada no cuenta —, y **entregas por revisar** = entregadas y no suyas), ordenada por días de atraso y luego por tiempo de espera; cada fila abre el perfil (`perfilVer`). Lógica pura y probada en `core/personas.js` (`bandejaDistrito`, `bandejaHTML`; `front-bandeja.mjs`): solo reordena hechos de `tareas` (RLS ya filtra al distrito), no puntúa. Solo en períodos con la rúbrica por roles, igual que las tareas.
 
+### Estadísticas de Instagram: historial (migración 0054)
+
+`estadisticas_distrito_hist` (append-only, sin permisos de cliente) guarda la fila ANTERIOR (cifras, `captura_path`, quién la subió y cuándo) cada vez que una corrección cambia algo o se borra la entrega, con quién hizo el cambio; se lee con `estadisticas_distrito_historial(periodo, distrito)` (admin: todos; secretaría: su distrito). **El front ya no borra la captura anterior de Storage al reemplazarla**: es la prueba del valor anterior. Sin pantalla aún (`API.getHistorialEstadisticasDistrito`). Pendiente de decisión de negocio: estado validada/cerrada y quién la cierra. Aplicar **0054 después de 0043**. Test: `sql-0054.mjs`.
+
+### Desempeño del distrito (secretaría) y runner de pruebas
+
+La secretaría tiene la pestaña **Desempeño del distrito** (grupo *Mi distrito*): reutiliza `Desempeno.montarAdmin` (ninguna fórmula nueva; `seguimiento_global()` ya entrega solo su distrito). El portal del miembro no monta nunca el modo de administración (test en `front-desempeno.mjs`). `npm run todo` en `tools/pruebas` corre ahora `correr.mjs` (cada script en su proceso, con resumen y un reintento si no imprime resumen): encadenadas con `&&`, en Windows la cadena se caía por una aserción de libuv aunque ninguna prueba fallara (`todo:encadenado` conserva lo antiguo).
+
 ### Migrations
 
-Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, 0018, 0019, 0020, 0021, 0022, 0023, then 0024 and 0025, then 0031–0036, then 0050 and 0051, then 0052, then 0053**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
+Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, 0018, 0019, 0020, 0021, 0022, 0023, then 0024 and 0025, then 0031–0036, then 0050 and 0051, then 0052, then 0053, then 0054**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
 
 ### Password Reset Flow
 

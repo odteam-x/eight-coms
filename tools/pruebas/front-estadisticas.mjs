@@ -88,6 +88,8 @@ const api = rd('api.js'), mig = rd('supabase/migrations/0043_estadisticas_distri
 for (const m of ['getEstadisticasDistrito', 'getEstadisticasDistritosByPE', 'guardarEstadisticasDistrito', 'subirCapturaDistrito', 'borrarCapturaDistrito', 'urlCapturaDistrito'])
   ok(new RegExp(`async ${m}\\(`).test(api), 'API.' + m);
 ok(api.includes("from('capturas-distrito')") && mig.includes("'capturas-distrito'"), 'API y migración usan el mismo bucket');
+ok(/async getHistorialEstadisticasDistrito\(/.test(api) && /estadisticas_distrito_historial/.test(api), 'API.getHistorialEstadisticasDistrito (0054)');
+ok(!/API\.borrarCapturaDistrito\(previa\)/.test(rd('core/estadisticas-distrito.js')), 'reemplazar la captura ya no borra la anterior (es la prueba del valor anterior)');
 const re = new RegExp(mig.match(/NEW\.captura_path !~ '([^']+)'/)[1]);
 const uuid = 'aaaaaaaa-0000-0000-0000-000000000002';
 ok(re.test(`08-01/${uuid}/captura-${Date.now()}.webp`) && re.test(`08-01/${uuid}/captura-${Date.now()}.jpg`), 'las rutas que arma API.subirCapturaDistrito cumplen el CHECK de la base');
