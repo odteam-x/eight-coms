@@ -65,6 +65,7 @@ const Auditoria = (() => {
       <label class="eq-f"><span>Desde</span><input class="cfg-inp" id="aud-desde" type="date" data-change="audFiltro" value="${escHtml(f.desde)}"></label>
       <label class="eq-f"><span>Hasta</span><input class="cfg-inp" id="aud-hasta" type="date" data-change="audFiltro" value="${escHtml(f.hasta)}"></label>
       <label class="eq-f eq-f--busca"><span>Buscar</span><input class="search-inp" id="aud-q" type="search" placeholder="Persona, acción, motivo…" data-input="audFiltro" value="${escHtml(f.q)}"></label>
+      <button type="button" class="btn--secundario" id="aud-csv" data-act="aud" data-arg="csv"><i data-lucide="download" aria-hidden="true"></i>Descargar CSV</button>
     </div>`;
   }
 
@@ -132,11 +133,46 @@ const Auditoria = (() => {
   }
   function accion(a) {
     if (!S) return;
+    if (a === 'csv') { csv(); return; }
     if (a === 'sig') S.pagina++; else if (a === 'ant') S.pagina = Math.max(1, S.pagina - 1);
     cargar();
   }
 
-  return { montar, filtro, accion, ACCIONES_TXT, ORIGENES };
+  /* ── CSV: las mismas filas que la pantalla (con los filtros activos), de 200 en 200, hasta TOPE ── */
+  const TOPE = 5000;
+  const csvEsc = v => {
+    let t = String(v ?? '');
+    if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+([.,]\d+)?$/.test(t)) t = "'" + t;   // una celda de texto no puede ejecutarse como fórmula
+    return /[",;\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+  function csvTexto(rows, meta = {}) {
+    const cab = ['Fecha', 'Origen', 'Acción', 'Código de acción', 'Quién', 'Objeto', 'Resumen', 'Motivo', 'Valores'];
+    const fila = x => [fechaHora(x.creado_en), x.origen, accionTxt(x.accion), x.accion, x.actor_nombre || (x.actor_id ? 'Administración' : 'Sin sesión (mantenimiento)'),
+      x.objeto, x.resumen, x.motivo, x.detalle ? plano(x.detalle) : ''];
+    const pie = [['Filtros', meta.filtros || 'ninguno'], ['Generado', meta.generado || ''], ['Registros', String(rows.length) + (meta.truncado ? ' (se cortó en ' + TOPE + '; afina los filtros)' : '')]];
+    return '﻿' + [cab, ...rows.map(fila), [], ...pie].map(r => r.map(csvEsc).join(';')).join('\n');
+  }
+  const filtrosTexto = () => [S.f.origen && 'origen: ' + S.f.origen, S.f.desde && 'desde ' + S.f.desde, S.f.hasta && 'hasta ' + S.f.hasta, S.f.q && 'búsqueda: ' + S.f.q].filter(Boolean).join(' · ');
+  async function csv() {
+    const btn = document.getElementById('aud-csv'); if (btn) btn.disabled = true;
+    const f = S.f; const filas = []; let truncado = false;
+    try {
+      for (let off = 0; ; off += 200) {
+        const r = await API.getAuditoria({
+          desde: f.desde ? f.desde + 'T00:00:00' : null,
+          hasta: f.hasta ? new Date(Date.parse(f.hasta + 'T00:00:00') + 86400000).toISOString().slice(0, 10) + 'T00:00:00' : null,
+          origen: f.origen || null, buscar: f.q || null, limite: 200, offset: off });
+        if (!r.ok) { showToast('No se pudo exportar: ' + (r.error || 'error'), 'error'); return; }
+        filas.push(...r.rows);
+        if (r.rows.length < 200 || off + 200 >= Number(r.total)) break;
+        if (filas.length >= TOPE) { truncado = true; break; }
+      }
+      ReporteEquipo.descargar('auditoria.csv', csvTexto(filas, { filtros: filtrosTexto(), generado: fechaHora(new Date().toISOString()), truncado }));
+      showToast(`Exportados ${filas.length} registros`, 'ok');
+    } finally { if (btn) btn.disabled = false; }
+  }
+
+  return { montar, filtro, accion, csvTexto, ACCIONES_TXT, ORIGENES };
 })();
 
 /* Global de la lista blanca de config.js (data-change / data-input). */

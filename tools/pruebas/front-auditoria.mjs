@@ -68,6 +68,17 @@ respuesta = { ok: false, error: 'falló la red' };
 A.montar(host); await esp();
 ok(/<error>falló la red/.test(cuerpo.innerHTML), 'un error de red se muestra como error con reintento');
 
+console.log('\n[CSV]');
+const csv = A.csvTexto([fila(), fila({ objeto: '=HYPERLINK("http://x")', motivo: 'a;b "c"\nlínea 2', actor_nombre: null, actor_id: null, accion: 'persona_cambio', detalle: null })], { filtros: 'origen: Personas', generado: '7 nov 2026' });
+const lineas = csv.split('\n');
+ok(csv.charCodeAt(0) === 0xfeff && lineas[0] === '﻿Fecha;Origen;Acción;Código de acción;Quién;Objeto;Resumen;Motivo;Valores', 'empieza con BOM y las columnas; la acción va en palabras y con su código');
+ok(csv.includes("'=HYPERLINK") && !/;=HYPERLINK/.test(csv), 'una celda que empieza con = se neutraliza (no se ejecuta como fórmula)');
+ok(csv.includes('"a;b ""c""\nlínea 2"'), 'separador ; y comillas/saltos de línea dentro de una celda se escapan');
+ok(csv.includes('Evaluación rectificada;evaluacion_rectificada;Admin General') && csv.includes('Sin sesión (mantenimiento)'), 'quién y sin sesión');
+ok(csv.includes('Filtros;origen: Personas') && csv.includes('Registros;2'), 'el pie dice los filtros y cuántos registros');
+ok(A.csvTexto(Array.from({ length: 1 }, fila), { truncado: true }).includes('se cortó en 5000'), 'si se corta por el tope, lo dice');
+ok(/data-arg="csv"/.test(rd('core/auditoria.js')) && /ReporteEquipo\.descargar\('auditoria\.csv'/.test(rd('core/auditoria.js')), 'botón «Descargar CSV» que reutiliza el descargador existente');
+
 console.log('\n[cableado y solo lectura]');
 const adm = rd('admin.js'), cfg = rd('config.js'), html = rd('admin.html'), au = rd('core/auditoria.js');
 ok(/tab:'auditoria'[^}]*Auditoría/.test(adm) && /auditoria:'auditoria'/.test(adm) && /Auditoria\.montar\(document\.getElementById\('auditoria-host'\)\)/.test(adm), 'admin.js: menú, pestaña padre y montaje');

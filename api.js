@@ -446,6 +446,12 @@ const API = {
     return { ok: true, data };
   },
 
+  /** Cobertura de una evaluación (0056): criterios puntuados de los que aplicaban. { ok, fila|null }; sin 0056 → fila null (no se muestra). */
+  async getCoberturaEvaluacion(periodoId, personaId) {
+    const r = await this._rpc('evaluacion_cobertura', { p_periodo: periodoId, p_persona: personaId });
+    if (!r.ok) return { ok: false, noDisponible: r.noDisponible, error: r.error };
+    return { ok: true, fila: (r.data && r.data[0]) || null };
+  },
   /** Registro global de acciones (0055; solo administración): { ok, rows, total }. */
   async getAuditoria({ desde = null, hasta = null, origen = null, buscar = null, limite = 50, offset = 0 } = {}) {
     const r = await this._rpc('auditoria_listar', { p_desde: desde, p_hasta: hasta, p_origen: origen, p_buscar: buscar, p_limite: limite, p_offset: offset });

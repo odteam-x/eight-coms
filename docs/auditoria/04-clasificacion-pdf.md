@@ -82,8 +82,8 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 | 6.2 Perfiles de rol suman 100 | **I** | trigger de restricción diferida (0015) |
 | 6.3 No evaluado ≠ cero | **I** (v2) | `!= null` documentado; `0023` |
 | 6.3 Criterios obligatorios para publicar | **I** | `0020/0023` (`obligatorio`) |
-| 6.3 Documentar y comunicar renormalización | **P** | renormaliza implícitamente; no se avisa (D-7) |
-| 6.3 Cobertura criterios evaluados/total | **X** | D-7 |
+| 6.3 Documentar y comunicar renormalización | **P → comunicado en rama (0056)** | la nota de cobertura explica que lo no puntuado se excluye |
+| 6.3 Cobertura criterios evaluados/total | **X → implementado en rama (0056, sin aplicar)** | `evaluacion_cobertura()`, `EvaluacionPerfil.coberturaHTML` |
 | 6.4 Estados de tarea (a tiempo, vencida, bloqueada, prorrogada, anulada, no participa) | **I** | `0016`, `0033`; `sql-0016/0033/0034` |
 | 6.4 Entregada tarde: penalización/etiqueta | **P** | medida y mostrada; sin regla configurable |
 | 6.5 Estados pendiente/borrador/lista/publicada/rectificada | **P** | solo `borrador`/`publicado` (`CHECK`, `supabase-schema.sql:267`) |
