@@ -280,6 +280,7 @@ const ACCIONES = {
   peTareas:    (a, el) => selectTareasPE(a, el),
   modalPerfil: (a)     => showPerfilModal(a),
   guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
+  evHistorial: (a, el) => verHistorialEvaluacion(a, el.dataset.arg2),
   guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),
   participante:(a, el) => toggleParticipante(a, el.dataset.arg2 === 'true'),
   aprobarUser: (a, el) => updateUserAprobado(a, el.dataset.arg2 === 'true'),

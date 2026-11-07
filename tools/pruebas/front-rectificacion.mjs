@@ -66,5 +66,14 @@ ok((adm.match(/pedirMotivoEvaluacion\)/g) || []).length >= 2 && /function pedirM
 ok(/rectificarEvaluacion|retirarEvaluacion|getVersionesEvaluacion/.test(api), 'api.js expone rectificar, retirar e historial');
 ok(!/onclick|innerHTML\s*=.*motivo/.test(adm.slice(adm.indexOf('function pedirMotivoEvaluacion'), adm.indexOf('async function saveEvaluacion'))), 'el cuadro no usa onclick ni inyecta el motivo');
 
+console.log('\n[historial en pantalla]');
+const fn = adm.slice(adm.indexOf('async function verHistorialEvaluacion'), adm.indexOf('async function saveEvaluacion'));
+ok(/evHistorial/.test(rd('config.js')) && (adm.match(/data-act="evHistorial"/g) || []).length === 2, 'el botón «Historial de versiones» está en las dos pantallas de evaluación publicada y registrado en ACCIONES');
+ok(/escHtml\(nombreCrit\(k\)\)/.test(fn) && /escHtml\(v\.motivo\)/.test(fn) && /escHtml\(quien\(v\.actor\)\)/.test(fn), 'criterio, motivo y responsable se escapan');
+ok(/nombreCrit/.test(fn) && !/\$\{k\}</.test(fn), 'se muestra el nombre completo del criterio, no la clave');
+ok(/sinConfirmar: true/.test(fn) && !/onclick/.test(fn), 'solo lectura, sin onclick');
+const css = rd('tareas.css'), bloque = css.slice(css.indexOf('Historial de versiones'));
+ok(/\.hv-lista/.test(css) && !/#[0-9a-fA-F]{3,8}\b/.test(bloque), 'estilos con tokens, sin hex');
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

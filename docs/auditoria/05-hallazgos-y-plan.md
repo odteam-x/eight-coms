@@ -4,7 +4,7 @@ Cada hallazgo: **problema · causa · evidencia · impacto · propuesta · ¿mig
 
 ## A. Inconsistencias CONFIRMADAS
 
-> **Avance 7-nov-2026:** H-01 implementado en rama (migración `0053`, `API.guardarEvaluacion`, tests `sql-0053`/`front-rectificacion`). **Pendiente de aplicar en producción** (a mano en el SQL Editor, después de 0052) y de revisión del usuario. Falta aún mostrar el historial de versiones en pantalla (irá con la pantalla de Auditoría, 5b).
+> **Avance 7-nov-2026:** H-01 implementado en rama (migración `0053`, `API.guardarEvaluacion`, tests `sql-0053`/`front-rectificacion`). **Pendiente de aplicar en producción** (a mano en el SQL Editor, después de 0052) y de revisión del usuario. El historial de versiones ya se ve en *Evaluar* (botón «Historial de versiones»); la pantalla global de Auditoría (5b) sigue pendiente.
 
 > **Avance 7-nov-2026 (#2/#4, parte sin migración):** menú de administración agrupado por responsabilidad y Panel con «Requiere atención» + KPIs primero y el análisis en un plegable. Sin cambios de pestañas ni de permisos. **No hecho:** unificar Mi perfil/Mi desempeño (miembro y secretaría) y «Desempeño del distrito» de secretaría (requieren decisión de producto).
 

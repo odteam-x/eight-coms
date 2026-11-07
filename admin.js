@@ -483,9 +483,10 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       ${isPub
         ? `<div class="eval-pub-info">
              <span class="eval-pub-dot"></span>
-             Evaluación publicada — visible para el miembro
+             Evaluación publicada${ev?.version > 1 ? ' · versión ' + ev.version : ''} — visible para el miembro
            </div>
            <div class="eval-actions">
+             ${ev?.id ? `<button type="button" class="btn--texto" data-act="evHistorial" data-arg="${ev.id}" data-arg2="${evaluadoId}">Historial de versiones</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
@@ -579,6 +580,39 @@ function pedirMotivoEvaluacion(accion) {
       const obs = new MutationObserver(() => { if (m.style.display === 'none') { obs.disconnect(); fin(null); } });
       obs.observe(m, { attributes: true, attributeFilter: ['style'] });
     }
+  });
+}
+
+/**
+ * Historial de una evaluación publicada (migración 0053): qué cambió, quién, cuándo y por qué. Solo lectura.
+ * Los puntajes se muestran por NOMBRE completo de criterio (nunca la clave) y solo los que cambiaron.
+ */
+async function verHistorialEvaluacion(evaluacionId, evaluadoId) {
+  const r = await API.getVersionesEvaluacion(Number(evaluacionId));
+  if (!r.ok) { showToast(r.noDisponible ? 'El historial aún no está activo (falta aplicar la migración 0053).' : 'No se pudo cargar el historial: ' + r.error, 'error'); return; }
+  const nombreCrit = k => (_criteriosV2.find(c => c.key === k) || getCriterios().find(c => c.key === k) || {}).nombre || k;
+  const quien = id => id ? ((_users.find(u => u.id === id) || {}).nombre || 'Administración') : 'Sin sesión (mantenimiento)';
+  const ETQ = { publicada: 'Publicada', rectificada: 'Rectificada', retirada: 'Retirada a borrador' };
+  const num = v => v == null ? '—' : String(Math.round(Number(v) * 10) / 10).replace('.', ',');
+  const cambios = v => {
+    const a = (v.antes && v.antes.puntajes) || {}, d = (v.despues && v.despues.puntajes) || {};
+    const claves = [...new Set([...Object.keys(a), ...Object.keys(d)])].filter(k => a[k] !== d[k]);
+    return claves.map(k => `<li>${escHtml(nombreCrit(k))}: <b>${escHtml(a[k] == null ? 'sin puntuar' : String(a[k]))}</b> → <b>${escHtml(d[k] == null ? 'sin puntuar' : String(d[k]))}</b></li>`).join('');
+  };
+  const filas = [...r.rows].reverse().map(v => {
+    const ra = v.resultado_antes && v.resultado_antes.individual, rd = v.resultado_despues && v.resultado_despues.individual;
+    return `<li class="hv-fila"><b>Versión ${escHtml(String(v.version))} · ${escHtml(ETQ[v.accion] || v.accion)}</b>
+      <small>${escHtml(quien(v.actor))} · ${escHtml(new Date(v.creado_en).toLocaleString('es-CL'))}</small>
+      ${v.motivo ? `<p>Motivo: ${escHtml(v.motivo)}</p>` : ''}
+      ${cambios(v) ? `<ul>${cambios(v)}</ul>` : ''}
+      ${ra != null || rd != null ? `<p>Resultado: <b>${escHtml(num(ra))}</b> → <b>${escHtml(num(rd))}</b></p>` : ''}</li>`;
+  }).join('');
+  Tareas.abrirModal({
+    titulo: 'Historial de versiones',
+    campos: [{ id: 'hv', tipo: 'html', html: filas
+      ? `<ol class="hv-lista">${filas}</ol><p class="tk-info">Las evaluaciones publicadas antes de esta función no tienen historial anterior.</p>`
+      : '<p class="tk-info">Esta evaluación se publicó antes de que existiera el historial: todavía no tiene cambios registrados.</p>' }],
+    sinConfirmar: true,
   });
 }
 
@@ -769,8 +803,9 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
       </div>
 
       ${isPub
-        ? `<div class="eval-pub-info"><span class="eval-pub-dot"></span>Evaluación publicada — visible para el miembro</div>
+        ? `<div class="eval-pub-info"><span class="eval-pub-dot"></span>Evaluación publicada${ev?.version > 1 ? ' · versión ' + ev.version : ''} — visible para el miembro</div>
            <div class="eval-actions">
+             ${ev?.id ? `<button type="button" class="btn--texto" data-act="evHistorial" data-arg="${ev.id}" data-arg2="${evaluadoId}">Historial de versiones</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
