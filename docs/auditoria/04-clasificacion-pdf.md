@@ -122,7 +122,7 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 | 7.3 Análisis avanzado fuera de Inicio | **P** | gráficos aún en el Panel |
 | 7.3 Vista previa de operaciones masivas | **X** | |
 | 7.3 Auditoría global y actividad reciente | **X** | H-03 |
-| 7.3 Detector de inconsistencias | **P** | «Requiere atención» cubre accesos, sin evaluar, borradores, entregas, vencidas, no inconsistencias de datos |
+| 7.3 Detector de inconsistencias | **P → ampliado en rama** | «Datos por revisar»: sin rol/distrito, evaluación publicada de quien no participa, evaluación sin acceso, PE activo sin fechas |
 | 7.3 Comparar configuraciones entre períodos | **X** | `periodo_calif_config_hist` es por período, sin comparador |
 
 ## §9 Funcionalidades nuevas
@@ -135,7 +135,7 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 | Alertas inteligentes | **P** | recordatorios de vencimiento/víspera (pg_cron); sin detección de inconsistencias |
 | Historial de actividad | **P (rama)** | la pantalla Auditoría lista todas las acciones sensibles; no es un feed por persona/equipo |
 | Evaluación asistida (validar completitud y reglas antes de publicar) | **P** | validación en trigger al publicar; sin pantalla previa de cobertura |
-| Detección de anomalías | **X** | |
+| Detección de anomalías | **P (rama)** | inconsistencias de datos sí (`detectarInconsistencias`); puntuaciones atípicas no (requiere definir umbrales) |
 | Gestión masiva con vista previa | **X** | |
 | Centro de documentación | **P** | `ayuda/{miembro,secretario,admin}.html` por perfil (admin privado, 0044) |
 | Exportaciones programadas | **X** | CSV manual |

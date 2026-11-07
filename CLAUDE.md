@@ -596,6 +596,10 @@ Pestaña **Auditoría** (grupo sin título, tras Reportes; `core/auditoria.js`, 
 
 `evaluacion_cobertura(periodo, persona)` (SECURITY DEFINER, solo lectura) dice cuántos criterios de escala se puntuaron de los que aplicaban (núcleo y técnicos, y el peso técnico puntuado). Un criterio sin puntuar se **excluye** (regla de siempre): esto solo lo hace visible. Mismos permisos que `resultados_periodo()` (admin todo y borradores; secretaría su distrito y miembro lo suyo, solo publicadas). **No toca `resultados_periodo()` ni su firma.** Front: `EvaluacionPerfil.coberturaHTML`, una nota en «Cómo se compone tu evaluación» que solo aparece si falta algún criterio; sin 0056 no se pinta nada. Aplicar **0056 después de 0035**. Tests: `sql-0056.mjs`, `front-cobertura.mjs`.
 
+### Datos por revisar (Panel; sin migración)
+
+Bajo «Requiere atención», el Panel muestra **«Datos por revisar»**: contradicciones entre datos YA guardados, calculadas con lo que el Panel ya cargó (sin consultas nuevas) por `detectarInconsistencias()` en `core/personas.js` (pura, probada en `front-inconsistencias.mjs`). Avisa de: personas aprobadas sin rol o sin distrito, evaluación publicada de alguien que «no participa» en el PE, evaluación de una persona sin acceso aprobado o de la administración, y período activo sin fechas. **Solo avisa dónde mirar: no corrige ni puntúa nada.** Una administradora sin rol/distrito es normal y no cuenta. Un chequeo nuevo = una entrada más en esa función + un caso en el test.
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, 0018, 0019, 0020, 0021, 0022, 0023, then 0024 and 0025, then 0031–0036, then 0050 and 0051, then 0052, then 0053, then 0054, then 0055, then 0056**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.

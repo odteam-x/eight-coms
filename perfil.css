@@ -413,3 +413,5 @@ button.pcard { cursor: pointer; }
 .gafete-lienzo { width: min(100%, 340px); height: auto; aspect-ratio: 638 / 1011; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
 .gafete-acc { display: flex; flex-wrap: wrap; gap: var(--sp-3); justify-content: center; }
 .gafete-nota { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.5; color: var(--txt-2); }
+
+.atencion-quienes { display: block; font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--txt-muted); overflow-wrap: anywhere; }
