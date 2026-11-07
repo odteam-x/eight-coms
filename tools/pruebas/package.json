@@ -10,7 +10,8 @@
     "ui": "node ui/server.mjs",
     "rg": "node sql-0050.mjs && node sql-0051.mjs && node front-reporte-general.mjs",
     "cadena": "node cadena.mjs",
-    "todo": "npm run sql && npm run cadena && npm run correo && npm run front && npm run rg"
+    "todo": "node correr.mjs",
+    "todo:encadenado": "npm run sql && npm run cadena && npm run correo && npm run front && npm run rg"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.10"

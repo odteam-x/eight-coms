@@ -227,6 +227,7 @@ async function initUI() {
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
           { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
+          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño del distrito' },
           { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
           { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),
@@ -666,13 +667,13 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;
   tab = _ALIAS_TAB[tab] || tab;
   // El distrito y las tareas son solo del secretario.
-  if ((tab === 'distrito' || tab === 'tareas' || tab === 'seguimiento' || tab === 'reportes') && !isSecretario()) tab = 'inicio';
+  if ((tab === 'distrito' || tab === 'tareas' || tab === 'seguimiento' || tab === 'reportes' || tab === 'desempeno-distrito') && !isSecretario()) tab = 'inicio';
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
 
   // El Historial de antes es ahora la pestaña Evolución del perfil, y el
@@ -685,6 +686,7 @@ function switchTab(tab, btn) {
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
   if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
+  if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');

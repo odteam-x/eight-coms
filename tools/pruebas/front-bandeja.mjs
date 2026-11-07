@@ -43,5 +43,12 @@ const muchas = H(B(Array.from({ length: 9 }, (_, i) => ({ asignada_a: 'p' + i, e
 ok((muchas.match(/class="fila-aj"/g) || []).length === 6 && /Y 3 personas más/.test(muchas), 'muestra 6 y dice cuántas más hay (enlace a Tareas)');
 ok(/bandejaHTML\(bandejaDistrito\(/.test(rd('secretario.js')) && /tareas: lista\.tareas/.test(rd('secretario.js')), 'secretario.js monta la bandeja con las tareas del distrito');
 
+console.log('\n[desempeño del distrito (secretaría)]');
+const sj = rd('secretario.js'), sh = rd('secretario.html');
+ok(/tab:'desempeno-distrito'/.test(sj) && /id="tab-desempeno-distrito"/.test(sh) && /id="desempeno-distrito-host"/.test(sh), 'hay entrada de menú, pestaña y contenedor');
+ok(/tab === 'desempeno-distrito'\) && !isSecretario\(\)/.test(sj), 'un miembro que llega a esa pestaña vuelve a Inicio');
+ok(/Desempeno\.montarAdmin\(document\.getElementById\('desempeno-distrito-host'\)\)/.test(sj), 'reutiliza el módulo Desempeño: ninguna fórmula nueva');
+ok(!/montarAdmin/.test(rd('user.js')), 'el miembro no monta el modo de administración');
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);
