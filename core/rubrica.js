@@ -15,12 +15,7 @@
  * 36.7), redondeados: 87 / 67 / 37. Los colores son los mismos tokens que
  * ya validó tools/contraste.js (--sex … --sba y sus -txt).
  */
-const NIVELES_V2 = [
-  { min: 87,        key: 'sex', label: 'Excelente'  },
-  { min: 67,        key: 'sbu', label: 'Bueno'      },
-  { min: 37,        key: 'spr', label: 'En Proceso' },
-  { min: -Infinity, key: 'sba', label: 'Bajo'       },
-];
+const NIVELES_V2 = Niveles.V2;   // cortes en core/niveles.js (87/67/37 sobre 100)
 const nivelV2         = s => NIVELES_V2.find(n => Number(s) >= n.min) || NIVELES_V2[NIVELES_V2.length - 1];
 const scoreColorV2    = s => `var(--${nivelV2(s).key})`;
 const scoreColorTxtV2 = s => `var(--${nivelV2(s).key}-txt)`;

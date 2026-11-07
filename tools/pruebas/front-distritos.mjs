@@ -13,7 +13,7 @@ const ok = (c, m) => { c ? pass++ : (fail++, console.log('  ✗ FALLA:', m)); if
 const cerca = (a, b, e = 0.005) => a != null && Math.abs(a - b) < e;
 
 const ctx = vm.createContext({ console, Intl });
-vm.runInContext(rd('config.js').match(/function escHtml\(s\) \{[\s\S]*?\n\}/)[0] + '\n' + rd('core/distritos.js') + '\nthis.D = Distritos;', ctx);
+vm.runInContext(rd('config.js').match(/function escHtml\(s\) \{[\s\S]*?\n\}/)[0] + '\n' + rd('core/niveles.js') + ';' + rd('core/distritos.js') + '\nthis.D = Distritos;', ctx);
 const D = ctx.D;
 
 // ── La tabla de referencia ─────────────────────────────────────────────────

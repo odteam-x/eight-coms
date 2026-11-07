@@ -29,12 +29,7 @@
  * mostraban a los usuarios. Solo cambia el color de la insignia en 24-25;
  * ninguna calificación mostrada se mueve.
  */
-const NIVELES = [
-  { min: 26,        key: 'sex', label: 'Excelente',  color: 'var(--sex)' },
-  { min: 20,        key: 'sbu', label: 'Bueno',      color: 'var(--sbu)' },
-  { min: 11,        key: 'spr', label: 'En Proceso', color: 'var(--spr)' },
-  { min: -Infinity, key: 'sba', label: 'Bajo',       color: 'var(--sba)' },
-];
+const NIVELES = Niveles.CLASICA;   // cortes en core/niveles.js (26/20/11 sobre 30)
 
 const nivelDe    = s => NIVELES.find(n => Number(s) >= n.min) || NIVELES[NIVELES.length - 1];
 
