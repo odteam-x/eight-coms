@@ -220,7 +220,6 @@ async function initUI() {
         { titulo: sec ? 'Mi espacio' : '', items: [
           { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
-          { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
         ]},
@@ -665,9 +664,9 @@ function renderLineaTiempo() {
 /* Se aceptan los nombres viejos por si queda algún enlace guardado. */
 const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
-  ranking:'distrito', periodos:'trabajos', cal:'calendario',
+  ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -679,13 +678,14 @@ function switchTab(tab, btn) {
   // El Historial de antes es ahora la pestaña Evolución del perfil, y el
   // Ranking de distritos, una subpestaña de Distrito.
   if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) Perfil.tab('evolucion', document.getElementById('perfil-host'));
+  // «Mi desempeño» ahora es la pestaña Desempeño de Mi perfil.
+  if (tab === 'perfil' && original === 'desempeno') Perfil.tab('desempeno', document.getElementById('perfil-host'));
   if (tab === 'distrito' && original === 'ranking') seleccionarDistritoTab('ranking');
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
-  if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
   if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {

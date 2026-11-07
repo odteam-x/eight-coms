@@ -38,7 +38,7 @@ Reglas de este documento: cada fila tiene evidencia (archivo:línea, migración,
 
 | Punto | Estado | Evidencia |
 |---|---|---|
-| 4.1 Miembro: Inicio / Desempeño / Mis tareas / Calendario / Perfil | **P** | `user.js:132-138`: Inicio, Mi perfil, Mi desempeño, Calendario, Entregas. Existen todos; falta separar bien Perfil (datos) de Desempeño (hoy Mi perfil trae Resumen/Criterios/Evolución) |
+| 4.1 Miembro: Inicio / Desempeño / Mis tareas / Calendario / Perfil | **P → resuelto por decisión del usuario: Desempeño dentro de Mi perfil** | `user.js:132-138`: Inicio, Mi perfil, Mi desempeño, Calendario, Entregas. Existen todos; falta separar bien Perfil (datos) de Desempeño (hoy Mi perfil trae Resumen/Criterios/Evolución) |
 | 4.2 Secretaría: Inicio con bandeja | **X** (bandeja) | no existe «bandeja»; hay bloque «Tu distrito» en Inicio |
 | 4.2 Secretaría: Desempeño del distrito | **X → implementado en rama** | pestaña `desempeno-distrito` (`secretario.js`), reutiliza `core/desempeno.js` |
 | 4.2 Mi distrito, Tareas y revisiones, Seguimiento, Reportes, Calendario | **I** | `secretario.js:227-231` |

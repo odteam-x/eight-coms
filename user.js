@@ -132,7 +132,6 @@ async function initUI() {
       grupos: [{ items: [
         { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
-        { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
         { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
         { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
       ]}],
@@ -260,8 +259,8 @@ function renderCalendario() {
  *
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
-const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario' };
-const _userTabParent = { inicio:'inicio', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
+const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil' };
+const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -269,12 +268,13 @@ function switchTab(tab, btn) {
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _userTabParent });
 
   // El Historial de antes es ahora la pestaña Evolución del perfil.
+  // «Mi desempeño» ahora es la pestaña Desempeño de Mi perfil (enlaces guardados y avisos antiguos siguen funcionando).
+  if (tab === 'perfil' && original === 'desempeno') Perfil.tab('desempeno', document.getElementById('perfil-host'));
   if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) {
     Perfil.tab('evolucion', document.getElementById('perfil-host'));
   }
 
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
-  if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });

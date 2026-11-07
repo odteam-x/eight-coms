@@ -14,6 +14,8 @@ Cada hallazgo: **problema · causa · evidencia · impacto · propuesta · ¿mig
 
 > **Avance (5b):** Centro de auditoría en rama (migración `0055` + pestaña Auditoría para administración; une los historiales existentes y registra personas, períodos, gestiones y evaluaciones de distrito). **Sin aplicar.** Pendiente: exportar a CSV y detalle por objeto.
 
+> **Avance (#2, decisión del usuario):** «Mi desempeño» pasó a ser la pestaña **Desempeño dentro de Mi perfil** (miembro y secretaría) y reemplaza a Evolución en el perfil propio; sin entrada de menú propia, con alias para enlaces viejos. Sin migración.
+
 ### H-01 · Una evaluación publicada se puede editar o borrar sin versión, motivo ni rastro — **CRÍTICA** (PDF §3, §5.4, §6.5)
 - **Problema:** nada impide a la administración cambiar puntajes de una evaluación ya publicada; los reportes cambian y la persona solo recibe un aviso sin valores.
 - **Causa:** `evaluaciones` tiene `estado CHECK IN ('borrador','publicado')` y la política `evaluaciones_admin` es `FOR ALL` (admin). Los triggers de `evaluaciones` (`evaluaciones_validar_modelo`, 0015→0020→0023) validan el contenido pero **no comparan `OLD.estado`**; los únicos `OLD.estado` del repo están en `tareas` (`0016_tareas.sql:233,255,276`). `API.upsertEvaluacion` hace `upsert` por `(periodo_id,evaluado_id)` (`api.js:424`).
