@@ -70,3 +70,50 @@ function rosterHTML(personas, vacio = 'No hay personas que mostrar.') {
   if (!personas.length) return `<div class="empty-box"><div class="empty-txt">${escHtml(vacio)}</div></div>`;
   return `<div class="roster">${personas.map(personaCardHTML).join('')}</div>`;
 }
+
+/* ── Bandeja de trabajo de la secretaría ────────────────────────────────
+ * Lo que ella puede resolver HOY, agrupado por persona y ordenado por urgencia. Solo reordena hechos que ya vienen de
+ * `tareas` (filtradas por RLS a su distrito): no puntúa ni calcula notas.
+ *   · vencida  = abierta (asignada / en curso / devuelta) con fecha límite anterior a hoy. «Bloqueada» NO cuenta como
+ *     vencida (regla de 0016).
+ *   · por revisar = entregada y NO suya (nadie revisa lo propio).
+ * Orden: primero quien tiene más días de atraso; luego quien tiene entregas esperando más tiempo.
+ * @param {object[]} tareas  filas de tareas del distrito
+ * @param {{id:string,nombre?:string}[]} personas
+ * @param {{hoy:string, yo:string}} o  hoy = 'YYYY-MM-DD'
+ */
+function bandejaDistrito(tareas, personas, { hoy, yo }) {
+  const nombres = new Map((personas || []).map(p => [p.id, p.nombre || 'Sin nombre']));
+  const dias = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+  const por = new Map();
+  const de = id => { if (!por.has(id)) por.set(id, { id, nombre: nombres.get(id) || 'Sin nombre', vencidas: 0, porRevisar: 0, atraso: 0, espera: 0 }); return por.get(id); };
+  for (const t of tareas || []) {
+    if (t.asignada_a === yo) continue;
+    if (t.estado === 'entregada') {
+      const f = de(t.asignada_a); f.porRevisar++;
+      const desde = String(t.entregada_en || '').slice(0, 10);
+      if (desde) f.espera = Math.max(f.espera, dias(desde, hoy));
+    } else if (['asignada', 'en_curso', 'devuelta'].includes(t.estado) && t.fecha_limite && String(t.fecha_limite).slice(0, 10) < hoy) {
+      const f = de(t.asignada_a); f.vencidas++;
+      f.atraso = Math.max(f.atraso, dias(String(t.fecha_limite).slice(0, 10), hoy));
+    }
+  }
+  const filas = [...por.values()].sort((a, b) => b.atraso - a.atraso || b.espera - a.espera || (b.vencidas + b.porRevisar) - (a.vencidas + a.porRevisar) || a.nombre.localeCompare(b.nombre, 'es'));
+  return { filas, vencidas: filas.reduce((s, f) => s + f.vencidas, 0), porRevisar: filas.reduce((s, f) => s + f.porRevisar, 0) };
+}
+
+/** Bloque «Bandeja de trabajo»: una fila por persona que abre su perfil; máximo `tope` personas. */
+function bandejaHTML(b, tope = 6) {
+  if (!b.filas.length) return `<p class="pf-nota">Nada pendiente por ahora: no hay entregas por revisar ni tareas vencidas en tu distrito.</p>`;
+  const plural = (n, u, p) => `${n} ${n === 1 ? u : p}`;
+  const filas = b.filas.slice(0, tope).map(f => {
+    const partes = [];
+    if (f.vencidas) partes.push(plural(f.vencidas, 'vencida', 'vencidas') + (f.atraso ? ` (hasta ${plural(f.atraso, 'día', 'días')} de atraso)` : ''));
+    if (f.porRevisar) partes.push(plural(f.porRevisar, 'entrega por revisar', 'entregas por revisar') + (f.espera > 0 ? ` (espera ${plural(f.espera, 'día', 'días')})` : ''));
+    return `<button type="button" class="fila-aj" data-act="perfilVer" data-arg="${escHtml(f.id)}" aria-label="Abrir el perfil de ${escHtml(f.nombre)}">
+      <span class="fila-aj-txt"><span class="fila-aj-t">${escHtml(f.nombre)}</span><span class="fila-aj-d">${escHtml(partes.join(' · '))}</span></span>
+      <span class="fila-aj-ind">${f.vencidas + f.porRevisar}</span></button>`;
+  }).join('');
+  const mas = b.filas.length > tope ? `<p class="pf-nota">Y ${plural(b.filas.length - tope, 'persona más', 'personas más')}. <button type="button" class="pf-enlace" data-act="tab" data-arg="tareas">Ver todas en Tareas<i data-lucide="arrow-right" aria-hidden="true"></i></button></p>` : '';
+  return `<div class="lista-aj" role="list" aria-label="Bandeja de trabajo">${filas}</div>${mas}`;
+}

@@ -339,7 +339,7 @@ async function pintarPulsoDistrito(el) {
         ${porRevisar == null ? '' : tile(porRevisar, 'Entregas por revisar', porRevisar > 0)}
         ${vencidas == null ? '' : tile(vencidas, 'Tareas vencidas', vencidas > 0)}
       </div>
-      ${t && (porRevisar > 0) ? `<p class="pf-nota"><button type="button" class="pf-enlace" data-act="tab" data-arg="tareas">Revisar las entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button></p>` : ''}
+      ${t ? `<h3 class="pf-sub" id="bandeja-h">Bandeja de trabajo</h3>${bandejaHTML(bandejaDistrito(t.tareas, miembros, { hoy: new Date().toLocaleDateString('sv'), yo: CU.id }))}` : ''}
     </section>`;
   animarEntrada(el);
 }
@@ -360,7 +360,7 @@ async function datosTareasDistrito() {
     // Una persona no revisa lo suyo: no cuenta como «por revisar» para el secretario.
     if (t.estado === 'entregada' && t.asignada_a !== CU.id) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
   }
-  _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar };
+  _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar, tareas: lista.tareas };
   return _tareasDistrito;
 }
 
