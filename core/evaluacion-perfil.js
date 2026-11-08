@@ -41,6 +41,24 @@ const EvaluacionPerfil = (() => {
   const f1 = n => (n == null || Number.isNaN(Number(n))) ? '—' : fmtNum(Number(n), 1);
   const hora = ts => ts ? new Date(ts).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
+  /**
+   * Cobertura de la evaluación (migración 0056; PDF §6.3): cuántos criterios se puntuaron de los que aplicaban. Un criterio
+   * sin puntuar se EXCLUYE del cálculo (no vale 0), así que se dice cuántos fueron. Solo se pinta si falta alguno: con todo
+   * puntuado no hay nada que explicar. Sin 0056 (o sin evaluación) no se pinta nada.
+   */
+  function coberturaHTML(cb, T) {
+    const r = cb && cb.ok ? cb.fila : null;
+    if (!r) return '';
+    const n = k => Number(r[k]) || 0;   // solo números llegan al HTML
+    const fNuc = n('nucleo_aplicables') - n('nucleo_puntuados'), fTec = n('tecnico_aplicables') - n('tecnico_puntuados');
+    if (fNuc <= 0 && fTec <= 0) return '';
+    const pctPeso = Number(r.peso_tecnico) > 0 ? Math.round(Number(r.peso_puntuado) / Number(r.peso_tecnico) * 100) : null;
+    const partes = [];
+    if (fNuc > 0) partes.push(`<b>${n('nucleo_puntuados')} de ${n('nucleo_aplicables')}</b> competencias comunes`);
+    if (fTec > 0) partes.push(`<b>${n('tecnico_puntuados')} de ${n('tecnico_aplicables')}</b> competencias del rol${pctPeso != null ? ` (${pctPeso} % del peso técnico)` : ''}`);
+    return `<p class="pf-nota ev-cobertura" role="note"><b>Cobertura de ${T.tu} evaluación:</b> se puntuaron ${partes.join(' y ')}. Lo que no se puntuó <b>se excluye del cálculo</b>: no cuenta como 0, y el resultado se calcula con lo puntuado.</p>`;
+  }
+
   /** Una fila de la tabla de piezas. */
   function filaHTML(r) {
     const rz = RAZON[r.razon] || { txt: r.razon };
@@ -63,7 +81,8 @@ const EvaluacionPerfil = (() => {
    */
   async function montar(host, { periodo, personaId, fila = null, propio = true }) {
     if (!host || !periodo) return;
-    const [d, c] = await Promise.all([API.getCalifDetalle(periodo.id, personaId), API.getCalifConfig(periodo.id)]);
+    const [d, c, cb] = await Promise.all([API.getCalifDetalle(periodo.id, personaId), API.getCalifConfig(periodo.id),
+      API.getCoberturaEvaluacion(periodo.id, personaId)]);
     if (!d.ok) { host.innerHTML = d.noDisponible ? '' : `<p class="pf-vacio" role="alert">No se pudo cargar el desglose de tareas: ${escHtml(d.error)}</p>`; return; }
     const cfg = c.ok ? c.config : null;
     const T = propio ? { tu: 'tu', Tu: 'Tu', ten: 'tienes' } : { tu: 'su', Tu: 'Su', ten: 'tiene' };
@@ -111,7 +130,7 @@ const EvaluacionPerfil = (() => {
 
     host.innerHTML = `
       <div class="pf-card-cab"><h3 class="pf-h" id="${host.id}-h">Cómo se compone ${T.tu} evaluación</h3></div>
-      ${resumen}${tabla}${aviso}
+      ${resumen}${coberturaHTML(cb, T)}${tabla}${aviso}
       <details class="v2-det ev-hist"><summary>Historial de notas de tareas</summary><div data-hist><p class="pf-vacio">Cargando…</p></div></details>`;
     const det = host.querySelector('.ev-hist');
     det?.addEventListener('toggle', async () => {
@@ -187,5 +206,5 @@ const EvaluacionPerfil = (() => {
     });
   }
 
-  return { montar, montarReglas, editarReglas, RAZON };
+  return { montar, montarReglas, editarReglas, coberturaHTML, RAZON };
 })();

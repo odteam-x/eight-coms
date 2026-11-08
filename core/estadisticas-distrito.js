@@ -240,7 +240,7 @@ const EstadisticasDistrito = (() => {
       const res = await API.guardarEstadisticasDistrito({ periodo_id: S.periodo.id, distrito_id: S.distrito, cifras, captura_path: path });
       if (!res.ok) throw new Error(res.error || 'No se pudo guardar.');
       if (!S || S.n !== n) return;
-      if (subida && previa && previa !== subida) API.borrarCapturaDistrito(previa);   // la anterior ya no sirve
+      // La captura anterior NO se borra: es la prueba del valor anterior y el historial (0054) la referencia.
       S.fila = res.data; S.nuevo = null; S.valores = null; S.ocupado = false;
       pintar(); cargarCapturaActual();
       showToast('Estadísticas enviadas. Gracias.', 'ok');

@@ -13,7 +13,7 @@ const ok = (c, m) => { c ? pass++ : (fail++, console.log('  ✗ FALLA:', m)); if
 const cerca = (a, b, e = 0.005) => a != null && Math.abs(a - b) < e;
 
 const ctx = vm.createContext({ console, Intl });
-vm.runInContext(rd('config.js').match(/function escHtml\(s\) \{[\s\S]*?\n\}/)[0] + '\n' + rd('core/distritos.js') + '\nthis.D = Distritos;', ctx);
+vm.runInContext(rd('config.js').match(/function escHtml\(s\) \{[\s\S]*?\n\}/)[0] + '\n' + rd('core/niveles.js') + ';' + rd('core/distritos.js') + '\nthis.D = Distritos;', ctx);
 const D = ctx.D;
 
 // ── La tabla de referencia ─────────────────────────────────────────────────
@@ -29,7 +29,7 @@ const por = id => R.filas.find(f => f.id === id);
 
 console.log('[las competencias suman el puntaje]');
 ok(D.puntaje({ cgo: 7, cct: 6, com: 5, cee: 4 }) === 22 && D.puntaje('{"cgo":3,"cct":3,"com":3,"cee":3}') === 12 && D.puntaje(null) === 0, 'puntaje: suma de las 4 competencias (objeto, JSON o vacío)');
-ok(D.nivel(24).t === 'Excelente' && D.nivel(23.99).t === 'Bueno' && D.nivel(17).t === 'Bueno' && D.nivel(10).t === 'En proceso' && D.nivel(9.9).t === 'Bajo', 'niveles sobre 28: 24 / 17 / 10 (valen también para un promedio con decimales)');
+ok(D.nivel(25).t === 'Excelente' && D.nivel(24.36).t === 'Excelente' && D.nivel(24).t === 'Bueno' && D.nivel(18.76).t === 'Bueno' && D.nivel(18).t === 'En proceso' && D.nivel(10.36).t === 'En proceso' && D.nivel(10).t === 'Bajo', 'niveles sobre 28: 87/67/37 % = 24,36 / 18,76 / 10,36 (D-1; valen también para un promedio con decimales)');
 
 console.log('\n[ranking acumulado = la tabla de referencia]');
 ok(R.incl.map(p => p.pe).join() === 'PE1,PE2,PE4', 'PE3 (sin evaluaciones publicadas) no entra a las columnas: PE1, PE2, PE4');

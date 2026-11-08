@@ -17,12 +17,22 @@ for (const p of ['admin.html', 'user.html', 'secretario.html']) {
   const h = rd(p);
   ok(/core\/seguimiento\.js[\s\S]*core\/desempeno\.js/.test(h) && h.indexOf('core/charts.js') > 0, p + ': carga core/desempeno.js (y Chart.js / charts.js)');
   ok(/equipos\.css[\s\S]*desempeno\.css[\s\S]*movil\.css/.test(h), p + ': desempeno.css después de equipos.css y antes de movil.css');
-  ok(/id="tab-desempeno"/.test(h) && /id="desempeno-host"/.test(h), p + ': pestaña con su ancla #desempeno-host');
-  ok(/class="pantalla-t">(Mi desempeño|Desempeño)</.test(h), p + ': la pestaña abre con .pantalla-cab + h1.pantalla-t');
+  if (p === 'admin.html') {
+    ok(/id="tab-desempeno"/.test(h) && /id="desempeno-host"/.test(h), p + ': pestaña con su ancla #desempeno-host');
+    ok(/class="pantalla-t">Desempeño</.test(h), p + ': la pestaña abre con .pantalla-cab + h1.pantalla-t');
+  } else {
+    ok(!/id="tab-desempeno"/.test(h) && !/id="desempeno-host"/.test(h), p + ': ya no hay pestaña «Mi desempeño» aparte (vive dentro de Mi perfil)');
+  }
 }
 ok(/tab:'desempeno'[^}]*Desempeño/.test(rd('admin.js')) && /desempeno:'desempeno'/.test(rd('admin.js')) && /Desempeno\.montarAdmin/.test(rd('admin.js')), 'admin.js: nav, padre de pestaña y hook montarAdmin');
-for (const f of ['user.js', 'secretario.js']) ok(/tab:'desempeno'[^}]*Mi desempeño/.test(rd(f)) && /desempeno:'desempeno'/.test(rd(f)) && /Desempeno\.montarPropio\([\s\S]*?yo: CU\.id/.test(rd(f)), f + ': nav, padre de pestaña y hook montarPropio con la propia id');
-ok(!/Desempeno\.montarAdmin/.test(rd('user.js') + rd('secretario.js')), 'el panel de administración no se monta fuera de admin.js');
+// «Mi desempeño» vive DENTRO de Mi perfil (decisión del usuario): sin entrada propia en el menú, con alias para los enlaces viejos.
+for (const f of ['user.js', 'secretario.js']) { const t = rd(f); ok(!t.includes("etiqueta:'Mi desempeño'") && t.includes("desempeno:'perfil'") && t.includes("original === 'desempeno') Perfil.tab('desempeno'") && !t.includes('Desempeno.montarPropio'), f + ': sin entrada «Mi desempeño»; el alias desempeno abre Mi perfil → pestaña Desempeño'); }
+const pf = rd('core/perfil.js');
+ok(pf.includes("TAB_DESEMPENO = { k: 'desempeno'") && pf.includes("inst.modo === 'propio' && typeof Desempeno") && pf.includes('Desempeno.montarPropio(cuerpo, { yo: inst.persona.id })'), 'core/perfil.js: en el perfil PROPIO, Desempeño reemplaza a Evolución y monta la trayectoria con la propia id');
+ok(pf.includes("inst.modo === 'propio') { if (k === 'evolucion') k = 'desempeno'; } else if (k === 'desempeno') k = 'evolucion'"), 'los enlaces #perfil/evolucion y #perfil/desempeno siguen abriendo algo en cada modo (el perfil de otra persona conserva Evolución)');
+ok(!/Desempeno\.montarAdmin/.test(rd('user.js')), 'el panel de administración no se monta en el portal del miembro');
+// Desempeño del distrito (auditoría, PDF §4.2): la secretaría usa el mismo módulo SOLO desde su pestaña de distrito y solo si es secretaria; la base ya le entrega solo su distrito.
+ok((rd('secretario.js').match(/Desempeno\.montarAdmin/g) || []).length === 1 && /tab === 'desempeno-distrito'\) Desempeno\.montarAdmin/.test(rd('secretario.js')) && /'desempeno-distrito'\) && !isSecretario\(\)/.test(rd('secretario.js')), 'secretario.js monta el modo de lectura de distrito en un solo sitio y solo para secretarías');
 ok(/'desFiltro'/.test(cfg.slice(0, cfg.indexOf('const ACCIONES'))), 'desFiltro está en la lista blanca de data-input / data-change');
 ok(/^\s{2}des:\s+\(/m.test(cfg), 'ACCIONES.des existe');
 const usadas = new Set([...src.matchAll(/data-act="([a-zA-Z]+)"/g)].map(m => m[1]));

@@ -28,8 +28,8 @@ const Distritos = (() => {
   const nomPE = p => p?.pe || p?.nombre || '';
   const aObj = p => { if (p && typeof p === 'object') return p; try { return JSON.parse(p || '{}') || {}; } catch { return {}; } };
   const puntaje = p => { const o = aObj(p); return COMP.reduce((s, c) => s + (Number(o[c.k]) || 0), 0); };
-  /** Mismos cortes que el resto del sitio (24 / 17 / 10 sobre 28); sirven también para un promedio con decimales. */
-  const nivel = s => s >= 24 ? { c: 'sex', t: 'Excelente' } : s >= 17 ? { c: 'sbu', t: 'Bueno' } : s >= 10 ? { c: 'spr', t: 'En proceso' } : { c: 'sba', t: 'Bajo' };
+  /** Cortes 87 / 67 / 37 % de 28 (mismos porcentajes que la rúbrica por roles; ver core/niveles.js y D-1 de docs/auditoria). Sirven también para un promedio con decimales. */
+  const nivel = s => { const n = Niveles.de(Niveles.DISTRITO, s); return { c: n.key, t: n.label }; };   // cortes en core/niveles.js
   const f2 = n => new Intl.NumberFormat('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
   const fPct = n => new Intl.NumberFormat('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n * 100) + ' %';
   const fInt = n => new Intl.NumberFormat('es-CL').format(n);

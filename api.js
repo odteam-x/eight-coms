@@ -446,6 +446,73 @@ const API = {
     return { ok: true, data };
   },
 
+  /** Cobertura de una evaluación (0056): criterios puntuados de los que aplicaban. { ok, fila|null }; sin 0056 → fila null (no se muestra). */
+  async getCoberturaEvaluacion(periodoId, personaId) {
+    const r = await this._rpc('evaluacion_cobertura', { p_periodo: periodoId, p_persona: personaId });
+    if (!r.ok) return { ok: false, noDisponible: r.noDisponible, error: r.error };
+    return { ok: true, fila: (r.data && r.data[0]) || null };
+  },
+  /** Registro global de acciones (0055; solo administración): { ok, rows, total }. */
+  async getAuditoria({ desde = null, hasta = null, origen = null, buscar = null, limite = 50, offset = 0 } = {}) {
+    const r = await this._rpc('auditoria_listar', { p_desde: desde, p_hasta: hasta, p_origen: origen, p_buscar: buscar, p_limite: limite, p_offset: offset });
+    if (!r.ok) return r;
+    const rows = r.data ?? [];
+    return { ok: true, rows, total: rows.length ? Number(rows[0].total) : 0 };
+  },
+  /* ── Rectificación de evaluaciones publicadas (migración 0053) ─────────────────────────────────
+   * Una evaluación PUBLICADA no se modifica por UPDATE: se rectifica con motivo (nueva versión, valores antes/después
+   * guardados) o se retira a borrador con motivo. Sin 0053 se conserva el guardado de siempre. */
+  _rectDisp: null,
+  async rectificacionDisponible() {
+    if (this._rectDisp !== null) return this._rectDisp;
+    const { error } = await SB.from('evaluaciones').select('version').limit(1);
+    // Solo «la columna no existe» (0053 sin aplicar) es definitivo; un fallo pasajero (red, sesión) no se queda en memoria
+    // como «no disponible»: con 0053 aplicada, guardar por la vía antigua daría un error en vez de rectificar.
+    if (!error) return (this._rectDisp = true);
+    if (/does not exist|42703|schema cache/i.test((error.message || '') + (error.code || ''))) return (this._rectDisp = false);
+    return false;
+  },
+  async rectificarEvaluacion({ id, puntajes, comentarios, motivo, respuestas = null, bono = null }) {
+    const r = await this._rpc('rectificar_evaluacion', { p_id: id, p_puntajes: puntajes, p_comentarios: comentarios, p_motivo: motivo, p_respuestas: respuestas, p_bono: bono });
+    return r.ok ? { ok: true, version: r.data } : r;
+  },
+  async retirarEvaluacion(id, motivo) {
+    const r = await this._rpc('retirar_evaluacion', { p_id: id, p_motivo: motivo });
+    return r.ok ? { ok: true, version: r.data } : r;
+  },
+  async getVersionesEvaluacion(id) {
+    const r = await this._rpc('evaluacion_versiones', { p_id: id });
+    return r.ok ? { ok: true, rows: r.data ?? [] } : r;
+  },
+  /**
+   * Guardar desde *Evaluar*. Si la evaluación ya está publicada y 0053 está aplicada, no se hace un upsert silencioso:
+   * se pide un motivo (pedirMotivo(accion) → texto | null) y se rectifica o se retira. `cancelado` = la persona no dio motivo.
+   */
+  async guardarEvaluacion(datos, pedirMotivo) {
+    const previa = await this.getEvaluacion(datos.periodo_id, datos.evaluado_id);
+    if (previa?.estado === 'publicado' && await this.rectificacionDisponible()) {
+      if (datos.estado === 'publicado') {
+        // Sin cambios reales no se pide motivo (la base también lo rechazaría: «No hay cambios que rectificar»).
+        const mismo = (a, b) => JSON.stringify(Object.entries(a || {}).sort(([x], [y]) => (x < y ? -1 : 1))) === JSON.stringify(Object.entries(b || {}).sort(([x], [y]) => (x < y ? -1 : 1)));
+        if (mismo(datos.puntajes, previa.puntajes) && mismo(datos.comentarios, previa.comentarios)
+            && (datos.respuestas == null || mismo(datos.respuestas, previa.respuestas)) && Number(datos.bono_ext ?? previa.bono_ext ?? 0) === Number(previa.bono_ext ?? 0)) {
+          return { ok: true, sinCambios: true };
+        }
+        const motivo = await pedirMotivo('rectificar');
+        if (!motivo) return { ok: false, cancelado: true };
+        const r = await this.rectificarEvaluacion({ id: previa.id, puntajes: datos.puntajes, comentarios: datos.comentarios, motivo,
+          respuestas: datos.respuestas || null, bono: datos.bono_ext ?? null });
+        return r.ok ? { ...r, rectificada: true } : r;
+      }
+      const motivo = await pedirMotivo('retirar');
+      if (!motivo) return { ok: false, cancelado: true };
+      const r = await this.retirarEvaluacion(previa.id, motivo);
+      if (!r.ok) return r;
+      return this.upsertEvaluacion(datos);   // ya es borrador: se guarda lo editado
+    }
+    return this.upsertEvaluacion(datos);
+  },
+
   // ── ADMIN: calendario ────────────────────────────────────────────
   /* Etiquetas y actividades (migración 0018). Si aún no se aplicó, devuelven disponible:false y el calendario sigue con lo demás. */
   _sinTabla(error) { return !!error && /does not exist|42P01|Could not find the table|schema cache/i.test((error.message || '') + (error.code || '')); },
@@ -1182,6 +1249,11 @@ const API = {
   },
 
   /** Mejor esfuerzo: un archivo huérfano no da acceso a nada, así que un fallo aquí no se le muestra a nadie. */
+  /** Versiones anteriores de las estadísticas de un distrito en un PE (0054). Admin: cualquiera; secretaría: la suya. */
+  async getHistorialEstadisticasDistrito(periodoId, distritoId) {
+    const r = await this._rpc('estadisticas_distrito_historial', { p_periodo: periodoId, p_distrito: distritoId });
+    return r.ok ? { ok: true, rows: r.data ?? [] } : r;
+  },
   async borrarCapturaDistrito(path) {
     if (!path) return;
     try { await SB.storage.from('capturas-distrito').remove([path]); } catch { /* huérfano inofensivo */ }

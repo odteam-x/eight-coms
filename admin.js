@@ -76,18 +76,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Cabecera de cuenta de la hoja móvil, donde viven salir y el
     // selector de gestión: el rail no existe por debajo de 768px.
     pie: { nombre: CU.nombre || CU.email, badge: 'Administrador' },
+    // Por responsabilidad (auditoría, PDF §4.3): la pregunta de cada grupo. Las pestañas (data-tab) no cambian,
+    // así que notificaciones, alias y atajos siguen apuntando a lo mismo. `fav` conserva las cuatro entradas de la barra
+    // inferior móvil que ya había (Panel, Desempeño, Evaluar, Tareas).
     grupos: [
-      { items: [
-        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel'    },
-        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño' },
-        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar'  },
-        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas'   },
+      { titulo:'Centro de control', items: [
+        { tab:'overview', icono:'layout-dashboard', etiqueta:'Panel', fav: true },
+        { tab:'desempeno', icono:'line-chart',      etiqueta:'Desempeño', fav: true },
+        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
+      ]},
+      { titulo:'Operaciones', items: [
+        { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar', fav: true },
+        { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
+        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+      ]},
+      { titulo:'Organización', items: [
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
-        { tab:'seguimiento', icono:'trending-up',   etiqueta:'Seguimiento' },
-        { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+      ]},
+      { items: [
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
+        { tab:'auditoria', icono:'history',         etiqueta:'Auditoría' },
       ]},
       { titulo:'Configuración', plegado: true, items: [
         { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
@@ -474,9 +484,10 @@ function renderEvalForm(ev, evaluadoId, trabajos) {
       ${isPub
         ? `<div class="eval-pub-info">
              <span class="eval-pub-dot"></span>
-             Evaluación publicada — visible para el miembro
+             Evaluación publicada${ev?.version > 1 ? ' · versión ' + ev.version : ''} — visible para el miembro
            </div>
            <div class="eval-actions">
+             ${ev?.id ? `<button type="button" class="btn--texto" data-act="evHistorial" data-arg="${ev.id}" data-arg2="${evaluadoId}">Historial de versiones</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
@@ -541,6 +552,71 @@ function setBono(val, btn) {
   escalaActualizar(btn.closest('.escala'), val);
 }
 
+/**
+ * Motivo para cambiar una evaluación YA publicada (migración 0053). Devuelve el texto, o null si la persona cierra el
+ * cuadro sin darlo (la promesa se resuelve también al cerrarlo: no deja el guardado colgado).
+ */
+function pedirMotivoEvaluacion(accion) {
+  return new Promise(resolve => {
+    let hecho = false;
+    const fin = v => { if (!hecho) { hecho = true; resolve(v); } };
+    Tareas.abrirModal({
+      titulo: accion === 'retirar' ? 'Retirar evaluación publicada' : 'Rectificar evaluación publicada',
+      campos: [
+        { id: 'aviso', tipo: 'info', texto: accion === 'retirar'
+            ? 'La evaluación volverá a borrador y dejará de contar en los resultados hasta que se publique de nuevo. Queda registrada con tu motivo.'
+            : 'Se guardará una nueva versión. La anterior, tus cambios y el motivo quedan registrados, y la persona recibe un aviso de corrección.' },
+        { id: 'motivo', tipo: 'area', label: 'Motivo', req: true, filas: 3, max: 500, ph: 'Qué se corrige y por qué' },
+      ],
+      confirmar: accion === 'retirar' ? 'Retirar' : 'Rectificar',
+      onConfirm: v => {
+        if ((v.motivo || '').trim().length < 5) return 'Escribe un motivo de al menos 5 caracteres.';
+        fin(v.motivo.trim());
+        return null;
+      },
+    });
+    // Cerrar el cuadro (X, Escape, fuera) sin dar motivo = cancelar.
+    const m = document.getElementById('tk-modal');
+    if (m) {
+      const obs = new MutationObserver(() => { if (m.style.display === 'none') { obs.disconnect(); fin(null); } });
+      obs.observe(m, { attributes: true, attributeFilter: ['style'] });
+    }
+  });
+}
+
+/**
+ * Historial de una evaluación publicada (migración 0053): qué cambió, quién, cuándo y por qué. Solo lectura.
+ * Los puntajes se muestran por NOMBRE completo de criterio (nunca la clave) y solo los que cambiaron.
+ */
+async function verHistorialEvaluacion(evaluacionId, evaluadoId) {
+  const r = await API.getVersionesEvaluacion(Number(evaluacionId));
+  if (!r.ok) { showToast(r.noDisponible ? 'El historial aún no está activo (falta aplicar la migración 0053).' : 'No se pudo cargar el historial: ' + r.error, 'error'); return; }
+  const nombreCrit = k => (_criteriosV2.find(c => c.key === k) || getCriterios().find(c => c.key === k) || {}).nombre || k;
+  const quien = id => id ? ((_users.find(u => u.id === id) || {}).nombre || 'Administración') : 'Sin sesión (mantenimiento)';
+  const ETQ = { publicada: 'Publicada', rectificada: 'Rectificada', retirada: 'Retirada a borrador' };
+  const num = v => v == null ? '—' : String(Math.round(Number(v) * 10) / 10).replace('.', ',');
+  const cambios = v => {
+    const a = (v.antes && v.antes.puntajes) || {}, d = (v.despues && v.despues.puntajes) || {};
+    const claves = [...new Set([...Object.keys(a), ...Object.keys(d)])].filter(k => a[k] !== d[k]);
+    return claves.map(k => `<li>${escHtml(nombreCrit(k))}: <b>${escHtml(a[k] == null ? 'sin puntuar' : String(a[k]))}</b> → <b>${escHtml(d[k] == null ? 'sin puntuar' : String(d[k]))}</b></li>`).join('');
+  };
+  const filas = [...r.rows].reverse().map(v => {
+    const ra = v.resultado_antes && v.resultado_antes.individual, rd = v.resultado_despues && v.resultado_despues.individual;
+    return `<li class="hv-fila"><b>Versión ${escHtml(String(v.version))} · ${escHtml(ETQ[v.accion] || v.accion)}</b>
+      <small>${escHtml(quien(v.actor))} · ${escHtml(new Date(v.creado_en).toLocaleString('es-CL'))}</small>
+      ${v.motivo ? `<p>Motivo: ${escHtml(v.motivo)}</p>` : ''}
+      ${cambios(v) ? `<ul>${cambios(v)}</ul>` : ''}
+      ${ra != null || rd != null ? `<p>Resultado: <b>${escHtml(num(ra))}</b> → <b>${escHtml(num(rd))}</b></p>` : ''}</li>`;
+  }).join('');
+  Tareas.abrirModal({
+    titulo: 'Historial de versiones',
+    campos: [{ id: 'hv', tipo: 'html', html: filas
+      ? `<ol class="hv-lista">${filas}</ol><p class="tk-info">Las evaluaciones publicadas antes de esta función no tienen historial anterior.</p>`
+      : '<p class="tk-info">Esta evaluación se publicó antes de que existiera el historial: todavía no tiene cambios registrados.</p>' }],
+    sinConfirmar: true,
+  });
+}
+
 async function saveEvaluacion(estado, evaluadoId) {
   if (!_activePE) return;
   if (esPeriodoV2(_activePE)) { await saveEvaluacionV2(estado, evaluadoId); return; }
@@ -555,7 +631,7 @@ async function saveEvaluacion(estado, evaluadoId) {
   if (gen) comentarios.general = gen;
   const bono_ext = parseInt(document.getElementById('sc-bono')?.value || 0);
 
-  const res = await API.upsertEvaluacion({
+  const res = await API.guardarEvaluacion({
     periodo_id:   _activePE.id,
     evaluado_id:  evaluadoId,
     evaluador_id: CU.id,
@@ -563,10 +639,12 @@ async function saveEvaluacion(estado, evaluadoId) {
     bono_ext,
     comentarios,
     estado,
-  });
+  }, pedirMotivoEvaluacion);
 
+  if (res.cancelado) return;
+  if (res.sinCambios) { showToast('No hay cambios que guardar.', 'ok'); return; }
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
-  showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
+  showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
   renderEvalUserList();
   const [evNew, trabajos] = await Promise.all([
@@ -727,8 +805,9 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
       </div>
 
       ${isPub
-        ? `<div class="eval-pub-info"><span class="eval-pub-dot"></span>Evaluación publicada — visible para el miembro</div>
+        ? `<div class="eval-pub-info"><span class="eval-pub-dot"></span>Evaluación publicada${ev?.version > 1 ? ' · versión ' + ev.version : ''} — visible para el miembro</div>
            <div class="eval-actions">
+             ${ev?.id ? `<button type="button" class="btn--texto" data-act="evHistorial" data-arg="${ev.id}" data-arg2="${evaluadoId}">Historial de versiones</button>` : ''}
              <button class="btn-draft" data-act="guardarEval" data-arg="borrador" data-arg2="${evaluadoId}">Volver a borrador</button>
              <button class="btn-save btn-confirm" data-act="guardarEval" data-arg="publicado" data-arg2="${evaluadoId}">Confirmar cambios</button>
            </div>`
@@ -855,14 +934,16 @@ async function saveEvaluacionV2(estado, evaluadoId) {
   if (gen) comentarios.general = gen;
 
   // modelo y perfil_id los fija el servidor; el bono no existe en v2.
-  const res = await API.upsertEvaluacion({
+  const res = await API.guardarEvaluacion({
     periodo_id: _activePE.id, evaluado_id: evaluadoId, evaluador_id: CU.id,
     puntajes: _formV2.puntajes, bono_ext: 0, comentarios, estado,
     // Solo con 0020 aplicada: sin la columna, mandarla haría fallar el guardado.
     respuestas: API.v2Dinamico(_criteriosV2) ? respuestas : null,
-  });
+  }, pedirMotivoEvaluacion);
+  if (res.cancelado) return;
+  if (res.sinCambios) { showToast('No hay cambios que guardar.', 'ok'); return; }
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
-  showToast(estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
+  showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
 
   await loadEvalPEData();
   const [evNew, trabajos] = await Promise.all([
@@ -2407,7 +2488,7 @@ function montarTareas() {
 const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
-  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno',
+  overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
   periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
   roles:'periodos', distritos:'periodos', gestiones:'periodos',
 };
@@ -2495,6 +2576,7 @@ function switchTabAdminHooks(tab) {
   }
   if (tab === 'reportes') Reportes.abrir();
   if (tab === 'desempeno') Desempeno.montarAdmin(document.getElementById('desempeno-host'));
+  if (tab === 'auditoria') Auditoria.montar(document.getElementById('auditoria-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'admin' }); }
 }
 

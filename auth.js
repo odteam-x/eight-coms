@@ -103,7 +103,7 @@ const Auth = (() => {
   }
 
   /**
-   * Un enlace de correo (`portal.html#ir/pestaña/objeto/id`) abierto SIN sesión no debe perderse al pasar por
+   * Un enlace de correo (`user|secretario|admin.html#ir/pestaña/objeto/id`) abierto SIN sesión no debe perderse al pasar por
    * el login: se recuerda solo el fragmento `#ir/…` (nunca datos) y core/notificaciones.js lo abre tras entrar,
    * si el portal es el mismo. La sesión sigue siendo obligatoria y la RLS decide qué se ve.
    */

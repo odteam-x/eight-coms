@@ -70,3 +70,80 @@ function rosterHTML(personas, vacio = 'No hay personas que mostrar.') {
   if (!personas.length) return `<div class="empty-box"><div class="empty-txt">${escHtml(vacio)}</div></div>`;
   return `<div class="roster">${personas.map(personaCardHTML).join('')}</div>`;
 }
+
+/* ── Bandeja de trabajo de la secretaría ────────────────────────────────
+ * Lo que ella puede resolver HOY, agrupado por persona y ordenado por urgencia. Solo reordena hechos que ya vienen de
+ * `tareas` (filtradas por RLS a su distrito): no puntúa ni calcula notas.
+ *   · vencida  = abierta (asignada / en curso / devuelta) con fecha límite anterior a hoy. «Bloqueada» NO cuenta como
+ *     vencida (regla de 0016).
+ *   · por revisar = entregada y NO suya (nadie revisa lo propio).
+ * Orden: primero quien tiene más días de atraso; luego quien tiene entregas esperando más tiempo.
+ * @param {object[]} tareas  filas de tareas del distrito
+ * @param {{id:string,nombre?:string}[]} personas
+ * @param {{hoy:string, yo:string}} o  hoy = 'YYYY-MM-DD'
+ */
+function bandejaDistrito(tareas, personas, { hoy, yo }) {
+  const nombres = new Map((personas || []).map(p => [p.id, p.nombre || 'Sin nombre']));
+  const dias = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+  const por = new Map();
+  const de = id => { if (!por.has(id)) por.set(id, { id, nombre: nombres.get(id) || 'Sin nombre', vencidas: 0, porRevisar: 0, atraso: 0, espera: 0 }); return por.get(id); };
+  for (const t of tareas || []) {
+    if (t.asignada_a === yo) continue;
+    if (t.estado === 'entregada') {
+      const f = de(t.asignada_a); f.porRevisar++;
+      const desde = String(t.entregada_en || '').slice(0, 10);
+      if (desde) f.espera = Math.max(f.espera, dias(desde, hoy));
+    } else if (['asignada', 'en_curso', 'devuelta'].includes(t.estado) && t.fecha_limite && String(t.fecha_limite).slice(0, 10) < hoy) {
+      const f = de(t.asignada_a); f.vencidas++;
+      f.atraso = Math.max(f.atraso, dias(String(t.fecha_limite).slice(0, 10), hoy));
+    }
+  }
+  const filas = [...por.values()].sort((a, b) => b.atraso - a.atraso || b.espera - a.espera || (b.vencidas + b.porRevisar) - (a.vencidas + a.porRevisar) || a.nombre.localeCompare(b.nombre, 'es'));
+  return { filas, vencidas: filas.reduce((s, f) => s + f.vencidas, 0), porRevisar: filas.reduce((s, f) => s + f.porRevisar, 0) };
+}
+
+/** Bloque «Bandeja de trabajo»: una fila por persona que abre su perfil; máximo `tope` personas. */
+function bandejaHTML(b, tope = 6) {
+  if (!b.filas.length) return `<p class="pf-nota">Nada pendiente por ahora: no hay entregas por revisar ni tareas vencidas en tu distrito.</p>`;
+  const plural = (n, u, p) => `${n} ${n === 1 ? u : p}`;
+  const filas = b.filas.slice(0, tope).map(f => {
+    const partes = [];
+    if (f.vencidas) partes.push(plural(f.vencidas, 'vencida', 'vencidas') + (f.atraso ? ` (hasta ${plural(f.atraso, 'día', 'días')} de atraso)` : ''));
+    if (f.porRevisar) partes.push(plural(f.porRevisar, 'entrega por revisar', 'entregas por revisar') + (f.espera > 0 ? ` (espera ${plural(f.espera, 'día', 'días')})` : ''));
+    return `<button type="button" class="fila-aj" data-act="perfilVer" data-arg="${escHtml(f.id)}" aria-label="Abrir el perfil de ${escHtml(f.nombre)}">
+      <span class="fila-aj-txt"><span class="fila-aj-t">${escHtml(f.nombre)}</span><span class="fila-aj-d">${escHtml(partes.join(' · '))}</span></span>
+      <span class="fila-aj-ind">${f.vencidas + f.porRevisar}</span></button>`;
+  }).join('');
+  const mas = b.filas.length > tope ? `<p class="pf-nota">Y ${plural(b.filas.length - tope, 'persona más', 'personas más')}. <button type="button" class="pf-enlace" data-act="tab" data-arg="tareas">Ver todas en Tareas<i data-lucide="arrow-right" aria-hidden="true"></i></button></p>` : '';
+  return `<div class="lista-aj" role="list" aria-label="Bandeja de trabajo">${filas}</div>${mas}`;
+}
+
+/* ── Detector de inconsistencias de datos (administración) ──────────────
+ * Contradicciones entre hechos que la base YA guarda; no puntúa, no corrige y no decide nada: solo avisa dónde mirar.
+ * Cada aviso trae cuántas personas/casos son, sus nombres (para escapar al pintar) y a dónde ir a resolverlo.
+ *   · sin_rol / sin_distrito  — persona aprobada (no administradora) a la que le falta un dato que el sistema necesita
+ *                               (la rúbrica por roles evalúa según el rol; el distrito decide quién la ve y quién la revisa).
+ *   · eval_no_participa       — evaluación PUBLICADA de alguien marcado «no participa» en el PE: la regla dice que ese PE no existe para esa persona.
+ *   · eval_sin_acceso         — evaluación de una persona sin acceso aprobado o de una administradora (que no se evalúa).
+ *   · pe_sin_fechas           — el período activo no tiene fechas de inicio y entrega (el calendario y los vencimientos dependen de ellas).
+ * @param {{users:object[], evaluaciones:object[], inactivos:Set<string>, periodo:object|null}} d
+ */
+function detectarInconsistencias({ users = [], evaluaciones = [], inactivos = new Set(), periodo = null } = {}) {
+  users = users || []; evaluaciones = evaluaciones || []; inactivos = inactivos || new Set();   // null también es «sin datos»
+  const porId = new Map(users.map(u => [u.id, u]));
+  const nombres = ids => ids.map(id => porId.get(id)?.nombre || porId.get(id)?.email || 'Sin nombre');
+  const out = [];
+  const activas = users.filter(u => !u.es_admin && u.aprobado !== false);
+  const sinRol = activas.filter(u => !u.rol_id).map(u => u.id);
+  if (sinRol.length) out.push({ k: 'sin_rol', n: sinRol.length, txt: 'sin rol: no se les puede evaluar con la rúbrica por roles', nombres: nombres(sinRol), tab: 'usuarios', filtro: 'sin_rol' });
+  const sinDistrito = activas.filter(u => !u.distrito).map(u => u.id);
+  if (sinDistrito.length) out.push({ k: 'sin_distrito', n: sinDistrito.length, txt: 'sin distrito: ninguna secretaría las ve ni revisa sus tareas', nombres: nombres(sinDistrito), tab: 'usuarios', filtro: 'sin_distrito' });
+  const noPart = evaluaciones.filter(e => e.estado === 'publicado' && inactivos.has(e.evaluado_id)).map(e => e.evaluado_id);
+  if (noPart.length) out.push({ k: 'eval_no_participa', n: noPart.length, txt: 'con evaluación publicada en un PE donde figuran como «no participa»', nombres: nombres(noPart), tab: 'evaluar' });
+  const sinAcceso = evaluaciones.filter(e => { const u = porId.get(e.evaluado_id); return u && (u.es_admin || u.aprobado === false); }).map(e => e.evaluado_id);
+  if (sinAcceso.length) out.push({ k: 'eval_sin_acceso', n: sinAcceso.length, txt: 'con evaluación pero sin acceso aprobado o siendo administración', nombres: nombres(sinAcceso), tab: 'evaluar' });
+  if (periodo && periodo.activo && (!periodo.fecha_inicio || !periodo.fecha_entrega)) {
+    out.push({ k: 'pe_sin_fechas', n: 1, txt: `el período activo «${periodo.nombre || ''}» no tiene fechas de inicio y entrega: el calendario y los vencimientos dependen de ellas`, nombres: [], tab: 'periodos' });
+  }
+  return out;
+}

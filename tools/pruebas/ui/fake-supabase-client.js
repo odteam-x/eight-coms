@@ -308,6 +308,11 @@
       if (this.t === 'evaluaciones') {
         const per = DB.periodos_evaluacion.find(x => x.id === p.periodo_id);
         const prev = rows.find(r => r.periodo_id === p.periodo_id && r.evaluado_id === p.evaluado_id);
+        if (prev?.estado === 'publicado' && !globalThis.__rectificando) {
+          const j = o => JSON.stringify(o || {});
+          if (p.estado !== 'publicado' || j(p.puntajes) !== j(prev.puntajes) || j(p.comentarios) !== j(prev.comentarios) || (p.bono_ext ?? 0) !== (prev.bono_ext ?? 0))
+            throw new Error('La evaluacion ya esta publicada: se corrige con rectificar_evaluacion() (exige motivo y conserva la version anterior).');
+        }
         p.modelo = per.modelo;
         if (per.modelo !== 'v2') p.respuestas = {};
         if (per.modelo === 'v2') {
@@ -809,6 +814,31 @@
       eqVig(p_equipo).forEach(m => { if (!puedeVer(m.persona_id)) return; const it = califItems(e.periodo_id).filter(i => i.persona_id === m.persona_id && i.equipo_id === p_equipo), cu = it.filter(i => i.cuenta), s = cu.reduce((a, i) => a + i.peso_tarea, 0);
         filas.push({ persona_id: m.persona_id, nombre: nomP(m.persona_id), tareas_cuentan: cu.length, tareas_total: it.filter(i => i.razon !== 'tarea_anulada').length, nota: s ? num(100 * cu.reduce((a, i) => a + i.peso_tarea * i.puntos / 10, 0) / s) : null, con_nota_individual: cu.filter(i => i.individual_en_grupo).length }); });
       return filas; },
+    // 0055: auditoría global (solo administración)
+    auditoria_listar: a => { if (!esAdmin()) throw new Error('Solo la administracion consulta la auditoria.');
+      const mk = (i, origen, accion, objeto, resumen, motivo, actor) => ({ creado_en: new Date(Date.now() - i * 3600e3).toISOString(), origen, accion, actor_id: actor, actor_nombre: actor ? 'Admin General' : null, objeto, resumen, motivo, detalle: null });
+      const base = [
+        ...(DB.evaluaciones_versiones || []).map((v, i) => ({ creado_en: v.creado_en, origen: 'Evaluaciones', accion: 'evaluacion_' + v.accion, actor_id: v.actor, actor_nombre: 'Admin General', objeto: 'Evaluación de una persona', resumen: 'Versión ' + v.version, motivo: v.motivo, detalle: { antes: v.antes, despues: v.despues } })),
+        mk(2, 'Personas', 'persona_cambio', 'Persona: Beto Foto1', 'Cambió: distrito', null, U.admin),
+        mk(5, 'Períodos', 'periodo_activado', 'Período: PE2', 'Pasó a ser el período activo', null, U.admin),
+        mk(30, 'Gestiones', 'gestion_archivada', 'Gestión: 2025-2026', 'Activa: false · Archivada: true', null, null),
+        mk(50, 'Tareas', 'estado', 'Tarea: Cobertura', 'entregada → aprobada', null, U.admin),
+      ].sort((x, y) => y.creado_en.localeCompare(x.creado_en));
+      const q = (a.p_buscar || '').toLowerCase();
+      const f = base.filter(r => (!a.p_origen || r.origen === a.p_origen) && (!q || [r.accion, r.objeto, r.resumen, r.motivo, r.actor_nombre].some(x => (x || '').toLowerCase().includes(q))));
+      return f.slice(a.p_offset || 0, (a.p_offset || 0) + (a.p_limite || 50)).map(r => ({ total: f.length, ...r })); },
+    // 0053: rectificar / retirar / historial de una evaluación publicada
+    rectificar_evaluacion: a => { if (!esAdmin()) throw new Error('Solo la administracion puede rectificar una evaluacion.');
+      if (!a.p_motivo || a.p_motivo.trim().length < 5) throw new Error('La rectificacion exige un motivo (al menos 5 caracteres).');
+      const e = DB.evaluaciones.find(x => x.id === a.p_id); if (!e || e.estado !== 'publicado') throw new Error('Solo se rectifica una evaluacion publicada; un borrador se edita directamente.');
+      (DB.evaluaciones_versiones = DB.evaluaciones_versiones || []).push({ id: DB.evaluaciones_versiones.length + 1, evaluacion_id: e.id, version: (e.version || 1) + 1, accion: 'rectificada', antes: { puntajes: e.puntajes, comentarios: e.comentarios }, despues: { puntajes: a.p_puntajes, comentarios: a.p_comentarios }, motivo: a.p_motivo.trim(), actor: meId, creado_en: ahora() });
+      e.puntajes = a.p_puntajes; e.comentarios = a.p_comentarios; if (a.p_bono != null) e.bono_ext = a.p_bono; e.version = (e.version || 1) + 1; e.updated_at = ahora(); return e.version; },
+    retirar_evaluacion: a => { if (!esAdmin()) throw new Error('Solo la administracion puede retirar una evaluacion.');
+      if (!a.p_motivo || a.p_motivo.trim().length < 5) throw new Error('Retirar una evaluacion exige un motivo (al menos 5 caracteres).');
+      const e = DB.evaluaciones.find(x => x.id === a.p_id); if (!e || e.estado !== 'publicado') throw new Error('Solo se retira una evaluacion publicada.');
+      (DB.evaluaciones_versiones = DB.evaluaciones_versiones || []).push({ id: DB.evaluaciones_versiones.length + 1, evaluacion_id: e.id, version: (e.version || 1) + 1, accion: 'retirada', motivo: a.p_motivo.trim(), actor: meId, creado_en: ahora() });
+      e.estado = 'borrador'; e.version = (e.version || 1) + 1; return e.version; },
+    evaluacion_versiones: a => { if (!esAdmin()) throw new Error('Solo la administracion consulta el historial de una evaluacion.'); return (DB.evaluaciones_versiones || []).filter(v => v.evaluacion_id === a.p_id); },
     calif_config: ({ p_periodo }) => { const c = cfgP(p_periodo); return [{ ...c, definida: true }]; },
     calif_config_guardar: a => { if (!esAdmin()) throw new Error('Solo la administracion define las reglas de calificacion.');
       if (a.p_peso_tareas < 0 || a.p_peso_tareas > 100) throw new Error('El peso de las tareas va de 0 a 100 %.');

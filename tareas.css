@@ -125,3 +125,10 @@
 .tk-card .tk-btn { background: transparent; border: 1px solid var(--trazo); color: var(--txt); }
 .tk-card .tk-btn:hover { background: var(--surface-3); border-color: var(--data); }
 .tk-card .tk-btn--main { border-color: var(--data); background: var(--surface-3); font-weight: 700; }
+
+/* Historial de versiones de una evaluación publicada (admin.js · verHistorialEvaluacion) */
+.hv-lista { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.hv-fila { display: flex; flex-direction: column; gap: var(--sp-1); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--trazo); }
+.hv-fila small { color: var(--txt-muted); }
+.hv-fila p, .hv-fila ul { margin: 0; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.hv-fila ul { padding-left: var(--sp-5); }

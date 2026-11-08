@@ -393,6 +393,7 @@ async function renderAtencion() {
   const pe = _activePEOv;
   const items = [];
   const nombrePE = pe ? pe.nombre : '';
+  let datos = [];
 
   const pendientes = _users.filter(u => u.aprobado === false).length;
   if (pendientes) items.push({ n: pendientes, icono: 'user-x', txt: `persona${pendientes === 1 ? '' : 's'} esperando que apruebes su acceso`, tab: 'usuarios', filtro: 'pendientes', cta: 'Revisar accesos' });
@@ -404,6 +405,7 @@ async function renderAtencion() {
     const conEv = new Set(evs.map(e => e.evaluado_id));
     const sinEvaluar = evaluables.filter(u => !conEv.has(u.id)).length;
     const borradores = evs.filter(e => e.estado === 'borrador').length;
+    datos = detectarInconsistencias({ users: _users, evaluaciones: evs, inactivos, periodo: pe });
     if (sinEvaluar) items.push({ n: sinEvaluar, icono: 'clipboard-list', txt: `persona${sinEvaluar === 1 ? '' : 's'} sin evaluar en ${nombrePE}`, tab: 'evaluar', cta: 'Evaluar' });
     if (borradores) items.push({ n: borradores, icono: 'file-pen', txt: `evaluación${borradores === 1 ? '' : 'es'} en borrador sin publicar en ${nombrePE}`, tab: 'evaluar', cta: 'Publicar' });
 
@@ -429,6 +431,17 @@ async function renderAtencion() {
           <button type="button" class="pf-enlace" data-act="${i.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(i.filtro || i.tab)}">${escHtml(i.cta)}<i data-lucide="arrow-right" aria-hidden="true"></i></button>
         </li>`).join('')}</ul>`
         : `<p class="atencion-ok"><i data-lucide="circle-check" aria-hidden="true"></i> Todo al día en ${escHtml(nombrePE || 'este período')}: nadie espera una acción tuya.</p>`}
-    </section>`;
+    </section>
+    ${datos.length ? `<section class="atencion atencion--datos" aria-labelledby="ov-datos-h">
+      <h3 class="pf-h" id="ov-datos-h">Datos por revisar</h3>
+      <p class="pf-nota">Contradicciones entre datos que ya están guardados. Solo avisan dónde mirar: no corrigen ni cambian ninguna nota.</p>
+      <ul class="atencion-lista">${datos.map(d => `
+        <li class="atencion-item">
+          <i data-lucide="alert-triangle" class="atencion-ico" aria-hidden="true"></i>
+          <span class="atencion-n">${d.n}</span>
+          <span class="atencion-txt">${escHtml(d.txt)}${d.nombres.length ? `<small class="atencion-quienes">${escHtml(d.nombres.slice(0, 4).join(', '))}${d.nombres.length > 4 ? ` y ${d.nombres.length - 4} más` : ''}</small>` : ''}</span>
+          <button type="button" class="pf-enlace" data-act="${d.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(d.filtro || d.tab)}">Revisar<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+        </li>`).join('')}</ul>
+    </section>` : ''}`;
   renderIconos(el);
 }

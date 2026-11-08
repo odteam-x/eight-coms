@@ -95,6 +95,8 @@ const _ACCIONES_SIMPLES = new Set([
   'eqFiltrar', 'eqFiltrarTareas',
   // Desempeño (core/desempeno.js)
   'desFiltro',
+  // Auditoría (core/auditoria.js)
+  'audFiltro',
   // estadísticas de Instagram del distrito (core/estadisticas-distrito.js)
   'estDistArchivo', 'estDistCampo', 'distBuscar',
 ]);
@@ -137,6 +139,7 @@ const ACCIONES = {
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
   des:           (a, el) => Desempeno.accion(a, el.dataset.arg2),
+  aud:           (a)     => Auditoria.accion(a),
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
   partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),
   partMasivo:    ()      => participacionMasiva(),
@@ -280,6 +283,7 @@ const ACCIONES = {
   peTareas:    (a, el) => selectTareasPE(a, el),
   modalPerfil: (a)     => showPerfilModal(a),
   guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
+  evHistorial: (a, el) => verHistorialEvaluacion(a, el.dataset.arg2),
   guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),
   participante:(a, el) => toggleParticipante(a, el.dataset.arg2 === 'true'),
   aprobarUser: (a, el) => updateUserAprobado(a, el.dataset.arg2 === 'true'),

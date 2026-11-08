@@ -38,6 +38,9 @@ const Perfil = (() => {
     { k: 'periodos',  etiqueta: 'Períodos',  icono: 'calendar-range' },
     { k: 'evolucion', etiqueta: 'Evolución', icono: 'trending-up' },
   ];
+  /** En el perfil PROPIO, «Evolución» la reemplaza «Desempeño» (core/desempeno.js): trae la misma evolución y además la
+   *  tabla por período y la comparación entre períodos propios. El perfil de OTRA persona (secretaría, admin) conserva Evolución. */
+  const TAB_DESEMPENO = { k: 'desempeno', etiqueta: 'Desempeño', icono: 'line-chart' };
 
   const _fmt = (n, d = 1) => fmtNum(n, d);
   /** 0–6: qué patrón de la marca lleva la cabecera de esta persona. */
@@ -541,7 +544,8 @@ const Perfil = (() => {
   function _tabsDe(inst) {
     // Las pestañas de gestión (solo administración) van PRIMERO: la configuración queda a un toque.
     const extra = (_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin);
-    return [...extra.filter(t => t.soloAdmin), ...TABS, ...extra.filter(t => !t.soloAdmin)];
+    const base = inst.modo === 'propio' && typeof Desempeno !== 'undefined' ? TABS.map(t => (t.k === 'evolucion' ? TAB_DESEMPENO : t)) : TABS;
+    return [...extra.filter(t => t.soloAdmin), ...base, ...extra.filter(t => !t.soloAdmin)];
   }
 
   async function _pintarPanel(inst) {
@@ -556,6 +560,7 @@ const Perfil = (() => {
       else if (inst.tab === 'tareas')    await _panelTareas(inst, cuerpo, seq);
       else if (inst.tab === 'periodos')  await PerfilPE.pintar(inst, cuerpo, () => seq === inst.seq && inst.tab === 'periodos');
       else if (inst.tab === 'evolucion') _panelEvolucion(inst, cuerpo);
+      else if (inst.tab === 'desempeno') await Desempeno.montarPropio(cuerpo, { yo: inst.persona.id });
       else                               await _panelResumen(inst, cuerpo, seq);
     } catch (e) {
       console.error('[Perfil]', e);
@@ -675,6 +680,7 @@ const Perfil = (() => {
   function tab(k, el) {
     const root = el?.closest?.('[data-perfil]') || document.querySelector('[data-perfil]');
     const inst = root && _inst.get(root.dataset.perfil);
+    if (inst && inst.modo === 'propio') { if (k === 'evolucion') k = 'desempeno'; } else if (k === 'desempeno') k = 'evolucion';   // enlaces viejos y nuevos siguen abriendo algo
     if (!inst || !_tabsDe(inst).some(t => t.k === k)) return;
     inst.tab = k;
     _pintarBarra(inst);

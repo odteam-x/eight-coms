@@ -15,8 +15,8 @@ const ctx = {
   API: {}, console,
 };
 vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(ROOT + 'core/rubrica.js', 'utf8') + `
-;globalThis.__x = { nivelV2, fmtV2, pctPuntajeV2, rangoPuntajeV2, ESCALA_NUCLEO_V2, perfilVigenteDe, criteriosAplicables, resultadoV2HTML, rankingV2HTML, esPeriodoV2, clavesAplicables };`, ctx);
+vm.runInContext(fs.readFileSync(ROOT + 'core/niveles.js', 'utf8') + ';' + fs.readFileSync(ROOT + 'core/rubrica.js', 'utf8') + `
+;globalThis.__x = { Niveles, nivelV2, fmtV2, pctPuntajeV2, rangoPuntajeV2, ESCALA_NUCLEO_V2, perfilVigenteDe, criteriosAplicables, resultadoV2HTML, rankingV2HTML, esPeriodoV2, clavesAplicables };`, ctx);
 const X = ctx.__x;
 
 console.log('[niveles y formato]');
@@ -95,6 +95,18 @@ const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
 for (const a of ['showPerfilModal', 'savePerfil', 'actualizarSumaPerfil', 'cambiarRolPerfil'])
   ok(new RegExp(`_ACCIONES_SIMPLES = new Set\\([\\s\\S]*'${a}'[\\s\\S]*?\\]\\)`).test(cfg), `lista blanca: ${a}`);
 for (const a of ['puntajeV2', 'modalPerfil']) ok(cfg.includes(`${a}:`), `ACCIONES.${a}`);
+
+// ── Niveles: una sola definición (core/niveles.js) ──
+console.log('\n[niveles: una definición, tres escalas]');
+const N = X.Niveles;
+ok(JSON.stringify(N.CORTES.CLASICA.cortes) === '[26,20,11]' && N.CORTES.CLASICA.sobre === 30, 'clásica: 26/20/11 sobre 30');
+ok(JSON.stringify(N.CORTES.V2.cortes) === '[87,67,37]', 'v2: 87/67/37 sobre 100');
+ok(N.porcentajes('V2').every((p, i) => Math.abs(p - N.porcentajes('CLASICA')[i]) < 0.5), 'v2 es la clásica en porcentaje (±0,5 por redondeo)');
+ok(N.de(N.CLASICA, 25).label === 'Bueno' && N.de(N.CLASICA, 26).label === 'Excelente' && N.de(N.CLASICA, 10.9).label === 'Bajo', 'clásica: bordes 25 / 26 / 10,9');
+ok(X.nivelV2(87).label === 'Excelente' && X.nivelV2(86.9).label === 'Bueno' && X.nivelV2(36.9).label === 'Bajo', 'v2: bordes 87 / 86,9 / 36,9');
+ok(N.de(N.DISTRITO, 25).label === 'Excelente' && N.de(N.DISTRITO, 24).label === 'Bueno' && N.de(N.DISTRITO, 19).label === 'Bueno' && N.de(N.DISTRITO, 18).label === 'En proceso' && N.de(N.DISTRITO, 10).label === 'Bajo', 'distrito: bordes 25 / 24 / 19 / 18 / 10');
+// D-1 resuelto: distrito usa los mismos porcentajes que la rúbrica por roles.
+ok(N.porcentajes('DISTRITO').every((p, i) => Math.abs(p - N.porcentajes('V2')[i]) < 0.01), 'D-1: distrito = mismos 87/67/37 % que la rúbrica por roles');
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

@@ -220,13 +220,13 @@ async function initUI() {
         { titulo: sec ? 'Mi espacio' : '', items: [
           { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
-          { tab:'desempeno', icono:'line-chart', etiqueta:'Mi desempeño' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
           { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
+          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño del distrito' },
           { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
           { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),
@@ -339,7 +339,7 @@ async function pintarPulsoDistrito(el) {
         ${porRevisar == null ? '' : tile(porRevisar, 'Entregas por revisar', porRevisar > 0)}
         ${vencidas == null ? '' : tile(vencidas, 'Tareas vencidas', vencidas > 0)}
       </div>
-      ${t && (porRevisar > 0) ? `<p class="pf-nota"><button type="button" class="pf-enlace" data-act="tab" data-arg="tareas">Revisar las entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button></p>` : ''}
+      ${t ? `<h3 class="pf-sub" id="bandeja-h">Bandeja de trabajo</h3>${bandejaHTML(bandejaDistrito(t.tareas, miembros, { hoy: new Date().toLocaleDateString('sv'), yo: CU.id }))}` : ''}
     </section>`;
   animarEntrada(el);
 }
@@ -360,7 +360,7 @@ async function datosTareasDistrito() {
     // Una persona no revisa lo suyo: no cuenta como «por revisar» para el secretario.
     if (t.estado === 'entregada' && t.asignada_a !== CU.id) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
   }
-  _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar };
+  _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar, tareas: lista.tareas };
   return _tareasDistrito;
 }
 
@@ -664,27 +664,29 @@ function renderLineaTiempo() {
 /* Se aceptan los nombres viejos por si queda algún enlace guardado. */
 const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
-  ranking:'distrito', periodos:'trabajos', cal:'calendario',
+  ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', desempeno:'desempeno', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes' };
+const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;
   tab = _ALIAS_TAB[tab] || tab;
   // El distrito y las tareas son solo del secretario.
-  if ((tab === 'distrito' || tab === 'tareas' || tab === 'seguimiento' || tab === 'reportes') && !isSecretario()) tab = 'inicio';
+  if ((tab === 'distrito' || tab === 'tareas' || tab === 'seguimiento' || tab === 'reportes' || tab === 'desempeno-distrito') && !isSecretario()) tab = 'inicio';
   switchTabCore(tab, btn, { contentSelector: '.tab-content', parentMap: _secTabParent });
 
   // El Historial de antes es ahora la pestaña Evolución del perfil, y el
   // Ranking de distritos, una subpestaña de Distrito.
   if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) Perfil.tab('evolucion', document.getElementById('perfil-host'));
+  // «Mi desempeño» ahora es la pestaña Desempeño de Mi perfil.
+  if (tab === 'perfil' && original === 'desempeno') Perfil.tab('desempeno', document.getElementById('perfil-host'));
   if (tab === 'distrito' && original === 'ranking') seleccionarDistritoTab('ranking');
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
-  if (tab === 'desempeno') Desempeno.montarPropio(document.getElementById('desempeno-host'), { yo: CU.id });
+  if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
