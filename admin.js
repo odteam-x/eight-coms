@@ -642,6 +642,7 @@ async function saveEvaluacion(estado, evaluadoId) {
   }, pedirMotivoEvaluacion);
 
   if (res.cancelado) return;
+  if (res.sinCambios) { showToast('No hay cambios que guardar.', 'ok'); return; }
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
   _evalPECache = await API.getEvaluacionesByPE(_activePE.id);
@@ -940,6 +941,7 @@ async function saveEvaluacionV2(estado, evaluadoId) {
     respuestas: API.v2Dinamico(_criteriosV2) ? respuestas : null,
   }, pedirMotivoEvaluacion);
   if (res.cancelado) return;
+  if (res.sinCambios) { showToast('No hay cambios que guardar.', 'ok'); return; }
   if (!res.ok) { showToast('Error: ' + res.error, 'error'); return; }
   showToast(res.rectificada ? `Evaluación rectificada (versión ${res.version})` : estado === 'publicado' ? 'Evaluación publicada' : 'Borrador guardado', 'ok');
 

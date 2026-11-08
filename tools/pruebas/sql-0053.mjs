@@ -106,6 +106,27 @@ const h3 = await q(`SELECT accion, version, antes, despues->>'estado' e FROM eva
 ok(h3.length === 1 && h3[0].accion === 'publicada' && h3[0].version === 1 && h3[0].antes === null && h3[0].e === 'publicado', 'una fila «publicada», versión 1');
 ok((await q(`SELECT publicada_en IS NOT NULL ok FROM evaluaciones WHERE id=${E3}`))[0].ok, 'con la fecha de publicación');
 
+console.log('\n[el upsert del front (INSERT … ON CONFLICT DO UPDATE) registra UNA sola vez, con el id correcto]');
+await root();
+await db.exec(`UPDATE profiles SET rol_id=${FOTO} WHERE id='${P.M5}'`);
+await as(P.ADMIN);
+const up = (estado, f = 0.7) => db.exec(`INSERT INTO evaluaciones(periodo_id,evaluado_id,puntajes,estado) VALUES ('${PE1}','${P.M5}','${pun(f)}','${estado}') ON CONFLICT (periodo_id,evaluado_id) DO UPDATE SET puntajes=EXCLUDED.puntajes, estado=EXCLUDED.estado`);
+await up('borrador');
+await up('publicado');
+await root();
+const E5 = (await q(`SELECT id FROM evaluaciones WHERE evaluado_id='${P.M5}'`))[0].id;
+const n5 = async () => q(`SELECT evaluacion_id, accion, version FROM evaluaciones_versiones WHERE evaluado_id='${P.M5}'`);
+let h5 = await n5();
+ok(h5.length === 1 && h5[0].accion === 'publicada' && h5[0].version === 1 && h5[0].evaluacion_id === E5, 'borrador → publicado por upsert deja UNA fila «publicada», con el id de la evaluación real (no uno inexistente)');
+await as(P.ADMIN);
+await up('publicado');
+await root();
+ok((await n5()).length === 1, 'un upsert idéntico sobre una publicada no inventa historia');
+await as(P.ADMIN);
+await rejects(`INSERT INTO evaluaciones(periodo_id,evaluado_id,puntajes,estado) VALUES ('${PE1}','${P.M5}','${pun(0.2)}','publicado') ON CONFLICT (periodo_id,evaluado_id) DO UPDATE SET puntajes=EXCLUDED.puntajes`, 'rectificar_evaluacion', 'y uno que cambia puntajes sigue rechazado');
+await root();
+ok((await n5()).length === 1, '...sin dejar historia del intento (la transacción se deshace)');
+
 console.log('\n[gestión archivada y mantenimiento]');
 await db.exec(`UPDATE profiles SET rol_id=${FOTO} WHERE id='${P.M4}'`);
 await db.exec('ALTER TABLE evaluaciones DISABLE TRIGGER USER');   // la gestión archivada de la prueba no tiene perfiles

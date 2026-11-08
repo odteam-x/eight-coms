@@ -466,7 +466,11 @@ const API = {
   async rectificacionDisponible() {
     if (this._rectDisp !== null) return this._rectDisp;
     const { error } = await SB.from('evaluaciones').select('version').limit(1);
-    return (this._rectDisp = !error);
+    // Solo «la columna no existe» (0053 sin aplicar) es definitivo; un fallo pasajero (red, sesión) no se queda en memoria
+    // como «no disponible»: con 0053 aplicada, guardar por la vía antigua daría un error en vez de rectificar.
+    if (!error) return (this._rectDisp = true);
+    if (/does not exist|42703|schema cache/i.test((error.message || '') + (error.code || ''))) return (this._rectDisp = false);
+    return false;
   },
   async rectificarEvaluacion({ id, puntajes, comentarios, motivo, respuestas = null, bono = null }) {
     const r = await this._rpc('rectificar_evaluacion', { p_id: id, p_puntajes: puntajes, p_comentarios: comentarios, p_motivo: motivo, p_respuestas: respuestas, p_bono: bono });
@@ -488,6 +492,12 @@ const API = {
     const previa = await this.getEvaluacion(datos.periodo_id, datos.evaluado_id);
     if (previa?.estado === 'publicado' && await this.rectificacionDisponible()) {
       if (datos.estado === 'publicado') {
+        // Sin cambios reales no se pide motivo (la base también lo rechazaría: «No hay cambios que rectificar»).
+        const mismo = (a, b) => JSON.stringify(Object.entries(a || {}).sort(([x], [y]) => (x < y ? -1 : 1))) === JSON.stringify(Object.entries(b || {}).sort(([x], [y]) => (x < y ? -1 : 1)));
+        if (mismo(datos.puntajes, previa.puntajes) && mismo(datos.comentarios, previa.comentarios)
+            && (datos.respuestas == null || mismo(datos.respuestas, previa.respuestas)) && Number(datos.bono_ext ?? previa.bono_ext ?? 0) === Number(previa.bono_ext ?? 0)) {
+          return { ok: true, sinCambios: true };
+        }
         const motivo = await pedirMotivo('rectificar');
         if (!motivo) return { ok: false, cancelado: true };
         const r = await this.rectificarEvaluacion({ id: previa.id, puntajes: datos.puntajes, comentarios: datos.comentarios, motivo,

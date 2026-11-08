@@ -52,6 +52,19 @@ llamadas.length = 0;
 r = await API.guardarEvaluacion({ ...D, estado: 'borrador' }, nada);
 ok(r.cancelado && llamadas.length === 0, 'retirar sin motivo tampoco hace nada');
 
+console.log('\n[sin cambios y fallos pasajeros]');
+previa = { id: 7, estado: 'publicado', puntajes: { b: 2, a: 1 }, comentarios: {}, bono_ext: 0 }; llamadas.length = 0; motivos.length = 0;
+r = await API.guardarEvaluacion({ ...D, puntajes: { a: 1, b: 2 }, estado: 'publicado' }, pedir);
+ok(r.ok && r.sinCambios && llamadas.length === 0 && motivos.length === 0, 'confirmar sin cambiar nada (aunque las claves lleguen en otro orden) no pide motivo ni llama a la base');
+r = await API.guardarEvaluacion({ ...D, puntajes: { a: 1, b: 3 }, estado: 'publicado' }, pedir);
+ok(llamadas[0]?.[0] === 'rectificar_evaluacion', 'con un cambio real sí rectifica');
+ctx.__API._rectDisp = null; versionCol = 'transitorio';
+const SB0 = SB.from;
+SB.from = t => ({ select: () => ({ limit: async () => ({ error: { message: 'Failed to fetch', code: '' } }) }) });
+ok(await API.rectificacionDisponible() === false && ctx.__API._rectDisp === null, 'un fallo pasajero (red) no se guarda como «0053 no disponible»');
+SB.from = SB0; versionCol = true;
+ok(await API.rectificacionDisponible() === true, '...y al siguiente intento se vuelve a comprobar');
+
 console.log('\n[base sin 0053]');
 const api2 = vm.runInContext('(() => { API._rectDisp = null; return API; })()', ctx);
 versionCol = false; ctx.__API._rectDisp = null; llamadas.length = 0; previa = { id: 7, estado: 'publicado' };

@@ -98,15 +98,12 @@ BEGIN
     RETURN OLD;
   END IF;
 
-  -- Publicación (INSERT publicado, o borrador → publicado): registra la versión.
+  -- Publicación (INSERT publicado, o borrador → publicado): fecha de publicación. El REGISTRO de la versión lo escribe el
+  -- trigger AFTER de abajo: un BEFORE INSERT también corre para la fila propuesta de un `INSERT … ON CONFLICT DO UPDATE`
+  -- (el upsert que usa el front), aunque acabe siendo un UPDATE, y registraría dos veces (una con un id que no existe).
   IF NEW.estado = 'publicado' AND (TG_OP = 'INSERT' OR OLD.estado IS DISTINCT FROM 'publicado') THEN
     NEW.publicada_en := NOW();
     IF TG_OP = 'INSERT' THEN NEW.version := 1; END IF;
-    IF NOT v_flag THEN
-      INSERT INTO public.evaluaciones_versiones
-        (evaluacion_id, periodo_id, evaluado_id, version, accion, antes, despues, actor)
-      VALUES (NEW.id, NEW.periodo_id, NEW.evaluado_id, NEW.version, 'publicada', NULL, public._eval_estado_json(NEW), auth.uid());
-    END IF;
     RETURN NEW;
   END IF;
 
@@ -138,6 +135,26 @@ DROP TRIGGER IF EXISTS zz_evaluaciones_publicada ON public.evaluaciones;
 CREATE TRIGGER zz_evaluaciones_publicada
   BEFORE INSERT OR UPDATE OR DELETE ON public.evaluaciones
   FOR EACH ROW EXECUTE FUNCTION public.evaluaciones_publicada_guardia();
+
+-- Registro de la publicación: AFTER, así solo corre cuando la fila de verdad se insertó o se actualizó.
+CREATE OR REPLACE FUNCTION public.evaluaciones_publicada_registro() RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
+BEGIN
+  IF NEW.estado = 'publicado' AND (TG_OP = 'INSERT' OR OLD.estado IS DISTINCT FROM 'publicado')
+     AND COALESCE(current_setting('ec.rectificando', true), '') <> '1' THEN
+    INSERT INTO public.evaluaciones_versiones
+      (evaluacion_id, periodo_id, evaluado_id, version, accion, antes, despues, actor)
+    VALUES (NEW.id, NEW.periodo_id, NEW.evaluado_id, NEW.version, 'publicada', NULL, public._eval_estado_json(NEW), auth.uid());
+  END IF;
+  RETURN NULL;
+END;
+$$;
+REVOKE EXECUTE ON FUNCTION public.evaluaciones_publicada_registro() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS zz_evaluaciones_publicada_registro ON public.evaluaciones;
+CREATE TRIGGER zz_evaluaciones_publicada_registro
+  AFTER INSERT OR UPDATE ON public.evaluaciones
+  FOR EACH ROW EXECUTE FUNCTION public.evaluaciones_publicada_registro();
 
 -- ── 5. Rectificar y retirar (única vía de cambio de una publicada) ────
 CREATE OR REPLACE FUNCTION public.rectificar_evaluacion(
@@ -252,6 +269,8 @@ GRANT  EXECUTE ON FUNCTION public.rectificar_evaluacion(BIGINT, JSONB, JSONB, TE
 --  disparan los triggers de notificación ni de validación.
 
 -- ── REVERSA ───────────────────────────────────────────────────────────
+-- DROP TRIGGER IF EXISTS zz_evaluaciones_publicada_registro ON public.evaluaciones;
+-- DROP FUNCTION IF EXISTS public.evaluaciones_publicada_registro();
 -- DROP TRIGGER IF EXISTS zz_evaluaciones_publicada ON public.evaluaciones;
 -- DROP FUNCTION IF EXISTS public.evaluaciones_publicada_guardia();
 -- DROP FUNCTION IF EXISTS public.rectificar_evaluacion(BIGINT, JSONB, JSONB, TEXT, JSONB, NUMERIC);
