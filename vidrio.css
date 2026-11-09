@@ -134,3 +134,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 16. Avisos: conteo por grupo (referencias de centros de actividad) */
 .avisos-grupo { display: flex; align-items: center; gap: 8px; }
 .avisos-grupo-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: .8rem; line-height: 20px; text-align: center; font-weight: 600; }
+
+/* 17. Rail: la fila de cuenta activa (Mi cuenta) queda en píldora blanca; su texto debe ser oscuro */
+.rail .rail-user.active, .rail .rail-user[aria-current="page"] { background: var(--v-activo); color: var(--v-activo-txt); }
+.rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
