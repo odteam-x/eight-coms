@@ -122,3 +122,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 [data-theme="light"] .sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); }
 [data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-1); }
 [data-theme="light"] .inicio-sub, [data-theme="light"] .inicio-dias-lbl, [data-theme="light"] .inicio-dias-pe { color: var(--v-t2); }
+
+/* 15. Acceso (referencias: Stripe, Vercel, Figma): enlace de recuperación en la fila de la contraseña, menos ruido junto al formulario */
+.field-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field-link { font-size: .875rem; color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+.login-puntos { display: none; }
+.login-panel-form { max-width: 520px; width: 100%; margin-inline: auto; align-self: center; }
+.login-panel-brand .login-puntos { display: none; }
+.login-panel-form .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }

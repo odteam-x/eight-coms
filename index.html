@@ -84,7 +84,7 @@
                autocomplete="email" required aria-required="true">
       </div>
       <div class="field">
-        <label for="li-pass">Contraseña</label>
+        <div class="field-row"><label for="li-pass">Contraseña</label><a href="#" class="field-link" data-act="mostrarReset">¿Olvidaste tu contraseña?</a></div>
         <div class="pass-wrap">
           <input type="password" id="li-pass" placeholder="••••••••"
                  autocomplete="current-password" required aria-required="true" minlength="8">
@@ -97,9 +97,6 @@
 
       <button type="submit" class="btn-login" id="btn-login"><span class="btn-login-txt">Ingresar al portal</span></button>
       <div class="login-err" id="li-err" role="alert" aria-live="polite"></div>
-      <div class="login-aux">
-        <a href="#" data-act="mostrarReset">Olvidé mi contraseña</a>
-      </div>
       <div class="login-aux">
         ¿No tienes cuenta? <a href="#registro" data-act="modoAcceso" data-arg="registro">Regístrate aquí</a>
       </div>
