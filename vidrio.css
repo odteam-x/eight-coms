@@ -551,3 +551,14 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
    no se dibuja (no es una acción del usuario). El nombre del equipo en su ficha: una línea a 1440. */
 h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
 .eq-detalle-t { font: 400 clamp(1.5rem, 1.1rem + 1.2vw, 2.1rem)/1.15 var(--font-display); letter-spacing: -.02em; }
+
+/* 46. Hoja «Más» (celular): panel OPACO (el sólido del tema) con velo detrás; las baldosas de destinos son filas de vidrio sobre
+   ese sólido. Antes era translúcida y la pantalla de debajo se leía a través, montada sobre los iconos y las acciones. */
+.bb-hoja { background: color-mix(in srgb, var(--v-1) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.bb-hoja-panel { background: var(--v-solido); border: 1px solid var(--v-line); border-bottom: 0; color: var(--v-t); box-shadow: 0 -18px 48px var(--v-sombra); }
+[data-theme="light"] .bb-hoja-panel { background: var(--v-1); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
+.bb-hoja-item, .bb-hoja-cuenta { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.bb-hoja-ver, .bb-hoja-badge { color: var(--v-t2); }
+[data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-cuenta { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); color: var(--on-brand); }
+[data-theme="light"] .bb-hoja-panel .bb-hoja-nombre, [data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-ver, [data-theme="light"] .bb-hoja-panel .bb-hoja-badge { color: var(--on-brand); }
+[data-theme="light"] .bb-hoja-panel .btn, [data-theme="light"] .bb-hoja-panel .bb-hoja-acc { color: var(--on-brand); border-color: rgba(255,255,255,.4); }
