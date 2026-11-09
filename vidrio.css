@@ -210,7 +210,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 
 /* 22. Panel de administración: resumen ejecutivo (KPIs 2×2) junto a «Requiere atención» en una sola franja, después desempeño y evolución.
    Cada bloque justifica su espacio: sin descripciones largas, sin indicadores que repitan lo que ya dice una alerta. */
-.panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+#ov-body > .panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }   /* solo el Panel: Reportes reutiliza .panel-kpis con su propia rejilla */
 .kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
 .kpi-c-num { grid-area: num; font: 300 2.4rem/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .kpi-c-num small { font-size: .45em; font-weight: 500; color: var(--v-t2); margin-left: 2px; }
@@ -260,7 +260,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   #ov-body > .panel-grid--evol { grid-area: evol; }
   #ov-body > .acordeon { grid-area: acc; }
 }
-@media (max-width: 1099px) { #ov-atencion { margin: 12px 0; } .panel-kpis { margin-top: 12px; } }
+@media (max-width: 1099px) { #ov-atencion { margin: 12px 0; } #ov-body > .panel-kpis { margin-top: 12px; } }
 @media (max-width: 480px) { .kpi-c { padding: 12px 14px; column-gap: 10px; } .kpi-c-num { font-size: 1.9rem; } }
 
 /* 23. Tema claro: el hero y las tarjetas de persona son vidrio claro; la escala de niveles vuelve a su rampa de tema claro
@@ -416,3 +416,25 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 }
 .seg-tabla--roles .etiqueta.etq-gris { background: none; border: 0; padding-inline: 0; color: var(--v-t2); font-weight: 400; }
 .seg-tabla--roles .etiqueta.etq-gris::before { background: color-mix(in srgb, var(--v-t) 35%, transparent); }
+
+/* 34. Títulos de sección en un solo estilo: tipo oración, peso medio, sin mayúsculas forzadas (antes .cuenta-t y .hist-sub
+   seguían en MAYÚSCULAS 700 mientras .pf-h ya era ligero: dos voces en la misma pantalla, p. ej. Períodos). */
+.pf-h, .hist-sub, .cuenta-t { font-family: var(--font-display); font-weight: 500; text-transform: none; letter-spacing: -.01em; font-size: var(--fs-lg); line-height: 1.15; margin: var(--sp-5) 0 var(--sp-2); color: var(--v-t); }
+.cuenta-cont { font: 500 var(--fs-xs)/1 var(--font-ui); color: var(--v-t2); margin-left: 6px; vertical-align: 3px; }
+.rub-desc { margin-top: 0; }
+
+/* 35. Menú lateral: si su contenido no cabe, desplaza; nunca encoge piezas (la etiqueta ADMIN se montaba sobre el buscador). */
+.rail > * { flex-shrink: 0; }
+/* Roles y perfiles: sin cajas blancas dentro de la tarjeta de vidrio; el perfil y los desplegables son secciones con filete. */
+.rol-perfil, .rol-card .v2-det, .rol-card details { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; padding-left: 0; padding-right: 0; }
+
+/* 36. Equipos: los equipos son lo principal y van primero; las reglas de calificación (configuración) quedan debajo,
+   plegables, y sus seis valores son una rejilla con filetes en vez de seis cajas blancas dentro de la tarjeta. */
+#tab-equipos.active { display: flex; flex-direction: column; }
+#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; } #tab-equipos > #eq-reglas { order: 2; margin-top: var(--sp-5); }
+.ev-dl > div { background: none; border: 0; border-radius: 0; box-shadow: none; border-top: 1px solid var(--v-line); padding: 12px 4px; }
+.ev-dl { gap: 0 24px; }
+
+/* Reportes: los indicadores del reporte son una franja de cifras dentro de la hoja, no ocho cajas grandes. */
+.rpt-hoja .panel-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0; }
+.rpt-hoja .tarjeta--kpi { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 14px 12px; }
