@@ -10,6 +10,7 @@ Fecha: 2026-11-07 · Base: `origin/main` @ `7e1057d` · Rama: `auditoria/arquite
 | 3. Matriz de reglas de negocio y fórmulas | [03-matriz-reglas-formulas.md](03-matriz-reglas-formulas.md) |
 | 4. Clasificación de cada punto del PDF con evidencia | [04-clasificacion-pdf.md](04-clasificacion-pdf.md) |
 | 5. Hallazgos confirmados, riesgos y plan priorizado | [05-hallazgos-y-plan.md](05-hallazgos-y-plan.md) |
+| 6. Registro de migraciones (estado real en producción) | [06-registro-migraciones.md](06-registro-migraciones.md) |
 
 ## Estado en producción (verificado y actualizado el 2026-11-08)
 
@@ -44,3 +45,9 @@ Con el conector de Supabase ya apuntando a «eight coms» (`owfmorjlymoxqrzhadnf
 - **Medio:** Instagram sin valor anterior ni cierre y con borrado de la captura previa (H-04); cobertura de evaluación no visible (H-05).
 - **Hipótesis (necesitan la base viva):** huérfanos al borrar personas (H-06), estado real de migraciones y scripts `fix-*.sql` sueltos (H-07), `eval_dist_read` abierta a todos (B-05).
 - **Bien resuelto (no tocar):** motor v2 + tareas en SQL, tareas/equipos/notas con historial append-only, seguridad por triggers y RPC, notificaciones, gafetes, manuales privados.
+
+## Cierre de la fase de arquitectura (2026-11-08)
+
+**Hecho:** los 5 entregables del prompt + el registro de migraciones (06); pruebas base y ampliadas (50 scripts, ~2400 aserciones); intervenciones #1a, #2, #3, #4, #5a, #5b, parte de #9, H-04, H-05, H-08, H-11 implementadas, fusionadas (PR #1–#3) y **0053–0056 aplicadas en producción** con huella de datos idéntica; recorrido completo de las pantallas de los tres perfiles con el servidor **demo** sin login.
+**Documentos 01–03:** son la FOTO del diagnóstico (antes de las intervenciones); el estado vigente está en CLAUDE.md, 04, 05 y 06.
+**Pendiente, sin bloquear el diseño:** decisiones de negocio (B-05 ranking de distritos público o no, peso de tareas 20 % provisional, zona horaria, estados validada/cerrada de Instagram, alertas por correo/campana, umbrales de puntuaciones atípicas); activar la protección de contraseñas filtradas en Auth; #6 (precisar reglas de tareas colectivas, depende del comité), #7 (identidad visual: espera Canva), #8 (paginación y acciones masivas con vista previa), #10 (móvil en dispositivo real), alertas por correo.

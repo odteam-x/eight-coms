@@ -600,6 +600,10 @@ Pestaña **Auditoría** (grupo sin título, tras Reportes; `core/auditoria.js`, 
 
 Bajo «Requiere atención», el Panel muestra **«Datos por revisar»**: contradicciones entre datos YA guardados, calculadas con lo que el Panel ya cargó (sin consultas nuevas) por `detectarInconsistencias()` en `core/personas.js` (pura, probada en `front-inconsistencias.mjs`). Avisa de: personas aprobadas sin rol o sin distrito, evaluación publicada de alguien que «no participa» en el PE, evaluación de una persona sin acceso aprobado o de la administración, y período activo sin fechas. **Solo avisa dónde mirar: no corrige ni puntúa nada.** Una administradora sin rol/distrito es normal y no cuenta. Un chequeo nuevo = una entrada más en esa función + un caso en el test.
 
+### Demo sin login (para probar y ver pantallas)
+
+`.claude/launch.json` define el servidor **demo** (`preview_start` con `name: "demo"`, o `node tools/pruebas/ui/server.mjs . 3100`): sirve el sitio REAL (mismos headers y CSP de `vercel.json`) con un Supabase **simulado** y datos inventados. Sin login ni base real: `http://localhost:3100/admin.html?as=admin`, `secretario.html?as=sec`, `user.html?as=m1` (también `m5`, `?as=anon` para el login). Úsalo para recorrer pantallas, medir (`tools/pruebas/ui/audit-layout.js`: `__aud()`, `await __sweep([...tabs])`) y ensayar acciones sin tocar producción. Solo el `supabase-client.js` cambia; si el puerto está ocupado por un servidor viejo (sirve el simulador en memoria), usa otro (`node tools/pruebas/ui/server.mjs <ruta> <puerto>`).
+
 ### Migrations
 
 Schema changes live in `supabase/migrations/NNNN_descripcion.sql`, applied by hand in the Supabase SQL Editor in numeric order (**0015, 0016, 0017, 0018, 0019, 0020, 0021, 0022, 0023, then 0024 and 0025, then 0031–0036, then 0050 and 0051, then 0052, then 0053, then 0054, then 0055, then 0056**; `0015_seed_perfiles.PENDIENTE.sql` after reviewing its role mapping). `supabase-schema.sql` is a historical snapshot, **not** the source of truth — the live database has drifted from it. Verify against `pg_policies` / `information_schema` before relying on it.
