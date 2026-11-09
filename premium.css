@@ -1026,7 +1026,8 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .aviso-li + .aviso-li .aviso { border-top: 1px solid var(--trazo); }
 .aviso:hover { background: var(--surface-2); }
 .aviso--nuevo { background: color-mix(in srgb, var(--action-fill) 8%, var(--surface-1)); }
-.aviso--nuevo::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: var(--marca); }
+/* No leído: fondo tintado + negrita + punto coral junto al título (+ texto sr-only). Sin barra en el borde: regla «patrones prohibidos». */
+.aviso--nuevo .aviso-t::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--marca); vertical-align: 2px; }
 .aviso-ico { width: 40px; height: 40px; background: color-mix(in srgb, var(--tono, var(--txt-muted)) 18%, var(--surface-1)); color: var(--txt); }
 .aviso-ico--tarea { --tono: var(--action-fill); }
 .aviso-ico--nota { --tono: var(--marca); }
@@ -1040,7 +1041,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .aviso-estado { flex-direction: column; align-items: center; text-align: center; border-style: solid; border-color: transparent; background: var(--surface-1); padding: var(--sp-6) var(--sp-4); }
 .aviso-estado > svg, .aviso-estado > i { width: 40px; height: 40px; padding: 8px; box-sizing: content-box; border-radius: 50%; background: var(--surface-2); }
 .avisos-lista { border-radius: var(--r-card); }
-.aviso--nuevo::before { top: 18px; bottom: 18px; }
+
 
 /* Enlaces (no botones) que se ven como el resto del menú y de los ajustes. */
 a.rail-item, a.fila-aj, a.bb-hoja-item { text-decoration: none; }

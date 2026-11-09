@@ -84,7 +84,7 @@ const Cuenta = (() => {
             </div>
           </div>
           <div class="cuenta-bloque">
-            <h3 class="cuenta-t" id="cu-t-tarjeta">Tu tarjeta</h3>
+            <!-- el título lo pone core/fondo.js («Fondo de tu perfil»): aquí había un segundo título encima -->
             <div id="cuenta-fondo" class="cuenta-fondo"></div>
           </div>
         </div>`)}

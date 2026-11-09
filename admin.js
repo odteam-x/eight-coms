@@ -371,7 +371,7 @@ function renderEvalUserList() {
       const dist = (_distritos.find(d => String(d.id) === String(u.distrito)) || {}).nombre || u.distrito || '—';
       const t = _evalTareas[u.id];
       const avisos = (t?.porRevisar ? `<span class="etiqueta etq-azul">${t.porRevisar} por revisar</span>` : '') + (t?.vencidas ? `<span class="etiqueta etq-rojo">${t.vencidas} vencida${t.vencidas === 1 ? '' : 's'}</span>` : '');
-      return `<div class="eval-ucard${_selectedEvalUser === u.id ? ' eval-ucard--active' : ''}" data-act="evaluarUsuario" data-arg="${u.id}">
+      return `<div class="eval-ucard${_selectedEvalUser === u.id ? ' eval-ucard--active' : ''}" data-act="evaluarUsuario" data-arg="${u.id}" role="button" tabindex="0" aria-pressed="${_selectedEvalUser === u.id}" aria-label="Evaluar a ${escHtml(u.nombre)}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
@@ -392,7 +392,7 @@ function renderEvalUserList() {
 async function selectEvalUser(userId) {
   _selectedEvalUser = userId;
   // Solo se marca la fila: no se repinta la lista ni se mueve la cabecera.
-  document.querySelectorAll('#eval-user-list .eval-ucard').forEach(c => c.classList.toggle('eval-ucard--active', c.dataset.arg === String(userId)));
+  document.querySelectorAll('#eval-user-list .eval-ucard').forEach(c => { const on = c.dataset.arg === String(userId); c.classList.toggle('eval-ucard--active', on); c.setAttribute('aria-pressed', String(on)); });
   const area = document.getElementById('eval-form-area'); if (!area) return;
   if (!area.firstElementChild) area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
   area.classList.add('cargando');
@@ -1698,7 +1698,7 @@ function renderRubrica() {
     const color = 'var(--criterio)';
     return `
       <div class="rubrica-card" id="rca-${i}">
-        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}">
+        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}" role="button" tabindex="0">
           <div class="rubrica-dot" style="background:${color}"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio || c.label || '—')}</div>
           <span class="rubrica-chev"></span>

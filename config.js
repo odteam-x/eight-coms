@@ -292,6 +292,15 @@ const ACCIONES = {
 /** Los ids de criterios, roles y rúbrica son enteros; data-* llega como texto. */
 function _num(v) { const n = Number(v); return Number.isFinite(n) ? n : v; }
 
+/* Teclado para lo que tiene acción y no es un <button> (filas de Evaluar, cabeceras de la rúbrica): Enter y Espacio
+   hacen clic. Sin esto, esas filas solo se podían elegir con el ratón. Llevan role="button" y tabindex="0". */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target;
+  if (!el || !el.matches || !el.matches('[data-act][role="button"]') || el.tagName === 'BUTTON' || el.tagName === 'A') return;
+  e.preventDefault(); el.click();
+});
+
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el) return;

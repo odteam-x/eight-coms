@@ -59,7 +59,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
 
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
-.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
+.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
   background: var(--v-fill); border: 1px solid var(--v-line);
   -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
@@ -136,7 +136,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .avisos-grupo-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: .8rem; line-height: 20px; text-align: center; font-weight: 600; }
 
 /* 17. Rail: la fila de cuenta activa (Mi cuenta) queda en píldora blanca; su texto debe ser oscuro */
-.rail .rail-user.active, .rail .rail-user[aria-current="page"] { background: var(--v-activo); color: var(--v-activo-txt); }
+.rail .rail-user.active, .rail .rail-user[aria-current="page"] { background: #fff; color: var(--v-navy); }   /* igual que .rail-item.active: píldora blanca en los dos temas */
 .rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
 
 /* 18. Mi cuenta en dos columnas (referencias de Ajustes: subnavegación vertical + filas etiqueta/control) */
@@ -297,10 +297,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .des-ref p { margin: 0; max-width: 42ch; font-size: var(--fs-sm); }
 .pf-card--ancha { margin-bottom: var(--sp-4); }   /* las secciones a todo el ancho de Desempeño/Seguimiento llegan envueltas en contenedores sin clase: el selector de hermanos no las alcanza */
 
-/* 27. El fondo del documento coincide con el final de la malla: al desplazar de más (iOS) o en capturas de página completa
-   no aparece una franja azul con el pie ilegible. */
-html, body { background-color: var(--v-1); }
-[data-theme="light"] body, [data-theme="light"] { background-color: var(--v-4); }
+/* 27. (Retirada: pintar el fondo de html/body tapaba la malla de body::before, que va detrás con z-index -1.) */
 
 /* 28. Fichas a pantalla completa (perfil, distrito): ocupan toda el área de contenido junto al menú, con la misma malla de fondo;
    cabecera como la de una pantalla (título + «Volver»), contenido con ancho máximo. Mantienen el foco atrapado y Escape (openModal). */
@@ -328,3 +325,85 @@ html, body { background-color: var(--v-1); }
   .panel--pantalla .panel-sub { font-size: var(--fs-lg); }
 }
 .panel--pantalla > .hoja-tirador { display: none; }   /* una pantalla completa no se arrastra para cerrar: se sale con «Volver» o Escape */
+
+/* 29. Mi cuenta: identidad en una fila compacta (no una tarjeta grande que repite el nombre), subnavegación fija a la
+   izquierda, bloques sin huecos muertos y el selector de fondo en baldosas pequeñas (una fila de 8 en escritorio). */
+#cuenta-host .cuenta-cab { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; margin: 0 0 20px; gap: 16px; }
+#cuenta-host .cuenta-foto { --av: 64px; }
+#cuenta-host .cuenta-nombre { font: 300 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.03em; margin: 0; }
+#cuenta-host .cuenta-mail { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--v-t2); }
+#cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: 24px; }
+#cuenta-host .cuenta-t { margin: 0 0 10px; }
+#cuenta-host .fondo-caja { padding: 14px; gap: 12px; }
+#cuenta-host .fondo-vista { min-height: 64px; }
+#cuenta-host .fondo-opciones { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+#cuenta-host .fondo-op { aspect-ratio: 4 / 3; min-height: 48px; border-radius: 14px; }
+.fondo-op:hover { border-color: var(--v-line); }
+.fondo-op.on { border-color: transparent; box-shadow: 0 0 0 2px var(--v-t); }   /* elegido: aro sólido + ✓ + aria-checked (antes un aro cian) */
+[data-theme="light"] .fondo-op:not(.fondo-op--auto)::before, [data-theme="light"] .fondo-vista.sup-marca::before { opacity: .38; }   /* en claro el patrón casi no se veía y las 8 opciones parecían iguales */
+
+/* Menú: la fila de cuenta activa es la píldora inversa; su texto usa el par medido de esa píldora en los dos temas
+   (en tema claro era navy sobre navy y el nombre desaparecía). */
+.rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
+
+/* 30. Calendario (referencia: «Calendario» del sistema de diseño). Días sin caja: el número en un círculo, el período como
+   una franja translúcida continua con extremos redondeados, hoy en coral, el día elegido en la píldora inversa; puntos de
+   6 px para lo que hay ese día. La agenda del día es una lista de filas, con título ligero (no mayúsculas pesadas). */
+.cal2-mes, .cal2-agenda { background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; box-shadow: none; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.cal2-titulo { font: 300 clamp(1.8rem, 1.2rem + 1.6vw, 2.6rem)/1 var(--font-display); letter-spacing: -.03em; text-transform: lowercase; }
+.cal2-titulo span { font-weight: 300; color: var(--v-t2); }
+.cal2-btn { border-color: var(--v-line); background: var(--v-fill); color: var(--v-t); }
+.cal2-btn:hover { border-color: var(--v-line); background: var(--v-fill2); }
+.cal2-btn--hoy { border-color: var(--v-line); }
+.cal2-chip { border-color: var(--v-line); background: transparent; color: var(--v-t2); }
+.cal2-chip.on { background: var(--v-fill2); border-color: var(--v-line); color: var(--v-t); }
+.cal2-sem { gap: 0; } .cal2-sem span { color: var(--v-t2); }
+.cal2-grid { column-gap: 0; row-gap: 4px; }
+.cal2-dia { position: relative; isolation: isolate; min-height: 60px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; border-radius: 0; box-shadow: none; color: var(--v-t); }
+.cal2-dia:hover { border: 0; background: none; }
+.cal2 { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* el contenedor de mes + agenda no es otra caja */
+.cal2-dia:hover .cal2-num { background: var(--v-fill2); }
+.cal2-dia:focus-visible { outline: none; } .cal2-dia:focus-visible .cal2-num { outline: 2px solid var(--v-t); outline-offset: 2px; }
+.cal2-num { align-self: center; width: 34px; height: 34px; min-width: 0; padding: 0; border-radius: 50%; font: 400 var(--fs-md)/1 var(--font-ui); position: relative; z-index: 1; }
+.cal2-dia--fuera { opacity: .4; }
+/* franja del período: una banda a la altura del número, continua de día a día; redondeada en sus extremos y en el borde de cada semana */
+.cal2-dia--pe { background: none; }
+.cal2-dia--pe::before { content: ''; position: absolute; z-index: 0; left: 0; right: 0; top: 6px; height: 34px; background: var(--v-fill2); }
+.cal2-grid > .cal2-dia--pe:nth-child(7n+1)::before, .cal2-dia--pe-ini::before { left: 4px; border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
+.cal2-grid > .cal2-dia--pe:nth-child(7n)::before, .cal2-dia--pe-fin::before { right: 4px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
+.cal2-dia--hoy .cal2-num { background: var(--v-coral); color: var(--v-navy); font-weight: 600; }
+.cal2-dia--sel { border: 0; box-shadow: none; }
+.cal2-dia--sel .cal2-num { background: var(--v-activo); color: var(--v-activo-txt); font-weight: 600; }
+.cal2-pe { top: 44px; right: auto; left: 50%; transform: translateX(-50%); background: none; color: var(--v-t2); font: 600 .7rem/1 var(--font-ui); padding: 0; display: none; }
+.cal2-puntos { justify-content: center; gap: 3px; }
+.cal2-punto { width: 6px; height: 6px; }
+.cal2-agenda-h { font: 300 2rem/1 var(--font-display); letter-spacing: -.03em; text-transform: none; }
+.cal2-agenda-h span { font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); margin-bottom: 6px; }
+.cal2-agenda-pe { color: var(--v-t2); }
+.cal2-lista { gap: 0; }
+.cal2-ev { padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; }
+.cal2-lista > .cal2-ev:first-child { border-top: 0; }
+.cal2-ev-ico { width: 34px; height: 34px; border-radius: 50%; background: var(--v-fill2); color: var(--v-t); }
+.cal2-ver { border-color: var(--v-line); color: var(--v-t); background: none; }
+.cal2-ver:hover { border-color: var(--v-line); background: var(--v-fill2); }
+@media (max-width: 600px) { .cal2-dia { min-height: 52px; padding: 4px 0; gap: 3px; } .cal2-num { width: 30px; height: 30px; font-size: var(--fs-sm); } .cal2-dia--pe::before { top: 4px; height: 30px; } }
+#cuenta-host .cuenta-grid { gap: 24px; }
+
+/* 31. Paneles y avisos: cabecera sin la franja multicolor (en vidrio era ruido); el filtro activo es la píldora inversa. */
+.panel-cab::after { display: none; }
+.panel-titulo { text-transform: none; letter-spacing: -.01em; font-weight: 500; }
+.aviso-chips .chip.on, .aviso-chips .chip[aria-pressed="true"], .aviso-chips .chip.active { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; }
+/* Elegido/activo en TODOS los chips y filtros: la píldora inversa del sistema (antes coral en unos, cian brillante en otros). */
+.chip.active, .chip[aria-pressed="true"], .tk-chip--on, .eval-chip.on, .btn--chip[aria-pressed="true"], .cal2-chip.on[aria-pressed="true"] { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; box-shadow: none; filter: none; }
+.chip.active:hover, .tk-chip--on:hover, .eval-chip.on:hover { background: var(--v-activo); color: var(--v-activo-txt); filter: none; }
+.chip.active b, .chip[aria-pressed="true"] b, .tk-chip--on b, .eval-chip.on b { color: inherit; }
+
+/* 32. Evaluar: la lista de personas es UNA lista (vidrio) con filas separadas por filetes, no cajas apiladas a 2 px.
+   La fila elegida lleva fondo + texto en negrita + aria-pressed; el foco de teclado se ve (role=button, tabindex=0). */
+.eval-users-grid { display: flex; flex-direction: column; gap: 0; padding: 4px 0; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); overflow: hidden; }
+.eval-ucard { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 10px 14px; margin: 0; cursor: pointer; }
+.eval-users-grid > .eval-ucard:first-child { border-top: 0; }
+.eval-ucard:hover { background: color-mix(in srgb, var(--v-t) 6%, transparent); }
+.eval-ucard--active { background: var(--v-fill2); }
+.eval-ucard--active .eval-ucard-name { font-weight: 700; }
+.eval-ucard:focus-visible { outline: 2px solid var(--v-t); outline-offset: -2px; }

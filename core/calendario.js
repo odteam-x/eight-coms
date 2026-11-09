@@ -107,7 +107,8 @@ const Calendario = (() => {
       const lista = porDia.get(f) || [];
       const pe = periodoDe(f);
       const primeroPe = pe && pe.inicio === f;
-      return `<button type="button" class="cal2-dia${fuera ? ' cal2-dia--fuera' : ''}${f === hoy ? ' cal2-dia--hoy' : ''}${f === S.dia ? ' cal2-dia--sel' : ''}${pe ? ' cal2-dia--pe' : ''}"
+      const ultimoPe = pe && (pe.jornada || pe.entrega || pe.finTrabajo || pe.inicio) === f;   // extremos de la franja del período
+      return `<button type="button" class="cal2-dia${fuera ? ' cal2-dia--fuera' : ''}${f === hoy ? ' cal2-dia--hoy' : ''}${f === S.dia ? ' cal2-dia--sel' : ''}${pe ? ' cal2-dia--pe' : ''}${primeroPe ? ' cal2-dia--pe-ini' : ''}${ultimoPe ? ' cal2-dia--pe-fin' : ''}"
           data-act="calDia" data-arg="${f}" aria-label="${escHtml(`${d.getDate()} de ${MESES[d.getMonth()]}${lista.length ? ', ' + lista.length + ' evento' + (lista.length === 1 ? '' : 's') : ''}`)}"
           aria-pressed="${f === S.dia}">
         <span class="cal2-num">${d.getDate()}</span>

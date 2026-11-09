@@ -204,7 +204,7 @@ function renderRubricaLegacy(el) {
     const c = criterios[i] || {}, color = 'var(--criterio-txt)';
     return `
       <div class="rubrica-card" id="rc-${i}">
-        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}">
+        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rc-${i}" role="button" tabindex="0">
           <div class="rubrica-dot" style="background:var(--criterio)"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio)}</div>
           <span class="rubrica-chev"><i data-lucide="chevron-down"></i></span>

@@ -24,6 +24,9 @@ const [fase = 'actual', puerto = '3100', anchosArg = '1440,1024,768,390'] = proc
 const BASE = `http://localhost:${puerto}`;
 const SALIDA = path.join(RAIZ, 'docs/evidencias/rediseno-nov-2026', fase);
 const ANCHOS = anchosArg.split(',').map(Number);
+const SOLO = process.env.SOLO ? new RegExp(process.env.SOLO) : null;   // p. ej. SOLO='admin:tab-agenda|miembro:' para repetir solo unas pantallas
+const ROLES_SOLO = process.env.ROLES ? process.env.ROLES.split(',') : null;
+const TEMA = process.env.TEMA || '';   // light | dark (por defecto, el del sistema)
 const ALTO = { 1440: 900, 1024: 768, 768: 1024, 390: 844, 320: 640 };
 const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'].find(f => fs.existsSync(f));
 
@@ -49,6 +52,7 @@ async function medir(page) {
 }
 
 async function captura(page, dir, nombre, meta, errores) {
+  if (SOLO && !SOLO.test(meta.rol + ':' + nombre)) return;
   fs.mkdirSync(dir, { recursive: true });
   await page.addStyleTag({ content: '*{animation:none!important;transition:none!important;caret-color:transparent!important}' }).catch(() => {});
   await espera(250);
@@ -64,8 +68,9 @@ try {
   for (const ancho of ANCHOS) {
     const vp = { width: ancho, height: ALTO[ancho] || 900 };
     // Sin sesión: acceso, registro, recuperación
-    {
-      const ctx = await browser.newContext({ viewport: vp, isMobile: ancho < 768, hasTouch: ancho < 768 });
+    if (!ROLES_SOLO || ROLES_SOLO.includes('anon')) {
+      const ctx = await browser.newContext({ viewport: vp, isMobile: ancho < 768, hasTouch: ancho < 768, colorScheme: TEMA === 'dark' ? 'dark' : TEMA === 'light' ? 'light' : undefined });
+      if (TEMA) await ctx.addInitScript(t => { try { localStorage.setItem('ec-theme', t); } catch {} }, TEMA);
       const page = await ctx.newPage(); const errores = [];
       page.on('pageerror', e => errores.push(String(e.message).slice(0, 200)));
       page.on('console', m => { if (m.type() === 'error') errores.push(m.text().slice(0, 200)); });
@@ -79,8 +84,9 @@ try {
       await captura(page, dir, 'recuperar', meta, errores);
       await ctx.close();
     }
-    for (const rol of ROLES) {
-      const ctx = await browser.newContext({ viewport: vp, isMobile: ancho < 768, hasTouch: ancho < 768 });
+    for (const rol of ROLES.filter(r => !ROLES_SOLO || ROLES_SOLO.includes(r.id))) {
+      const ctx = await browser.newContext({ viewport: vp, isMobile: ancho < 768, hasTouch: ancho < 768, colorScheme: TEMA === 'dark' ? 'dark' : TEMA === 'light' ? 'light' : undefined });
+      if (TEMA) await ctx.addInitScript(t => { try { localStorage.setItem('ec-theme', t); } catch {} }, TEMA);
       const page = await ctx.newPage(); const errores = [];
       page.on('pageerror', e => errores.push(String(e.message).slice(0, 200)));
       page.on('console', m => { if (m.type() === 'error') errores.push(m.text().slice(0, 200)); });
