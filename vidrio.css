@@ -745,9 +745,12 @@ button > svg, a > svg { flex: none; }
 /* 59. Superposición con el vidrio. movil.css (carga después) devolvía a la barra de avisos un fondo translúcido
    (--surface-1) y las tarjetas se veían a través de los filtros. Todo lo que queda fijo sobre contenido que se desplaza
    es opaco (--v-solido) en los dos temas; se gana por especificidad, no con !important. */
-.panel .avisos-barra, .panel.panel--hoja .avisos-barra { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; box-shadow: none; border-bottom: 1px solid var(--v-line); z-index: 5; }
-.panel.panel--hoja .avisos-barra { margin: 0 calc(var(--m-gutter) * -1) 12px; padding: 4px var(--m-gutter) 10px; }   /* de borde a borde del panel: nada de las tarjetas asoma por los lados */
-.panel.panel--hoja .panel-cuerpo { padding-top: 0; }
+/* Avisos: la barra NO es pegajosa. El panel se parte en dos zonas: la barra fija arriba y el listado que se desplaza debajo,
+   recortado en el borde de la barra. Así no hay nada que se monte sobre las tarjetas ni se vea a través. */
+.panel-cuerpo:has(> #avisos-cuerpo) { overflow: hidden; display: flex; flex-direction: column; padding-bottom: 0; }
+.panel #avisos-cuerpo { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.panel #avisos-cuerpo > .avisos-barra { position: static; flex: none; margin: 0 0 8px; padding: 4px 0 10px; border-radius: 0; box-shadow: none; background: none; border-bottom: 1px solid var(--v-line); }
+.panel #avisos-cuerpo > .avisos-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 .panel.panel--hoja .aviso-grupo-t, .panel .aviso-grupo-t { position: relative; z-index: 1; }
 .perfil--panel .perfil-barra, .perfil:not(.perfil--panel) .perfil-barra { background: var(--v-solido); }
 

@@ -205,13 +205,13 @@ const Notif = (() => {
       const vacio = _solo ? ['check-double', 'Estás al día.', 'No hay avisos sin leer.']
         : _categoria ? ['bell', 'Nada en esta categoría.', 'Cuando haya algo, aparecerá aquí.']
         : ['bell', 'Todavía no tienes avisos.', 'Aquí aparecerán tus tareas, equipos, calificaciones y actividades.'];
-      host.innerHTML = barra + `<div class="aviso-estado" role="status"><i data-lucide="${vacio[0]}" aria-hidden="true"></i>
-        <div><b>${vacio[1]}</b><p>${vacio[2]}</p></div></div>` + (_hayMas ? '<button type="button" class="btn-ghost avisos-mas" data-act="avisosMas">Ver avisos anteriores</button>' : '');
+      host.innerHTML = barra + `<div class="avisos-scroll"><div class="aviso-estado" role="status"><i data-lucide="${vacio[0]}" aria-hidden="true"></i>
+        <div><b>${vacio[1]}</b><p>${vacio[2]}</p></div></div>` + (_hayMas ? '<button type="button" class="btn-ghost avisos-mas" data-act="avisosMas">Ver avisos anteriores</button>' : '') + '</div>';
       renderIconos(host); return;
     }
     const _cuenta = {};   // cuántos avisos hay en cada grupo de día (el número junto al título del grupo)
     for (const a of lista) { const g = _grupo(a.creada); _cuenta[g] = (_cuenta[g] || 0) + 1; }
-    let html = barra, actual = '';
+    let html = barra + '<div class="avisos-scroll">', actual = '';
     for (const a of lista) {
       const g = _grupo(a.creada);
       if (g !== actual) { html += `${actual ? '</ul>' : ''}<h3 class="avisos-grupo">${g}<span class="avisos-grupo-n">${_cuenta[g]}</span></h3><ul class="avisos-lista">`; actual = g; }
@@ -219,7 +219,7 @@ const Notif = (() => {
     }
     html += '</ul>';
     if (_hayMas) html += '<button type="button" class="btn-ghost avisos-mas" data-act="avisosMas">Ver avisos anteriores</button>';
-    host.innerHTML = html;
+    host.innerHTML = html + '</div>';
     renderIconos(host);
   }
 
@@ -359,7 +359,7 @@ const Notif = (() => {
   function _pintarPrefs(host) {
     const porCat = {};
     (_prefs || []).forEach(p => { (porCat[p.categoria] = porCat[p.categoria] || []).push(p); });
-    let html = `<div class="avisos-barra"><button type="button" class="btn-texto" data-act="avisosLista"><i data-lucide="arrow-left" aria-hidden="true"></i>Volver a los avisos</button></div>
+    let html = `<div class="avisos-barra"><button type="button" class="btn-texto" data-act="avisosLista"><i data-lucide="arrow-left" aria-hidden="true"></i>Volver a los avisos</button></div><div class="avisos-scroll">
       <p class="pref-intro">Aquí eliges qué avisos te llegan <b>por correo</b>. Todos aparecen siempre en la campana. Los esenciales no se pueden apagar porque afectan tu trabajo o tus calificaciones.</p>`;
     for (const c of Object.keys(CATEGORIAS)) {
       const fs = porCat[c]; if (!fs) continue;
@@ -375,7 +375,7 @@ const Notif = (() => {
       }).join('') + '</ul>';
     }
     if (_cfg.portal === 'admin') html += '<div id="avisos-estado" class="pref-estado"></div>';
-    host.innerHTML = html;
+    host.innerHTML = html + '</div>';
     renderIconos(host);
   }
 
