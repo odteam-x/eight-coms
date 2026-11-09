@@ -745,7 +745,9 @@ button > svg, a > svg { flex: none; }
 /* 59. Superposición con el vidrio. movil.css (carga después) devolvía a la barra de avisos un fondo translúcido
    (--surface-1) y las tarjetas se veían a través de los filtros. Todo lo que queda fijo sobre contenido que se desplaza
    es opaco (--v-solido) en los dos temas; se gana por especificidad, no con !important. */
-.panel.panel--hoja .avisos-barra, .panel .avisos-barra { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0 0 20px 20px; padding: 6px 12px 10px; margin: 0 -12px 10px; box-shadow: 0 10px 14px -10px var(--v-sombra); z-index: 5; }
+.panel .avisos-barra, .panel.panel--hoja .avisos-barra { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; box-shadow: none; border-bottom: 1px solid var(--v-line); z-index: 5; }
+.panel.panel--hoja .avisos-barra { margin: 0 calc(var(--m-gutter) * -1) 12px; padding: 4px var(--m-gutter) 10px; }   /* de borde a borde del panel: nada de las tarjetas asoma por los lados */
+.panel.panel--hoja .panel-cuerpo { padding-top: 0; }
 .panel.panel--hoja .aviso-grupo-t, .panel .aviso-grupo-t { position: relative; z-index: 1; }
 .perfil--panel .perfil-barra, .perfil:not(.perfil--panel) .perfil-barra { background: var(--v-solido); }
 
@@ -754,3 +756,4 @@ button > svg, a > svg { flex: none; }
 .eq-grupo-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--v-line); }
 .eq-grupo-cab .pf-sub { font: 600 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
 .eq-grupo-cab .pf-sub::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--v-t); margin-right: 10px; vertical-align: 3px; }
+.back-top, #back-top { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); -webkit-backdrop-filter: none; backdrop-filter: none; }
