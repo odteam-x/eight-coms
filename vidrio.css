@@ -407,3 +407,12 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .eval-ucard--active { background: var(--v-fill2); }
 .eval-ucard--active .eval-ucard-name { font-weight: 700; }
 .eval-ucard:focus-visible { outline: 2px solid var(--v-t); outline-offset: -2px; }
+
+/* 33. Seguimiento: las tablas de cada rol comparten columnas (antes cada grupo medía las suyas y los PE no quedaban
+   alineados de un grupo al siguiente). «Sin evaluar» es un hecho neutro: texto tenue, no una píldora más. */
+@media (min-width: 768px) {
+  .seg-tabla--roles { table-layout: fixed; }
+  .seg-tabla--roles thead th:first-child, .seg-tabla--roles tbody th { width: 24%; }
+}
+.seg-tabla--roles .etiqueta.etq-gris { background: none; border: 0; padding-inline: 0; color: var(--v-t2); font-weight: 400; }
+.seg-tabla--roles .etiqueta.etq-gris::before { background: color-mix(in srgb, var(--v-t) 35%, transparent); }
