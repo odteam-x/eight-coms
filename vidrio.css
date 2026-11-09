@@ -130,3 +130,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .login-panel-form { max-width: 520px; width: 100%; margin-inline: auto; align-self: center; }
 .login-panel-brand .login-puntos { display: none; }
 .login-panel-form .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+
+/* 16. Avisos: conteo por grupo (referencias de centros de actividad) */
+.avisos-grupo { display: flex; align-items: center; gap: 8px; }
+.avisos-grupo-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: .8rem; line-height: 20px; text-align: center; font-weight: 600; }

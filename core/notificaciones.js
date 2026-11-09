@@ -212,7 +212,7 @@ const Notif = (() => {
     let html = barra, actual = '';
     for (const a of lista) {
       const g = _grupo(a.creada);
-      if (g !== actual) { html += `${actual ? '</ul>' : ''}<h3 class="avisos-grupo">${g}</h3><ul class="avisos-lista">`; actual = g; }
+      if (g !== actual) { html += `${actual ? '</ul>' : ''}<h3 class="avisos-grupo">${g}<span class="avisos-grupo-n">${_cuenta[g]}</span></h3><ul class="avisos-lista">`; actual = g; }
       html += _itemHTML(a);
     }
     html += '</ul>';
