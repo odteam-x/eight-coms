@@ -1,0 +1,38 @@
+/**
+ * EIGHT CREATORS LABs — Movimiento (noviembre 2026). Solo CSS: sin biblioteca de animación (Motion, GSAP, Lottie, Lordicon se
+ * evaluaron y no hacen falta; ver docs/sistema-visual-noviembre-2026.md). Cada animación responde a una acción o a un cambio
+ * de estado, dura 120–450 ms y no se repite sola. Lo que NO se hace: bloques que entran uno a uno, elevaciones al pasar el
+ * ratón, fondos que se mueven, rebotes. Se carga después de vidrio.css y gradients.css.
+ */
+:root { --mov-rapido: .12s; --mov-medio: .18s; --mov-lento: .45s; --mov-curva: cubic-bezier(.2, .7, .2, 1); }
+
+/* 1. Cambio de vista: la pantalla nueva se funde (una sola vez por vista, no por bloque). */
+.atab-content.active, .tab-content.active { animation: mov-vista var(--mov-medio) var(--mov-curva) both; }
+@keyframes mov-vista { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* 2. Botones: respuesta inmediata al pulsar (la acción se siente). */
+.btn-save, .btn-login, .btn--primario, .btn-ghost, .btn--secundario, .tk-btn, .atn-acc, .panel-volver, .cal2-btn, .chip, .dc-chip, .seg-btn {
+  transition: background-color var(--mov-medio) var(--mov-curva), color var(--mov-medio) var(--mov-curva), border-color var(--mov-medio) var(--mov-curva), transform var(--mov-rapido) var(--mov-curva);
+}
+.btn-save:active:not(:disabled), .btn-login:active:not(:disabled), .btn--primario:active:not(:disabled), .tk-btn:active:not(:disabled), .panel-volver:active { transform: scale(.98); }
+
+/* 3. Barras de progreso: crecen desde cero al pintarse (el relleno muestra el valor que ya tiene). */
+.kpi-seg, .rg-pan-pista i, .cbar-fill, .barra-fill, .pcard-barra i { transform-origin: left center; animation: mov-barra var(--mov-lento) var(--mov-curva) both; }
+@keyframes mov-barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* 4. Reconocimientos: la medalla y el trofeo aparecen con un leve asentamiento (una vez, al pintarse la lista). */
+.medalla, .trofeo { animation: mov-sello .32s var(--mov-curva) both; }
+@keyframes mov-sello { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+.estrellas-lleno { animation: mov-estrellas .5s var(--mov-curva) both; }
+@keyframes mov-estrellas { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* 5. Desplegables: el chevron gira; el contenido no salta (el navegador abre <details> sin animar la altura, y está bien). */
+.acordeon-chev { transition: transform var(--mov-medio) var(--mov-curva); }
+details[open] > summary .acordeon-chev { transform: rotate(180deg); }
+
+/* Accesibilidad: quien pide menos movimiento no recibe ninguno (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  .atab-content.active, .tab-content.active, .kpi-seg, .rg-pan-pista i, .cbar-fill, .barra-fill, .pcard-barra i, .medalla, .trofeo, .estrellas-lleno { animation: none !important; }
+  .btn-save, .btn-login, .btn--primario, .btn-ghost, .btn--secundario, .tk-btn, .atn-acc, .panel-volver, .cal2-btn, .chip, .dc-chip, .seg-btn, .acordeon-chev { transition: none !important; }
+  .btn-save:active, .btn-login:active, .btn--primario:active, .tk-btn:active, .panel-volver:active { transform: none; }
+}

@@ -462,6 +462,23 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   ok(/function switchTabCore[\s\S]{0,900}panel-overlay--pantalla[\s\S]{0,160}closeModal\('panel-lateral'\)/.test(rj2), 'navegación: ir a otra sección desde el menú cierra la ficha a pantalla completa');
   ok(/\.rail > \.rail-nav \{ flex: 1 1 auto; min-height: 0; overflow-y: auto; \}/.test(vc), 'menú lateral: la lista de destinos desplaza (marca, buscador y pie siempre visibles)');
   ok(/function panoramaHTML/.test(fs.readFileSync(ROOT + 'core/reporte-general.js', 'utf8')), 'reportes: panorama PE a PE con barras');
+  // Sistema visual: gradientes, reconocimientos y movimiento centralizados (docs/sistema-visual-noviembre-2026.md).
+  for (const f of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
+    const h = fs.readFileSync(ROOT + f, 'utf8');
+    ok(/vidrio\.css[\s\S]*gradients\.css[\s\S]*motion\.css/.test(h), f + ': carga vidrio.css, gradients.css y motion.css (en ese orden)');
+    if (f !== 'index.html') ok(/core\/render\.js[\s\S]*core\/reconocimientos\.js/.test(h), f + ': carga core/reconocimientos.js después de render.js');
+  }
+  const mo = fs.readFileSync(ROOT + 'motion.css', 'utf8');
+  ok(/prefers-reduced-motion: reduce/.test(mo) && /animation: none !important/.test(mo), 'movimiento: prefers-reduced-motion apaga todas las animaciones');
+  ok(!/infinite/.test(mo), 'movimiento: ninguna animación se repite sola (infinite)');
+  const gr = fs.readFileSync(ROOT + 'gradients.css', 'utf8');
+  ok(['--g-oro', '--g-plata', '--g-bronce', '--g-diamante', '--g-velo', '--g-progreso', '--g-luz-fria'].every(t => gr.includes(t + ':')), 'gradientes: metales, velo de tono, progreso y luces definidos como variables');
+  ok(!/https?:\/\//.test(gr.replace(/\/\*[\s\S]*?\*\//g, '')) && !/url\(/.test(gr.replace(/\/\*[\s\S]*?\*\//g, '').replace(/url\(#/g, '')), 'gradientes: sin recursos remotos ni imágenes (CSS nativo)');
+  const rec = fs.readFileSync(ROOT + 'core/reconocimientos.js', 'utf8');
+  ok(/function estrellasHTML\(valor, max = 5/.test(rec) && /frac \* 100/.test(rec), 'estrellas: el relleno es el valor real dividido entre el máximo (admite fracciones)');
+  ok(/r\.min === 1 && r\.max === 5 \? estrellasHTML\(v, 5\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'estrellas: solo en criterios de escala 1–5, con la nota real');
+  ok(/medallaSVG\(n\)/.test(rj2) && /Puesto \$\{n\}/.test(rec), 'medallas: oro/plata/bronce con etiqueta accesible de puesto');
+  ok(!/https?:\/\//.test(rec.replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')), 'reconocimientos: SVG propios, sin recursos remotos');
   ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }

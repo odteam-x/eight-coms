@@ -799,8 +799,7 @@ async function handleAvatarUpload(el) {
 function medallaHTML(pos) {
   const n = Number(pos);
   if (n >= 1 && n <= 3) {
-    const cls = n === 1 ? 'oro' : n === 2 ? 'plata' : 'bronce';
-    return `<span class="medalla medalla--${cls}" role="img" aria-label="Puesto ${n}"><b>${n}</b></span>`;
+    return medallaSVG(n);   // core/reconocimientos.js: disco metálico con cinta (gradients.css --metal-*)
   }
   return `<span class="medalla-num">${escHtml(String(pos))}</span>`;
 }
@@ -817,6 +816,9 @@ function rotularPantalla() {
   const grupo = it && it.closest('.rail-grupo') && it.closest('.rail-grupo').querySelector('.rail-sep');
   const g = grupo ? grupo.textContent.trim().replace(/\s+/g, ' ') : '';
   if (g) h1.dataset.grupo = g; else delete h1.dataset.grupo;
+  // Atmósfera por área (gradients.css): el grupo del menú, en minúsculas y sin tildes, como data-area del body.
+  const area = g.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (area) document.body.dataset.area = area; else delete document.body.dataset.area;
   const svg = it && it.querySelector('svg');
   let ico = h1.querySelector(':scope > .pantalla-ico');
   if (svg && !ico) { ico = document.createElement('span'); ico.className = 'pantalla-ico'; ico.setAttribute('aria-hidden', 'true'); h1.prepend(ico); }

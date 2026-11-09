@@ -107,7 +107,7 @@ const PanelAdmin = (() => {
         ${kpi('', 'Evaluaciones publicadas', `${pubN}<small>/${evaluables.length}</small>`, `${Math.round(pctPub)} % del equipo`,
           `<span class="kpi-barra" role="img" aria-label="${pubN} publicadas, ${borr} en borrador, ${pend} sin evaluar">${seg(pubN, 'pub')}${seg(borr, 'bor')}${seg(pend, 'sin')}</span>`)}
         ${kpi('', 'Promedio del equipo', f1(media), `sobre 100 <span id="pn-delta" class="kpi-delta"></span>`)}
-        ${kpi('', 'Mejor resultado', f1(mejor), mejorFila ? escHtml(mejorFila.nombre) : 'sin resultados')}
+        ${kpi('kpi-c--trofeo', 'Mejor resultado', f1(mejor), mejorFila ? escHtml(mejorFila.nombre) : 'sin resultados', mejorFila ? trofeoHTML(`Mejor resultado: ${mejorFila.nombre}`) : '')}
         ${plazo
           ? kpi('', 'Entregas a tiempo', `${Math.round(plazo.pct)}<small>%</small>`, `${plazo.ok} de ${plazo.con} con plazo`)
           : kpi('', 'Personas en el período', `${evaluables.length}<small>/${registrados}</small>`, registrados - evaluables.length ? `${registrados - evaluables.length} sin participar` : 'participan todas')}
