@@ -370,7 +370,12 @@ const Desempeno = (() => {
   function cuerpoPersonas(elegidas, est) {
     const chips = elegidas.length ? `<div class="chip-row des-chips">${elegidas.map((p, i) => `<span class="des-chip des-chip--${i}">${escHtml(p.nombre)}<button type="button" class="btn--icono" data-act="des" data-arg="quitar" data-arg2="${escHtml(p.id)}" aria-label="Quitar a ${escHtml(p.nombre)}"><i data-lucide="x" aria-hidden="true"></i></button></span>`).join('')}
       <button type="button" class="btn--texto" data-act="des" data-arg="limpiar">Quitar todas</button></div>` : '';
-    if (!elegidas.length) return '<p class="pf-vacio">Marca a las personas que quieras comparar en la lista.</p>';
+    // Estado vacío con referencia: dice qué hacer y qué se verá, en el espacio donde aparecerá el gráfico.
+    if (!elegidas.length) return `<div class="des-ref" role="status">
+        <i data-lucide="users" aria-hidden="true"></i>
+        <b>Selecciona una persona para ver su estadística</b>
+        <p>Marca hasta ${MAX_PERSONAS} personas en la lista: aquí verás su evolución período a período, una línea por persona.</p>
+      </div>`;
     if (!est.length) return `${chips}<p class="pf-vacio">Elige al menos un período.</p>`;
     const alt = elegidas.map(p => `${p.nombre}: ${est.map(e => `${e.p.nombre} ${fmt(valor(p.porPer.get(e.p.id)))}`).join(', ')}`).join('. ') + '.';
     const filasT = elegidas.map(p => {

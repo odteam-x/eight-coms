@@ -38,7 +38,10 @@ ok(D({ users: [], periodo: pe({ activo: false, fecha_inicio: null }) }).length =
 console.log('\n[presentación]');
 const src = rd('admin-personas.js');
 ok(/detectarInconsistencias\(\{ users: _users, evaluaciones: evs, inactivos, periodo: pe \}\)/.test(src), 'el Panel lo calcula con los datos que ya cargó (sin consultas nuevas)');
-ok(/escHtml\(d\.txt\)/.test(src) && /escHtml\(d\.nombres\.slice\(0, 4\)\.join\(', '\)\)/.test(src) && /escHtml\(d\.filtro \|\| d\.tab\)/.test(src), 'texto, nombres y destino se escapan');
+// El componente compacto (0.2 de «Requiere atención») arma el destino con accion(), que escapa filtro/tab; los datos pasan por ella.
+ok(/escHtml\(d\.txt\)/.test(src) && /escHtml\(d\.nombres\.slice\(0, \d\)\.join\(', '\)\)/.test(src)
+  && /const accion = \(i\) => `data-act="\$\{i\.filtro \? 'personasFiltro' : 'tabSinBtn'\}" data-arg="\$\{escHtml\(i\.filtro \|\| i\.tab\)\}"`/.test(src)
+  && /\$\{accion\(d\)\}/.test(src), 'texto, nombres y destino se escapan');
 ok(/no corrigen ni cambian ninguna nota/.test(src), 'dice que solo avisa: no corrige nada');
 const x = D({ users: [u('a', { rol_id: null, nombre: '<img src=x onerror=1>' })] });
 ok(x[0].nombres[0] === '<img src=x onerror=1>', 'el detector devuelve el texto tal cual: es el que pinta quien lo escapa (escHtml) — aquí queda cubierto por la aserción anterior');

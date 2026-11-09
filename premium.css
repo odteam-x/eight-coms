@@ -364,10 +364,10 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 /* ── Medallas del ranking (icono, no emoji) ───────────────────────────── */
 :root { --medalla-oro: #F0C040; --medalla-plata: #B0B8D0; --medalla-bronce: #C87C40; }
 [data-theme="light"] { --medalla-oro: #8A6300; --medalla-plata: #5A6275; --medalla-bronce: #8A4E18; }
-.medalla { display: inline-flex; align-items: center; gap: 4px; min-width: 28px; }
-.medalla .ico { width: 26px; height: 26px; }
-.medalla b { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; line-height: 1; color: var(--txt-2); }
-.medalla--oro .ico { color: var(--medalla-oro); } .medalla--plata .ico { color: var(--medalla-plata); } .medalla--bronce .ico { color: var(--medalla-bronce); }
+/* Puesto 1–3: el número dentro de un disco con el tono del metal. Sin iconos de medalla (leían como emoji). */
+.medalla { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--medalla-tono) 22%, transparent); box-shadow: inset 0 0 0 1.5px var(--medalla-tono); --medalla-tono: var(--txt-muted); }
+.medalla b { font-family: var(--font-display); font-weight: 700; font-size: 1rem; line-height: 1; color: var(--txt); }
+.medalla--oro { --medalla-tono: var(--medalla-oro); } .medalla--plata { --medalla-tono: var(--medalla-plata); } .medalla--bronce { --medalla-tono: var(--medalla-bronce); }
 .medalla-num { display: inline-grid; place-items: center; width: 28px; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--txt-muted); }
 .num-display { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
 .ov-panel-title .ico { margin-right: var(--sp-1); }

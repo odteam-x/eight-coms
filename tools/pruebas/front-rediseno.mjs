@@ -452,6 +452,11 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   ok(/#tab-overview > #ov-atencion \{ grid-area: atn/.test(vc), 'Panel: «Requiere atención» ocupa la zona superior derecha en escritorio');
   const rj2 = fs.readFileSync(ROOT + 'core/render.js', 'utf8');
   ok(/recuperarFoco/.test(rj2) && /getClientRects\(\)\.length/.test(rj2), 'modales: si la acción repinta la lista, el foco vuelve al título visible de la pantalla (no al primer h1, que puede estar oculto)');
+  // Regla del dueño (CLAUDE.md, «Prohibido: patrones de interfaz de IA»): ninguna barra de acento en un borde.
+  const hojas = fs.readdirSync(ROOT).filter(f => f.endsWith('.css'));
+  const barras = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/border-(left|right)\s*:\s*[3-9]\d*(\.\d+)?px\s+solid|inset\s+-?[3-9]\d*px\s+0\s+0/g) || []).map(m => f + ': ' + m));
+  ok(!barras.length, `estilos: sin barras de acento en un borde${barras.length ? ' (' + barras.join('; ') + ')' : ''}`);
+  ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
 

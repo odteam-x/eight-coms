@@ -395,8 +395,9 @@ async function renderAtencion() {
   const nombrePE = pe ? pe.nombre : '';
   let datos = [];
 
+  const pl = (n, uno, varios) => n === 1 ? uno : varios;
   const pendientes = _users.filter(u => u.aprobado === false).length;
-  if (pendientes) items.push({ n: pendientes, icono: 'user-x', txt: `persona${pendientes === 1 ? '' : 's'} esperando que apruebes su acceso`, tab: 'usuarios', filtro: 'pendientes', cta: 'Revisar accesos' });
+  if (pendientes) items.push({ n: pendientes, icono: 'user-x', corto: 'Accesos por aprobar', txt: `${pendientes} ${pl(pendientes, 'persona espera', 'personas esperan')} que apruebes su acceso`, tab: 'usuarios', filtro: 'pendientes', cta: 'Gestionar' });
 
   if (pe) {
     const [evs, part] = await Promise.all([API.getEvaluacionesByPE(pe.id), API.getParticipantes(pe.id)]);
@@ -406,42 +407,53 @@ async function renderAtencion() {
     const sinEvaluar = evaluables.filter(u => !conEv.has(u.id)).length;
     const borradores = evs.filter(e => e.estado === 'borrador').length;
     datos = detectarInconsistencias({ users: _users, evaluaciones: evs, inactivos, periodo: pe });
-    if (sinEvaluar) items.push({ n: sinEvaluar, icono: 'clipboard-list', txt: `persona${sinEvaluar === 1 ? '' : 's'} sin evaluar en ${nombrePE}`, tab: 'evaluar', cta: 'Evaluar' });
-    if (borradores) items.push({ n: borradores, icono: 'file-pen', txt: `evaluación${borradores === 1 ? '' : 'es'} en borrador sin publicar en ${nombrePE}`, tab: 'evaluar', cta: 'Publicar' });
+    if (sinEvaluar) items.push({ n: sinEvaluar, icono: 'clipboard-list', corto: 'Sin evaluar', txt: `${sinEvaluar} ${pl(sinEvaluar, 'persona', 'personas')} sin evaluar en ${nombrePE}`, tab: 'evaluar', cta: 'Evaluar' });
+    if (borradores) items.push({ n: borradores, icono: 'file-pen', corto: 'Borradores sin publicar', txt: `${borradores} ${pl(borradores, 'evaluación', 'evaluaciones')} en borrador sin publicar en ${nombrePE}`, tab: 'evaluar', cta: 'Publicar' });
 
     if (esPeriodoV2(pe)) {
       const [res, lista] = await Promise.all([API.getResumenTareas(pe.id), API.getTareas({ periodoId: pe.id })]);
       if (res.ok && lista.ok) {
         const vencidas = Object.values(res.porUsuario).reduce((a, r) => a + (r.vencidas_abiertas || 0), 0);
         const porRevisar = lista.tareas.filter(t => t.estado === 'entregada').length;
-        if (porRevisar) items.push({ n: porRevisar, icono: 'inbox', txt: `entrega${porRevisar === 1 ? '' : 's'} esperando revisión`, tab: 'tareas', cta: 'Revisar' });
-        if (vencidas) items.push({ n: vencidas, icono: 'alarm-clock', txt: `tarea${vencidas === 1 ? '' : 's'} vencida${vencidas === 1 ? '' : 's'} sin entregar`, tab: 'tareas', cta: 'Ver tareas', aviso: true });
+        if (porRevisar) items.push({ n: porRevisar, icono: 'inbox', corto: 'Entregas por revisar', txt: `${porRevisar} ${pl(porRevisar, 'entrega espera', 'entregas esperan')} revisión`, tab: 'tareas', cta: 'Revisar' });
+        if (vencidas) items.push({ n: vencidas, icono: 'alarm-clock', corto: 'Tareas vencidas', txt: `${vencidas} ${pl(vencidas, 'tarea vencida', 'tareas vencidas')} sin entregar`, tab: 'tareas', cta: 'Ver', aviso: true });
       }
     }
   }
 
+  /* Componente compacto: una fila de ~36 px por situación (icono · nombre breve · cantidad · acción). Las más urgentes primero; si hay
+     más de VISIBLES, el resto queda tras «Ver todas» para que la lista no empuje el resto del Panel. El texto completo va en `title`. */
+  const VISIBLES = 4;
+  items.sort((x, y) => (y.aviso ? 1 : 0) - (x.aviso ? 1 : 0));
+  const accion = (i) => `data-act="${i.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(i.filtro || i.tab)}"`;
+  const fila = (i, extra = '') => `
+        <li class="atn-fila${i.aviso ? ' atn-fila--alta' : ''}${extra}">
+          <i data-lucide="${escHtml(i.icono)}" class="atn-ico" aria-hidden="true"></i>
+          <span class="atn-t" title="${escHtml(i.txt)}">${escHtml(i.corto)}${i.aviso ? '<span class="sr-only"> (prioridad alta)</span>' : ''}</span>
+          <b class="atn-n">${i.n}</b>
+          <button type="button" class="atn-acc" ${accion(i)} aria-label="${escHtml(i.cta)}: ${escHtml(i.txt)}">${escHtml(i.cta)}<i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        </li>`;
+  const visibles = items.slice(0, VISIBLES), resto = items.slice(VISIBLES);
+  const filaDato = (d) => `
+        <li class="atn-fila atn-fila--dato">
+          <i data-lucide="alert-triangle" class="atn-ico" aria-hidden="true"></i>
+          <span class="atn-t" title="${escHtml(d.txt)}">${escHtml(d.txt)}${d.nombres.length ? `<small class="atn-quienes">${escHtml(d.nombres.slice(0, 3).join(', '))}${d.nombres.length > 3 ? ` y ${d.nombres.length - 3} más` : ''}</small>` : ''}</span>
+          <b class="atn-n">${d.n}</b>
+          <button type="button" class="atn-acc" ${accion(d)} aria-label="Revisar: ${escHtml(d.txt)}">Revisar<i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        </li>`;
+
   el.innerHTML = `
-    <section class="atencion" aria-labelledby="ov-atencion-h">
-      <h3 class="pf-h" id="ov-atencion-h">Requiere atención</h3>
-      ${items.length ? `<ul class="atencion-lista">${items.map(i => `
-        <li class="atencion-item${i.aviso ? ' atencion-item--aviso' : ''}">
-          <i data-lucide="${escHtml(i.icono)}" class="atencion-ico" aria-hidden="true"></i>
-          <span class="atencion-n">${i.n}</span>
-          <span class="atencion-txt">${escHtml(i.txt)}</span>
-          <button type="button" class="pf-enlace" data-act="${i.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(i.filtro || i.tab)}">${escHtml(i.cta)}<i data-lucide="arrow-right" aria-hidden="true"></i></button>
-        </li>`).join('')}</ul>`
-        : `<p class="atencion-ok"><i data-lucide="circle-check" aria-hidden="true"></i> Todo al día en ${escHtml(nombrePE || 'este período')}: nadie espera una acción tuya.</p>`}
-    </section>
-    ${datos.length ? `<section class="atencion atencion--datos" aria-labelledby="ov-datos-h">
-      <h3 class="pf-h" id="ov-datos-h">Datos por revisar</h3>
-      <p class="pf-nota">Contradicciones entre datos que ya están guardados. Solo avisan dónde mirar: no corrigen ni cambian ninguna nota.</p>
-      <ul class="atencion-lista">${datos.map(d => `
-        <li class="atencion-item">
-          <i data-lucide="alert-triangle" class="atencion-ico" aria-hidden="true"></i>
-          <span class="atencion-n">${d.n}</span>
-          <span class="atencion-txt">${escHtml(d.txt)}${d.nombres.length ? `<small class="atencion-quienes">${escHtml(d.nombres.slice(0, 4).join(', '))}${d.nombres.length > 4 ? ` y ${d.nombres.length - 4} más` : ''}</small>` : ''}</span>
-          <button type="button" class="pf-enlace" data-act="${d.filtro ? 'personasFiltro' : 'tabSinBtn'}" data-arg="${escHtml(d.filtro || d.tab)}">Revisar<i data-lucide="arrow-right" aria-hidden="true"></i></button>
-        </li>`).join('')}</ul>
-    </section>` : ''}`;
+    <section class="atn" aria-labelledby="ov-atencion-h">
+      <header class="atn-cab">
+        <h3 class="atn-h" id="ov-atencion-h">Requiere atención${nombrePE ? ` <small>${escHtml(nombrePE)}</small>` : ''}</h3>
+        ${items.length ? `<span class="atn-total" role="img" aria-label="${items.length} ${pl(items.length, 'situación', 'situaciones')}">${items.length}</span>` : ''}
+      </header>
+      ${items.length ? `<ul class="atn-lista">${visibles.map(i => fila(i)).join('')}</ul>
+        ${resto.length ? `<details class="atn-mas"><summary>Ver todas (${items.length})</summary><ul class="atn-lista">${resto.map(i => fila(i)).join('')}</ul></details>` : ''}`
+        : `<p class="atn-ok"><i data-lucide="circle-check" aria-hidden="true"></i> Todo al día${nombrePE ? ` en ${escHtml(nombrePE)}` : ''}</p>`}
+      ${datos.length ? `<details class="atn-mas atn-datos"><summary>Datos por revisar <b class="atn-n">${datos.length}</b></summary>
+        <p class="atn-nota">Contradicciones entre datos ya guardados. Solo avisan dónde mirar: no corrigen ni cambian ninguna nota.</p>
+        <ul class="atn-lista">${datos.map(filaDato).join('')}</ul></details>` : ''}
+    </section>`;
   renderIconos(el);
 }

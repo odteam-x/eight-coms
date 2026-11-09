@@ -59,7 +59,7 @@ body::before {
 .bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
 
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
-.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2, .cal2-panel, .seg-tabla, .v2-kpi, .eq-card, .aud-fila {
+.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
   background: var(--v-fill); border: 1px solid var(--v-line);
   -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
@@ -208,27 +208,60 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .tk-punto:hover span { border-color: var(--v-t); }
 @media (max-width: 359px) { .login-layout .login-hero-h1 { font-size: clamp(.95rem, 4.9vw, 1.7rem); } }   /* a 320 px el nombre en una línea no cabe junto al botón de tema con el mínimo de 1.25rem */
 
-/* 22. Panel de administración: «Requiere atención» sube a la zona superior, como tarjeta compacta (referencia: PanelAdmin del sistema de diseño).
-   Solo CSS: el marcado y las acciones de admin-personas.js no cambian. Por debajo de 1100 px queda arriba y a todo el ancho, ya compacta. */
-#ov-atencion .atencion { margin: 0 0 var(--sp-4); padding: 18px 22px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: inset 0 1px 0 var(--v-hi); color: var(--v-t); }
-#ov-atencion .atencion .pf-h { margin: 0 0 6px; font-size: 1.05rem; font-weight: 500; }
-#ov-atencion .atencion-lista { gap: 0; }
-#ov-atencion .atencion-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; }
-#ov-atencion .atencion-item:first-child { border-top: 0; }
-#ov-atencion .atencion-ico { display: none; }
-#ov-atencion .atencion-n { min-width: 34px; height: 34px; padding: 0 10px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: 1.05rem; font-weight: 600; }
-#ov-atencion .atencion-item--aviso .atencion-n { background: var(--v-coral); border-color: transparent; color: var(--v-navy); }   /* navy sobre coral: 5,6 a 1 (blanco sobre coral no pasa) */
-#ov-atencion .atencion-txt { font-size: var(--fs-sm); }
-#ov-atencion .atencion-item .pf-enlace { grid-column: auto; justify-self: end; white-space: nowrap; color: var(--v-t); }
-#ov-atencion .atencion-ok { background: none; border: 0; padding: 4px 0; color: var(--v-t2); }
+/* 22. Panel de administración: resumen ejecutivo (KPIs 2×2) junto a «Requiere atención» en una sola franja, después desempeño y evolución.
+   Cada bloque justifica su espacio: sin descripciones largas, sin indicadores que repitan lo que ya dice una alerta. */
+.panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
+.kpi-c-num { grid-area: num; font: 300 2.4rem/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.kpi-c-num small { font-size: .45em; font-weight: 500; color: var(--v-t2); margin-left: 2px; }
+.kpi-c-etq { grid-area: etq; align-self: end; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--v-t2); }
+.kpi-c-sub { grid-area: sub; align-self: start; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kpi-barra { grid-area: bar; display: flex; gap: 3px; height: 6px; margin-top: 8px; border-radius: 99px; overflow: hidden; }
+.kpi-seg { display: block; height: 100%; min-width: 4px; border-radius: 99px; }
+.kpi-seg--pub { background: var(--v-t); } .kpi-seg--bor { background: color-mix(in srgb, var(--v-t) 55%, transparent); } .kpi-seg--sin { background: color-mix(in srgb, var(--v-t) 22%, transparent); }
+.kpi-delta .delta { font-size: var(--fs-xs); margin-left: 4px; }
+.panel-grid--evol { margin-top: 12px; }
+
+/* «Requiere atención»: componente compacto. Fila de ~36 px = icono · nombre breve · cantidad · acción. */
+.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.atn-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.atn-h { margin: 0; font: 500 var(--fs-md)/1.2 var(--font-ui); } .atn-h small { font-size: var(--fs-xs); font-weight: 400; color: var(--v-t2); margin-left: 6px; }
+.atn-total { min-width: 24px; height: 24px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1 var(--font-ui); }
+.atn-lista { list-style: none; margin: 0; padding: 0; }
+.atn-fila { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 38px; padding: 0; border-top: 1px solid var(--v-line); }
+.atn-lista > .atn-fila:first-child { border-top: 0; }
+.atn-ico { width: 16px; height: 16px; color: var(--v-t2); }
+.atn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); }
+.atn-n { min-width: 26px; text-align: center; padding: 2px 8px; border-radius: 99px; background: var(--v-fill2); font: 600 var(--fs-sm)/1.3 var(--font-ui); font-variant-numeric: tabular-nums; }
+.atn-fila--alta .atn-ico { color: var(--v-coral); }
+.atn-fila--alta .atn-n { background: var(--v-coral); color: var(--v-navy); }   /* navy sobre coral: 5,6 a 1 */
+.atn-acc { display: inline-flex; align-items: center; gap: 2px; min-height: 32px; padding: 0 4px 0 8px; border: 0; background: none; color: var(--v-t); font: 600 var(--fs-sm)/1 var(--font-ui); cursor: pointer; border-radius: 99px; }
+.atn-acc:hover { background: var(--v-fill2); }
+.atn-acc:focus-visible, .atn-mas > summary:focus-visible { outline: 2px solid var(--v-t); outline-offset: 2px; }
+.atn-acc i, .atn-acc svg { width: 14px; height: 14px; }
+.atn-mas { border-top: 1px solid var(--v-line); }
+.atn-mas > summary { display: flex; align-items: center; justify-content: space-between; min-height: 36px; padding: 0 2px; cursor: pointer; list-style: none; font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--v-t2); border-radius: 99px; }
+.atn-mas > summary::-webkit-details-marker { display: none; }
+.atn-mas > summary::after { content: '+'; font-size: 1.1rem; font-weight: 400; }
+.atn-mas[open] > summary::after { content: '−'; }
+.atn-nota { margin: 0 0 4px; font-size: var(--fs-xs); color: var(--v-t2); }
+.atn-quienes { display: block; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; }
+.atn-ok { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; font-size: var(--fs-sm); color: var(--v-t2); } .atn-ok i, .atn-ok svg { width: 16px; height: 16px; }
+.atn-fila--dato .atn-t { white-space: normal; }
+
 @media (min-width: 1100px) {
-  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 440px); grid-template-rows: auto 1fr auto auto; grid-template-areas: "cab atn" "pe atn" "bv bv" "body body"; column-gap: var(--sp-6); align-items: start; }
-  #tab-overview > .pantalla-cab { grid-area: cab; }
-  #tab-overview > .eval-pe-bar { grid-area: pe; }
-  #tab-overview > #ov-atencion { grid-area: atn; grid-row: 1 / span 2; }
+  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-areas: "cab pe" "bv bv" "kpi atn" "evol evol" "acc acc"; column-gap: 16px; align-items: stretch; }
+  #tab-overview > .pantalla-cab { grid-area: cab; align-self: end; }
+  #tab-overview > .eval-pe-bar { grid-area: pe; align-self: end; justify-self: end; }
   #tab-overview > #bv-slot { grid-area: bv; }
-  #tab-overview > #ov-body { grid-area: body; }
+  #tab-overview > #ov-atencion { grid-area: atn; }
+  #tab-overview > #ov-body { display: contents; }
+  #ov-body > .panel-kpis { grid-area: kpi; grid-template-rows: 1fr 1fr; }
+  #ov-body > .panel-grid--evol { grid-area: evol; }
+  #ov-body > .acordeon { grid-area: acc; }
 }
+@media (max-width: 1099px) { #ov-atencion { margin: 12px 0; } .panel-kpis { margin-top: 12px; } }
+@media (max-width: 480px) { .kpi-c { padding: 12px 14px; column-gap: 10px; } .kpi-c-num { font-size: 1.9rem; } }
 
 /* 23. Tema claro: el hero y las tarjetas de persona son vidrio claro; la escala de niveles vuelve a su rampa de tema claro
    (la de .sup-marca es para superficies navy: el cian de «Bueno» sobre vidrio blanco daba ~1.8:1) y el patrón se atenúa para no ensuciar el texto. */
@@ -237,3 +270,29 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   --sex-txt: #006B96; --sbu-txt: #005FB8; --spr-txt: #00406B; --sba-txt: #A81F23;
 }
 [data-theme="light"] .sup-marca::before { opacity: .14; }
+
+/* 24. Cabecera de pantalla compacta y con ubicación: «GRUPO» sobre el título, icono del menú, descripción en una línea.
+   (rotularPantalla en core/render.js). Las pantallas dejan de gastar tres líneas en un párrafo que el menú ya resume. */
+.pantalla-cab { margin-bottom: 14px; }
+.pantalla-cab h1[data-grupo]::before { content: attr(data-grupo); display: block; margin-bottom: 4px; font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); }
+.pantalla-cab h1 { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+.pantalla-cab h1[data-grupo]::before { flex: 0 0 100%; }
+.pantalla-ico { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--v-fill2); border: 1px solid var(--v-line); color: var(--v-t); }
+.pantalla-ico svg { width: 20px; height: 20px; }
+.pantalla-cab > p { max-width: 90ch; font-size: var(--fs-sm); color: var(--v-t2); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 767px) { .pantalla-ico { display: none; } .pantalla-cab h1[data-grupo]::before { display: none; } }
+
+/* 25. Tablas: planas sobre su contenedor (filas con filete), nunca una caja de vidrio dentro de otra: la caja interior
+   recortaba la última columna y sus esquinas no coincidían con las del contenedor («corrige los radios»). */
+.seg-tabla { background: none; border: 0; box-shadow: none; border-radius: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.seg-tabla th, .seg-tabla td { border-top-color: var(--v-line); }
+.seg-tabla-wrap { border-radius: 0; }
+
+/* 26. Divisiones entre apartados: dos tarjetas seguidas nunca se tocan (Desempeño tenía 0 px entre Evolución, Comparar…). */
+.pf-card + .pf-card, .tarjeta + .tarjeta, .pf-card + .tarjeta, .tarjeta + .pf-card { margin-top: var(--sp-4); }
+/* Estado vacío con referencia (Comparar personas): ocupa el sitio del gráfico y dice qué hacer. */
+.des-ref { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 220px; padding: 24px; text-align: center; border: 1px dashed var(--v-line); border-radius: 20px; color: var(--v-t2); }
+.des-ref svg, .des-ref i { width: 28px; height: 28px; color: var(--v-t); }
+.des-ref b { font: 500 var(--fs-md)/1.3 var(--font-ui); color: var(--v-t); }
+.des-ref p { margin: 0; max-width: 42ch; font-size: var(--fs-sm); }
+.pf-card--ancha { margin-bottom: var(--sp-4); }   /* las secciones a todo el ancho de Desempeño/Seguimiento llegan envueltas en contenedores sin clase: el selector de hermanos no las alcanza */

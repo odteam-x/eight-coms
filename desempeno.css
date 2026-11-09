@@ -8,7 +8,8 @@
 .des-periodos { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); align-items: center; margin: 0; padding: 0; border: 0; min-width: 0; }
 .des-periodos legend { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); padding: 0; margin-bottom: var(--sp-1); }
 .des-nd { color: var(--txt-muted); }
-.des-nota { margin: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--txt-2); border-left: 3px solid var(--marca); padding-left: var(--sp-3); }
+.des-nota { margin: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--txt-2); }
+.des-nota::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: var(--sp-2); border-radius: 50%; background: var(--marca); vertical-align: 1px; }
 .des-resumen { margin: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--txt-2); }
 .des-par { margin-bottom: var(--sp-2); }
 .des-rol { color: var(--txt-muted); font-size: var(--fs-xs); margin-left: var(--sp-1); }
@@ -23,12 +24,13 @@
 .des-chips { align-items: center; }
 .des-chip { display: inline-flex; align-items: center; gap: var(--sp-1); padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
   background: var(--surface-2); border-radius: var(--r-control); font-size: var(--fs-sm); color: var(--txt);
-  border-left: 4px solid var(--data); }
+  --chip-c: var(--data); }
+.des-chip::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--chip-c); flex: none; margin-right: var(--sp-1); }
 /* El color solo no identifica la serie: el trazo y el punto del gráfico también cambian (ver DASH/PUNTO en desempeno.js). */
-.des-chip--1 { border-left-color: var(--cyan-200); }
-.des-chip--2 { border-left-color: var(--marca); }
-.des-chip--3 { border-left-color: var(--action); }
-.des-chip--4 { border-left-color: var(--txt-2); }
+.des-chip--1 { --chip-c: var(--cyan-200); }
+.des-chip--2 { --chip-c: var(--marca); }
+.des-chip--3 { --chip-c: var(--action); }
+.des-chip--4 { --chip-c: var(--txt-2); }
 
 @media (min-width: 980px) {
   .des-elegir { grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); }
@@ -42,7 +44,7 @@
   background: var(--surface-2); border: 1px solid var(--trazo); border-radius: var(--r-cont); cursor: pointer; }
 .des-card:hover { background: var(--surface-3); }
 .des-card:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-.des-card--on { background: var(--surface-3); border-color: var(--data); box-shadow: inset 4px 0 0 var(--data); }
+.des-card--on { background: var(--surface-3); border-color: var(--data); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--txt) 45%, transparent); }
 .des-card-n { font-family: var(--font-ui); font-weight: 600; overflow-wrap: anywhere; }
 .des-card-s { font-size: var(--fs-xs); color: var(--txt-2); overflow-wrap: anywhere; }
 .des-card-v { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); margin-top: var(--sp-1); }

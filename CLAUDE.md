@@ -395,6 +395,18 @@ Informe y evidencia en `docs/auditoria-ui-oct-2026.md`. Reglas que salieron de a
 - **Tema claro**: los contenedores (`.tarjeta`, `.pf-card`, `.lista-aj`, `.tk-card`…) llevan anillo `--trazo` + `--shadow-sm` y los campos `--campo-borde` (3:1) — ver el bloque «Tema claro» al final de `premium.css`. Un contenedor nuevo se añade a esa lista. Al revisar el tema claro, ojo: con el panel del navegador oculto las transiciones no terminan y se ven colores a medio cambiar; recarga con `localStorage ec-theme=light` en lugar de cambiar `data-theme` en caliente.
 - Producción (`eight-coms.vercel.app`) puede ir por detrás de la rama: compara huellas de `marca.css`/`premium.css` antes de afirmar que algo "ya está desplegado".
 
+### Prohibido: patrones de interfaz «de IA» (regla del dueño del proyecto)
+
+Nunca se vuelven a usar, ni aquí ni en otro proyecto:
+
+- **Barra de acento en un borde** de una tarjeta, chip, aviso o toast (`border-left: 3px solid …`, `box-shadow: inset 3px 0 0 …`). Sobre una esquina redondeada dibuja una media luna. Para marcar tipo o estado: un punto de color de 8 px, un icono o un fondo.
+- **Contorno de neón al pasar el ratón o al elegir** (`border-color: var(--cyan-400)` / `--data` en `:hover`, halos `0 0 12px` de color). El hover cambia el fondo; la selección es la píldora inversa.
+- **Emojis o iconos-medalla** como indicadores: el puesto es un número en un disco (`medallaHTML`).
+- **Caja dentro de caja**: una tabla o lista con su propio vidrio dentro de una tarjeta de vidrio (las esquinas no coinciden). Las tablas son planas con filetes.
+- Tarjetas apiladas sin separación: dos contenedores seguidos llevan siempre `--sp-4` entre ellos.
+
+`tools/pruebas/front-rediseno.mjs` falla si reaparece una barra de acento de 3 px o más en cualquier hoja de estilo.
+
 ### Canonical components (phase 1 of the second redesign)
 
 `marca.css` ends with the components every screen must use: **six buttons** (`.btn--primario` coral, `--secundario` outline, `--texto`, `--peligro`, `--icono` circle, `--chip`; all historic classes — `btn-save`, `tk-btn`, `btn-cfg-add`, `cal2-btn`… — are mapped to them), **`.etiqueta`** (pill with a dot; `--etq-coral|violeta|verde|ambar|cian|azul|rojo|gris`, 8 tones measured at 3:1 in both themes by `tools/contraste.js` — the only colours allowed outside the brand ramp, for categories/calendar labels), **`.pantalla-cab`** (title + context + one primary action) and **`.tarjeta`** / **`.tarjeta--kpi`**. One primary per view. Study and rules: `docs/estudio-uiux-evaluacion.md`.

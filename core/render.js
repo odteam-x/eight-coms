@@ -796,7 +796,37 @@ function medallaHTML(pos) {
   const n = Number(pos);
   if (n >= 1 && n <= 3) {
     const cls = n === 1 ? 'oro' : n === 2 ? 'plata' : 'bronce';
-    return `<span class="medalla medalla--${cls}" role="img" aria-label="Puesto ${n}"><i data-lucide="medal-2-fill"></i><b>${n}</b></span>`;
+    return `<span class="medalla medalla--${cls}" role="img" aria-label="Puesto ${n}"><b>${n}</b></span>`;
   }
   return `<span class="medalla-num">${escHtml(String(pos))}</span>`;
 }
+
+/* ══ UBICACIÓN EN LA CABECERA DE CADA PANTALLA ═════════════════════════
+ * «El usuario no sabe dónde está»: sobre el título va el grupo del menú («Operaciones») y junto a él el mismo icono que el
+ * menú usa para esa pantalla; la descripción larga queda en una línea (el texto completo, en el title). Todo sale del menú
+ * real: si el menú cambia, la cabecera cambia con él. */
+function rotularPantalla() {
+  const act = document.querySelector('.atab-content.active, .tab-content.active');
+  const h1 = act && act.querySelector('.pantalla-cab h1, .pantalla-cab .pantalla-t');
+  if (!h1) return;
+  const it = document.querySelector('.rail .rail-item.active');
+  const grupo = it && it.closest('.rail-grupo') && it.closest('.rail-grupo').querySelector('.rail-sep');
+  const g = grupo ? grupo.textContent.trim().replace(/\s+/g, ' ') : '';
+  if (g) h1.dataset.grupo = g; else delete h1.dataset.grupo;
+  const svg = it && it.querySelector('svg');
+  let ico = h1.querySelector(':scope > .pantalla-ico');
+  if (svg && !ico) { ico = document.createElement('span'); ico.className = 'pantalla-ico'; ico.setAttribute('aria-hidden', 'true'); h1.prepend(ico); }
+  if (ico) { ico.replaceChildren(svg ? svg.cloneNode(true) : ''); }
+  const p = h1.parentElement.querySelector(':scope > p');
+  if (p && !p.title) p.title = p.textContent.trim();
+}
+(function vigilarUbicacion() {
+  let pendiente = false;
+  const pedir = () => { if (pendiente) return; pendiente = true; requestAnimationFrame(() => { pendiente = false; rotularPantalla(); }); };
+  const arrancar = () => {
+    new MutationObserver(m => { if (m.some(x => x.target.classList && (x.target.classList.contains('rail-item') || x.target.classList.contains('atab-content') || x.target.classList.contains('tab-content')))) pedir(); })
+      .observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+    pedir();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
+})();
