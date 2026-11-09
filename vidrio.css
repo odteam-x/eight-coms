@@ -438,3 +438,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* Reportes: los indicadores del reporte son una franja de cifras dentro de la hoja, no ocho cajas grandes. */
 .rpt-hoja .panel-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0; }
 .rpt-hoja .tarjeta--kpi { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 14px 12px; }
+
+/* 37. Entregas: en cada tarea, una acción principal sólida y el resto como acciones de texto (antes 4–5 píldoras con
+   borde iguales: no se sabía cuál era la acción). La línea de tiempo no estira los PE sin fechas a la altura del activo. */
+.tk-card .tk-btn:not(.tk-btn--main):not(.tk-btn--peligro) { border-color: transparent; background: none; box-shadow: none; }
+.tk-card .tk-btn:not(.tk-btn--main):not(.tk-btn--peligro):hover { background: var(--v-fill2); }
+.lt { align-items: start; }
+.lt-periodo:has(> .lt-sin) { padding-block: 14px; }
+.lt-periodo:has(> .lt-sin) .lt-sin { margin: 4px 0 0; color: var(--v-t2); }

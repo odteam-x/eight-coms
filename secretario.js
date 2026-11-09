@@ -226,7 +226,7 @@ async function initUI() {
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
           { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
-          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño del distrito' },
+          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño', titulo:'Desempeño del distrito' },
           { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
           { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),
