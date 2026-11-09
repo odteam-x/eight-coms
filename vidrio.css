@@ -51,7 +51,9 @@ body::before {
 .rail .rail-item:hover { background: rgba(255,255,255,.10); color: #fff; }
 .rail .rail-item.active { background: #fff; color: var(--v-navy); box-shadow: 0 8px 22px var(--v-sombra); font-weight: 600; }
 .rail .rail-item.active::before { display: none; }
-.rail .rail-logo { width: 44px; height: 44px; filter: none; }
+.rail .rail-logo { width: 34px; height: 34px; filter: none; }
+.cab-movil-logo { width: 34px; height: 34px; }
+.logo-img { width: 66px; height: 66px; }
 .rail .rail-buscar { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 99px; color: #fff; }
 .rail-prox { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 24px; }
 .bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
@@ -115,5 +117,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 }
 
 /* 10. Recursos ilustrados en estados vacíos (decorativos, sin texto encima) */
-.pf-vacio { position: relative; padding-right: 120px; background-repeat: no-repeat; background-position: right 18px center; background-size: 84px; background-image: url("img/recursos/portapapeles.svg"); }
-.pf-vacio, .pf-vacio * { color: var(--v-t2); }
+.no-data-msg { position: relative; padding-right: 120px; min-height: 96px; background: url("img/recursos/portapapeles.svg") no-repeat right 18px center / 84px; }
+
+/* 11. Móvil: recurso más pequeño y al borde para no pisar la cuenta regresiva */
+@media (max-width: 767px) {
+  .inicio-hero::after { width: 96px; height: 96px; inset: auto 10px -6px auto; opacity: .9; }
+  .inicio-hero { padding-bottom: 28px; }
+  .no-data-msg { padding-right: 96px; background-size: 64px; background-position: right 12px center; }
+}
