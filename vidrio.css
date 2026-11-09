@@ -446,3 +446,17 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .lt { align-items: start; }
 .lt-periodo:has(> .lt-sin) { padding-block: 14px; }
 .lt-periodo:has(> .lt-sin) .lt-sin { margin: 4px 0 0; color: var(--v-t2); }
+
+/* 38. Panel en celular (medido por recorrido.mjs a 390 px): la variación del promedio pasa a su propia línea en vez de
+   desbordar la tarjeta, y las acciones de «Requiere atención» llegan a 44 px con puntero grueso. */
+.kpi-c-sub { white-space: normal; }
+.kpi-c-sub .kpi-delta { display: inline-block; }
+@media (pointer: coarse) { .atn-acc { min-height: 44px; padding-inline: 10px; } .atn-fila { min-height: 48px; } .atn-mas > summary { min-height: 44px; } }
+
+/* 39. Celular, tema claro: la cabecera y la barra inferior son superficies de marca (texto e iconos claros, ver CLAUDE.md);
+   el sólido del tema claro (#EAF1FA) las dejaba blanco sobre blanco. Van en el azul de la columna del menú (texto 7:1). */
+[data-theme="light"] .cab-movil, [data-theme="light"] .bottom-bar { background: var(--v-1); }
+@media (max-width: 480px) {
+  .kpi-c { grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "num" "sub" "bar"; row-gap: 4px; }
+  .kpi-c-num { font-size: 1.9rem; }
+}

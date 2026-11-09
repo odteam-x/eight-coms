@@ -53,10 +53,32 @@ Evidencia: `docs/evidencias/rediseno-nov-2026/antes/` (rama `main`, lo que hay e
 | **Modales** | Al aprobar, el foco caía al `<body>`. | El foco vuelve al título de la pantalla. | Hecho |
 | **Acceso** | Lista de beneficios compitiendo; recuperación debajo del botón; «cuenta pendiente» como error. | Tarjeta con panel para la foto del equipo + formulario; recuperación junto a su etiqueta; reset a prueba de red. **Falta el archivo de la foto** (`img/equipo/LEEME.md`). | Hecho (sin foto) |
 
-## 4. Pendiente (no se da por hecho)
+| **Roles y perfiles** | Cajas blancas dentro de la tarjeta de vidrio. | Secciones con filete. | Hecho |
+| **Equipos** | La configuración («Reglas de calificación», ~550 px) iba antes que los equipos. | Equipos primero, reglas debajo; seis valores en rejilla con filetes. | Hecho |
+| **Reportes** | Los 8 indicadores del reporte quedaron en 2 columnas enormes (efecto de una regla mía del Panel). | Regla limitada al Panel; en el reporte, franja de cifras. | Hecho |
+| **Entregas** | Títulos en MAYÚSCULAS; 4–5 botones con borde por tarea; PE sin fechas estirados. | Una acción principal sólida y el resto como texto; línea de tiempo sin estirar. | Hecho |
+| **Menú** | Con el menú alto, la etiqueta ADMIN se montaba sobre el buscador (las piezas se encogían). | El menú desplaza, no encoge. «Desempeño del di…» cortado → «Desempeño» dentro de «Mi distrito». | Hecho |
+| **Celular, tema claro** | Cabecera y barra inferior: texto blanco sobre fondo claro (regresión mía al volverlas opacas). | Van en el azul de la columna del menú. | Hecho |
 
-- Repaso pantalla por pantalla de: Reportes, Auditoría, Períodos, Rúbrica, Roles y perfiles, Gestiones, Equipos, Distritos
-  (admin) y Tareas/Distrito de la secretaría, con su revisión en móvil.
+## 4. Medición antes / después (recorrido.mjs, 176 pantallas cada uno)
+
+| | Antes (`main`) | Después |
+|---|---|---|
+| Errores de consola | 0 | 0 |
+| Desbordes horizontales | 0 | 0 (dos regresiones detectadas por el propio recorrido y corregidas: variación del promedio a 390 px) |
+| Objetivos < 44 px en celular (390) | 0 | 0 (las acciones de alertas medían 32 px; corregido) |
+| Controles sin nombre accesible | 0 | 0 |
+| Alto de «Requiere atención» (1440) | ≈ 400 px (4 filas de 87 px) | 202 px, junto a los KPIs |
+| Panel a 1440: ¿cabe sin desplazar? | No | Sí (cabecera, KPIs, alertas, distribución y tendencia) |
+
+En escritorio el recorrido cuenta como «chicos» los controles de 40 px (cabeceras de grupo del menú): con puntero fino
+WCAG 2.2 pide 24 px, así que no es un defecto; con puntero grueso el proyecto exige 44 y se cumple.
+
+## 5. Pendiente (no se da por hecho)
+
+- Revisión visual fina (captura por captura) de Auditoría, Rúbrica, Gestiones y del modo «Un PE en detalle» de Reportes; las
+  métricas automáticas de esas pantallas están limpias, pero no las he revisado a ojo una por una.
+- Tema claro en todas las pantallas a ojo (el recorrido completo usa el tema del sistema).
 - Pasada manual en Brave con una cuenta real autorizada.
 - Foto del equipo de coms.
 - Acciones masivas en tablas (requieren decidir qué acciones y con qué confirmación).
