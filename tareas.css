@@ -124,7 +124,7 @@
 .tk-modal-acciones .tk-btn--main { background: var(--brillo); color: var(--navy-900); border: 0; }
 .tk-card .tk-btn { background: transparent; border: 1px solid var(--trazo); color: var(--txt); }
 .tk-card .tk-btn:hover { background: var(--surface-3); border-color: var(--data); }
-.tk-card .tk-btn--main { border-color: var(--data); background: var(--surface-3); font-weight: 700; }
+.tk-card .tk-btn--main { border-color: transparent; background: var(--surface-3); font-weight: 700; }
 
 /* Historial de versiones de una evaluación publicada (admin.js · verHistorialEvaluacion) */
 .hv-lista { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: flex; flex-direction: column; gap: var(--sp-4); }

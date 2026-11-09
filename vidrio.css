@@ -591,3 +591,91 @@ button > svg, a > svg { flex: none; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--v-t) 34%, transparent); border-radius: 99px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* 50. Correcciones de la revisión (9 nov): divisiones y scrollbars.
+   · «Comparación y seguimiento» no se pega a las tarjetas de arriba; el título del grupo de un equipo respira antes de su lista.
+   · El scrollbar del menú no dibuja las flechitas del sistema (▲▼): eran ruido y se montaban sobre los destinos. */
+#ov-body > .acordeon, #ov-body .acordeon.panel-analisis { margin-top: 16px; }
+.eq-grupo-cab { margin: var(--sp-5) 0 var(--sp-2); }
+.eq-grupo-cab .pf-sub { margin: 0; font-size: var(--fs-md); }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+/* 51. Desempeño: el análisis del equipo es el protagonista; las personas son filas compactas (nombre, nivel, valor y línea de
+   tendencia en ~56 px) dentro de un desplegable, no tarjetas grandes de 200 px que empujaban lo importante hacia abajo. */
+.des-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px; }
+.des-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n v" "s ch"; align-items: center; gap: 0 12px; padding: 10px 14px; min-height: 0; border-radius: 16px; text-align: left; }
+.des-card-n { grid-area: n; font: 600 var(--fs-md)/1.2 var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.des-card-s { grid-area: s; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.des-card-v { grid-area: v; display: flex; align-items: center; gap: 8px; justify-self: end; }
+.des-card-v b { font: 400 1.5rem/1 var(--font-display); }
+.des-card-p { display: none; }
+.des-chispa { grid-area: ch; justify-self: end; width: 64px; height: 18px; }
+.des-grupo-t { margin: var(--sp-6) 0 var(--sp-3); font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); }
+.des-cuerpo > .des-grupo-t:first-child, #des-cuerpo > .des-grupo-t:first-of-type { margin-top: 0; }
+
+/* 52. Calendario: una actividad de varios días es una LÍNEA continua que cruza las celdas (redondeada en su primer y último día);
+   lo de un solo día sigue siendo un punto. El color es el de su etiqueta, y el rango también se lee en la agenda («12 – 14 nov»). */
+.cal2-barras { position: absolute; left: 0; right: 0; bottom: 4px; display: grid; gap: 3px; pointer-events: none; }
+.cal2-barra { display: block; height: 5px; background: var(--etq, var(--v-t2)); }
+.cal2-barra--ini { margin-left: 8px; border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
+.cal2-barra--fin { margin-right: 8px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
+.cal2-dia { padding-bottom: 14px; }
+
+/* 53. Copyright: dos líneas limpias (titular · derechos / iniciativa), mismo texto de siempre. En celular queda centrado, con el
+   aire justo sobre la barra inferior (que ya reserva #contenido), en el color secundario del tema (antes gris tenue ilegible). */
+.derechos { color: var(--v-t2); line-height: 1.6; text-wrap: balance; }
+.derechos b { color: var(--v-t); font-weight: 600; }
+.derechos-a { white-space: nowrap; }
+.derechos-b { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--v-tm); }
+@media (max-width: 767px) {
+  .derechos { padding: 28px 24px 20px; font-size: .8125rem; }
+  .derechos-sep { display: none; }
+  .derechos-a { display: block; white-space: normal; }
+  .derechos-a:first-child { font-size: .875rem; }
+}
+
+/* 54. Avisos en celular: la barra (filtros + marcar todo + preferencias) es OPACA y fija arriba del listado; el listado pasa por
+   debajo sin verse a través, y la fila de filtros no recorta ni se monta sobre el título del grupo. */
+.avisos-barra { position: sticky; top: 0; z-index: 3; background: var(--v-solido); border-radius: 0 0 20px 20px; padding: 6px 0 10px; margin-bottom: 8px; box-shadow: 0 10px 14px -10px var(--v-sombra); }
+.aviso-chips { overflow-y: hidden; flex: none; padding-bottom: 8px; scrollbar-width: none; }
+.aviso-chips::-webkit-scrollbar { display: none; }
+.avisos-acciones { background: none; padding: 0 4px; }
+
+/* 55. REDISEÑO PARA CELULAR (≤ 767 px): jerarquía en una pantalla de 390 px, no el escritorio apretado.
+   · Perfil: identidad compacta (avatar 56 + nombre), chips en una fila deslizable, anillo de 84 px junto al nivel → ~300 px de
+     cabecera en lugar de ~580 y el contenido empieza en la primera pantalla.
+   · Acción principal de cada tarjeta de tarea: blanco macizo (la inversa del sistema); antes un contorno cian de neón.
+   · Enlaces dentro de tarjetas: color de texto con subrayado (el azul de enlace no llegaba a 4,5:1 sobre vidrio).
+   · Objetivos táctiles de 44 px y texto de 14 px ya los fija movil.css; aquí solo composición. */
+@media (max-width: 767px) {
+  .perfil-cab { padding: 18px 16px 18px !important; gap: 12px !important; border-radius: 28px; }
+  .perfil-id { gap: 12px; align-items: center; }
+  .perfil-av { --av: 56px; border-width: 2px; }
+  .perfil-nombre { font-size: 1.75rem; line-height: 1.05; }
+  .perfil-chips { flex-wrap: nowrap; overflow-x: auto; margin-top: 8px; padding-bottom: 2px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, black calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 24px), transparent); }
+  .perfil-chips::-webkit-scrollbar { display: none; }
+  .perfil-chips li { flex: none; }
+  .perfil-acciones { margin-top: 10px; }
+  .perfil-resumen { gap: 14px; padding-top: 4px; }
+  .perfil-resumen .anillo { --tam: 84px; }
+  .perfil-resumen .anillo circle { stroke-width: 11; }
+  .tk-card .tk-btn--main { background: var(--v-activo); color: var(--v-activo-txt); border: 0; font-weight: 600; }
+  .tk-card .tk-btn:not(.tk-btn--main) { min-height: 44px; }
+  .tk-card a, .tk-card .tk-link, .pf-enlace, .tk-card .tk-ver { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+  .pantalla-cab:not(:has(.pantalla-acc)) { margin-bottom: 6px; }
+  .pantalla-cab > p { -webkit-line-clamp: 2; }
+  /* Tablas y listas largas: nunca más anchas que la pantalla; el desplazamiento horizontal es del contenedor, no de la página. */
+  .seg-tabla-wrap, .dc-tabla-wrap { max-width: 100%; overflow-x: auto; }
+}
+@media (max-width: 767px) {
+  .perfil-id { flex-wrap: nowrap; }
+  .perfil-av { flex: none; overflow: visible; }
+  .perfil-av .perfil-av-cam { position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; padding: 4px; border-radius: 50%; background: var(--v-activo); color: var(--v-activo-txt); }
+}
+@media (max-width: 767px) {
+  .perfil-id { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
+  .perfil-id-txt { display: contents; }
+  .perfil-av, .perfil-id > :first-child { grid-column: 1; grid-row: 1; }
+  .perfil-nombre { grid-column: 2; grid-row: 1; margin: 0; }
+  .perfil-chips, .perfil-email, .perfil-acciones { grid-column: 1 / -1; }
+}

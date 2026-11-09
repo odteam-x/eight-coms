@@ -398,6 +398,8 @@ document.addEventListener('keydown', e => {
 function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap = {} } = {}) {
   // Una ficha a pantalla completa (perfil, distrito) abierta encima: ir a otra sección desde el menú la cierra.
   // Antes había que pulsar «Volver» primero; el menú cambiaba la pestaña de debajo sin que se viera.
+  // Al abrir una sección se empieza desde arriba, no donde se dejó la anterior (el scroll es del documento y, en la ficha, de su cuerpo).
+  window.scrollTo(0, 0); document.querySelectorAll('.amain, #contenido, .panel-cuerpo').forEach(e => { e.scrollTop = 0; });
   const ficha = document.getElementById('panel-lateral');
   if (ficha && ficha.style.display !== 'none' && ficha.classList.contains('panel-overlay--pantalla')) closeModal('panel-lateral');
   document.querySelectorAll(contentSelector).forEach(t => {
