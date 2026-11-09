@@ -63,7 +63,7 @@ REVOKE ALL ON SEQUENCE public.evaluaciones_versiones_id_seq FROM PUBLIC, anon, a
 
 -- ── 3. Ayudantes (internos) ───────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public._eval_estado_json(p public.evaluaciones) RETURNS JSONB
-LANGUAGE sql IMMUTABLE AS $$
+LANGUAGE sql IMMUTABLE SET search_path TO 'public' AS $$
   SELECT jsonb_build_object('puntajes', p.puntajes, 'respuestas', p.respuestas, 'bono_ext', p.bono_ext,
                             'comentarios', p.comentarios, 'estado', p.estado);
 $$;
