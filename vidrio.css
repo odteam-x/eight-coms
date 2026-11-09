@@ -138,3 +138,16 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 17. Rail: la fila de cuenta activa (Mi cuenta) queda en píldora blanca; su texto debe ser oscuro */
 .rail .rail-user.active, .rail .rail-user[aria-current="page"] { background: var(--v-activo); color: var(--v-activo-txt); }
 .rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
+
+/* 18. Mi cuenta en dos columnas (referencias de Ajustes: subnavegación vertical + filas etiqueta/control) */
+@media (min-width: 900px) {
+  #cuenta-host { display: grid; grid-template-columns: 230px minmax(0, 1fr); grid-template-areas: "cab cab" "nav cuerpo"; gap: 0 var(--sp-6); align-items: start; }
+  #cuenta-host > .cuenta-cab { grid-area: cab; }
+  #cuenta-host > .cuenta-tabs { grid-area: nav; margin: 0; overflow: visible; position: sticky; top: var(--sp-5); }
+  #cuenta-host > .cuenta-panel { grid-area: cuerpo; max-width: none; }
+  #cuenta-host .cuenta-tabs .seg { display: flex; flex-direction: column; align-items: stretch; width: 100%; padding: 8px; border-radius: 28px; gap: 2px; }
+  #cuenta-host .cuenta-tabs .seg-btn { justify-content: flex-start; width: 100%; min-height: 46px; border-radius: 18px; padding-inline: 16px; text-align: left; }
+  #cuenta-host .cuenta-grid { grid-template-columns: 1fr; }
+  #cuenta-host .cuenta-t { font-size: 1.05rem; font-weight: 500; letter-spacing: 0; text-transform: none; margin: 0 0 var(--sp-3); }
+  #cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: var(--sp-6); }
+}
