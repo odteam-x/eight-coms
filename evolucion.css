@@ -73,7 +73,7 @@
 .asig-paso { flex: 1; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--txt-2); font: 600 var(--fs-sm)/1.2 var(--font-ui); min-width: 0; }
 .asig-paso-n { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--r-pill); background: var(--surface-3); color: var(--txt); }
 .asig-paso-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.asig-paso--on { background: var(--surface-3); color: var(--txt); box-shadow: inset 0 -3px 0 var(--marca); }
+.asig-paso--on { background: var(--surface-3); color: var(--txt); box-shadow: none; }
 .asig-paso--hecho .asig-paso-n { background: var(--action-fill); color: var(--action-on); }
 .asig-fila2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--sp-3); }
 .asig-personas { display: flex; flex-direction: column; gap: var(--sp-3); margin-block: var(--sp-3); }

@@ -574,3 +574,20 @@ button > svg, a > svg { flex: none; }
 .avatar, .avatar-ini { color: var(--v-blanco); }
 .ev-pieza { background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .ev-formula { gap: 8px; }
+
+/* 49. Correcciones del recorrido manual (Brave):
+   · Pasos del asistente de tarea: el activo es la píldora inversa (antes llevaba una línea coral abajo: barra de acento).
+   · Ficha a pantalla completa: el scrollbar reserva su sitio (scrollbar-gutter) y no recorta la tarjeta de la persona al aparecer.
+   · Detalle de equipo: las acciones empiezan a la izquierda, bajo el título, en su propia fila.
+   · Scrollbars finos y oscuros en las listas con scroll (el de Windows era gris claro sobre vidrio oscuro). */
+.asig-paso { background: var(--v-fill); color: var(--v-t2); }
+.asig-paso--on { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
+.asig-paso--on .asig-paso-n { background: var(--v-activo-txt); color: var(--v-activo); }
+.asig-paso--hecho .asig-paso-n { background: var(--v-t); color: var(--v-1); }
+.panel--pantalla .panel-cuerpo { scrollbar-gutter: stable; }
+.panel--pantalla .panel-cab { padding-right: 32px; }
+.eq-detalle-acc { margin-left: 0; flex: 1 0 100%; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--v-t) 34%, transparent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--v-t) 34%, transparent); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }

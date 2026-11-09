@@ -454,7 +454,7 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   ok(/recuperarFoco/.test(rj2) && /getClientRects\(\)\.length/.test(rj2), 'modales: si la acción repinta la lista, el foco vuelve al título visible de la pantalla (no al primer h1, que puede estar oculto)');
   // Regla del dueño (CLAUDE.md, «Prohibido: patrones de interfaz de IA»): ninguna barra de acento en un borde.
   const hojas = fs.readdirSync(ROOT).filter(f => f.endsWith('.css'));
-  const barras = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/border-(left|right)\s*:\s*[3-9]\d*(\.\d+)?px\s+solid|inset\s+-?[3-9]\d*px\s+0\s+0/g) || []).map(m => f + ': ' + m));
+  const barras = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/border-(left|right)\s*:\s*[3-9]\d*(\.\d+)?px\s+solid|inset\s+-?[3-9]\d*px\s+0\s+0|inset\s+0\s+-?[3-9]\d*px\s+0(?!\s+0)/g) || []).map(m => f + ': ' + m));
   ok(!barras.length, `estilos: sin barras de acento en un borde${barras.length ? ' (' + barras.join('; ') + ')' : ''}`);
   // …ni halos de color difuminados («0 0 16px color»). Los anillos de foco «0 0 0 3px» sí se permiten.
   const halos = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:box|text)-shadow\s*:\s*(?:[^;]*,\s*)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*px\s+(?:color-mix|rgba?|var|#)[^;]*/g) || []).map(m => f + ': ' + m.slice(0, 60)));
