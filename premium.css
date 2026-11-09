@@ -565,6 +565,7 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
 .per-linea-pista { --h-pista: 40px; position: relative; height: calc(var(--pistas, 1) * (var(--h-pista) + 8px) + 52px); background: var(--surface-1); border-radius: var(--r-card); overflow: hidden; }
 .per-tick { position: absolute; top: 0; bottom: 24px; width: 1px; background: var(--trazo); }
 .per-mes { position: absolute; bottom: 4px; transform: translateX(6px); font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-xs); color: var(--txt-2); white-space: nowrap; text-transform: capitalize; }
+.per-mes--der { transform: translateX(calc(-100% - 6px)); }   /* el último mes no se corta contra el borde derecho de la pista */
 .per-tramo { position: absolute; top: calc(30px + var(--pista, 0) * (var(--h-pista) + 8px)); height: var(--h-pista); min-width: 56px; border-radius: var(--r-control); background: var(--surface-3); color: var(--txt); display: flex; align-items: center; gap: var(--sp-2); padding: 0 var(--sp-4); font-family: var(--font-ui); white-space: nowrap; overflow: hidden; }
 .per-tramo b { font-weight: 700; font-size: var(--fs-sm); }
 .per-tramo span { font-weight: 500; font-size: var(--fs-xs); color: var(--txt-2); overflow: hidden; text-overflow: ellipsis; }
