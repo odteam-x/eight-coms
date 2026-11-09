@@ -229,3 +229,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   #tab-overview > #bv-slot { grid-area: bv; }
   #tab-overview > #ov-body { grid-area: body; }
 }
+
+/* 23. Tema claro: el hero y las tarjetas de persona son vidrio claro; la escala de niveles vuelve a su rampa de tema claro
+   (la de .sup-marca es para superficies navy: el cian de «Bueno» sobre vidrio blanco daba ~1.8:1) y el patrón se atenúa para no ensuciar el texto. */
+[data-theme="light"] .sup-marca {
+  --sex: #0079AE; --sbu: #0068C9; --spr: #00406B; --sba: #A81F23;
+  --sex-txt: #006B96; --sbu-txt: #005FB8; --spr-txt: #00406B; --sba-txt: #A81F23;
+}
+[data-theme="light"] .sup-marca::before { opacity: .14; }
