@@ -479,7 +479,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .escala-linea { background: var(--v-line); }
 .escala-relleno { background: var(--v-t); }
 .escala-paso { width: 40px; height: 40px; max-width: 40px; max-height: 40px; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--v-line); background: var(--v-solido); color: var(--v-t); font: 600 var(--fs-md)/1 var(--font-ui); box-shadow: none; }
-.escala-paso.pasado { background: var(--v-fill2); border-color: var(--v-line); }
+.escala-paso.pasado { background: color-mix(in srgb, var(--v-t) 24%, var(--v-solido)); border-color: transparent; }   /* opaco: la línea pasa por detrás, no a través */
 .escala-paso.on { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; transform: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--v-t) 18%, transparent); }
 .escala-paso:hover:not(:disabled) { border-color: var(--v-t); }
 
@@ -534,12 +534,20 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .rg-pan-cab { border-top: 0; font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--v-t2); padding-block: 4px 8px; }
 .rg-pan-pe b { display: block; font: 600 var(--fs-md)/1.1 var(--font-ui); }
 .rg-pan-pe small { color: var(--v-t2); font-size: var(--fs-xs); }
-.rg-pan-bar { position: relative; display: block; height: 28px; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 10%, transparent); overflow: hidden; }
-.rg-pan-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 32%, transparent); }
-.rg-pan-bar b { position: relative; z-index: 1; display: block; padding: 0 12px; font: 600 var(--fs-sm)/28px var(--font-ui); white-space: nowrap; }
+.rg-pan-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.rg-pan-pista { position: relative; display: block; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 12%, transparent); overflow: hidden; }
+.rg-pan-pista i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--rg-c, var(--data)); }
+.rg-pan-bar b { font: 600 var(--fs-sm)/1 var(--font-ui); white-space: nowrap; }   /* la cifra va fuera de la barra: su contraste no depende del color */
+.rg-pan-bar--pub { --rg-c: var(--data); } .rg-pan-bar--plazo { --rg-c: var(--etq-verde); }
+.rg-pan-bar--sex { --rg-c: var(--sex); } .rg-pan-bar--sbu { --rg-c: var(--sbu); } .rg-pan-bar--spr { --rg-c: var(--spr); } .rg-pan-bar--sba { --rg-c: var(--sba); }
 .rg-pan-na { font-size: var(--fs-sm); color: var(--v-t2); }
 @media (max-width: 767px) {
   .rg-pan-cab { display: none; }
   .rg-pan-fila { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 }
-@media print { .rg-pan-bar { border: 1px solid #999; } .rg-pan-bar i { background: #bbb; } }
+@media print { .rg-pan-pista { border: 1px solid #999; } }
+
+/* 45. El título recibe el foco por programa (tras cerrar un modal o una ficha) para que el teclado no se pierda; ese foco
+   no se dibuja (no es una acción del usuario). El nombre del equipo en su ficha: una línea a 1440. */
+h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
+.eq-detalle-t { font: 400 clamp(1.5rem, 1.1rem + 1.2vw, 2.1rem)/1.15 var(--font-display); letter-spacing: -.02em; }

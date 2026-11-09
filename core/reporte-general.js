@@ -337,10 +337,13 @@ const ReporteGeneral = (() => {
 
   /* Panorama PE a PE: las mismas cifras de la tabla (sin fórmula nueva), dibujadas como barras para leer de un vistazo
      qué PE va adelantado y cuál está atrasado. La rúbrica clásica se dibuja sobre su propia escala (/30) y lo dice. */
+  // El color del resultado es el de su nivel (mismas reglas que el resto del portal: v2 sobre 100, clásica sobre 30).
+  const nivelDe = (res, v2) => res == null ? 'pub' : v2 ? (typeof nivelV2 === 'function' ? nivelV2(res).key : 'pub')
+    : (typeof scoreClass === 'function' ? scoreClass(res) : 'pub');
   function panoramaHTML(rows) {
-    const barra = (v, max, txt, etq) => v == null
+    const barra = (v, max, txt, etq, tono = 'pub') => v == null
       ? `<span class="rg-pan-na">${escHtml(etq)}</span>`
-      : `<span class="rg-pan-bar" role="img" aria-label="${escHtml(txt)}"><i style="width:${Math.max(2, Math.min(100, v / max * 100)).toFixed(1)}%"></i><b>${escHtml(txt)}</b></span>`;
+      : `<span class="rg-pan-bar rg-pan-bar--${tono}" role="img" aria-label="${escHtml(txt)}"><span class="rg-pan-pista"><i style="width:${Math.max(2, Math.min(100, v / max * 100)).toFixed(1)}%"></i></span><b>${escHtml(txt)}</b></span>`;
     const filas = rows.map(r => {
       const part = num(r.participan), pub = num(r.eval_publicadas);
       const pPub = part ? pub / part * 100 : null;
@@ -350,8 +353,8 @@ const ReporteGeneral = (() => {
       return `<div class="rg-pan-fila" role="row">
         <span class="rg-pan-pe" role="rowheader"><b>${escHtml(r.periodo_nombre)}</b><small>${v2 ? 'por roles' : 'clásica'}</small></span>
         <span role="cell">${barra(pPub, 100, pPub == null ? '' : `${Math.round(pPub)} % publicadas`, part ? '' : 'nadie participa')}</span>
-        <span role="cell">${barra(pT, 100, pT == null ? '' : `${Math.round(pT)} % a tiempo`, r.tareas_aplican ? 'sin entregas con plazo' : 'no aplica')}</span>
-        <span role="cell">${barra(res, v2 ? 100 : 30, res == null ? '' : `${f1(res)} ${v2 ? '/100' : '/30'}`, 'sin resultados')}</span>
+        <span role="cell">${barra(pT, 100, pT == null ? '' : `${Math.round(pT)} % a tiempo`, r.tareas_aplican ? 'sin entregas con plazo' : 'no aplica', 'plazo')}</span>
+        <span role="cell">${barra(res, v2 ? 100 : 30, res == null ? '' : `${f1(res)} ${v2 ? '/100' : '/30'}`, 'sin resultados', nivelDe(res, v2))}</span>
       </div>`;
     }).join('');
     return `<div class="rg-pan" role="table" aria-label="Panorama PE a PE">
