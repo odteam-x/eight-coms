@@ -70,18 +70,9 @@ body::before {
 
 /* 5. Hero: vidrio con una forma de contraste recortada */
 .sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
-.sup-marca::before { display: none; }
+.sup-marca::before { opacity: .32; -webkit-mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); }
 .sup-marca::after { background: none; }
-.inicio-hero { position: relative; --rx: 0deg; --ry: 0deg; }
-.inicio-hero::after {
-  content: ""; position: absolute; inset: auto 30% -10px auto; left: auto; top: auto; width: 190px; height: 190px;
-  background: url("img/recursos/camara.svg") no-repeat center / contain; pointer-events: none;
-  filter: drop-shadow(0 18px 24px var(--v-sombra));
-  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .25s ease-out;
-  animation: recurso-flota 6s ease-in-out infinite;
-}
-@keyframes recurso-flota { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
-@media (prefers-reduced-motion: reduce) { .inicio-hero::after { animation: none; transition: none; } }
+.inicio-hero { position: relative; }
 .sup-marca .inicio-titulo, .sup-marca h1 { color: var(--v-t); font-weight: 300; letter-spacing: -.035em; text-transform: none; }
 .sup-marca .acento, .inicio-titulo .acento { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; color: var(--v-t); }
 
@@ -116,15 +107,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   .pf-card, .pf-kpi, .tarjeta, .kpi, .lista-aj, .sup-marca, .tk-card, .bottom-bar, .cab-movil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--v-solido); }
 }
 
-/* 10. Recursos ilustrados en estados vacíos (decorativos, sin texto encima) */
-.no-data-msg { position: relative; padding-right: 120px; min-height: 96px; background: url("img/recursos/portapapeles.svg") no-repeat right 18px center / 84px; }
 
-/* 11. Móvil: recurso más pequeño y al borde para no pisar la cuenta regresiva */
-@media (max-width: 767px) {
-  .inicio-hero::after { width: 96px; height: 96px; inset: auto 10px -6px auto; opacity: .9; }
-  .inicio-hero { padding-bottom: 28px; }
-  .no-data-msg { padding-right: 96px; background-size: 64px; background-position: right 12px center; }
-}
 
 /* 12. Rail: la marca no pisa el buscador; tarjetas de persona en vidrio */
 .rail .rail-marca { margin-bottom: 14px; }
