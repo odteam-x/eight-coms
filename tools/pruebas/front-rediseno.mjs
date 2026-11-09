@@ -450,7 +450,9 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
     ok(new RegExp('conRed\\(SB\\.auth\\.' + fn).test(lj), 'login.js: ' + fn + ' pasa por conRed (el botón se libera si la red falla)');
   const vc = fs.readFileSync(ROOT + 'vidrio.css', 'utf8');
   ok(/#tab-overview > #ov-atencion \{ grid-area: atn/.test(vc), 'Panel: «Requiere atención» ocupa la zona superior derecha en escritorio');
-  ok(/es-info/.test(lj) && /\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
+  const rj2 = fs.readFileSync(ROOT + 'core/render.js', 'utf8');
+  ok(/recuperarFoco/.test(rj2) && /getClientRects\(\)\.length/.test(rj2), 'modales: si la acción repinta la lista, el foco vuelve al título visible de la pantalla (no al primer h1, que puede estar oculto)');
+  ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);

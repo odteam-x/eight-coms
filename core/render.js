@@ -352,6 +352,19 @@ function closeModal(id) {
   // Devolver el foco a donde estaba antes de abrir.
   if (_focoPrevio?.isConnected) _focoPrevio.focus?.();
   _focoPrevio = null;
+  // Si la acción repintó la lista (aprobar, borrar…) el botón que abrió el modal ya no existe y el foco cae al <body>:
+  // quien navega con teclado perdería su sitio. Se deja en el título de la pantalla activa.
+  // El repintado puede llegar después de cerrar (la lista se pide otra vez): se comprueba dos veces.
+  const recuperarFoco = () => {
+    const a = document.activeElement;
+    if (a && a !== document.body && a.isConnected) return;
+    if (_modalAbierto) return;   // se abrió otro modal entretanto: él maneja el foco
+    // El primer h1 del documento puede estar oculto (no recibe foco): se toma el de la pantalla activa, y si no, el primero visible.
+    const h = document.querySelector('.atab-content.active h1, .tab-content.active h1')
+      || [...document.querySelectorAll('h1')].find(x => x.getClientRects().length);
+    if (h) { h.tabIndex = -1; h.focus?.({ preventScroll: true }); }
+  };
+  setTimeout(recuperarFoco, 600); setTimeout(recuperarFoco, 2000);
 }
 
 /* Escape cierra; Tab queda atrapado dentro del modal. */
