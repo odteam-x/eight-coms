@@ -741,3 +741,16 @@ button > svg, a > svg { flex: none; }
   #cuenta-host .cuenta-tabs .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); width: 100%; gap: 2px; padding: 6px; }
   #cuenta-host .cuenta-tabs .seg-btn { flex-direction: column; gap: 4px; min-height: 56px; padding: 6px 2px; justify-content: center; text-align: center; font-size: var(--fs-xs); }
 }
+
+/* 59. Superposición con el vidrio. movil.css (carga después) devolvía a la barra de avisos un fondo translúcido
+   (--surface-1) y las tarjetas se veían a través de los filtros. Todo lo que queda fijo sobre contenido que se desplaza
+   es opaco (--v-solido) en los dos temas; se gana por especificidad, no con !important. */
+.panel.panel--hoja .avisos-barra, .panel .avisos-barra { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0 0 20px 20px; padding: 6px 12px 10px; margin: 0 -12px 10px; box-shadow: 0 10px 14px -10px var(--v-sombra); z-index: 5; }
+.panel.panel--hoja .aviso-grupo-t, .panel .aviso-grupo-t { position: relative; z-index: 1; }
+.perfil--panel .perfil-barra, .perfil:not(.perfil--panel) .perfil-barra { background: var(--v-solido); }
+
+/* 60. Equipos: el nombre del grupo (equipo) es el título de la sección de tareas, no una nota al margen. */
+.eq-grupo { margin-top: var(--sp-6); gap: var(--sp-4); }
+.eq-grupo-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--v-line); }
+.eq-grupo-cab .pf-sub { font: 600 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
+.eq-grupo-cab .pf-sub::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--v-t); margin-right: 10px; vertical-align: 3px; }
