@@ -22,7 +22,8 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   const err = document.getElementById('li-err');
   err.textContent = 'Tu cuenta está pendiente de aprobación por el administrador. '
                   + 'Podrás entrar en cuanto la active.';
-  err.classList.add('visible');
+  err.classList.add('visible', 'es-info');   // es información sobre su cuenta, no un error de lo que escribió
+  err.setAttribute('role', 'status');
   // Limpia el parámetro para que no reaparezca al recargar.
   history.replaceState(null, '', location.pathname);
 })();

@@ -92,7 +92,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 7c. Login en vidrio */
 .login-layout { background: transparent !important; }
 .login-panel-brand { background: transparent !important; color: var(--v-t); }
-.login-panel-brand::before, .login-panel-brand::after { display: none !important; }
+.login-panel-brand::after { display: none !important; }
 .login-panel-form { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-radius: 36px; margin: 20px; color: var(--v-t); }
 .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
 
@@ -156,3 +156,53 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 19. Elementos fijos al desplazar: opacos (el vidrio translúcido dejaba ver el texto que pasa por debajo) */
 .v2-resumen, .tk-modal-acciones, .modal-x, .cab-movil, .bottom-bar { background: var(--v-solido); }
 .v2-resumen { border-top: 1px solid var(--v-line); color: var(--v-t); }
+
+/* 20. Acceso: titular ligero con acento serif, patrón de marca con degradado lateral, campos de vidrio.
+   login.css carga después de este archivo: los selectores llevan .login-layout para ganar sin !important. */
+.login-layout .login-hero-h1 { font-weight: 300; letter-spacing: -.035em; text-transform: none; color: var(--v-t); }
+.login-layout .login-hero-h1 em, .login-layout .login-form-title em { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; color: var(--v-t); }
+.login-layout .login-hero-h1 .login-hero-labs { color: var(--v-t); font-weight: 300; }
+.login-layout .login-form-title { font-weight: 300; letter-spacing: -.03em; }
+.login-layout .login-hero-tag { align-self: flex-start; padding: 6px 14px; border-radius: 99px; background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t2); }
+.login-layout .login-hero-desc, .login-layout .login-brand-foot { color: var(--v-t2); }
+.login-layout .login-panel-brand::before {
+  display: block; opacity: .34; background-size: 280px 280px;
+  -webkit-mask-image: linear-gradient(to right, #000 0%, rgba(0,0,0,.35) 55%, transparent 100%); mask-image: linear-gradient(to right, #000 0%, rgba(0,0,0,.35) 55%, transparent 100%);
+}
+.login-layout .login-panel-form { background: transparent; border: 0; }
+.login-layout .login-panel-form::before, .login-layout .login-panel-form::after { display: none; }
+.login-layout .login-seg { background: var(--v-fill); border: 1px solid var(--v-line); }
+.login-layout .login-seg::before { background: var(--v-activo); box-shadow: none; }
+.login-layout .login-seg-btn[aria-selected="true"] { color: var(--v-activo-txt); }
+.login-layout .field input { background: var(--v-fill2); border-color: var(--v-line); box-shadow: inset 0 1px 0 var(--v-hi); }
+.login-layout .field input:focus, .login-layout .field input:focus-visible { background: var(--v-fill); border-color: var(--v-t); box-shadow: 0 0 0 3px color-mix(in srgb, var(--v-t) 22%, transparent); }
+.login-layout .field input[aria-invalid="true"] { border-color: var(--alert); }
+.login-layout .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+.login-layout .login-aux a, .login-layout .login-link a { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+/* «Cuenta pendiente» es información sobre la cuenta, no un error de lo que escribió */
+.login-layout .login-err.es-info { color: var(--v-t); background: var(--v-fill2); border-color: var(--v-line); }
+.login-layout .login-err.es-info::before { content: 'i'; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--v-activo); color: var(--v-activo-txt); font: 600 .8rem/1 var(--font-ui); vertical-align: 1px; }
+.login-layout .login-panel-brand::before { opacity: .24; }
+@media (min-width: 760px) { .login-layout .login-seg { width: 100%; max-width: 420px; } .login-layout .login-seg-btn { min-width: 0; } }
+/* Tema claro: la malla bajo el panel de marca es azul medio; el texto navy no llega a 4.5:1. El panel pasa a columna azul propia (igual que el menú) con texto claro */
+[data-theme="light"] .login-layout .login-panel-brand {
+  background: linear-gradient(160deg, var(--v-1), color-mix(in srgb, var(--v-1) 72%, var(--v-2))) !important;
+  --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-line: rgba(255,255,255,.26);
+}
+[data-theme="light"] .login-layout .login-panel-brand::before { opacity: .22; }
+@media (min-width: 760px) { [data-theme="light"] .login-layout .login-panel-brand { margin: 20px 0 20px 20px; border-radius: 36px; } }
+/* Acceso en celular: la banda lleva solo isotipo y nombre en una línea; el enlace de recuperación queda junto a su etiqueta */
+.login-layout #pane-login .field-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.login-layout #pane-login .field-row label { margin-bottom: 0; }
+.login-layout .field-link { display: inline-flex; align-items: center; min-height: 44px; margin-block: -6px; padding-inline: 4px; }
+.login-layout + .derechos--login { color: var(--v-t2); }
+@media (max-width: 759px) { .login-layout + .derechos--login { background: var(--v-solido); } }
+@media (max-width: 759px) {
+  .login-layout .login-hero-tag { display: none; }
+  .login-layout .login-hero-h1 { white-space: nowrap; font-size: clamp(1.25rem, 6vw, 1.7rem); }
+}
+
+/* 21. Modales: selector de puntos y campos con el mismo lenguaje (vidrio; elegido = píldora inversa) */
+.tk-punto span { background: var(--v-fill); border-color: var(--v-line); font-weight: 400; }
+.tk-punto input:checked + span { background: var(--v-activo); color: var(--v-activo-txt); font-weight: 600; }
+.tk-punto:hover span { border-color: var(--v-t); }

@@ -209,6 +209,8 @@ const Notif = (() => {
         <div><b>${vacio[1]}</b><p>${vacio[2]}</p></div></div>` + (_hayMas ? '<button type="button" class="btn-ghost avisos-mas" data-act="avisosMas">Ver avisos anteriores</button>' : '');
       renderIconos(host); return;
     }
+    const _cuenta = {};   // cuántos avisos hay en cada grupo de día (el número junto al título del grupo)
+    for (const a of lista) { const g = _grupo(a.creada); _cuenta[g] = (_cuenta[g] || 0) + 1; }
     let html = barra, actual = '';
     for (const a of lista) {
       const g = _grupo(a.creada);

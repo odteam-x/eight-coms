@@ -434,5 +434,13 @@ console.log('\n[avatar y tarjeta de persona]');
   ok((pj.match(/class="pcard[^"]*sup-marca pat-\$\{Fondo\.clase\(p\)\}/g) || []).length >= 3, 'tarjeta de persona: el fondo personalizado (pat-N) va en el contenedor de la tarjeta');
 }
 
+console.log('\n[avisos: el panel pinta sus grupos por día]');
+{
+  const nj = fs.readFileSync(ROOT + 'core/notificaciones.js', 'utf8');
+  // Una variable usada sin declarar rompe _pintarPanel y el panel se queda en «Cargando…» sin mensaje (pasó con el conteo por grupo).
+  ok(!/_cuenta\[/.test(nj) || /(const|let) _cuenta\b/.test(nj), 'avisos: _cuenta se declara antes de usarse en _pintarPanel');
+  ok(/avisos-grupo-n/.test(nj), 'avisos: cada grupo de día muestra cuántos avisos trae');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);
