@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Claqueta">
+<defs>
+<linearGradient id="qb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B5FC0"/><stop offset="1" stop-color="#031B45"/></linearGradient>
+<linearGradient id="qa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A7E8FF"/><stop offset="1" stop-color="#5BB4F5"/></linearGradient>
+<radialGradient id="qs" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#031B45" stop-opacity=".35"/><stop offset="1" stop-color="#031B45" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="100" cy="178" rx="66" ry="10" fill="url(#qs)"/>
+<rect x="28" y="84" width="144" height="86" rx="20" fill="url(#qb)"/>
+<rect x="44" y="104" width="60" height="8" rx="4" fill="#fff" opacity=".7"/>
+<rect x="44" y="120" width="96" height="8" rx="4" fill="#fff" opacity=".35"/>
+<rect x="44" y="136" width="76" height="8" rx="4" fill="#fff" opacity=".35"/>
+<circle cx="146" cy="108" r="9" fill="#FF6063"/>
+<g transform="rotate(-12 34 84)"><rect x="28" y="48" width="144" height="32" rx="14" fill="url(#qa)"/>
+<g fill="#031B45" opacity=".85"><path d="M52 48h18l-14 32H38z"/><path d="M88 48h18L92 80H74z"/><path d="M124 48h18l-14 32h-18z"/></g>
+<rect x="34" y="52" width="130" height="6" rx="3" fill="#fff" opacity=".4"/></g>
+<circle cx="34" cy="84" r="6" fill="#FF6063"/>
+</svg>

@@ -23,7 +23,7 @@ let FAKE = fs.readFileSync(process.argv[4] || path.join(AQUI, 'fake-supabase-cli
 // Extensiones del simulador (ui/fake-extra-*.js): cada una añade RPC sin tocar el archivo principal.
 for (const f of fs.readdirSync(AQUI).filter(n => /^fake-extra-.*\.js$/.test(n)).sort()) FAKE += '\n' + fs.readFileSync(path.join(AQUI, f), 'utf8');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.png': 'image/png', '.webp': 'image/webp', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);

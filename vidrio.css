@@ -1,0 +1,119 @@
+/* vidrio.css — identidad «vidrio sobre malla» (propuesta en demo). Carga después de derechos.css y antes de movil.css.
+   Redefine los tokens de superficie y texto; los componentes existentes los heredan. Ningún hex fuera de :root. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Source+Serif+4:ital,wght@1,400&display=swap');
+
+:root {
+  --v-1:#031B45; --v-2:#0A3A82; --v-3:#16427F; --v-4:#183C74;
+  --v-brillo:rgba(0,203,255,.15); --v-calido:rgba(255,96,99,.10);
+  --v-fill:rgba(255,255,255,.09); --v-fill2:rgba(255,255,255,.13); --v-line:rgba(255,255,255,.22); --v-hi:rgba(255,255,255,.20);
+  --v-sombra:rgba(3,27,69,.28); --v-solido:#0B2A5C; --v-blur:24px;
+  --v-t:#F3F8FF; --v-t2:#E9F0FA; --v-tm:#E3ECF8;
+  --v-activo:#FFFFFF; --v-activo-txt:#031B45;
+  --v-coral:#FF6063; --v-navy:#031B45;
+}
+[data-theme="light"] {
+  --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
+  --v-brillo:rgba(0,203,255,.16); --v-calido:rgba(255,138,140,.20);
+  --v-fill:rgba(255,255,255,.58); --v-fill2:rgba(255,255,255,.76); --v-line:rgba(255,255,255,.75); --v-hi:#FFFFFF;
+  --v-sombra:rgba(27,73,168,.16); --v-solido:#EAF1FA;
+  --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
+  --v-activo:#031B45; --v-activo-txt:#FFFFFF;
+}
+
+/* 1. Tokens del sitio → vidrio */
+:root, [data-theme="light"] {
+  --bg: var(--v-1);
+  --surface-1: var(--v-fill); --surface-2: var(--v-fill2); --surface-3: var(--v-fill2);
+  --trazo: var(--v-line);
+  --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm);
+  --font-display: 'Barlow', system-ui, sans-serif;
+  --shadow-sm: 0 1px 0 var(--v-hi) inset; --shadow-md: 0 18px 48px var(--v-sombra); --shadow-lg: 0 24px 60px var(--v-sombra);
+  --r-card: 28px; --r-cont: 32px; --r-modal: 36px; --r-hero: 40px;
+}
+
+/* 2. Malla asimétrica: fija detrás de todo (sin animación) */
+html { background: var(--v-1); }
+body { background: transparent; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 58% at 94% 6%, var(--v-calido) 0%, transparent 68%),
+    radial-gradient(ellipse 26% 18% at 58% 104%, var(--v-brillo) 0%, transparent 70%),
+    linear-gradient(118deg, var(--v-1) 0%, var(--v-2) 34%, var(--v-3) 62%, var(--v-4) 100%);
+}
+.luz::before, .luz::after, #contenido::before, #contenido::after, .amain::before, .amain::after { display: none !important; }
+
+/* 3. Menú lateral integrado: texto sobre la malla, activo en píldora sólida */
+.rail { background: transparent !important; box-shadow: none; border-right: 1px solid var(--v-line); color: #fff; }
+.rail::before, .rail::after { display: none !important; }
+.rail .rail-item { color: rgba(255,255,255,.86); border-radius: 16px; }
+.rail .rail-item:hover { background: rgba(255,255,255,.10); color: #fff; }
+.rail .rail-item.active { background: #fff; color: var(--v-navy); box-shadow: 0 8px 22px var(--v-sombra); font-weight: 600; }
+.rail .rail-item.active::before { display: none; }
+.rail .rail-logo { width: 44px; height: 44px; filter: none; }
+.rail .rail-buscar { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 99px; color: #fff; }
+.rail-prox { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 24px; }
+.bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
+
+/* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
+.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2, .cal2-panel, .seg-tabla, .v2-kpi, .eq-card, .aud-fila {
+  background: var(--v-fill); border: 1px solid var(--v-line);
+  -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
+  border-radius: 28px; color: var(--v-t);
+}
+.pf-card--cian, .pf-card--azul { background: var(--v-fill2); }
+.modal-box, .tk-box, .panel, .sheet { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); }
+
+/* 5. Hero: vidrio con una forma de contraste recortada */
+.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
+.sup-marca::before { display: none; }
+.sup-marca::after { background: none; }
+.inicio-hero { position: relative; --rx: 0deg; --ry: 0deg; }
+.inicio-hero::after {
+  content: ""; position: absolute; inset: auto 30% -10px auto; left: auto; top: auto; width: 190px; height: 190px;
+  background: url("img/recursos/camara.svg") no-repeat center / contain; pointer-events: none;
+  filter: drop-shadow(0 18px 24px var(--v-sombra));
+  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .25s ease-out;
+  animation: recurso-flota 6s ease-in-out infinite;
+}
+@keyframes recurso-flota { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+@media (prefers-reduced-motion: reduce) { .inicio-hero::after { animation: none; transition: none; } }
+.sup-marca .inicio-titulo, .sup-marca h1 { color: var(--v-t); font-weight: 300; letter-spacing: -.035em; text-transform: none; }
+.sup-marca .acento, .inicio-titulo .acento { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; color: var(--v-t); }
+
+/* 6. Tipografía ligera */
+h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-transform: none; }
+.anillo-num, .pf-kpi-val, .num, .inicio-dias { font-weight: 300; }
+.pf-h, .pf-sub { font-weight: 500; text-transform: none; letter-spacing: -.01em; }
+
+/* 7. Botones: primario sólido inverso; crear en coral */
+.btn-save, .tk-btn--main, .btn-login, .btn--primario { background: var(--v-activo); color: var(--v-activo-txt); border: 0; box-shadow: none; }
+.btn--crear, .btn-nueva { background: var(--v-coral); color: var(--v-navy); }
+.btn-ghost, .btn--secundario, .btn-out { background: transparent; border: 1px solid var(--v-line); color: var(--v-t); }
+
+/* 7b. Logo visible: el isotipo es de trazo fino coral; sobre un disco claro se lee en cualquier malla */
+.rail-logo, .cab-movil-logo, .logo-img { background: #fff; border-radius: 50%; padding: 3px; box-sizing: content-box; box-shadow: 0 6px 18px var(--v-sombra); }
+
+/* 7c. Login en vidrio */
+.login-layout { background: transparent !important; }
+.login-panel-brand { background: transparent !important; color: var(--v-t); }
+.login-panel-brand::before, .login-panel-brand::after { display: none !important; }
+.login-panel-form { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-radius: 36px; margin: 20px; color: var(--v-t); }
+.btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+
+/* 8. Niveles: vidrio con punto */
+.nivel-badge { background: var(--v-fill2); color: var(--v-t); border: 1px solid var(--v-line); box-shadow: inset 0 1px 0 var(--v-hi); }
+
+/* 9. Segmentado */
+.seg { background: var(--v-fill); border: 1px solid var(--v-line); }
+.seg-btn[aria-selected="true"], .seg-btn.active { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .pf-card, .pf-kpi, .tarjeta, .kpi, .lista-aj, .sup-marca, .tk-card, .bottom-bar, .cab-movil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--v-solido); }
+}
+
+/* 10. Recursos ilustrados en estados vacíos (decorativos, sin texto encima) */
+.pf-vacio { position: relative; padding-right: 120px; background-repeat: no-repeat; background-position: right 18px center; background-size: 84px; background-image: url("img/recursos/portapapeles.svg"); }
+.pf-vacio, .pf-vacio * { color: var(--v-t2); }

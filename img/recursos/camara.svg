@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Cámara">
+<defs>
+<linearGradient id="cb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5BA8FF"/><stop offset="1" stop-color="#0A4DB5"/></linearGradient>
+<linearGradient id="ct" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CC4FF"/><stop offset="1" stop-color="#2F7AE0"/></linearGradient>
+<linearGradient id="cr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF9FF"/><stop offset="1" stop-color="#7FB8F2"/></linearGradient>
+<radialGradient id="cl" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#6FE3FF"/><stop offset=".45" stop-color="#1B5FD0"/><stop offset="1" stop-color="#031B45"/></radialGradient>
+<radialGradient id="cs" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#031B45" stop-opacity=".35"/><stop offset="1" stop-color="#031B45" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="100" cy="176" rx="70" ry="11" fill="url(#cs)"/>
+<rect x="62" y="40" width="58" height="34" rx="13" fill="url(#ct)"/>
+<rect x="24" y="60" width="152" height="100" rx="26" fill="url(#cb)"/>
+<path d="M150 60h4a22 22 0 0 1 22 22v56a22 22 0 0 1-22 22h-14z" fill="#031B45" opacity=".14"/>
+<rect x="34" y="68" width="132" height="10" rx="5" fill="#fff" opacity=".28"/>
+<circle cx="146" cy="52" r="9" fill="#FF6063"/><ellipse cx="143" cy="49" rx="4" ry="2.4" fill="#fff" opacity=".55"/>
+<rect x="36" y="86" width="22" height="12" rx="6" fill="#031B45" opacity=".22"/>
+<circle cx="100" cy="112" r="46" fill="url(#cr)"/>
+<circle cx="100" cy="112" r="38" fill="#031B45" opacity=".9"/>
+<circle cx="100" cy="112" r="31" fill="url(#cl)"/>
+<circle cx="100" cy="112" r="31" fill="none" stroke="#FF6063" stroke-width="2.5" opacity=".9"/>
+<ellipse cx="88" cy="99" rx="13" ry="7" transform="rotate(-35 88 99)" fill="#fff" opacity=".5"/>
+<circle cx="114" cy="126" r="4" fill="#fff" opacity=".35"/>
+</svg>

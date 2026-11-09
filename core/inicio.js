@@ -46,7 +46,7 @@ const Inicio = (() => {
   function _heroHTML(persona, periodo, proximo) {
     const estado = periodo ? estadoPeriodo(periodo) : null;
     return `
-      <section class="inicio-hero sup-marca pat-${typeof Fondo !== 'undefined' ? Fondo.clase(persona) : _patron(persona.id)}" data-persona="${escHtml(persona.id)}" aria-labelledby="inicio-titulo">
+      <section data-recurso class="inicio-hero sup-marca pat-${typeof Fondo !== 'undefined' ? Fondo.clase(persona) : _patron(persona.id)}" data-persona="${escHtml(persona.id)}" aria-labelledby="inicio-titulo">
         <div class="inicio-saludo">
           ${periodo ? `<span class="tag-marca">${escHtml(estado?.label || 'Período')} · ${escHtml(periodo.pe)}</span>` : ''}
           <h1 class="inicio-titulo" id="inicio-titulo">Hola, <span class="acento">${escHtml(_primerNombre(persona.nombre) || 'bienvenido')}</span></h1>
