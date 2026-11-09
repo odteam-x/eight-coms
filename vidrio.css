@@ -6,7 +6,7 @@
   --v-1:#031B45; --v-2:#0A3A82; --v-3:#16427F; --v-4:#183C74;
   --v-brillo:rgba(0,203,255,.15); --v-calido:rgba(255,96,99,.10);
   --v-fill:rgba(255,255,255,.09); --v-fill2:rgba(255,255,255,.13); --v-line:rgba(255,255,255,.22); --v-hi:rgba(255,255,255,.20);
-  --v-sombra:rgba(3,27,69,.28); --v-solido:#0B2A5C; --v-blur:24px;
+  --v-sombra:rgba(3,27,69,.28); --v-p2:34%; --v-p3:62%; --v-solido:#0B2A5C; --v-blur:24px;
   --v-t:#F3F8FF; --v-t2:#E9F0FA; --v-tm:#E3ECF8;
   --v-activo:#FFFFFF; --v-activo-txt:#031B45;
   --v-coral:#FF6063; --v-navy:#031B45;
@@ -15,7 +15,7 @@
   --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
   --v-brillo:rgba(0,203,255,.16); --v-calido:rgba(255,138,140,.20);
   --v-fill:rgba(255,255,255,.58); --v-fill2:rgba(255,255,255,.76); --v-line:rgba(255,255,255,.75); --v-hi:#FFFFFF;
-  --v-sombra:rgba(27,73,168,.16); --v-solido:#EAF1FA;
+  --v-sombra:rgba(27,73,168,.16); --v-p2:14%; --v-p3:44%; --v-solido:#EAF1FA;
   --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
   --v-activo:#031B45; --v-activo-txt:#FFFFFF;
 }
@@ -40,7 +40,7 @@ body::before {
     radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
     radial-gradient(ellipse 38% 58% at 94% 6%, var(--v-calido) 0%, transparent 68%),
     radial-gradient(ellipse 26% 18% at 58% 104%, var(--v-brillo) 0%, transparent 70%),
-    linear-gradient(118deg, var(--v-1) 0%, var(--v-2) 34%, var(--v-3) 62%, var(--v-4) 100%);
+    linear-gradient(118deg, var(--v-1) 0%, var(--v-2) var(--v-p2), var(--v-3) var(--v-p3), var(--v-4) 100%);
 }
 .luz::before, .luz::after, #contenido::before, #contenido::after, .amain::before, .amain::after { display: none !important; }
 
@@ -125,3 +125,17 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   .inicio-hero { padding-bottom: 28px; }
   .no-data-msg { padding-right: 96px; background-size: 64px; background-position: right 12px center; }
 }
+
+/* 12. Rail: la marca no pisa el buscador; tarjetas de persona en vidrio */
+.rail .rail-marca { margin-bottom: 14px; }
+.rail .rail-buscar { margin-top: 10px; }
+.pcard, .pcard.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); }
+.pcard .pcard-nombre, .pcard b { color: var(--v-t); }
+
+/* 13. Tema claro: el menú es una columna azul propia (la malla ya es clara bajo el contenido) */
+[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-1), color-mix(in srgb, var(--v-1) 75%, var(--v-2))) !important; border-right: 0; }
+
+/* 14. Tema claro: el hero es vidrio claro, su texto pasa a navy (los tokens de «sobre marca» eran claros) */
+[data-theme="light"] .sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); }
+[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-1); }
+[data-theme="light"] .inicio-sub, [data-theme="light"] .inicio-dias-lbl, [data-theme="light"] .inicio-dias-pe { color: var(--v-t2); }
