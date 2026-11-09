@@ -88,11 +88,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       { titulo:'Operaciones', items: [
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar', fav: true },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
+        { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+        { tab:'banco',    icono:'image',            etiqueta:'Banco', titulo:'Banco de imágenes' },
       ]},
       { titulo:'Organización', items: [
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
-        { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
       ]},
       { items: [
@@ -2571,6 +2572,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();
+  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: true, roles: _roles || [], personas: _users.map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }

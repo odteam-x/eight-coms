@@ -69,6 +69,10 @@
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
     calendario: [], config: [], periodo_participantes: [{ periodo_id: P.pe3, user_id: U.m5, activo: false }], trabajos_entregados: [],
+    banco_imagenes: new URLSearchParams(location.search).get('banco') === '0' ? undefined : [
+      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre · escenario', descripcion: 'Fotos del escenario y el público, 24 de octubre.', enlace: 'https://drive.google.com/drive/folders/ejemplo-1', evento: 'Jornada de cierre', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', created_at: '2026-11-05T15:00:00Z', updated_at: '2026-11-05T15:00:00Z' },
+      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: '', enlace: 'https://www.dropbox.com/sh/ejemplo-2', evento: 'Taller de fotografía', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000002', created_at: '2026-11-07T15:00:00Z', updated_at: '2026-11-07T15:00:00Z' },
+    ],
     etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
       { id: 1, gestion_id: 1, titulo: 'Jornada de cierre', descripcion: 'Presentación de resultados del período.', etiqueta_id: 2, fecha_inicio: dia(18), fecha_fin: dia(19), distrito: null, alcance: 'equipo', creada_por: U.admin },
@@ -257,6 +261,7 @@
             const ok = del.filter(c => { if (criterioUsado(c.key)) throw new Error('El criterio ' + c.key + ' esta en uso: solo se puede desactivar.'); return true; });
             ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok;
           }
+          else if (this.t === 'banco_imagenes') { const ok = del.filter(r => esAdmin() || r.creado_por === meId); ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok; }
           else { del.forEach(r => rows.splice(rows.indexOf(r), 1)); out = del; }
         } else {
           out = visibles(this.t, rows).filter(r => this.fs.every(f => f(r)));
@@ -294,6 +299,14 @@
         const slug = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'criterio';
         if (!p.key) { let b = slug(p.nombre), k = b, n = 1; while (rows.some(r => r.key === k)) k = b + '_' + (++n); p.key = k; }
         Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, r.id), 0) + 1, orden: p.orden || rows.reduce((m, r) => Math.max(m, r.orden), 0) + 1, created_by: meId, created_at: ahora() });
+        rows.push(p); return p;
+      }
+      if (this.t === 'banco_imagenes') {
+        if (!/^https?:\/\/[^\s]+$/i.test(String(p.enlace || ''))) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_enlace_check"');
+        if (String(p.titulo || '').trim().length < 3) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_titulo_check"');
+        const yo = me();
+        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, gestion_id: p.gestion_id ?? 1, creado_por: meId, rol_id: yo?.rol_id ?? null, distrito: yo?.distrito ?? null,
+          descripcion: p.descripcion || '', evento: p.evento || '', created_at: ahora(), updated_at: ahora() });
         rows.push(p); return p;
       }
       if (this.t === 'actividades' || this.t === 'etiquetas') {
@@ -369,6 +382,12 @@
         Object.assign(r, this.pl); return r;
       }
       if (this.t === 'tareas') { const n = validarTarea(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
+      if (this.t === 'banco_imagenes') {
+        if (!esAdmin() && r.creado_por !== meId) return r;   // RLS: 0 filas afectadas, sin error
+        const n = { ...this.pl }; delete n.creado_por; delete n.rol_id; delete n.distrito; delete n.gestion_id;
+        if (n.enlace != null && !/^https?:\/\/[^\s]+$/i.test(String(n.enlace))) throw new Error('violates check constraint "banco_imagenes_enlace_check"');
+        Object.assign(r, n, { updated_at: ahora() }); return r;
+      }
       if (this.t === 'actividades' && !esAdmin() && !(esSec() && r.distrito === me().distrito)) throw new Error('row-level security');
       Object.assign(r, this.pl); return r;
     }

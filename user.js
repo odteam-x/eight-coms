@@ -134,6 +134,7 @@ async function initUI() {
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
         { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
         { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
+        { tab:'banco',    icono:'image',       etiqueta:'Banco', titulo:'Banco de imágenes' },
       ]}],
     });
     // montarAvatar() de core/render.js: pinta la foto si la hay, las
@@ -260,7 +261,7 @@ function renderCalendario() {
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
 const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil' };
-const _userTabParent = { inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
+const _userTabParent = { banco:'banco', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -275,6 +276,7 @@ function switchTab(tab, btn) {
   }
 
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
+  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: false });
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });

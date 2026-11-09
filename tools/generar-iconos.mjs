@@ -19,7 +19,7 @@ const MAPA = {
   'message-square':'chat-1','lock':'lock','pencil':'pencil','check':'check','search':'search','more-horizontal':'more','layers':'stack',
   'history':'history','file-text':'file-text','sparkles':'sparkling','command':'command','target':'focus-3','flag':'flag','link':'link',
   'external-link':'external-link','copy':'file-copy','check-circle':'checkbox-circle','bell':'notification-3','info':'information',
-  'filter':'filter-3','refresh':'refresh','upload':'upload-2','download':'download-2',
+  'filter':'filter-3','refresh':'refresh','upload':'upload-2','download':'download-2','image':'image',
   // nuevos (rediseño)
   'medal-gold':'medal-2','medal':'medal','crown':'vip-crown','pie-chart':'pie-chart-2','radar':'radar','funnel':'filter-3','label':'price-tag-3',
   'grid-heat':'grid','id-card':'profile','graduation':'graduation-cap','swap':'arrow-left-right','drag':'draggable','calendar-range':'calendar-2',

@@ -222,6 +222,7 @@ async function initUI() {
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
+          { tab:'banco',    icono:'image',       etiqueta:'Banco', titulo:'Banco de imágenes' },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
@@ -666,7 +667,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
+const _secTabParent = { banco:'banco', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -686,6 +687,7 @@ function switchTab(tab, btn) {
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
+  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: false });
   if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {

@@ -400,6 +400,8 @@ function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap =
   // Antes había que pulsar «Volver» primero; el menú cambiaba la pestaña de debajo sin que se viera.
   // Al abrir una sección se empieza desde arriba, no donde se dejó la anterior (el scroll es del documento y, en la ficha, de su cuerpo).
   window.scrollTo(0, 0); document.querySelectorAll('.amain, #contenido, .panel-cuerpo').forEach(e => { e.scrollTop = 0; });
+  // El destino activo del menú siempre queda a la vista (la lista del menú desplaza y el activo podía quedar recortado abajo).
+  setTimeout(() => { const ac = document.querySelector('.rail .rail-item.active'); if (ac && ac.scrollIntoView) ac.scrollIntoView({ block: 'nearest' }); }, 60);
   const ficha = document.getElementById('panel-lateral');
   if (ficha && ficha.style.display !== 'none' && ficha.classList.contains('panel-overlay--pantalla')) closeModal('panel-lateral');
   document.querySelectorAll(contentSelector).forEach(t => {

@@ -679,3 +679,29 @@ button > svg, a > svg { flex: none; }
   .perfil-nombre { grid-column: 2; grid-row: 1; margin: 0; }
   .perfil-chips, .perfil-email, .perfil-acciones { grid-column: 1 / -1; }
 }
+
+/* 56. El resumen fijo de la evaluación va SIEMPRE por encima de la escala que pasa por debajo (los pasos tenían z-index propio y se
+   dibujaban encima del resumen al desplazar): la escala crea su propio contexto de apilamiento y el resumen tiene capa mayor. */
+.escala, .escala-barra { isolation: isolate; }
+.v2-resumen { position: sticky; z-index: 6; }
+
+/* 57. Banco de imágenes (core/banco.js): lista de filas de vidrio con icono, título, descripción, evento y rol; acciones a la derecha
+   (en celular debajo). Sin cajas dentro de cajas: las filas se separan con filetes. */
+.bco-filtros { margin-bottom: 12px; }
+.bco-cuenta { margin: 0 0 8px; font-size: var(--fs-xs); color: var(--v-t2); }
+.bco-lista { padding: 4px 0; }
+.bco-fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--v-line); }
+.bco-lista > .bco-fila:first-child { border-top: 0; }
+.bco-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--v-fill2); border: 1px solid var(--v-line); color: var(--v-t); }
+.bco-ico svg { width: 22px; height: 22px; }
+.bco-t { font: 600 var(--fs-md)/1.25 var(--font-ui); overflow-wrap: anywhere; }
+.bco-d { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--v-t2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bco-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.bco-peq { font-size: var(--fs-xs); color: var(--v-t2); }
+.bco-acc { display: flex; align-items: center; gap: 6px; }
+.bco-abrir { text-decoration: none; }
+.bco-vacio { display: grid; justify-items: start; gap: 12px; }
+@media (max-width: 767px) {
+  .bco-fila { grid-template-columns: auto minmax(0, 1fr); padding: 14px 14px; }
+  .bco-acc { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
+}
