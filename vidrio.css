@@ -152,3 +152,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   #cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: var(--sp-6); }
 }
 .cuenta-un-col .cfg-hint { order: 0; }
+
+/* 19. Elementos fijos al desplazar: opacos (el vidrio translúcido dejaba ver el texto que pasa por debajo) */
+.v2-resumen, .tk-modal-acciones, .modal-x, .cab-movil, .bottom-bar { background: var(--v-solido); }
+.v2-resumen { border-top: 1px solid var(--v-line); color: var(--v-t); }
