@@ -26,8 +26,7 @@
 .perfil-id-txt { min-width: 0; }
 
 .perfil-av {   /* el aro de la cabecera de perfil: un modificador de .avatar (shared.css), que pone tamaño, foto y predeterminado */
-  --av: 96px; padding: 0; border: 4px solid var(--cyan-400);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cyan-400) 18%, transparent);
+  --av: 96px; padding: 0; border: 3px solid color-mix(in srgb, var(--on-brand) 45%, transparent);   /* sin halo cian: regla «patrones prohibidos» */
 }
 .perfil-av--editable { cursor: pointer; padding: 0; }
 .perfil-av-cam {

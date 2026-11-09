@@ -24,7 +24,7 @@
   font-family: var(--font-display); font-weight: 700; line-height: .8;
   font-size: clamp(5.5rem, 14vw, 10rem); color: var(--cyan-200);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 40px rgba(0,203,255,.55);
+  text-shadow: none;
 
 }
 .inicio-dias-lbl { font-family: var(--font-ui); font-size: var(--fs-sm); line-height: 1.35; color: var(--on-brand-2); max-width: 16ch; }

@@ -93,7 +93,7 @@
   color: var(--action-on);
   background:linear-gradient(135deg, var(--action), var(--action));
   border-color:transparent;
-  box-shadow:0 0 16px color-mix(in srgb, var(--marca) 30%, transparent), 0 0 32px color-mix(in srgb, var(--action) 18%, transparent);
+  box-shadow:none;
 }
 
 /* ── MEMBER DETAIL ── */
@@ -213,7 +213,7 @@
   width: 42px; text-align: right; flex-shrink: 0;
   color: var(--txt-muted);
 }
-.dist-rk-pos-admin.gold   { color: var(--medalla-oro); text-shadow: 0 0 12px color-mix(in srgb, var(--spr) 50%, transparent); }
+.dist-rk-pos-admin.gold   { color: var(--medalla-oro); text-shadow: none; }
 .dist-rk-pos-admin.silver { color: var(--medalla-plata); }
 .dist-rk-pos-admin.bronze { color: var(--medalla-bronce); }
 
@@ -399,7 +399,7 @@
   background: var(--action-fill);
   border-radius: var(--r-full);
   transition: all .2s;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--action) 22%, transparent);
+  box-shadow: none;
 }
 .btn-add-evento:hover { }
 
@@ -412,7 +412,7 @@
   font-size:.8rem; font-weight: 700;
   letter-spacing: .01em;
   color: var(--action-on); transition: all .2s;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--sex) 22%, transparent);
+  box-shadow: none;
 }
 .btn-save-cal:hover { }
 .btn-save-cal.hidden { display: none !important; }
@@ -591,7 +591,7 @@
   color: var(--action-on);
   background: var(--action-fill);
   border-color: transparent;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--action) 28%, transparent);
+  box-shadow: none;
 }
 
 .cfg-subtabs {
@@ -1048,7 +1048,7 @@ option {
 .eval-ucard--active {
   background:color-mix(in srgb, var(--action) 8%, var(--surface-1));
   border-color:var(--action);
-  box-shadow:0 0 12px color-mix(in srgb, var(--marca) 10%, transparent);
+  box-shadow:none;
 }
 .eval-ucard-rank { width:26px; text-align:center; font-size:1.1rem; flex-shrink:0; }
 .eval-ucard-info { flex:1; min-width:0; }
@@ -1135,7 +1135,7 @@ option {
 .score-btn.active {
   color:var(--sc, var(--criterio)); border-color:var(--sc, var(--criterio));
   background:color-mix(in srgb, var(--sc, var(--criterio)) 15%, transparent);
-  box-shadow:0 0 10px color-mix(in srgb, var(--sc, var(--criterio)) 40%, transparent);
+  box-shadow:none;
 }
 .score-btn:disabled { opacity:.45; cursor:not-allowed; }
 
@@ -1194,9 +1194,9 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 .btn-draft:hover { color:var(--txt); border-color:var(--border-hi); background:var(--hover-subtle); }
 .btn-publish {
   background:var(--action-fill) !important;
-  box-shadow:0 0 16px color-mix(in srgb, var(--sex) 25%, transparent) !important;
+  box-shadow:none !important;
 }
-.btn-publish:hover { box-shadow:0 0 24px color-mix(in srgb, var(--sex) 40%, transparent) !important; }
+.btn-publish:hover { box-shadow:none !important; }
 
 .eval-pub-notice {
   margin-top:20px; padding:12px 16px;
@@ -1216,7 +1216,7 @@ textarea.eval-com-inp { resize:vertical; min-height:72px; line-height:1.5; }
 .eval-pub-dot {
   width:7px; height:7px; border-radius: 50%;
   background:var(--sex);
-  box-shadow:0 0 6px color-mix(in srgb, var(--sex) 60%, transparent);
+  box-shadow:none;
   flex-shrink:0;
   animation:dotPulse 1.8s ease-in-out infinite;
 }

@@ -533,7 +533,7 @@ body.gestion-archivada [aria-disabled="true"] {
   border-top:2px solid var(--muted); border-left:2px solid var(--muted);
 }
 .back-top.visible { opacity:1; pointer-events:auto; transform:translateY(0); }
-.back-top:hover { border-color:var(--cyan); box-shadow:0 0 16px color-mix(in srgb, var(--data) 20%, transparent); }
+.back-top:hover { border-color:var(--cyan); box-shadow:none; }
 .back-top:hover::after { border-color:var(--cyan); }
 
 /* ── SCORE BADGES ── */
@@ -544,10 +544,10 @@ body.gestion-archivada [aria-disabled="true"] {
   transition:transform .2s, box-shadow .2s;
 }
 .sbadge:hover { }
-.sbadge.sex { color:var(--sex); box-shadow:0 0 12px color-mix(in srgb, var(--sex) 25%, transparent); }
-.sbadge.sbu { color:var(--sbu); box-shadow:0 0 12px color-mix(in srgb, var(--action) 25%, transparent); }
-.sbadge.spr { color:var(--spr); box-shadow:0 0 12px color-mix(in srgb, var(--spr) 25%, transparent); }
-.sbadge.sba { color:var(--sba); box-shadow:0 0 12px color-mix(in srgb, var(--marca) 25%, transparent); }
+.sbadge.sex { color:var(--sex); box-shadow:none; }
+.sbadge.sbu { color:var(--sbu); box-shadow:none; }
+.sbadge.spr { color:var(--spr); box-shadow:none; }
+.sbadge.sba { color:var(--sba); box-shadow:none; }
 
 .cdot {
   display:inline-flex; align-items:center; justify-content:center;

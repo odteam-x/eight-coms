@@ -456,6 +456,9 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   const hojas = fs.readdirSync(ROOT).filter(f => f.endsWith('.css'));
   const barras = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/border-(left|right)\s*:\s*[3-9]\d*(\.\d+)?px\s+solid|inset\s+-?[3-9]\d*px\s+0\s+0/g) || []).map(m => f + ': ' + m));
   ok(!barras.length, `estilos: sin barras de acento en un borde${barras.length ? ' (' + barras.join('; ') + ')' : ''}`);
+  // …ni halos de color difuminados («0 0 16px color»). Los anillos de foco «0 0 0 3px» sí se permiten.
+  const halos = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:box|text)-shadow\s*:[^;]*?(?:^|[:,]\s*)0(?:px)?\s+0(?:px)?\s+[1-9]\d*px\s+(?:color-mix|rgba?|var|#)[^;]*/gm) || []).map(m => f + ': ' + m.slice(0, 60)));
+  ok(!halos.length, `estilos: sin halos de neón${halos.length ? ' (' + halos.join('; ') + ')' : ''}`);
   ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }

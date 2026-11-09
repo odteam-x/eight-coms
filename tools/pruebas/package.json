@@ -14,6 +14,7 @@
     "todo:encadenado": "npm run sql && npm run cadena && npm run correo && npm run front && npm run rg"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.10"
+    "@electric-sql/pglite": "^0.5.10",
+    "playwright-core": "^1.49.1"
   }
 }

@@ -26,3 +26,4 @@ node_modules/
 
 # Manuales privados generados (se publican en la base, no en el sitio)
 .manuales-privados/
+docs/evidencias/rediseno-nov-2026/**/*.jpg

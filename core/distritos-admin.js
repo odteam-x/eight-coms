@@ -135,7 +135,7 @@ const DistritosAdmin = (() => {
     const d = A.distritos.find(x => x.id === id) || { id, nombre: id };
     const D = datos(), foco = focoDe(D);
     A.panel = { id, tab, peId: peId || foco?.id || null };
-    const cuerpo = abrirPanel({ titulo: d.nombre, subtitulo: subPanel(id, D) });
+    const cuerpo = abrirPanel({ titulo: d.nombre, subtitulo: subPanel(id, D), pantalla: true });
     pintarPanel(true);
   }
 

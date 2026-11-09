@@ -763,7 +763,7 @@ const Perfil = (() => {
   async function abrir(personaId) {
     const persona = await _cfg.resolver?.(personaId);
     if (!persona) { showToast('No se encontró a esa persona.', 'error'); return; }
-    const cuerpo = abrirPanel({ titulo: 'Perfil', subtitulo: persona.nombre || '' });
+    const cuerpo = abrirPanel({ titulo: 'Perfil', subtitulo: '', pantalla: true });
     await montar({ el: cuerpo, persona, modo: _cfg.modo, panel: true, periodoId: _cfg.periodoId?.() ?? null });
     renderIconos(cuerpo);
   }
