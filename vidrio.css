@@ -425,6 +425,8 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 
 /* 35. Menú lateral: si su contenido no cabe, desplaza; nunca encoge piezas (la etiqueta ADMIN se montaba sobre el buscador). */
 .rail > * { flex-shrink: 0; }
+.rail > .rail-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; }   /* la lista de destinos es la que desplaza: marca, buscador y pie (persona y acciones) siempre visibles */
+@media (max-height: 820px) { .rail-prox { display: none; } }   /* en ventanas bajas «Próxima fecha» cede su sitio (está en Inicio y en el Panel) */
 /* Roles y perfiles: sin cajas blancas dentro de la tarjeta de vidrio; el perfil y los desplegables son secciones con filete. */
 .rol-perfil, .rol-card .v2-det, .rol-card details { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; padding-left: 0; padding-right: 0; }
 
@@ -460,3 +462,84 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
   .kpi-c { grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "num" "sub" "bar"; row-gap: 4px; }
   .kpi-c-num { font-size: 1.9rem; }
 }
+
+/* 40. Selección y escalas, un solo lenguaje:
+   · Puesto 1–3: disco macizo del metal con el número (navy en oscuro, blanco en claro, donde los metales son oscuros).
+   · Chips de elección (PE incluidos, filtros de distritos): elegido = píldora inversa, no un aro.
+   · Escala 1–5: pasos circulares de 40 px sobre una línea fina; el elegido es la píldora inversa, los anteriores tintados. */
+.medalla { width: 30px; height: 30px; background: var(--medalla-tono); box-shadow: none; }
+.medalla b { color: var(--v-navy); font-weight: 700; }
+[data-theme="light"] .medalla b { color: #fff; }   /* en claro los metales son oscuros (#8A6300, #5A6275, #8A4E18): blanco ≥ 5:1 */
+.dc-chip { background: transparent; border-color: var(--v-line); color: var(--v-t2); }
+.dc-chip:hover:not(:disabled) { background: var(--v-fill2); color: var(--v-t); }
+.dc-chip--on, .dc-chip[aria-pressed="true"] { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; }
+.escala { --d: 40px; }
+.escala-barra { min-height: 48px; }
+.escala-linea, .escala-relleno { height: 4px; margin-top: -2px; }
+.escala-linea { background: var(--v-line); }
+.escala-relleno { background: var(--v-t); }
+.escala-paso { width: 40px; height: 40px; max-width: 40px; max-height: 40px; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--v-line); background: var(--v-solido); color: var(--v-t); font: 600 var(--fs-md)/1 var(--font-ui); box-shadow: none; }
+.escala-paso.pasado { background: var(--v-fill2); border-color: var(--v-line); }
+.escala-paso.on { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; transform: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--v-t) 18%, transparent); }
+.escala-paso:hover:not(:disabled) { border-color: var(--v-t); }
+
+/* 41. Perfil a pantalla completa: la cabecera vuelve a dos columnas (identidad + resultado) en vez de apilar el resultado
+   debajo con un gran hueco; el patrón se atenúa; la barra de período + pestañas es una franja de vidrio en una sola fila
+   (antes una banda azul sólida donde PE1/PE3 apenas se leían). */
+.panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px 32px; padding: 24px 28px; }
+.panel--pantalla .perfil--panel .perfil-cab.sup-marca::before { opacity: .14; }
+.panel--pantalla .perfil-nombre { font-size: clamp(2rem, 1.4rem + 1.6vw, 2.8rem); }
+.perfil--panel .perfil-barra { background: var(--v-solido); border: 1px solid var(--v-line); border-radius: 24px; padding: 8px 12px; margin-top: 16px; color: var(--v-t); }
+.perfil--panel .perfil-barra .pb { color: var(--v-t2); }
+.perfil--panel .perfil-barra .pb.active { color: var(--v-t); }
+@media (min-width: 1024px) {
+  .panel--pantalla .perfil-barra { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+  .panel--pantalla .perfil-barra .perfil-pe { flex: 0 1 auto; }
+}
+@media (max-width: 767px) { .panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr); } }
+
+/* 42. Tarjetas de persona con color: cada una toma un tono de la paleta de categorías según su fondo (pat-N, el que
+   la persona eligió en Mi cuenta), como un velo diagonal sobre el vidrio. El texto sigue sobre vidrio (el tono no pasa
+   del 26 % en la esquina y se desvanece), así que su contraste no cambia; el avatar lleva el tono pleno. */
+.pat-0 { --tono: var(--etq-azul); } .pat-1 { --tono: var(--etq-cian); } .pat-2 { --tono: var(--etq-violeta); }
+.pat-3 { --tono: var(--etq-coral); } .pat-4 { --tono: var(--etq-verde); } .pat-5 { --tono: var(--etq-ambar); } .pat-6 { --tono: var(--etq-azul); }
+.pcard.sup-marca, .pcard--mini.sup-marca {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tono, var(--etq-azul)) 26%, transparent) 0%, transparent 62%), var(--v-fill);
+}
+.pcard.sup-marca .avatar, .pcard--mini.sup-marca .avatar { background: color-mix(in srgb, var(--tono, var(--etq-azul)) 55%, var(--v-navy)); color: #fff; box-shadow: none; }
+.pcard.sup-marca::before { opacity: .12; }
+
+/* 43. Equipos: la cabecera del detalle alinea al centro «Volver», el título con su estado y las acciones (antes cada
+   bloque arrancaba arriba a una altura distinta). Las reglas plegables muestran que se despliegan (chevron que gira). */
+.eq-detalle-cab { align-items: center; }
+.eq-detalle-t { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0; }
+.eq-detalle-cab .eq-card-sub { margin: 4px 0 0; }
+.eq-detalle-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.ev-reglas-sum { position: relative; padding-right: 40px; }
+.ev-reglas-sum::after { content: ''; position: absolute; right: 8px; top: 50%; width: 10px; height: 10px; margin-top: -7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .2s var(--ease); opacity: .8; }
+.ev-reglas[open] > .ev-reglas-sum::after { transform: rotate(-135deg); margin-top: -2px; }
+@media (prefers-reduced-motion: reduce) { .ev-reglas-sum::after { transition: none; } }
+
+/* 44. Reportes: en pantalla la hoja usa todo el ancho (la impresión mantiene su formato), las cifras son una franja
+   (sección 25) y el «Panorama PE a PE» dibuja las mismas cifras de la tabla como barras. */
+@media screen {
+  .rg-hoja { max-width: none; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; color: var(--v-t); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: none; }
+  .rg-hoja .rpt-hoja-t h2 { font-weight: 300; letter-spacing: -.03em; }
+  .rg-hoja .rpt-sec-t { font-weight: 500; text-transform: none; }
+  .rg-hoja .kpi-num { font-weight: 300; }
+  .rg-hoja .kpi-sub { color: var(--v-t2); }
+}
+.rg-pan { display: grid; gap: 0; }
+.rg-pan-fila { display: grid; grid-template-columns: minmax(120px, .7fr) repeat(3, minmax(0, 1fr)); align-items: center; gap: 16px; padding: 12px 4px; border-top: 1px solid var(--v-line); }
+.rg-pan-cab { border-top: 0; font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--v-t2); padding-block: 4px 8px; }
+.rg-pan-pe b { display: block; font: 600 var(--fs-md)/1.1 var(--font-ui); }
+.rg-pan-pe small { color: var(--v-t2); font-size: var(--fs-xs); }
+.rg-pan-bar { position: relative; display: block; height: 28px; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 10%, transparent); overflow: hidden; }
+.rg-pan-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 32%, transparent); }
+.rg-pan-bar b { position: relative; z-index: 1; display: block; padding: 0 12px; font: 600 var(--fs-sm)/28px var(--font-ui); white-space: nowrap; }
+.rg-pan-na { font-size: var(--fs-sm); color: var(--v-t2); }
+@media (max-width: 767px) {
+  .rg-pan-cab { display: none; }
+  .rg-pan-fila { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+}
+@media print { .rg-pan-bar { border: 1px solid #999; } .rg-pan-bar i { background: #bbb; } }

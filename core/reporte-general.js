@@ -335,6 +335,30 @@ const ReporteGeneral = (() => {
     <tr class="rg-det no-print" id="rg-det-${i}" data-det="${escHtml(r.periodo_id)}"${abierto ? '' : ' hidden'}><td colspan="7">${abierto ? detalleHTML(r) : ''}</td></tr>`;
   }
 
+  /* Panorama PE a PE: las mismas cifras de la tabla (sin fórmula nueva), dibujadas como barras para leer de un vistazo
+     qué PE va adelantado y cuál está atrasado. La rúbrica clásica se dibuja sobre su propia escala (/30) y lo dice. */
+  function panoramaHTML(rows) {
+    const barra = (v, max, txt, etq) => v == null
+      ? `<span class="rg-pan-na">${escHtml(etq)}</span>`
+      : `<span class="rg-pan-bar" role="img" aria-label="${escHtml(txt)}"><i style="width:${Math.max(2, Math.min(100, v / max * 100)).toFixed(1)}%"></i><b>${escHtml(txt)}</b></span>`;
+    const filas = rows.map(r => {
+      const part = num(r.participan), pub = num(r.eval_publicadas);
+      const pPub = part ? pub / part * 100 : null;
+      const pT = r.tareas_aplican && U.conPlazo(r) ? U.aTiempo(r) / U.conPlazo(r) * 100 : null;
+      const res = num(r.n_resultados) ? num(r.suma_resultado) / num(r.n_resultados) : null;
+      const v2 = esV2(r);
+      return `<div class="rg-pan-fila" role="row">
+        <span class="rg-pan-pe" role="rowheader"><b>${escHtml(r.periodo_nombre)}</b><small>${v2 ? 'por roles' : 'clásica'}</small></span>
+        <span role="cell">${barra(pPub, 100, pPub == null ? '' : `${Math.round(pPub)} % publicadas`, part ? '' : 'nadie participa')}</span>
+        <span role="cell">${barra(pT, 100, pT == null ? '' : `${Math.round(pT)} % a tiempo`, r.tareas_aplican ? 'sin entregas con plazo' : 'no aplica')}</span>
+        <span role="cell">${barra(res, v2 ? 100 : 30, res == null ? '' : `${f1(res)} ${v2 ? '/100' : '/30'}`, 'sin resultados')}</span>
+      </div>`;
+    }).join('');
+    return `<div class="rg-pan" role="table" aria-label="Panorama PE a PE">
+      <div class="rg-pan-fila rg-pan-cab" role="row"><span role="columnheader">PE</span><span role="columnheader">Evaluaciones publicadas</span><span role="columnheader">Entregas a tiempo</span><span role="columnheader">Resultado promedio</span></div>
+      ${filas}</div>`;
+  }
+
   function mini(titulo, col, filas, vacio) {
     if (!filas.length) return `<div class="rg-mini"><h4>${escHtml(titulo)}</h4><p class="cfg-hint">${escHtml(vacio)}</p></div>`;
     return `<div class="rg-mini"><h4>${escHtml(titulo)}</h4><table class="rg-mini-t"><thead><tr><th scope="col">${escHtml(col)}</th><th scope="col">Personas</th><th scope="col">Participan</th><th scope="col">Publicadas</th></tr></thead><tbody>
@@ -397,6 +421,10 @@ const ReporteGeneral = (() => {
           <div class="rpt-hoja-f"><span>Datos al</span><b>${escHtml(fechaHora(S.cargadoEn))}</b></div>
         </header>
         ${kpisHTML(c, completo)}
+        <section class="rpt-sec">
+          <h3 class="rpt-sec-t">Panorama PE a PE</h3>
+          ${panoramaHTML(vistos)}
+        </section>
         <section class="rpt-sec">
           <h3 class="rpt-sec-t">Comparación entre PE</h3>
           <p class="rpt-sec-d">Cada fila es un PE. Ábrela para ver de dónde sale cada cifra. Los PE sin datos también aparecen.</p>

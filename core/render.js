@@ -396,6 +396,10 @@ document.addEventListener('keydown', e => {
  * de pestaña→padre y sus hooks de carga.
  */
 function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap = {} } = {}) {
+  // Una ficha a pantalla completa (perfil, distrito) abierta encima: ir a otra sección desde el menú la cierra.
+  // Antes había que pulsar «Volver» primero; el menú cambiaba la pestaña de debajo sin que se viera.
+  const ficha = document.getElementById('panel-lateral');
+  if (ficha && ficha.style.display !== 'none' && ficha.classList.contains('panel-overlay--pantalla')) closeModal('panel-lateral');
   document.querySelectorAll(contentSelector).forEach(t => {
     t.classList.remove('active');
     // El panel oculto sale del árbol de accesibilidad; si no, un lector de

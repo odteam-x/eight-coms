@@ -459,6 +459,9 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   // …ni halos de color difuminados («0 0 16px color»). Los anillos de foco «0 0 0 3px» sí se permiten.
   const halos = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:box|text)-shadow\s*:\s*(?:[^;]*,\s*)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*px\s+(?:color-mix|rgba?|var|#)[^;]*/g) || []).map(m => f + ': ' + m.slice(0, 60)));
   ok(!halos.length, `estilos: sin halos de neón${halos.length ? ' (' + halos.join('; ') + ')' : ''}`);
+  ok(/function switchTabCore[\s\S]{0,400}panel-overlay--pantalla[\s\S]{0,80}closeModal\('panel-lateral'\)/.test(rj2), 'navegación: ir a otra sección desde el menú cierra la ficha a pantalla completa');
+  ok(/\.rail > \.rail-nav \{ flex: 1 1 auto; min-height: 0; overflow-y: auto; \}/.test(vc), 'menú lateral: la lista de destinos desplaza (marca, buscador y pie siempre visibles)');
+  ok(/function panoramaHTML/.test(fs.readFileSync(ROOT + 'core/reporte-general.js', 'utf8')), 'reportes: panorama PE a PE con barras');
   ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
