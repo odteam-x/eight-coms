@@ -321,7 +321,7 @@ const Desempeno = (() => {
   function seccionIndividual(rs, est, lista) {
     if (!lista.length) return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-ind"><h2 class="pf-h" id="des-h-ind">Cada persona</h2>${vacio('Nadie coincide con los filtros.')}</section>`;
     return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-ind">
-      <h2 class="pf-h" id="des-h-ind">Cada persona <small>${escHtml(etiquetaPrincipal())} · toca una tarjeta para ver su detalle</small></h2>
+      <h2 class="pf-h" id="des-h-ind">Resultado por persona <small>${escHtml(etiquetaPrincipal())} · toca una tarjeta para ver su detalle</small></h2>
       <ul class="des-cards">${lista.map(p => tarjetaPersona(p, est)).join('')}</ul>
     </section>
     <div id="des-det">${detallePersona(rs, est)}</div>`;
@@ -370,7 +370,12 @@ const Desempeno = (() => {
   function cuerpoPersonas(elegidas, est) {
     const chips = elegidas.length ? `<div class="chip-row des-chips">${elegidas.map((p, i) => `<span class="des-chip des-chip--${i}">${escHtml(p.nombre)}<button type="button" class="btn--icono" data-act="des" data-arg="quitar" data-arg2="${escHtml(p.id)}" aria-label="Quitar a ${escHtml(p.nombre)}"><i data-lucide="x" aria-hidden="true"></i></button></span>`).join('')}
       <button type="button" class="btn--texto" data-act="des" data-arg="limpiar">Quitar todas</button></div>` : '';
-    if (!elegidas.length) return '<p class="pf-vacio">Marca a las personas que quieras comparar en la lista.</p>';
+    // Estado vacío con referencia: dice qué hacer y qué se verá, en el espacio donde aparecerá el gráfico.
+    if (!elegidas.length) return `<div class="des-ref" role="status">
+        <i data-lucide="users" aria-hidden="true"></i>
+        <b>Selecciona una persona para ver su estadística</b>
+        <p>Marca hasta ${MAX_PERSONAS} personas en la lista: aquí verás su evolución período a período, una línea por persona.</p>
+      </div>`;
     if (!est.length) return `${chips}<p class="pf-vacio">Elige al menos un período.</p>`;
     const alt = elegidas.map(p => `${p.nombre}: ${est.map(e => `${e.p.nombre} ${fmt(valor(p.porPer.get(e.p.id)))}`).join(', ')}`).join('. ') + '.';
     const filasT = elegidas.map(p => {
@@ -430,15 +435,18 @@ const Desempeno = (() => {
     const lista = listaPersonas(rs, est);
     if (!lista.some(p => p.id === S.sel)) S.sel = lista[0]?.id || null;
     cuerpo.innerHTML = `${fuera ? `<p class="des-nota">${fuera} evaluación${fuera === 1 ? '' : 'es'} sin publicar no ${fuera === 1 ? 'entra' : 'entran'} en estas cifras: solo cuentan los resultados publicados.</p>` : ''}
-      <h2 class="des-grupo-t">Desempeño individual</h2>
-      ${seccionIndividual(rs, est, lista)}
-      ${seccionPersonas(rs, est)}
-      ${seccionComparar(rs)}
-      ${seccionTodas(rs, est)}
       <h2 class="des-grupo-t">Desempeño del equipo por período</h2>
       ${seccionKpisAdmin(rs, est)}
       ${seccionEvolucion(est)}
       ${seccionPorRol(rs, est)}
+      <h2 class="des-grupo-t">Comparar</h2>
+      ${seccionComparar(rs)}
+      ${seccionPersonas(rs, est)}
+      <h2 class="des-grupo-t">Cada persona</h2>
+      ${typeof acordeonHTML === 'function'
+        ? acordeonHTML({ id: 'des-personas', titulo: `Personas (${lista.length})`, resumen: `${escHtml(etiquetaPrincipal())}. El desempeño del equipo va primero; el detalle de cada persona, aquí.`, abierto: false, cuerpo: seccionIndividual(rs, est, lista) })
+        : seccionIndividual(rs, est, lista)}
+      ${seccionTodas(rs, est)}
       <details class="seg-como"><summary>¿Cómo se calcula?</summary><ul class="rol-lista">
         <li><b>Fuente</b>: los mismos resultados del Seguimiento y del perfil de cada persona; aquí no se recalcula nada.</li>
         <li><b>Promedio del equipo</b>: media simple de los resultados publicados del período, una vez por persona.</li>

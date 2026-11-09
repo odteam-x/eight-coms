@@ -222,11 +222,12 @@ async function initUI() {
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
+          { tab:'banco',    icono:'image',       etiqueta:'Banco', titulo:'Banco de imágenes' },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
           { tab:'tareas',   icono:'list-checks', etiqueta:'Tareas',   fav: true },
-          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño del distrito' },
+          { tab:'desempeno-distrito', icono:'bar-chart-2', etiqueta:'Desempeño', titulo:'Desempeño del distrito' },
           { tab:'seguimiento', icono:'trending-up', etiqueta:'Seguimiento' },
           { tab:'reportes', icono:'file-bar-chart', etiqueta:'Reportes' },
         ]}] : []),
@@ -427,7 +428,7 @@ function renderRankingDistritos() {
   const bannerHtml = myDist ? `
     <div class="dist-rank-banner">
       <div class="dist-rank-banner-label">Mi posición en el ranking — ${escHtml(pe)}</div>
-      <div class="dist-rank-banner-pos ${rc}">#${myPos}</div>
+      <div class="dist-rank-banner-pos ${rc}">${myPos <= 3 ? medallaHTML(myPos) : '#' + myPos}</div>
       <div class="dist-rank-banner-sub">de ${districts.length} distritos · ${myDist.total} pts</div>
     </div>` : `
     <div class="dist-rank-banner dist-rank-banner--warn">
@@ -451,7 +452,7 @@ function renderRankingDistritos() {
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
         <div class="dist-rk-head">
-          <div class="dist-rk-pos ${posRc}">#${pos}</div>
+          <div class="dist-rk-pos ${posRc}">${pos <= 3 ? medallaHTML(pos) : '#' + pos}</div>
           <div class="dist-rk-info">
             <div class="dist-rk-name">${escHtml(d.distrito)} <span class="dm-you-tag">Mi distrito</span></div>
             <div class="dist-rk-sub">Puntaje total del período</div>
@@ -466,7 +467,7 @@ function renderRankingDistritos() {
     }
     return `<div class="dist-rk-card dist-rk-card--locked">
       <div class="dist-rk-head">
-        <div class="dist-rk-pos ${posRc}">#${pos}</div>
+        <div class="dist-rk-pos ${posRc}">${pos <= 3 ? medallaHTML(pos) : '#' + pos}</div>
         <div class="dist-rk-info">
           <div class="dist-rk-name dist-rk-blur">Distrito confidencial</div>
           <div class="dist-rk-sub dist-rk-blur">·· pts</div>
@@ -666,7 +667,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil',
 };
-const _secTabParent = { inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
+const _secTabParent = { banco:'banco', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -686,6 +687,7 @@ function switchTab(tab, btn) {
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
+  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: false });
   if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {

@@ -73,7 +73,7 @@ const Calendario = (() => {
       const ini = deIso(x.fecha_inicio), fin = deIso(x.fecha_fin || x.fecha_inicio);
       for (let d = new Date(ini); d <= fin && d - ini < 1000 * 3600 * 24 * 120; d.setDate(d.getDate() + 1)) {
         eventos.push({ fecha: iso(d), tipo: 'actividad', cls: 'act', tono: tonoDe(x.etiqueta_id), etiquetaId: x.etiqueta_id ?? null,
-          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.alcance === 'seleccion' ? 'Personas elegidas' : x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito });
+          icono: 'calendar-days', titulo: x.titulo, sub: x.fecha_fin && x.fecha_fin !== x.fecha_inicio ? `${fechaCorta(x.fecha_inicio)} – ${fechaCorta(x.fecha_fin)}` : (x.alcance === 'seleccion' ? 'Personas elegidas' : x.distrito ? 'Mi distrito' : 'Todo el equipo'), actId: x.id, distrito: x.distrito, ini: x.fecha_inicio, fin: x.fecha_fin || x.fecha_inicio });
       }
     }
     S.eventos = eventos;
@@ -97,6 +97,21 @@ const Calendario = (() => {
       : !S.ocultas.has(String(e.etiquetaId ?? 'none')));
   }
 
+  /* Lo que dura varios días se dibuja como una línea continua que cruza las celdas (inicio y fin redondeados); lo de un día, como punto. */
+  const _multi = e => e.ini && e.fin && String(e.ini).slice(0, 10) !== String(e.fin).slice(0, 10);
+  function puntosDelDia(lista, f) {
+    const uno = lista.filter(e => !_multi(e));
+    return uno.slice(0, 4).map(e => `<i class="cal2-punto cal2-punto--${e.cls}"${e.tono ? ` style="--etq:var(--etq-${e.tono})"` : ''}></i>`).join('') + (uno.length > 4 ? `<b>+${uno.length - 4}</b>` : '');
+  }
+  function barrasDelDia(lista, f) {
+    const barras = lista.filter(_multi).slice(0, 2);
+    if (!barras.length) return '';
+    return `<span class="cal2-barras" aria-hidden="true">${barras.map(e => {
+      const ini = String(e.ini).slice(0, 10) === f, fin = String(e.fin).slice(0, 10) === f;
+      return `<i class="cal2-barra${ini ? ' cal2-barra--ini' : ''}${fin ? ' cal2-barra--fin' : ''}" style="--etq:var(--etq-${e.tono || 'gris'})"></i>`;
+    }).join('')}</span>`;
+  }
+
   function _html() {
     const evs = _filtrados();
     const porDia = new Map();
@@ -107,12 +122,14 @@ const Calendario = (() => {
       const lista = porDia.get(f) || [];
       const pe = periodoDe(f);
       const primeroPe = pe && pe.inicio === f;
-      return `<button type="button" class="cal2-dia${fuera ? ' cal2-dia--fuera' : ''}${f === hoy ? ' cal2-dia--hoy' : ''}${f === S.dia ? ' cal2-dia--sel' : ''}${pe ? ' cal2-dia--pe' : ''}"
+      const ultimoPe = pe && (pe.jornada || pe.entrega || pe.finTrabajo || pe.inicio) === f;   // extremos de la franja del período
+      return `<button type="button" class="cal2-dia${fuera ? ' cal2-dia--fuera' : ''}${f === hoy ? ' cal2-dia--hoy' : ''}${f === S.dia ? ' cal2-dia--sel' : ''}${pe ? ' cal2-dia--pe' : ''}${primeroPe ? ' cal2-dia--pe-ini' : ''}${ultimoPe ? ' cal2-dia--pe-fin' : ''}"
           data-act="calDia" data-arg="${f}" aria-label="${escHtml(`${d.getDate()} de ${MESES[d.getMonth()]}${lista.length ? ', ' + lista.length + ' evento' + (lista.length === 1 ? '' : 's') : ''}`)}"
           aria-pressed="${f === S.dia}">
         <span class="cal2-num">${d.getDate()}</span>
         ${primeroPe ? `<span class="cal2-pe">${escHtml(pe.pe)}</span>` : ''}
-        <span class="cal2-puntos">${lista.slice(0, 4).map(e => `<i class="cal2-punto cal2-punto--${e.cls}"${e.tono ? ` style="--etq:var(--etq-${e.tono})"` : ''}></i>`).join('')}${lista.length > 4 ? `<b>+${lista.length - 4}</b>` : ''}</span>
+        <span class="cal2-puntos">${puntosDelDia(lista, f)}</span>
+        ${barrasDelDia(lista, f)}
       </button>`;
     }).join('');
 

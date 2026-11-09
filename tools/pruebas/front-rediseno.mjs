@@ -111,7 +111,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   for (const p of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
     const t = fs.readFileSync(ROOT + p, 'utf8');
     ok(/rel="manifest"/.test(t) && /rel="apple-touch-icon" sizes="180x180" href="icono-180\.png"/.test(t) && /apple-mobile-web-app-capable/.test(t) && /name="mobile-web-app-capable"/.test(t), p + ': manifest + meta de iOS y Android para añadir a inicio');
-    ok(/<script src="core\/pwa\.js"><\/script>/.test(t), p + ': carga core/pwa.js');
+    ok(/<script defer src="core\/pwa\.js"><\/script>/.test(t), p + ': carga core/pwa.js');
   }
   ok(/instalarApp:\s*\(\)\s*=>\s*Pwa\.instalar/.test(fs.readFileSync(ROOT + 'config.js', 'utf8')), 'config.js: acción instalarApp registrada');
   ok(/id="cuenta-instalar"[^>]*data-act="instalarApp"/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')), 'Mi cuenta: fila «Instalar en tu celular»');
@@ -126,7 +126,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
     ok(/href="movil\.css" media="\(max-width: 767px\)"/.test(t), p + ': movil.css solo se aplica por debajo de 768 px (escritorio intacto)');
   }
   for (const p of ['user.html', 'secretario.html', 'admin.html']) {
-    ok(/<script src="core\/notificaciones\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/notificaciones.js');
+    ok(/<script defer src="core\/notificaciones\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/notificaciones.js');
   }
   const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
   for (const a of ['abrirAvisos', 'avisoIr', 'avisosFiltro', 'avisosTodas', 'avisosMas', 'puntosPaso', 'cuentaDesdeHoja']) ok(new RegExp('\\b' + a + ':\\s').test(cfg), 'config.js: acción ' + a + ' registrada');
@@ -221,7 +221,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   const fh = fs.readFileSync(ROOT + 'core/fondo.js', 'utf8');
   ok(/role="radiogroup"/.test(fh) && /role="radio"/.test(fh) && /aria-checked/.test(fh), 'Fondo: grupo de radios accesible');
   ok(/updateMiFondo/.test(fs.readFileSync(ROOT + 'api.js', 'utf8')) && /fondoElegir:\s*\(arg\)\s*=>\s*Fondo\.elegir/.test(fs.readFileSync(ROOT + 'config.js', 'utf8')), 'api.js y config.js: updateMiFondo y la acción fondoElegir');
-  for (const p of ['user.html', 'secretario.html', 'admin.html']) ok(/<script src="core\/fondo\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/fondo.js');
+  for (const p of ['user.html', 'secretario.html', 'admin.html']) ok(/<script defer src="core\/fondo\.js"><\/script>/.test(fs.readFileSync(ROOT + p, 'utf8')), p + ': carga core/fondo.js');
   ok(/pat-\$\{typeof Fondo !== 'undefined' \? Fondo\.clase\(persona\)/.test(fs.readFileSync(ROOT + 'core/inicio.js', 'utf8')) && /Fondo\.clase\(p\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'Inicio y Mi perfil pintan el fondo elegido');
   const m30 = fs.readFileSync(ROOT + 'supabase/migrations/0030_fondo_perfil.sql', 'utf8');
   ok(/fondo IS NULL OR fondo BETWEEN 1 AND 7/.test(m30), 'migración 0030: solo 1–7 o NULL');
@@ -259,7 +259,7 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   };
   for (const [p, scripts] of Object.entries(portales)) {
     const h = fs.readFileSync(ROOT + p, 'utf8');
-    for (const s of scripts) ok(h.includes(`<script src="core/${s}.js"></script>`), `${p}: carga core/${s}.js`);
+    for (const s of scripts) ok(h.includes(`<script defer src="core/${s}.js"></script>`), `${p}: carga core/${s}.js`);
     ok(/premium\.css[\s\S]*evolucion\.css[\s\S]*movil\.css/.test(h), p + ': evolucion.css va después de premium.css y antes de movil.css');
   }
   ok(/id="tab-seguimiento"/.test(fs.readFileSync(ROOT + 'admin.html', 'utf8')) && /id="tab-seguimiento"/.test(fs.readFileSync(ROOT + 'secretario.html', 'utf8')) && /id="tab-reportes"/.test(fs.readFileSync(ROOT + 'secretario.html', 'utf8')), 'pestañas Seguimiento (admin y secretaría) y Reportes (secretaría)');
@@ -388,7 +388,7 @@ console.log('\n[PE en el perfil]');
   const cfg = fs.readFileSync(ROOT + 'config.js', 'utf8');
   ok(/perfilPeriodo:\s*\(a, el\) => Perfil\.verPeriodo/.test(cfg), 'PE: «Ver detalle» tiene su acción en ACCIONES');
   for (const f of ['user.html', 'secretario.html', 'admin.html'])
-    ok(fs.readFileSync(ROOT + f, 'utf8').includes('<script src="core/perfil-pe.js"></script>'), f + ': carga core/perfil-pe.js');
+    ok(fs.readFileSync(ROOT + f, 'utf8').includes('<script defer src="core/perfil-pe.js"></script>'), f + ': carga core/perfil-pe.js');
   ok(/k: 'periodos'/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'PE: el perfil tiene la pestaña Períodos');
 }
 
@@ -422,7 +422,7 @@ console.log('\n[avatar y tarjeta de persona]');
   const lj = fs.readFileSync(ROOT + 'core/avatar.js', 'utf8');
   ok(/addEventListener\('error'[\s\S]*true\)/.test(lj) && !/onerror\s*=/.test(lj.replace(/onerror\?=/g, '').replace(/[^\n]*\/\*[\s\S]*?\*\//g, '')), 'avatar: la foto rota se atiende con un listener delegado en captura, no con onerror inline');
   for (const f of ['user.html', 'secretario.html', 'admin.html'])
-    ok(fs.readFileSync(ROOT + f, 'utf8').includes('<script src="core/avatar.js"></script>'), f + ': carga core/avatar.js');
+    ok(fs.readFileSync(ROOT + f, 'utf8').includes('<script defer src="core/avatar.js"></script>'), f + ': carga core/avatar.js');
   // Ninguna pantalla resuelve la foto por su cuenta
   for (const f of ['core/perfil.js', 'core/personas.js', 'core/cuenta.js', 'core/render.js', 'core/selector.js', 'core/asignar.js', 'admin.js'])
     ok(!/<img src="\$\{escHtml\((p|_p|u)\.avatar_url\)\}/.test(fs.readFileSync(ROOT + f, 'utf8')) && !/<span class="sel-av" aria-hidden="true">\$\{escHtml\(initials/.test(fs.readFileSync(ROOT + f, 'utf8')), f + ': no pinta avatar_url ni iniciales por su cuenta (usa Avatar)');
@@ -432,6 +432,62 @@ console.log('\n[avatar y tarjeta de persona]');
   const pj = fs.readFileSync(ROOT + 'core/personas.js', 'utf8');
   ok(/function personaMiniHTML/.test(pj), 'tarjeta de persona: variante compacta personaMiniHTML');
   ok((pj.match(/class="pcard[^"]*sup-marca pat-\$\{Fondo\.clase\(p\)\}/g) || []).length >= 3, 'tarjeta de persona: el fondo personalizado (pat-N) va en el contenedor de la tarjeta');
+}
+
+console.log('\n[avisos: el panel pinta sus grupos por día]');
+{
+  const nj = fs.readFileSync(ROOT + 'core/notificaciones.js', 'utf8');
+  // Una variable usada sin declarar rompe _pintarPanel y el panel se queda en «Cargando…» sin mensaje (pasó con el conteo por grupo).
+  ok(!/_cuenta\[/.test(nj) || /(const|let) _cuenta\b/.test(nj), 'avisos: _cuenta se declara antes de usarse en _pintarPanel');
+  ok(/avisos-grupo-n/.test(nj), 'avisos: cada grupo de día muestra cuántos avisos trae');
+}
+
+console.log('\n[acceso: llamadas a Auth y Panel]');
+{
+  const lj = fs.readFileSync(ROOT + 'login.js', 'utf8');
+  // Si una llamada a Auth lanza (red caída), el botón no puede quedarse en «Enviando…»: conRed la convierte en {error}.
+  for (const fn of ['signInWithOtp', 'verifyOtp', 'updateUser'])
+    ok(new RegExp('conRed\\(SB\\.auth\\.' + fn).test(lj), 'login.js: ' + fn + ' pasa por conRed (el botón se libera si la red falla)');
+  const vc = fs.readFileSync(ROOT + 'vidrio.css', 'utf8');
+  ok(/#tab-overview > #ov-atencion \{ grid-area: atn/.test(vc), 'Panel: «Requiere atención» ocupa la zona superior derecha en escritorio');
+  const rj2 = fs.readFileSync(ROOT + 'core/render.js', 'utf8');
+  ok(/recuperarFoco/.test(rj2) && /getClientRects\(\)\.length/.test(rj2), 'modales: si la acción repinta la lista, el foco vuelve al título visible de la pantalla (no al primer h1, que puede estar oculto)');
+  // Regla del dueño (CLAUDE.md, «Prohibido: patrones de interfaz de IA»): ninguna barra de acento en un borde.
+  const hojas = fs.readdirSync(ROOT).filter(f => f.endsWith('.css'));
+  const barras = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/border-(left|right)\s*:\s*[3-9]\d*(\.\d+)?px\s+solid|inset\s+-?[3-9]\d*px\s+0\s+0|inset\s+0\s+-?[3-9]\d*px\s+0(?!\s+0)/g) || []).map(m => f + ': ' + m));
+  ok(!barras.length, `estilos: sin barras de acento en un borde${barras.length ? ' (' + barras.join('; ') + ')' : ''}`);
+  // …ni halos de color difuminados («0 0 16px color»). Los anillos de foco «0 0 0 3px» sí se permiten.
+  const halos = hojas.flatMap(f => (fs.readFileSync(ROOT + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:box|text)-shadow\s*:\s*(?:[^;]*,\s*)?0(?:px)?\s+0(?:px)?\s+[1-9]\d*px\s+(?:color-mix|rgba?|var|#)[^;]*/g) || []).map(m => f + ': ' + m.slice(0, 60)));
+  ok(!halos.length, `estilos: sin halos de neón${halos.length ? ' (' + halos.join('; ') + ')' : ''}`);
+  ok(/function switchTabCore[\s\S]{0,2600}panel-overlay--pantalla[\s\S]{0,160}closeModal\('panel-lateral'\)/.test(rj2), 'navegación: ir a otra sección desde el menú cierra la ficha a pantalla completa');
+  ok(/\.rail > \.rail-nav \{ flex: 1 1 auto; min-height: 0; overflow-y: auto; \}/.test(vc), 'menú lateral: la lista de destinos desplaza (marca, buscador y pie siempre visibles)');
+  ok(/function panoramaHTML/.test(fs.readFileSync(ROOT + 'core/reporte-general.js', 'utf8')), 'reportes: panorama PE a PE con barras');
+  // Sistema visual: gradientes, reconocimientos y movimiento centralizados (docs/sistema-visual-noviembre-2026.md).
+  for (const f of ['index.html', 'user.html', 'secretario.html', 'admin.html']) {
+    const h = fs.readFileSync(ROOT + f, 'utf8');
+    ok(/vidrio\.css[\s\S]*gradients\.css[\s\S]*motion\.css/.test(h), f + ': carga vidrio.css, gradients.css y motion.css (en ese orden)');
+    if (f !== 'index.html') ok(/core\/render\.js[\s\S]*core\/reconocimientos\.js/.test(h), f + ': carga core/reconocimientos.js después de render.js');
+  }
+  const mo = fs.readFileSync(ROOT + 'motion.css', 'utf8');
+  ok(/prefers-reduced-motion: reduce/.test(mo) && /animation: none !important/.test(mo), 'movimiento: prefers-reduced-motion apaga todas las animaciones');
+  ok(!/infinite/.test(mo), 'movimiento: ninguna animación se repite sola (infinite)');
+  const gr = fs.readFileSync(ROOT + 'gradients.css', 'utf8');
+  ok(['--g-oro', '--g-plata', '--g-bronce', '--g-diamante', '--g-velo', '--g-progreso', '--g-luz-fria'].every(t => gr.includes(t + ':')), 'gradientes: metales, velo de tono, progreso y luces definidos como variables');
+  ok(!/https?:\/\//.test(gr.replace(/\/\*[\s\S]*?\*\//g, '')) && !/url\(/.test(gr.replace(/\/\*[\s\S]*?\*\//g, '').replace(/url\(#/g, '')), 'gradientes: sin recursos remotos ni imágenes (CSS nativo)');
+  const rec = fs.readFileSync(ROOT + 'core/reconocimientos.js', 'utf8');
+  ok(/function estrellasHTML\(valor, max = 5/.test(rec) && /frac \* 100/.test(rec), 'estrellas: el relleno es el valor real dividido entre el máximo (admite fracciones)');
+  ok(/r\.min === 1 && r\.max === 5 \? estrellasHTML\(v, 5\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'estrellas: solo en criterios de escala 1–5, con la nota real');
+  ok(/medallaSVG\(n\)/.test(rj2) && /Puesto \$\{n\}/.test(rec), 'medallas: oro/plata/bronce con etiqueta accesible de puesto');
+  ok(!/https?:\/\//.test(rec.replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')), 'reconocimientos: SVG propios, sin recursos remotos');
+  // Banco de imágenes (0058): enlaces, nunca archivos; http(s) obligatorio; pestaña nueva sin referrer; acciones por la lista blanca.
+  const bj = fs.readFileSync(ROOT + 'core/banco.js', 'utf8'), cj = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  for (const f of ['user.html', 'secretario.html', 'admin.html']) { const h = fs.readFileSync(ROOT + f, 'utf8'); ok(/core\/banco\.js/.test(h) && /id="tab-banco"/.test(h) && /id="banco-host"/.test(h), f + ': tiene la pestaña y carga core/banco.js'); }
+  ok(/banco:\s+\(a, el\) => Banco\.accion/.test(cj) && /'bancoFiltrar'/.test(cj), 'banco: acción y filtro registrados en config.js (lista blanca)');
+  ok(/rel="noopener noreferrer"/.test(bj) && /target="_blank"/.test(bj) && /\^https\?:\\\/\\\//.test(bj), 'banco: el enlace se abre en pestaña nueva con noopener noreferrer y solo si es http(s)');
+  ok(!/onclick=/.test(bj) && !/\$\{r\.(titulo|descripcion|evento|enlace)\}/.test(bj), 'banco: sin onclick y sin interpolar texto humano sin escHtml');
+  ok(/'tab-banco'|tab === 'banco'/.test(fs.readFileSync(ROOT + 'admin.js', 'utf8')), 'banco: el admin lo monta al abrir la pestaña');
+  ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
+  ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
 
 console.log(`\n${pass} correctas, ${fail} fallidas`);

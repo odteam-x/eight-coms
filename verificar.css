@@ -13,7 +13,7 @@ body.verificar { min-height: 100vh; display: flex; align-items: center; justify-
 .vf-foto--ini { display: grid; place-items: center; font: 700 56px/1 'Barlow Condensed', sans-serif; color: var(--txt); }
 .vf-nombre { margin: 0 0 14px; font: 700 28px/1.1 'Barlow Condensed', sans-serif; letter-spacing: .02em; text-transform: uppercase; }
 .vf-datos { margin: 0 0 16px; display: grid; gap: 8px; text-align: left; }
-.vf-datos > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; border-radius: 8px; background: var(--surface-1); border-left: 4px solid var(--data); }
+.vf-datos > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; border-radius: 8px; background: var(--surface-1); }
 .vf-datos dt { color: var(--txt-2); font-size: 14px; }
 .vf-datos dd { margin: 0; font-weight: 600; text-align: right; }
 .vf-pie { margin: 0; font-size: 13px; line-height: 1.45; color: var(--txt-2); }

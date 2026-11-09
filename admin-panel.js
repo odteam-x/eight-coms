@@ -85,40 +85,50 @@ const PanelAdmin = (() => {
     const dist = { sex: 0, sbu: 0, spr: 0, sba: 0 };
     d.filas.forEach(f => { dist[nivelKey(f.score)]++; });
 
-    const kpi = (n, l, s) => `<div class="tarjeta tarjeta--kpi"><span class="kpi-num">${n}</span><span class="kpi-etq">${escHtml(l)}</span>${s ? `<span class="kpi-sub">${s}</span>` : ''}</div>`;
+    // Cumplimiento de plazos: solo existe en períodos con tareas (rúbrica por roles). Σ a tiempo ÷ Σ entregadas con plazo; sin base, no se inventa.
+    let plazo = null;
+    if (d.v2) {
+      const rt = await API.getResumenTareas(periodo.id).catch(() => ({ ok: false }));
+      if (rt.ok) {
+        const filas = Object.values(rt.porUsuario || {});
+        const con = filas.reduce((x, r) => x + Number(r.con_plazo || 0), 0), ok = filas.reduce((x, r) => x + Number(r.a_tiempo || 0), 0);
+        if (con > 0) plazo = { pct: ok / con * 100, ok, con };
+      }
+    }
+    const mejorFila = d.filas.length ? [...d.filas].sort((x, y) => y.score - x.score)[0] : null;
+    const registrados = _users.filter(u => !u.es_admin && u.aprobado !== false).length;
+    const seg = (v, cls) => v ? `<i class="kpi-seg kpi-seg--${cls}" style="flex:${v}" title="${v}"></i>` : '';
+
+    /* Resumen ejecutivo: cuatro indicadores en una cuadrícula 2×2 (cada uno una sola cifra con su contexto). Lo que el Panel ya cuenta en
+       «Requiere atención» (sin evaluar, borradores) no se repite como indicador: aquí va solo como la barra de avance. */
+    const kpi = (cls, etq, num, sub, extra = '') => `<div class="kpi-c ${cls}"><span class="kpi-c-etq">${escHtml(etq)}</span><span class="kpi-c-num">${num}</span>${extra}<span class="kpi-c-sub">${sub}</span></div>`;
     el.innerHTML = `
-      <div class="panel-kpis">
-        ${kpi(`${pubN}<small>/${evaluables.length}</small>`, 'Evaluaciones publicadas', borr ? `${borr} en borrador` : '')}
-        ${kpi(f1(media), 'Promedio del equipo', 'sobre 100')}
-        ${kpi(f1(mejor), 'Mejor resultado', 'sobre 100')}
-        ${kpi(String(pend), 'Sin evaluar', pend ? 'pendientes de puntuar' : 'todo puntuado')}
+      <div class="panel-kpis" role="group" aria-label="Resumen del período">
+        ${kpi('', 'Evaluaciones publicadas', `${pubN}<small>/${evaluables.length}</small>`, `${Math.round(pctPub)} % del equipo`,
+          `<span class="kpi-barra" role="img" aria-label="${pubN} publicadas, ${borr} en borrador, ${pend} sin evaluar">${seg(pubN, 'pub')}${seg(borr, 'bor')}${seg(pend, 'sin')}</span>`)}
+        ${kpi('', 'Promedio del equipo', f1(media), `sobre 100 <span id="pn-delta" class="kpi-delta"></span>`)}
+        ${kpi('kpi-c--trofeo', 'Mejor resultado', f1(mejor), mejorFila ? escHtml(mejorFila.nombre) : 'sin resultados', mejorFila ? trofeoHTML(`Mejor resultado: ${mejorFila.nombre}`) : '')}
+        ${plazo
+          ? kpi('', 'Entregas a tiempo', `${Math.round(plazo.pct)}<small>%</small>`, `${plazo.ok} de ${plazo.con} con plazo`)
+          : kpi('', 'Personas en el período', `${evaluables.length}<small>/${registrados}</small>`, registrados - evaluables.length ? `${registrados - evaluables.length} sin participar` : 'participan todas')}
       </div>
-      <div class="panel-grid">
-        ${tarjeta('panel-t--avance', 'Avance del período', 'Cuántas personas ya tienen su resultado publicado.', `
-          <div class="avance">
-            ${anilloHTML({ valor: pctPub, max: 100, color: 'var(--data)', etiqueta: `${Math.round(pctPub)} % publicado`, decimales: 0 })}
-            <ul class="avance-lista">
-              <li><span class="punto" style="--etq:var(--etq-verde)"></span><b>${pubN}</b> publicadas</li>
-              <li><span class="punto" style="--etq:var(--etq-ambar)"></span><b>${borr}</b> en borrador</li>
-              <li><span class="punto" style="--etq:var(--etq-gris)"></span><b>${pend}</b> sin evaluar</li>
-            </ul>
-          </div>`)}
-        ${tarjeta('', 'Distribución por nivel', 'Cuántas personas hay en cada nivel de resultado.', `
-          <div class="chart-wrap" style="height:230px"><canvas id="pn-dist" aria-labelledby="pn-dist-alt"></canvas></div>
+      <div class="panel-grid panel-grid--evol">
+        ${tarjeta('', 'Distribución por nivel', '', `
+          <div class="chart-wrap" style="height:190px"><canvas id="pn-dist" aria-labelledby="pn-dist-alt"></canvas></div>
           <p class="chart-alt" id="pn-dist-alt">${Object.keys(NIV).map(k => `${NIV[k]}: ${dist[k]}`).join(' · ')}.</p>`)}
+        ${tarjeta('', '¿Estamos mejorando?', 'Promedio y mejor resultado por período.', `
+          <div class="chart-wrap" style="height:190px"><canvas id="pn-tend" aria-labelledby="pn-tend-alt"></canvas></div>
+          <p class="chart-alt" id="pn-tend-alt">Calculando…</p>`)}
       </div>
-      ${acordeonHTML({ id: 'panel-analisis', titulo: 'Análisis del período', resumen: 'Comparación, competencias, tendencia, mapa de calor y mejores resultados. Los resultados por persona están en Desempeño.', abierto: false, extra: 'panel-analisis', cuerpo: `
+      ${acordeonHTML({ id: 'panel-analisis', titulo: 'Comparación y seguimiento', resumen: 'Roles y distritos, competencias, mapa de calor y mejores resultados. Los resultados por persona están en Desempeño.', abierto: false, extra: 'panel-analisis', cuerpo: `
       <div class="panel-grid">
         ${tarjeta('panel-t--ancha', 'Comparación', 'Para calibrar: ¿el equipo se mide parecido entre roles y distritos?', `
           <div class="panel-seg" id="pn-cmp-seg"></div>
-          <div class="chart-wrap" style="height:280px"><canvas id="pn-cmp" aria-labelledby="pn-cmp-alt"></canvas></div>
+          <div class="chart-wrap" style="height:260px"><canvas id="pn-cmp" aria-labelledby="pn-cmp-alt"></canvas></div>
           <p class="chart-alt" id="pn-cmp-alt"></p>`)}
         ${tarjeta('', d.v2 ? 'Competencias comunes' : 'Criterios', 'Promedio del equipo en cada una, de 0 a 100.', `
-          <div class="chart-wrap" style="height:300px"><canvas id="pn-radar" aria-labelledby="pn-radar-alt"></canvas></div>
+          <div class="chart-wrap" style="height:280px"><canvas id="pn-radar" aria-labelledby="pn-radar-alt"></canvas></div>
           <p class="chart-alt" id="pn-radar-alt"></p>`)}
-        ${tarjeta('', '¿Estamos mejorando?', 'Promedio del equipo en cada período con resultados.', `
-          <div class="chart-wrap" style="height:300px"><canvas id="pn-tend" aria-labelledby="pn-tend-alt"></canvas></div>
-          <p class="chart-alt" id="pn-tend-alt">Calculando…</p>`)}
         ${tarjeta('panel-t--ancha', 'Mapa de calor', `Cada fila es una persona y cada columna, una ${d.v2 ? 'competencia común' : 'criterio'}. El color es el nivel.`, mapaCalor(d))}
         ${tarjeta('panel-t--ancha', 'Los mejores resultados', '', ranking(d))}
       </div>` })}`;
@@ -184,6 +194,9 @@ const PanelAdmin = (() => {
       return;
     }
     if (alt) alt.textContent = pts.map(p => `${p.n}: promedio ${f1(p.m)}, mejor ${f1(p.x)}`).join(' · ') + '.';
+    // Variación del promedio frente al período anterior con resultados (resta de dos promedios ya calculados; no se interpola un hueco).
+    const iAct = pts.findIndex(p => p.n === _ctx?.periodo?.nombre), dl = document.getElementById('pn-delta');
+    if (dl && iAct > 0) { dl.innerHTML = deltaHTML(pts[iAct].m, pts[iAct - 1].m, { decimales: 1, ref: pts[iAct - 1].n }); renderIconos(dl); }
     pintarGrafico('pn-tend', () => ({
       type: 'line',
       data: { labels: pts.map(p => p.n), datasets: [

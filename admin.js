@@ -88,11 +88,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       { titulo:'Operaciones', items: [
         { tab:'evaluar',  icono:'clipboard-list',   etiqueta:'Evaluar', fav: true },
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
+        { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
+        { tab:'banco',    icono:'image',            etiqueta:'Banco', titulo:'Banco de imágenes' },
       ]},
       { titulo:'Organización', items: [
         { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
-        { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos'  },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
       ]},
       { items: [
@@ -123,25 +124,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   _periodoEntrada = entrada?.periodoId || null;
 
   await loadAllData();
+  // Lo visible primero (el Panel) y el resto de pestañas después, cediendo el hilo entre cada una: en un teléfono de gama media
+  // las ~15 pintadas seguidas eran una sola tarea de cientos de ms que congelaba el primer toque.
   renderOvPEBar();
+  loadOverview();
+  await cederHilo();
   renderEvalPEBar();
   renderUsuariosPEBar();
   renderRptPEBar();
+  await cederHilo();
   renderUsuarios();
   initPersonas();
+  await cederHilo();
   renderRoles();
   renderPeriodos();
   renderCriterios();
+  await cederHilo();
   Bienvenida.iniciar({ perfil: CU, tipo: 'admin', ir: tab => switchTab(tab, null) });
   renderRubrica();
   renderPerfiles();
+  await cederHilo();
   renderCalendario();
   DistritosAdmin.montar(document.getElementById('distritos-host'), () => ({ periodos: _periodos, distritos: _distritos, usuarios: _users }));
   populateDistritoFilters();
   initScrollEffects();
   actualizarRailProximo();
   registrarBuscadorAdmin();
-  loadOverview();
 });
 
 async function loadAllData() {
@@ -371,7 +379,7 @@ function renderEvalUserList() {
       const dist = (_distritos.find(d => String(d.id) === String(u.distrito)) || {}).nombre || u.distrito || '—';
       const t = _evalTareas[u.id];
       const avisos = (t?.porRevisar ? `<span class="etiqueta etq-azul">${t.porRevisar} por revisar</span>` : '') + (t?.vencidas ? `<span class="etiqueta etq-rojo">${t.vencidas} vencida${t.vencidas === 1 ? '' : 's'}</span>` : '');
-      return `<div class="eval-ucard${_selectedEvalUser === u.id ? ' eval-ucard--active' : ''}" data-act="evaluarUsuario" data-arg="${u.id}">
+      return `<div class="eval-ucard${_selectedEvalUser === u.id ? ' eval-ucard--active' : ''}" data-act="evaluarUsuario" data-arg="${u.id}" role="button" tabindex="0" aria-pressed="${_selectedEvalUser === u.id}" aria-label="Evaluar a ${escHtml(u.nombre)}">
         <div class="eval-ucard-rank">${medal}</div>
         <div class="eval-ucard-info">
           <div class="eval-ucard-name">${escHtml(u.nombre)}</div>
@@ -392,7 +400,7 @@ function renderEvalUserList() {
 async function selectEvalUser(userId) {
   _selectedEvalUser = userId;
   // Solo se marca la fila: no se repinta la lista ni se mueve la cabecera.
-  document.querySelectorAll('#eval-user-list .eval-ucard').forEach(c => c.classList.toggle('eval-ucard--active', c.dataset.arg === String(userId)));
+  document.querySelectorAll('#eval-user-list .eval-ucard').forEach(c => { const on = c.dataset.arg === String(userId); c.classList.toggle('eval-ucard--active', on); c.setAttribute('aria-pressed', String(on)); });
   const area = document.getElementById('eval-form-area'); if (!area) return;
   if (!area.firstElementChild) area.innerHTML = '<div class="loading-box"><span class="spin"></span></div>';
   area.classList.add('cargando');
@@ -1698,7 +1706,7 @@ function renderRubrica() {
     const color = 'var(--criterio)';
     return `
       <div class="rubrica-card" id="rca-${i}">
-        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}">
+        <div class="rubrica-card-head" data-act="abrirCerrar" data-arg="rca-${i}" role="button" tabindex="0">
           <div class="rubrica-dot" style="background:${color}"></div>
           <div class="rubrica-title" style="color:${color}">${escHtml(r.criterio || c.label || '—')}</div>
           <span class="rubrica-chev"></span>
@@ -2571,6 +2579,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();
+  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: true, roles: _roles || [], personas: _users.map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }

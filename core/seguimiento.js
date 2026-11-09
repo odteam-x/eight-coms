@@ -130,7 +130,7 @@ const Seguimiento = (() => {
         titulo: `${escHtml(rol)} <span class="seg-n">${lista.length} persona${lista.length === 1 ? '' : 's'}</span>`,
         resumen: `${bm.pub} de ${bm.total} evaluaciones publicadas${bm.venc ? ` · ${bm.venc} tarea${bm.venc === 1 ? '' : 's'} vencida${bm.venc === 1 ? '' : 's'}` : ''}`,
         extra: 'seg-grupo',
-        cuerpo: `<div class="seg-tabla-wrap"><table class="seg-tabla">
+        cuerpo: `<div class="seg-tabla-wrap"><table class="seg-tabla seg-tabla--roles">
           <caption class="sr-only">Seguimiento de ${escHtml(rol)} por período</caption>
           <thead><tr><th scope="col">Persona</th>${periodos.map(p => `<th scope="col">${escHtml(p.nombre)}${p.activo ? ' <span class="etiqueta etq-azul">Activo</span>' : ''}<small>${p.modelo === 'v2' ? 'Rúbrica por roles' : 'Rúbrica clásica'}</small></th>`).join('')}</tr></thead>
           <tbody>${filas}</tbody></table></div>`,

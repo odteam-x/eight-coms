@@ -1,0 +1,109 @@
+/**
+ * EIGHT CREATORS LABs — Biblioteca CENTRAL de gradientes (noviembre 2026)
+ *
+ * Todo gradiente del sistema nace aquí, con nombre y con un propósito. CSS nativo, sin imágenes ni servicios externos, sin
+ * JavaScript. Se carga ANTES de vidrio.css (los tokens de vidrio pueden apoyarse en estos) y los componentes la usan por
+ * variable: nadie escribe un `linear-gradient(...)` suelto en otra hoja.
+ *
+ * Reglas (por qué cada una):
+ *   · Una familia por función. Metal = reconocimientos. Tono = categoría de una tarjeta. Progreso = barras. Atmósfera = fondo
+ *     de página por área. Si una pantalla necesita «un gradiente bonito», es que no tiene función: no se pone.
+ *   · Nada animado. Un fondo que se mueve compite con el contenido y gasta batería.
+ *   · Baja intensidad bajo texto: los tonos de tarjeta son velos de ≤ 26 % que mueren a la mitad; el texto va sobre vidrio, no sobre
+ *     color pleno (así el contraste medido en vidrio.css sigue valiendo).
+ *   · Los hex viven SOLO en :root (regla del proyecto, la vigila tools/contraste.js).
+ */
+
+:root {
+  /* ── 1. METALES (reconocimientos). Cuatro paradas: brillo, cuerpo, sombra, reflejo. Nunca como fondo de texto largo. ── */
+  --metal-oro-1: #FFF1B8;   --metal-oro-2: #F0C040;   --metal-oro-3: #B8860B;   --metal-oro-4: #F5D77A;
+  --metal-plata-1: #FFFFFF; --metal-plata-2: #C9D1E0; --metal-plata-3: #7E8AA3; --metal-plata-4: #E3E8F2;
+  --metal-bronce-1: #F6D2B0; --metal-bronce-2: #D08A4E; --metal-bronce-3: #8A4E18; --metal-bronce-4: #E8B98A;
+  --metal-diamante-1: #FFFFFF; --metal-diamante-2: #BDEFFF; --metal-diamante-3: #3FB4E6; --metal-diamante-4: #E6F8FF;
+  --metal-tinta: #031B45;   /* número/trazo sobre el metal: navy de marca (≥ 6:1 sobre cualquiera de los cuatro) */
+
+  --g-oro:      linear-gradient(145deg, var(--metal-oro-1) 0%, var(--metal-oro-2) 28%, var(--metal-oro-3) 64%, var(--metal-oro-4) 100%);
+  --g-plata:    linear-gradient(145deg, var(--metal-plata-1) 0%, var(--metal-plata-2) 30%, var(--metal-plata-3) 66%, var(--metal-plata-4) 100%);
+  --g-bronce:   linear-gradient(145deg, var(--metal-bronce-1) 0%, var(--metal-bronce-2) 32%, var(--metal-bronce-3) 66%, var(--metal-bronce-4) 100%);
+  --g-diamante: linear-gradient(145deg, var(--metal-diamante-1) 0%, var(--metal-diamante-2) 34%, var(--metal-diamante-3) 70%, var(--metal-diamante-4) 100%);
+
+  /* ── 2. TONOS DE TARJETA (categoría). Un velo diagonal del tono hacia transparente; se compone con --g-tono sobre el vidrio. ── */
+  --tono-azul:    var(--etq-azul);   --tono-cian:  var(--etq-cian);   --tono-violeta: var(--etq-violeta);
+  --tono-coral:   var(--etq-coral);  --tono-verde: var(--etq-verde);  --tono-ambar:   var(--etq-ambar);
+  --g-velo: linear-gradient(135deg, color-mix(in srgb, var(--tono, var(--tono-azul)) 24%, transparent) 0%, transparent 62%);
+  --g-velo-suave: linear-gradient(160deg, color-mix(in srgb, var(--tono, var(--tono-azul)) 14%, transparent) 0%, transparent 55%);
+
+  /* ── 3. PROGRESO Y RENDIMIENTO. Relleno de barras: de menos a más saturado en la dirección de lectura. ── */
+  --g-progreso:  linear-gradient(90deg, var(--blue-500), var(--cyan-400));
+  --g-plazo:     linear-gradient(90deg, color-mix(in srgb, var(--etq-verde) 70%, var(--blue-700)), var(--etq-verde));
+  --g-nivel-sex: linear-gradient(90deg, var(--cyan-400), var(--cyan-200));
+  --g-nivel-sbu: linear-gradient(90deg, var(--blue-500), var(--cyan-400));
+  --g-nivel-spr: linear-gradient(90deg, var(--blue-700), var(--blue-500));
+  --g-nivel-sba: linear-gradient(90deg, color-mix(in srgb, var(--etq-coral) 70%, var(--navy-900)), var(--etq-coral));
+
+  /* ── 4. ATMÓSFERA (fondo de página por área). Misma malla de marca; cambian el sitio y el tono de las dos luces, no la base,
+        para que cada grupo del menú «tenga su luz» sin volverse otro producto. ── */
+  --g-luz-fria:   radial-gradient(ellipse 52% 34% at 12% 86%, color-mix(in srgb, var(--cyan-400) 15%, transparent) 0%, transparent 72%);
+  --g-luz-calida: radial-gradient(ellipse 38% 58% at 94% 6%, color-mix(in srgb, var(--coral) 10%, transparent) 0%, transparent 68%);
+  --g-luz-violeta: radial-gradient(ellipse 44% 50% at 90% 10%, color-mix(in srgb, var(--etq-violeta) 14%, transparent) 0%, transparent 70%);
+  --g-luz-verde:   radial-gradient(ellipse 46% 40% at 8% 92%, color-mix(in srgb, var(--etq-verde) 12%, transparent) 0%, transparent 72%);
+  --g-luz-ambar:   radial-gradient(ellipse 40% 44% at 88% 90%, color-mix(in srgb, var(--etq-ambar) 12%, transparent) 0%, transparent 70%);
+
+  /* ── 5. SUPERFICIES. Un vidrio de dos niveles: el reposo y el elevado (hover/seleccionado). ── */
+  --g-superficie: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+  --g-superficie-alta: linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+}
+[data-theme="light"] {
+  --g-superficie: linear-gradient(160deg, rgba(255,255,255,.78), rgba(255,255,255,.5));
+  --g-superficie-alta: linear-gradient(160deg, rgba(255,255,255,.9), rgba(255,255,255,.66));
+  --g-luz-fria:   radial-gradient(ellipse 52% 34% at 12% 86%, color-mix(in srgb, var(--cyan-400) 22%, transparent) 0%, transparent 72%);
+  --g-luz-calida: radial-gradient(ellipse 38% 58% at 94% 6%, color-mix(in srgb, var(--coral) 16%, transparent) 0%, transparent 68%);
+}
+
+/* ══ APLICACIÓN ═══════════════════════════════════════════════════════════
+   Atmósfera por área: JS (rotularPantalla, core/render.js) pone data-area en <body> con el grupo del menú. Sin él, la malla base. */
+body[data-area="operaciones"]::before { background-image: var(--g-luz-violeta), var(--g-luz-fria), var(--g-luz-calida), linear-gradient(118deg, var(--v-1) 0%, var(--v-2) var(--v-p2), var(--v-3) var(--v-p3), var(--v-4) 100%); }
+body[data-area="organizacion"]::before, body[data-area="mi-distrito"]::before { background-image: var(--g-luz-verde), var(--g-luz-fria), var(--g-luz-calida), linear-gradient(118deg, var(--v-1) 0%, var(--v-2) var(--v-p2), var(--v-3) var(--v-p3), var(--v-4) 100%); }
+body[data-area="configuracion"]::before { background-image: var(--g-luz-ambar), var(--g-luz-fria), var(--g-luz-calida), linear-gradient(118deg, var(--v-1) 0%, var(--v-2) var(--v-p2), var(--v-3) var(--v-p3), var(--v-4) 100%); }
+
+/* Indicadores del Panel: cada uno toma el tono de lo que mide (publicación = cian, promedio = azul, mejor = oro, plazo = verde). */
+.kpi-c { background-image: var(--g-velo); }
+.kpi-c:nth-child(1) { --tono: var(--tono-cian); }
+.kpi-c:nth-child(2) { --tono: var(--tono-azul); }
+.kpi-c:nth-child(3) { --tono: var(--metal-oro-2); }
+.kpi-c:nth-child(4) { --tono: var(--tono-verde); }
+/* «Requiere atención»: neutra; coral solo si hay algo urgente (la fila ya lo marca). */
+.atn { background-image: var(--g-superficie); }
+/* Barras: relleno con su gradiente de función. */
+.kpi-seg--pub { background: var(--g-progreso); }
+.rg-pan-bar--pub .rg-pan-pista i { background: var(--g-progreso); }
+.rg-pan-bar--plazo .rg-pan-pista i { background: var(--g-plazo); }
+.rg-pan-bar--sex .rg-pan-pista i { background: var(--g-nivel-sex); } .rg-pan-bar--sbu .rg-pan-pista i { background: var(--g-nivel-sbu); }
+.rg-pan-bar--spr .rg-pan-pista i { background: var(--g-nivel-spr); } .rg-pan-bar--sba .rg-pan-pista i { background: var(--g-nivel-sba); }
+.cbar-fill { background-image: var(--g-progreso) !important; }
+/* Tarjetas de persona: el velo de su categoría (antes definido en vidrio.css §42). */
+.pcard.sup-marca, .pcard--mini.sup-marca { background: var(--g-velo), var(--v-fill); }
+/* Reconocimientos: el metal es el de los tokens; ver core/reconocimientos.js. */
+.medalla--oro { --metal: var(--g-oro); } .medalla--plata { --metal: var(--g-plata); } .medalla--bronce { --metal: var(--g-bronce); }
+
+/* ══ RECONOCIMIENTOS (core/reconocimientos.js) ═══════════════════════════
+   Medalla: disco metálico (el relleno es el gradiente del metal) con cinta; el número va encima en tinta de marca. */
+.medalla { position: relative; display: inline-grid; place-items: center; width: 36px; height: 36px; background: none; box-shadow: none; border-radius: 0; flex: none; --medalla-cinta: var(--blue-700); }
+.medalla svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 1.5px rgba(3,27,69,.35)); }
+.medalla--oro svg { --medalla-relleno: url(#rec-g-oro); } .medalla--plata svg { --medalla-relleno: url(#rec-g-plata); } .medalla--bronce svg { --medalla-relleno: url(#rec-g-bronce); }
+.medalla svg use { fill: var(--medalla-relleno); }
+.medalla b { position: relative; top: 5px; z-index: 1; font: 700 .95rem/1 var(--font-display); color: var(--metal-tinta); text-shadow: 0 1px 0 rgba(255,255,255,.45); }
+[data-theme="light"] .medalla b { color: var(--metal-tinta); }
+.medalla-num { width: 36px; }
+/* Trofeo del mejor resultado: junto al número del indicador, no encima. */
+.trofeo { display: inline-grid; width: 34px; height: 34px; flex: none; }
+.trofeo svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 1.5px rgba(3,27,69,.35)); }
+.kpi-c--trofeo { position: relative; }
+.kpi-c--trofeo .trofeo { position: absolute; top: 12px; right: 16px; width: 28px; height: 28px; }
+/* Estrellas: capa base (vacías, tenues) + capa llena recortada al % real. */
+.estrellas { position: relative; display: inline-block; height: 16px; line-height: 0; white-space: nowrap; vertical-align: -2px; margin-right: 8px; }
+.estrellas svg { width: 16px; height: 16px; display: inline-block; }
+.estrellas-base svg { fill: color-mix(in srgb, currentColor 22%, transparent); }
+.estrellas-lleno { position: absolute; left: 0; top: 0; overflow: hidden; }
+.estrellas-lleno svg { fill: var(--metal-oro-2); filter: drop-shadow(0 .5px .5px rgba(3,27,69,.3)); }
+[data-theme="light"] .estrellas-lleno svg { fill: var(--metal-oro-3); }   /* oro oscuro: sobre vidrio claro el oro vivo no llega a 3:1 */

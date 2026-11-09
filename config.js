@@ -92,7 +92,7 @@ const _ACCIONES_SIMPLES = new Set([
   // seguimiento global
   'segBuscar', 'segFiltro',
   // equipos (core/equipos.js)
-  'eqFiltrar', 'eqFiltrarTareas',
+  'eqFiltrar', 'eqFiltrarTareas', 'bancoFiltrar',
   // Desempeño (core/desempeno.js)
   'desFiltro',
   // Auditoría (core/auditoria.js)
@@ -138,6 +138,7 @@ const ACCIONES = {
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
+  banco:         (a, el) => Banco.accion(a, el.dataset.arg2, el),
   des:           (a, el) => Desempeno.accion(a, el.dataset.arg2),
   aud:           (a)     => Auditoria.accion(a),
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
@@ -292,6 +293,15 @@ const ACCIONES = {
 /** Los ids de criterios, roles y rúbrica son enteros; data-* llega como texto. */
 function _num(v) { const n = Number(v); return Number.isFinite(n) ? n : v; }
 
+/* Teclado para lo que tiene acción y no es un <button> (filas de Evaluar, cabeceras de la rúbrica): Enter y Espacio
+   hacen clic. Sin esto, esas filas solo se podían elegir con el ratón. Llevan role="button" y tabindex="0". */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target;
+  if (!el || !el.matches || !el.matches('[data-act][role="button"]') || el.tagName === 'BUTTON' || el.tagName === 'A') return;
+  e.preventDefault(); el.click();
+});
+
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el) return;
@@ -413,3 +423,9 @@ function renderIconos(contenedor) {
 
 // Pasada inicial: el marcado estático de la página.
 document.addEventListener('DOMContentLoaded', function () { renderIconos(); });
+
+
+/** Cede el hilo al navegador (pintar, atender un toque) entre dos trabajos largos. */
+function cederHilo() {
+  return (window.scheduler && typeof scheduler.yield === 'function') ? scheduler.yield() : new Promise(r => setTimeout(r, 0));
+}

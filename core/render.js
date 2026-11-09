@@ -352,6 +352,19 @@ function closeModal(id) {
   // Devolver el foco a donde estaba antes de abrir.
   if (_focoPrevio?.isConnected) _focoPrevio.focus?.();
   _focoPrevio = null;
+  // Si la acción repintó la lista (aprobar, borrar…) el botón que abrió el modal ya no existe y el foco cae al <body>:
+  // quien navega con teclado perdería su sitio. Se deja en el título de la pantalla activa.
+  // El repintado puede llegar después de cerrar (la lista se pide otra vez): se comprueba dos veces.
+  const recuperarFoco = () => {
+    const a = document.activeElement;
+    if (a && a !== document.body && a.isConnected) return;
+    if (_modalAbierto) return;   // se abrió otro modal entretanto: él maneja el foco
+    // El primer h1 del documento puede estar oculto (no recibe foco): se toma el de la pantalla activa, y si no, el primero visible.
+    const h = document.querySelector('.atab-content.active h1, .tab-content.active h1')
+      || [...document.querySelectorAll('h1')].find(x => x.getClientRects().length);
+    if (h) { h.tabIndex = -1; h.focus?.({ preventScroll: true }); }
+  };
+  setTimeout(recuperarFoco, 600); setTimeout(recuperarFoco, 2000);
 }
 
 /* Escape cierra; Tab queda atrapado dentro del modal. */
@@ -383,6 +396,14 @@ document.addEventListener('keydown', e => {
  * de pestaña→padre y sus hooks de carga.
  */
 function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap = {} } = {}) {
+  // Una ficha a pantalla completa (perfil, distrito) abierta encima: ir a otra sección desde el menú la cierra.
+  // Antes había que pulsar «Volver» primero; el menú cambiaba la pestaña de debajo sin que se viera.
+  // Al abrir una sección se empieza desde arriba, no donde se dejó la anterior (el scroll es del documento y, en la ficha, de su cuerpo).
+  window.scrollTo(0, 0); document.querySelectorAll('.amain, #contenido, .panel-cuerpo').forEach(e => { e.scrollTop = 0; });
+  // El destino activo del menú siempre queda a la vista (la lista del menú desplaza y el activo podía quedar recortado abajo).
+  setTimeout(() => { const ac = document.querySelector('.rail .rail-item.active'); if (ac && ac.scrollIntoView) ac.scrollIntoView({ block: 'nearest' }); }, 60);
+  const ficha = document.getElementById('panel-lateral');
+  if (ficha && ficha.style.display !== 'none' && ficha.classList.contains('panel-overlay--pantalla')) closeModal('panel-lateral');
   document.querySelectorAll(contentSelector).forEach(t => {
     t.classList.remove('active');
     // El panel oculto sale del árbol de accesibilidad; si no, un lector de
@@ -782,8 +803,40 @@ async function handleAvatarUpload(el) {
 function medallaHTML(pos) {
   const n = Number(pos);
   if (n >= 1 && n <= 3) {
-    const cls = n === 1 ? 'oro' : n === 2 ? 'plata' : 'bronce';
-    return `<span class="medalla medalla--${cls}" role="img" aria-label="Puesto ${n}"><i data-lucide="medal-2-fill"></i><b>${n}</b></span>`;
+    return medallaSVG(n);   // core/reconocimientos.js: disco metálico con cinta (gradients.css --metal-*)
   }
   return `<span class="medalla-num">${escHtml(String(pos))}</span>`;
 }
+
+/* ══ UBICACIÓN EN LA CABECERA DE CADA PANTALLA ═════════════════════════
+ * «El usuario no sabe dónde está»: sobre el título va el grupo del menú («Operaciones») y junto a él el mismo icono que el
+ * menú usa para esa pantalla; la descripción larga queda en una línea (el texto completo, en el title). Todo sale del menú
+ * real: si el menú cambia, la cabecera cambia con él. */
+function rotularPantalla() {
+  const act = document.querySelector('.atab-content.active, .tab-content.active');
+  const h1 = act && act.querySelector('.pantalla-cab h1, .pantalla-cab .pantalla-t');
+  if (!h1) return;
+  const it = document.querySelector('.rail .rail-item.active');
+  const grupo = it && it.closest('.rail-grupo') && it.closest('.rail-grupo').querySelector('.rail-sep');
+  const g = grupo ? grupo.textContent.trim().replace(/\s+/g, ' ') : '';
+  if (g) h1.dataset.grupo = g; else delete h1.dataset.grupo;
+  // Atmósfera por área (gradients.css): el grupo del menú, en minúsculas y sin tildes, como data-area del body.
+  const area = g.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (area) document.body.dataset.area = area; else delete document.body.dataset.area;
+  const svg = it && it.querySelector('svg');
+  let ico = h1.querySelector(':scope > .pantalla-ico');
+  if (svg && !ico) { ico = document.createElement('span'); ico.className = 'pantalla-ico'; ico.setAttribute('aria-hidden', 'true'); h1.prepend(ico); }
+  if (ico) { ico.replaceChildren(svg ? svg.cloneNode(true) : ''); }
+  const p = h1.parentElement.querySelector(':scope > p');
+  if (p && !p.title) p.title = p.textContent.trim();
+}
+(function vigilarUbicacion() {
+  let pendiente = false;
+  const pedir = () => { if (pendiente) return; pendiente = true; requestAnimationFrame(() => { pendiente = false; rotularPantalla(); }); };
+  const arrancar = () => {
+    new MutationObserver(m => { if (m.some(x => x.target.classList && (x.target.classList.contains('rail-item') || x.target.classList.contains('atab-content') || x.target.classList.contains('tab-content')))) pedir(); })
+      .observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+    pedir();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
+})();

@@ -387,7 +387,7 @@ const Perfil = (() => {
             ${c.peso != null ? `<div class="cbar-tag" style="color:var(--criterio-txt)">Peso ${c.peso}</div>` : ''}
             <div class="cbar-name">${escHtml(c.nombre)}</div>
           </div>
-          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene ? v : '—'}<span>/${r.max}</span></div>
+          <div class="cbar-val" style="color:var(--criterio-txt)">${tiene && r.min === 1 && r.max === 5 ? estrellasHTML(v, 5) : ''}${tiene ? v : '—'}<span>/${r.max}</span></div>
         </div>
         <div class="cbar-track pf-track">
           <div class="cbar-fill" style="width:${tiene ? pctPuntajeV2(v, r) : 0}%;background:var(--criterio)"></div>
@@ -763,7 +763,7 @@ const Perfil = (() => {
   async function abrir(personaId) {
     const persona = await _cfg.resolver?.(personaId);
     if (!persona) { showToast('No se encontró a esa persona.', 'error'); return; }
-    const cuerpo = abrirPanel({ titulo: 'Perfil', subtitulo: persona.nombre || '' });
+    const cuerpo = abrirPanel({ titulo: 'Perfil', subtitulo: '', pantalla: true });
     await montar({ el: cuerpo, persona, modo: _cfg.modo, panel: true, periodoId: _cfg.periodoId?.() ?? null });
     renderIconos(cuerpo);
   }

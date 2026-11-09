@@ -498,7 +498,7 @@ body.gestion-archivada [aria-disabled="true"] {
   position:fixed; bottom:max(var(--sp-5), env(safe-area-inset-bottom)); left:50%; z-index:var(--z-toast);
   transform:translateX(-50%) translateY(80px);
   width:max-content; max-width:min(520px, calc(100vw - var(--sp-5) * 2));
-  background:var(--surface-3); border:1px solid var(--trazo); border-left:4px solid var(--action);
+  background:var(--surface-3); border:1px solid var(--trazo); --toast-c:var(--action);
   border-radius:var(--r-fila);
   padding:var(--sp-3) var(--sp-4);
   font-family:var(--font-ui); font-size:var(--fs-sm); font-weight:600; line-height:1.4; text-align:left;
@@ -508,9 +508,10 @@ body.gestion-archivada [aria-disabled="true"] {
   opacity:0; pointer-events:none;
 }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-.toast.toast--ok    { border-left-color:var(--data); }
-.toast.toast--error { border-left-color:var(--alert); }
-.toast.toast--info  { border-left-color:var(--action); }
+.toast::before { content:''; display:inline-block; width:8px; height:8px; margin-right:var(--sp-2); border-radius:50%; background:var(--toast-c); vertical-align:1px; }
+.toast.toast--ok    { --toast-c:var(--data); }
+.toast.toast--error { --toast-c:var(--alert); }
+.toast.toast--info  { --toast-c:var(--action); }
 @media (max-width:767px) {
   .toast { bottom:calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-3)); }
 }
@@ -532,7 +533,7 @@ body.gestion-archivada [aria-disabled="true"] {
   border-top:2px solid var(--muted); border-left:2px solid var(--muted);
 }
 .back-top.visible { opacity:1; pointer-events:auto; transform:translateY(0); }
-.back-top:hover { border-color:var(--cyan); box-shadow:0 0 16px color-mix(in srgb, var(--data) 20%, transparent); }
+.back-top:hover { border-color:var(--cyan); box-shadow:none; }
 .back-top:hover::after { border-color:var(--cyan); }
 
 /* ── SCORE BADGES ── */
@@ -543,10 +544,10 @@ body.gestion-archivada [aria-disabled="true"] {
   transition:transform .2s, box-shadow .2s;
 }
 .sbadge:hover { }
-.sbadge.sex { color:var(--sex); box-shadow:0 0 12px color-mix(in srgb, var(--sex) 25%, transparent); }
-.sbadge.sbu { color:var(--sbu); box-shadow:0 0 12px color-mix(in srgb, var(--action) 25%, transparent); }
-.sbadge.spr { color:var(--spr); box-shadow:0 0 12px color-mix(in srgb, var(--spr) 25%, transparent); }
-.sbadge.sba { color:var(--sba); box-shadow:0 0 12px color-mix(in srgb, var(--marca) 25%, transparent); }
+.sbadge.sex { color:var(--sex); box-shadow:none; }
+.sbadge.sbu { color:var(--sbu); box-shadow:none; }
+.sbadge.spr { color:var(--spr); box-shadow:none; }
+.sbadge.sba { color:var(--sba); box-shadow:none; }
 
 .cdot {
   display:inline-flex; align-items:center; justify-content:center;

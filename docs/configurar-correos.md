@@ -92,5 +92,7 @@ Un correo «registrado» no es un correo enviado: solo `enviado` significa que e
 ## 12. Cómo probarlo
 Sin credenciales: `cd tools/pruebas && npm run sql && npm run correo` (cola, destinatarios, preferencias, duplicados, errores y reintentos con un proveedor simulado). Eso prueba la **lógica**; la entrega real por Gmail solo se puede comprobar con tus credenciales en modo `prueba` + `CORREO_PRUEBA_DESTINO`.
 
+> **Actualización (0057, noviembre 2026):** por decisión del dueño, **todos los avisos salen por correo por defecto** y cada persona apaga a mano los opcionales en *Mi cuenta → Preferencias*. Lo de abajo describe 0042, que 0057 revierte en el valor por defecto (el mecanismo de preferencias es el mismo). Tope del remitente: ~100 destinatarios al día.
+
 ## 13. Qué sale por correo por defecto (0042)
 Solo los avisos **esenciales** (11: tarea asignada o cambiada, devolución, tarea vencida, calificación nueva o cambiada, equipo, acceso) salen por correo sin que nadie haga nada. Los **opcionales** (9: por vencer, entrega registrada, tarea aprobada, actividad nueva o recordatorio, observación, estado cambiado, evaluaciones sin publicar, tarea bloqueada) llegan siempre a la campana y solo van por correo si la persona los enciende en Avisos → Preferencias. Así 25 personas no generan ~50 correos por cada tarea y nota, y se cuida el tope de ~100 destinatarios al día de una cuenta Gmail personal. Para cambiar el valor de un tipo: `UPDATE notif_tipos SET correo_default = true WHERE tipo = '…' AND NOT esencial;`.

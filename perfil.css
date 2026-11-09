@@ -26,8 +26,7 @@
 .perfil-id-txt { min-width: 0; }
 
 .perfil-av {   /* el aro de la cabecera de perfil: un modificador de .avatar (shared.css), que pone tamaño, foto y predeterminado */
-  --av: 96px; padding: 0; border: 4px solid var(--cyan-400);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cyan-400) 18%, transparent);
+  --av: 96px; padding: 0; border: 3px solid color-mix(in srgb, var(--on-brand) 45%, transparent);   /* sin halo cian: regla «patrones prohibidos» */
 }
 .perfil-av--editable { cursor: pointer; padding: 0; }
 .perfil-av-cam {
@@ -375,7 +374,7 @@
   transition: background .15s var(--ease), border-color .15s var(--ease);
 }
 button.pcard { cursor: pointer; }
-.pcard:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--data) 55%, transparent); }
+.pcard:hover { background: var(--surface-2); }
 .pcard:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 .pcard--yo { background: var(--surface-2); }
 .pcard-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
@@ -402,10 +401,10 @@ button.pcard { cursor: pointer; }
 /* Fondo personalizado en la TARJETA (no en la foto): la tarjeta de persona es una superficie de marca con el patrón que la persona
    eligió (`pat-N`, de Fondo.clase). .sup-marca ya redefine los tokens de texto y de nivel a los pares medidos. */
 .pcard.sup-marca { border-radius: var(--r-card); clip-path: none; background: var(--navy-900); border: 1px solid var(--border); }
-.pcard.sup-marca:hover { background: var(--navy-900); border-color: var(--cyan-400); filter: brightness(1.12); }
+.pcard.sup-marca:hover { background: var(--navy-900); filter: brightness(1.12); }
 .pcard.sup-marca .pcard-barra { background: color-mix(in srgb, var(--on-brand) 18%, transparent); }
 .pcard.sup-marca .pcard-yo { background: var(--coral); }
-.pcard .avatar { background: var(--blue-700); box-shadow: inset 0 0 0 2px var(--cyan-400); }
+.pcard .avatar { background: var(--blue-700); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--on-brand) 30%, transparent); }
 .pcard--mini.sup-marca { border-radius: var(--r-card); }
 
 /* Gafete (core/gafete.js) */

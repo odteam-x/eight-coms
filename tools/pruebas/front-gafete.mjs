@@ -25,7 +25,7 @@ ok(!/#[0-9a-fA-F]{3,8}\b/.test(css), 'verificar.css sin colores literales (solo 
 console.log('\n[gafete en los portales]');
 for (const f of ['user.html', 'secretario.html', 'admin.html']) {
   const h = rd(f);
-  ok(h.indexOf('core/vendor/qrcode.js') > 0 && h.indexOf('core/vendor/qrcode.js') < h.indexOf('core/gafete.js') && h.indexOf('core/gafete.js') < h.indexOf('<script src="core/perfil.js">'), f + ': carga la librería de QR y el gafete antes del perfil');
+  ok(h.indexOf('core/vendor/qrcode.js') > 0 && h.indexOf('core/vendor/qrcode.js') < h.indexOf('core/gafete.js') && h.indexOf('core/gafete.js') < h.indexOf('<script defer src="core/perfil.js">'), f + ': carga la librería de QR y el gafete antes del perfil');
 }
 const per = rd('core/perfil.js'), cfg = rd('config.js'), g = rd('core/gafete.js');
 ok(/inst\.modo === 'propio' \|\| _cfg\.gafete\?\.esAdmin/.test(per), 'el botón aparece en el perfil propio y, para la administración, en el de cualquiera');

@@ -184,7 +184,7 @@ function animarEntrada(raiz) {
  */
 const _PANEL_ID = 'panel-lateral';
 
-function abrirPanel({ titulo = '', subtitulo = '', compacto = false } = {}) {
+function abrirPanel({ titulo = '', subtitulo = '', compacto = false, pantalla = false } = {}) {
   let ov = document.getElementById(_PANEL_ID);
   if (!ov) {
     ov = document.createElement('div');
@@ -210,6 +210,16 @@ function abrirPanel({ titulo = '', subtitulo = '', compacto = false } = {}) {
   }
   // compacto = hoja inferior que mide lo que su contenido (avisos); sin él, el panel ocupa toda la altura (perfiles).
   ov.querySelector('.panel').classList.toggle('panel--hoja', !!compacto);
+  // pantalla = ficha que usa toda el área de contenido (perfiles, distritos): no es un cajón lateral; se sale con «Volver».
+  ov.querySelector('.panel').classList.toggle('panel--pantalla', !!pantalla);
+  ov.classList.toggle('panel-overlay--pantalla', !!pantalla);
+  const cerrar = ov.querySelector('.panel-cab > .btn-icon, .panel-cab > .panel-volver');
+  if (cerrar) {
+    cerrar.className = pantalla ? 'panel-volver' : 'btn-icon';
+    cerrar.innerHTML = pantalla ? '<i data-lucide="arrow-left" aria-hidden="true"></i><span>Volver</span>' : '<i data-lucide="x" aria-hidden="true"></i>';
+    cerrar.setAttribute('aria-label', pantalla ? 'Volver' : 'Cerrar');
+    renderIconos(cerrar);
+  }
   document.getElementById('panel-lateral-titulo').textContent = titulo;
   const sub = document.getElementById('panel-lateral-sub');
   sub.textContent = subtitulo;
@@ -437,10 +447,11 @@ function diasDesdeHoy(iso) {
 }
 
 /** «15 oct» a partir de un YYYY-MM-DD. */
+const _fmtCorta = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short' });   // un formateador, no uno por llamada (toLocaleDateString lo recrea cada vez)
 function fechaCortaISO(iso) {
   const [a, m, d] = String(iso || '').slice(0, 10).split('-').map(Number);
   if (!a || !m || !d) return '';
-  return new Date(a, m - 1, d).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '');
+  return _fmtCorta.format(new Date(a, m - 1, d)).replace('.', '');
 }
 
 /** «en 6 días», «mañana», «hoy», «hace 3 días». */

@@ -192,10 +192,12 @@ const P = (n, v, extra = {}) => ({ ...extra, periodo_id: 'id' + n, periodo_nombr
   const { ctx, dom, graficos } = entorno(rows);
   await ctx.Desempeno.montarAdmin(dom['host'] = el('host'));
   const h = dom['des-cuerpo'].innerHTML;
-  ok(h.indexOf('Desempeño individual') > -1 && h.indexOf('Desempeño del equipo por período') > h.indexOf('Desempeño individual'), 'primero «Desempeño individual», después el del equipo por período');
-  ok(h.indexOf('id="des-h-ind"') < h.indexOf('id="des-h-evo"') && h.indexOf('id="des-h-det"') < h.indexOf('id="des-h-evo"'), 'tarjetas y detalle de la persona van antes que la evolución del equipo');
+  // Decisión del dueño (nov 2026): el análisis del equipo es el protagonista; las personas van al final, plegadas.
+  ok(h.indexOf('Desempeño del equipo por período') > -1 && h.indexOf('Cada persona') > h.indexOf('Desempeño del equipo por período'), 'primero el desempeño del equipo por período, después «Cada persona»');
+  ok(h.indexOf('id="des-h-evo"') < h.indexOf('id="des-h-ind"') && h.indexOf('id="des-h-evo"') < h.indexOf('id="des-h-det"'), 'la evolución del equipo va antes que las tarjetas y el detalle de la persona');
   ok((h.match(/<button type="button" class="des-card/g) || []).length === 4, 'una tarjeta por persona');
-  ok(h.indexOf('>Dani<') < h.indexOf('>Ana<'), 'tarjetas ordenadas por el último resultado (Dani 83 antes que Ana 59)');
+  const hc = h.slice(h.indexOf('class="des-cards"'));
+  ok(hc.indexOf('>Dani<') < hc.indexOf('>Ana<'), 'tarjetas ordenadas por el último resultado (Dani 83 antes que Ana 59)');
   ok(/id="des-h-det">Dani</.test(h), 'el detalle abre con la mejor persona elegida');
   const det = graficos['des-ch-mio'].data.datasets;
   ok(det.some(d => d.label === 'Promedio del equipo'), 'el gráfico individual lleva la línea del promedio del equipo');

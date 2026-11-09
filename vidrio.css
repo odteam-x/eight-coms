@@ -1,0 +1,762 @@
+/* vidrio.css — identidad «vidrio sobre malla» (propuesta en demo). Carga después de derechos.css y antes de movil.css.
+   Redefine los tokens de superficie y texto; los componentes existentes los heredan. Ningún hex fuera de :root. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Source+Serif+4:ital,wght@1,400&display=swap');
+
+:root {
+  --v-1:#031B45; --v-2:#0A3A82; --v-3:#16427F; --v-4:#183C74;
+  --v-brillo:rgba(0,203,255,.15); --v-calido:rgba(255,96,99,.10);
+  --v-fill:rgba(255,255,255,.09); --v-fill2:rgba(255,255,255,.13); --v-line:rgba(255,255,255,.22); --v-hi:rgba(255,255,255,.20);
+  --v-sombra:rgba(3,27,69,.28); --v-p2:34%; --v-p3:62%; --v-solido:#0B2A5C; --v-blur:24px;
+  --v-t:#F3F8FF; --v-t2:#E9F0FA; --v-tm:#E3ECF8;
+  --v-activo:#FFFFFF; --v-activo-txt:#031B45;
+  --v-coral:#FF6063; --v-navy:#031B45; --v-blanco:#FFFFFF;
+}
+[data-theme="light"] {
+  --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
+  --v-brillo:rgba(0,203,255,.16); --v-calido:rgba(255,138,140,.20);
+  --v-fill:rgba(255,255,255,.58); --v-fill2:rgba(255,255,255,.76); --v-line:rgba(255,255,255,.75); --v-hi:#FFFFFF;
+  --v-sombra:rgba(27,73,168,.16); --v-p2:14%; --v-p3:44%; --v-solido:#EAF1FA;
+  --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
+  --v-activo:#031B45; --v-activo-txt:#FFFFFF;
+}
+
+/* 1. Tokens del sitio → vidrio */
+:root, [data-theme="light"] {
+  --bg: var(--v-1);
+  --surface-1: var(--v-fill); --surface-2: var(--v-fill2); --surface-3: var(--v-fill2);
+  --trazo: var(--v-line);
+  --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm);
+  --font-display: 'Barlow', system-ui, sans-serif;
+  --shadow-sm: 0 1px 0 var(--v-hi) inset; --shadow-md: 0 18px 48px var(--v-sombra); --shadow-lg: 0 24px 60px var(--v-sombra);
+  --r-card: 28px; --r-cont: 32px; --r-modal: 36px; --r-hero: 40px;
+}
+
+/* 2. Malla asimétrica: fija detrás de todo (sin animación) */
+html { background: var(--v-1); }
+body { background: transparent; }
+body::before, .panel--pantalla {
+  background:
+    radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 58% at 94% 6%, var(--v-calido) 0%, transparent 68%),
+    radial-gradient(ellipse 26% 18% at 58% 104%, var(--v-brillo) 0%, transparent 70%),
+    linear-gradient(118deg, var(--v-1) 0%, var(--v-2) var(--v-p2), var(--v-3) var(--v-p3), var(--v-4) 100%);
+}
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.luz::before, .luz::after, #contenido::before, #contenido::after, .amain::before, .amain::after { display: none !important; }
+
+/* 3. Menú lateral integrado: texto sobre la malla, activo en píldora sólida */
+.rail { background: transparent !important; box-shadow: none; border-right: 1px solid var(--v-line); color: var(--v-blanco); }
+.rail::before, .rail::after { display: none !important; }
+.rail .rail-item { color: rgba(255,255,255,.86); border-radius: 16px; }
+.rail .rail-item:hover { background: rgba(255,255,255,.10); color: var(--v-blanco); }
+.rail .rail-item.active { background: var(--v-blanco); color: var(--v-navy); box-shadow: 0 8px 22px var(--v-sombra); font-weight: 600; }
+.rail .rail-item.active::before { display: none; }
+.rail .rail-logo { width: 34px; height: 34px; filter: none; }
+.cab-movil-logo { width: 34px; height: 34px; }
+.logo-img { width: 66px; height: 66px; }
+.rail .rail-buscar { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 99px; color: var(--v-blanco); }
+.rail-prox { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 24px; }
+.bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
+
+/* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
+.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
+  background: var(--v-fill); border: 1px solid var(--v-line);
+  -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
+  border-radius: 28px; color: var(--v-t);
+}
+.pf-card--cian, .pf-card--azul { background: var(--v-fill2); }
+.modal-box, .tk-box, .panel, .sheet { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); }
+
+/* 5. Hero: vidrio con una forma de contraste recortada */
+.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
+.sup-marca::before { opacity: .32; -webkit-mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); }
+.sup-marca::after { background: none; }
+.inicio-hero { position: relative; }
+.sup-marca .inicio-titulo, .sup-marca h1 { color: var(--v-t); font-weight: 300; letter-spacing: -.035em; text-transform: none; }
+.sup-marca .acento, .inicio-titulo .acento { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; color: var(--v-t); }
+
+/* 6. Tipografía ligera */
+h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-transform: none; }
+.anillo-num, .pf-kpi-val, .num, .inicio-dias { font-weight: 300; }
+.pf-h, .pf-sub { font-weight: 500; text-transform: none; letter-spacing: -.01em; }
+
+/* 7. Botones: primario sólido inverso; crear en coral */
+.btn-save, .tk-btn--main, .btn-login, .btn--primario { background: var(--v-activo); color: var(--v-activo-txt); border: 0; box-shadow: none; }
+.btn--crear, .btn-nueva { background: var(--v-coral); color: var(--v-navy); }
+.btn-ghost, .btn--secundario, .btn-out { background: transparent; border: 1px solid var(--v-line); color: var(--v-t); }
+
+/* 7b. Logo visible: el isotipo es de trazo fino coral; sobre un disco claro se lee en cualquier malla */
+.rail-logo, .cab-movil-logo, .logo-img { background: var(--v-blanco); border-radius: 50%; padding: 3px; box-sizing: content-box; box-shadow: 0 6px 18px var(--v-sombra); }
+
+/* 7c. Login en vidrio */
+.login-layout { background: transparent !important; }
+.login-panel-brand { background: transparent !important; color: var(--v-t); }
+.login-panel-brand::after { display: none !important; }
+.login-panel-form { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-radius: 36px; margin: 20px; color: var(--v-t); }
+.btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+
+/* 8. Niveles: vidrio con punto */
+.nivel-badge { background: var(--v-fill2); color: var(--v-t); border: 1px solid var(--v-line); box-shadow: inset 0 1px 0 var(--v-hi); }
+
+/* 9. Segmentado */
+.seg { background: var(--v-fill); border: 1px solid var(--v-line); }
+.seg-btn[aria-selected="true"], .seg-btn.active { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .pf-card, .pf-kpi, .tarjeta, .kpi, .lista-aj, .sup-marca, .tk-card, .bottom-bar, .cab-movil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--v-solido); }
+}
+
+
+
+/* 12. Rail: la marca no pisa el buscador; tarjetas de persona en vidrio */
+.rail .rail-marca { margin-bottom: 14px; }
+.rail .rail-buscar { margin-top: 10px; }
+.pcard, .pcard.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); }
+.pcard .pcard-nombre, .pcard b { color: var(--v-t); }
+
+/* 13. Tema claro: el menú es una columna azul propia (la malla ya es clara bajo el contenido) */
+[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-1), color-mix(in srgb, var(--v-1) 75%, var(--v-2))) !important; border-right: 0; }
+
+/* 14. Tema claro: el hero es vidrio claro, su texto pasa a navy (los tokens de «sobre marca» eran claros) */
+[data-theme="light"] .sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); }
+[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-1); }
+[data-theme="light"] .inicio-sub, [data-theme="light"] .inicio-dias-lbl, [data-theme="light"] .inicio-dias-pe { color: var(--v-t2); }
+
+/* 15. Acceso (referencias: Stripe, Vercel, Figma): enlace de recuperación en la fila de la contraseña, menos ruido junto al formulario */
+.field-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field-link { font-size: .875rem; color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+.login-puntos { display: none; }
+.login-panel-form { max-width: 520px; width: 100%; margin-inline: auto; align-self: center; }
+.login-panel-brand .login-puntos { display: none; }
+.login-panel-form .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+
+/* 16. Avisos: conteo por grupo (referencias de centros de actividad) */
+.avisos-grupo { display: flex; align-items: center; gap: 8px; }
+.avisos-grupo-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: .8rem; line-height: 20px; text-align: center; font-weight: 600; }
+
+/* 17. Rail: la fila de cuenta activa (Mi cuenta) queda en píldora blanca; su texto debe ser oscuro */
+.rail .rail-user.active, .rail .rail-user[aria-current="page"] { background: var(--v-blanco); color: var(--v-navy); }   /* igual que .rail-item.active: píldora blanca en los dos temas */
+.rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
+
+/* 18. Mi cuenta en dos columnas (referencias de Ajustes: subnavegación vertical + filas etiqueta/control) */
+@media (min-width: 900px) {
+  #cuenta-host { display: grid; grid-template-columns: 230px minmax(0, 1fr); grid-template-areas: "cab cab" "nav cuerpo"; gap: 0 var(--sp-6); align-items: start; }
+  #cuenta-host > .cuenta-cab { grid-area: cab; }
+  #cuenta-host > .cuenta-tabs { grid-area: nav; margin: 0; overflow: visible; position: sticky; top: var(--sp-5); }
+  #cuenta-host > .cuenta-panel { grid-area: cuerpo; max-width: none; }
+  #cuenta-host .cuenta-tabs .seg { display: flex; flex-direction: column; align-items: stretch; width: 100%; padding: 8px; border-radius: 28px; gap: 2px; }
+  #cuenta-host .cuenta-tabs .seg-btn { justify-content: flex-start; width: 100%; min-height: 46px; border-radius: 18px; padding-inline: 16px; text-align: left; }
+  #cuenta-host .cuenta-grid { grid-template-columns: 1fr; }
+  #cuenta-host .cuenta-t { font-size: 1.05rem; font-weight: 500; letter-spacing: 0; text-transform: none; margin: 0 0 var(--sp-3); }
+  #cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: var(--sp-6); }
+}
+.cuenta-un-col .cfg-hint { order: 0; }
+
+/* 19. Elementos fijos al desplazar: opacos (el vidrio translúcido dejaba ver el texto que pasa por debajo) */
+.v2-resumen, .tk-modal-acciones, .modal-x, .cab-movil, .bottom-bar { background: var(--v-solido); }
+.v2-resumen { border-top: 1px solid var(--v-line); color: var(--v-t); }
+
+/* 20. Acceso: titular ligero con acento serif, patrón de marca con degradado lateral, campos de vidrio.
+   login.css carga después de este archivo: los selectores llevan .login-layout para ganar sin !important. */
+.login-layout .login-hero-h1 { font-weight: 300; letter-spacing: -.035em; text-transform: none; color: var(--v-t); }
+.login-layout .login-hero-h1 em, .login-layout .login-form-title em { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; color: var(--v-t); }
+.login-layout .login-hero-h1 .login-hero-labs { color: var(--v-t); font-weight: 300; }
+.login-layout .login-form-title { font-weight: 300; letter-spacing: -.03em; }
+.login-layout .login-hero-tag { align-self: flex-start; padding: 6px 14px; border-radius: 99px; background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t2); }
+.login-layout .login-hero-desc, .login-layout .login-brand-foot { color: var(--v-t2); }
+.login-layout .login-panel-brand::before {
+  display: block; opacity: .34; background-size: 280px 280px;
+  -webkit-mask-image: linear-gradient(to right, black 0%, rgba(0,0,0,.35) 55%, transparent 100%); mask-image: linear-gradient(to right, black 0%, rgba(0,0,0,.35) 55%, transparent 100%);
+}
+.login-layout .login-panel-form { background: transparent; border: 0; }
+.login-layout .login-panel-form::before, .login-layout .login-panel-form::after { display: none; }
+.login-layout .login-seg { background: var(--v-fill); border: 1px solid var(--v-line); }
+.login-layout .login-seg::before { background: var(--v-activo); box-shadow: none; }
+.login-layout .login-seg-btn[aria-selected="true"] { color: var(--v-activo-txt); }
+.login-layout .field input { background: var(--v-fill2); border-color: var(--v-line); box-shadow: inset 0 1px 0 var(--v-hi); }
+.login-layout .field input:focus, .login-layout .field input:focus-visible { background: var(--v-fill); border-color: var(--v-t); box-shadow: 0 0 0 3px color-mix(in srgb, var(--v-t) 22%, transparent); }
+.login-layout .field input[aria-invalid="true"] { border-color: var(--alert); }
+.login-layout .btn-login { background: var(--v-activo); color: var(--v-activo-txt); }
+.login-layout .login-aux a, .login-layout .login-link a { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+/* «Cuenta pendiente» es información sobre la cuenta, no un error de lo que escribió */
+.login-layout .login-err.es-info { color: var(--v-t); background: var(--v-fill2); border-color: var(--v-line); }
+.login-layout .login-err.es-info::before { content: 'i'; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--v-activo); color: var(--v-activo-txt); font: 600 .8rem/1 var(--font-ui); vertical-align: 1px; }
+.login-layout .login-panel-brand::before { opacity: .24; }
+@media (min-width: 760px) { .login-layout .login-seg { width: 100%; max-width: 420px; } .login-layout .login-seg-btn { min-width: 0; } }
+/* Tema claro: la malla bajo el panel de marca es azul medio; el texto navy no llega a 4.5:1. El panel pasa a columna azul propia (igual que el menú) con texto claro */
+[data-theme="light"] .login-layout .login-panel-brand {
+  background: linear-gradient(160deg, var(--v-1), color-mix(in srgb, var(--v-1) 72%, var(--v-2))) !important;
+  --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-line: rgba(255,255,255,.26);
+}
+[data-theme="light"] .login-layout .login-panel-brand::before { opacity: .22; }
+@media (min-width: 760px) { [data-theme="light"] .login-layout .login-panel-brand { margin: 20px 0 20px 20px; border-radius: 36px; } }
+/* Acceso en celular: la banda lleva solo isotipo y nombre en una línea; el enlace de recuperación queda junto a su etiqueta */
+.login-layout #pane-login .field-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.login-layout #pane-login .field-row label { margin-bottom: 0; }
+.login-layout .field-link { display: inline-flex; align-items: center; min-height: 44px; margin-block: -6px; padding-inline: 4px; }
+.login-layout + .derechos--login { color: var(--v-t2); }
+@media (max-width: 759px) { .login-layout + .derechos--login { background: var(--v-solido); } }
+@media (max-width: 759px) {
+  .login-layout .login-hero-tag { display: none; }
+  .login-layout .login-hero-h1 { white-space: nowrap; font-size: clamp(1.25rem, 6vw, 1.7rem); }
+}
+
+/* 21. Modales: selector de puntos y campos con el mismo lenguaje (vidrio; elegido = píldora inversa) */
+.tk-punto span { background: var(--v-fill); border-color: var(--v-line); font-weight: 400; }
+.tk-punto input:checked + span { background: var(--v-activo); color: var(--v-activo-txt); font-weight: 600; }
+.tk-punto:hover span { border-color: var(--v-t); }
+@media (max-width: 359px) { .login-layout .login-hero-h1 { font-size: clamp(.95rem, 4.9vw, 1.7rem); } }   /* a 320 px el nombre en una línea no cabe junto al botón de tema con el mínimo de 1.25rem */
+
+/* 22. Panel de administración: resumen ejecutivo (KPIs 2×2) junto a «Requiere atención» en una sola franja, después desempeño y evolución.
+   Cada bloque justifica su espacio: sin descripciones largas, sin indicadores que repitan lo que ya dice una alerta. */
+#ov-body > .panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }   /* solo el Panel: Reportes reutiliza .panel-kpis con su propia rejilla */
+.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
+.kpi-c-num { grid-area: num; font: 300 2.4rem/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.kpi-c-num small { font-size: .45em; font-weight: 500; color: var(--v-t2); margin-left: 2px; }
+.kpi-c-etq { grid-area: etq; align-self: end; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--v-t2); }
+.kpi-c-sub { grid-area: sub; align-self: start; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kpi-barra { grid-area: bar; display: flex; gap: 3px; height: 6px; margin-top: 8px; border-radius: 99px; overflow: hidden; }
+.kpi-seg { display: block; height: 100%; min-width: 4px; border-radius: 99px; }
+.kpi-seg--pub { background: var(--v-t); } .kpi-seg--bor { background: color-mix(in srgb, var(--v-t) 55%, transparent); } .kpi-seg--sin { background: color-mix(in srgb, var(--v-t) 22%, transparent); }
+.kpi-delta .delta { font-size: var(--fs-xs); margin-left: 4px; }
+.panel-grid--evol { margin-top: 12px; }
+
+/* «Requiere atención»: componente compacto. Fila de ~36 px = icono · nombre breve · cantidad · acción. */
+.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.atn-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.atn-h { margin: 0; font: 500 var(--fs-md)/1.2 var(--font-ui); } .atn-h small { font-size: var(--fs-xs); font-weight: 400; color: var(--v-t2); margin-left: 6px; }
+.atn-total { min-width: 24px; height: 24px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1 var(--font-ui); }
+.atn-lista { list-style: none; margin: 0; padding: 0; }
+.atn-fila { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 38px; padding: 0; border-top: 1px solid var(--v-line); }
+.atn-lista > .atn-fila:first-child { border-top: 0; }
+.atn-ico { width: 16px; height: 16px; color: var(--v-t2); }
+.atn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); }
+.atn-n { min-width: 26px; text-align: center; padding: 2px 8px; border-radius: 99px; background: var(--v-fill2); font: 600 var(--fs-sm)/1.3 var(--font-ui); font-variant-numeric: tabular-nums; }
+.atn-fila--alta .atn-ico { color: var(--v-coral); }
+.atn-fila--alta .atn-n { background: var(--v-coral); color: var(--v-navy); }   /* navy sobre coral: 5,6 a 1 */
+.atn-acc { display: inline-flex; align-items: center; gap: 2px; min-height: 32px; padding: 0 4px 0 8px; border: 0; background: none; color: var(--v-t); font: 600 var(--fs-sm)/1 var(--font-ui); cursor: pointer; border-radius: 99px; }
+.atn-acc:hover { background: var(--v-fill2); }
+.atn-acc:focus-visible, .atn-mas > summary:focus-visible { outline: 2px solid var(--v-t); outline-offset: 2px; }
+.atn-acc i, .atn-acc svg { width: 14px; height: 14px; }
+.atn-mas { border-top: 1px solid var(--v-line); }
+.atn-mas > summary { display: flex; align-items: center; justify-content: space-between; min-height: 36px; padding: 0 2px; cursor: pointer; list-style: none; font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--v-t2); border-radius: 99px; }
+.atn-mas > summary::-webkit-details-marker { display: none; }
+.atn-mas > summary::after { content: '+'; font-size: 1.1rem; font-weight: 400; }
+.atn-mas[open] > summary::after { content: '−'; }
+.atn-nota { margin: 0 0 4px; font-size: var(--fs-xs); color: var(--v-t2); }
+.atn-quienes { display: block; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; }
+.atn-ok { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; font-size: var(--fs-sm); color: var(--v-t2); } .atn-ok i, .atn-ok svg { width: 16px; height: 16px; }
+.atn-fila--dato .atn-t { white-space: normal; }
+
+@media (min-width: 1100px) {
+  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-areas: "cab pe" "bv bv" "kpi atn" "evol evol" "acc acc"; column-gap: 16px; align-items: stretch; }
+  #tab-overview > .pantalla-cab { grid-area: cab; align-self: end; }
+  #tab-overview > .eval-pe-bar { grid-area: pe; align-self: end; justify-self: end; }
+  #tab-overview > #bv-slot { grid-area: bv; }
+  #tab-overview > #ov-atencion { grid-area: atn; }
+  #tab-overview > #ov-body { display: contents; }
+  #ov-body > .panel-kpis { grid-area: kpi; grid-template-rows: 1fr 1fr; }
+  #ov-body > .panel-grid--evol { grid-area: evol; }
+  #ov-body > .acordeon { grid-area: acc; }
+}
+@media (max-width: 1099px) { #ov-atencion { margin: 12px 0; } #ov-body > .panel-kpis { margin-top: 12px; } }
+@media (max-width: 480px) { .kpi-c { padding: 12px 14px; column-gap: 10px; } .kpi-c-num { font-size: 1.9rem; } }
+
+/* 23. Tema claro: el hero y las tarjetas de persona son vidrio claro; la escala de niveles vuelve a su rampa de tema claro
+   (la de .sup-marca es para superficies navy: el cian de «Bueno» sobre vidrio blanco daba ~1.8:1) y el patrón se atenúa para no ensuciar el texto. */
+[data-theme="light"] .sup-marca {
+  --sex: #0079AE; --sbu: #0068C9; --spr: #00406B; --sba: #A81F23;
+  --sex-txt: #006B96; --sbu-txt: #005FB8; --spr-txt: #00406B; --sba-txt: #A81F23;
+}
+[data-theme="light"] .sup-marca::before { opacity: .14; }
+
+/* 24. Cabecera de pantalla compacta y con ubicación: «GRUPO» sobre el título, icono del menú, descripción en una línea.
+   (rotularPantalla en core/render.js). Las pantallas dejan de gastar tres líneas en un párrafo que el menú ya resume. */
+.pantalla-cab { margin-bottom: 14px; }
+.pantalla-cab h1[data-grupo]::before { content: attr(data-grupo); display: block; margin-bottom: 4px; font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); }
+.pantalla-cab h1 { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+.pantalla-cab h1[data-grupo]::before { flex: 0 0 100%; }
+.pantalla-ico { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--v-fill2); border: 1px solid var(--v-line); color: var(--v-t); }
+.pantalla-ico svg { width: 20px; height: 20px; }
+.pantalla-cab > p { max-width: 90ch; font-size: var(--fs-sm); color: var(--v-t2); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 767px) { .pantalla-ico { display: none; } .pantalla-cab h1[data-grupo]::before { display: none; } }
+
+/* 25. Tablas: planas sobre su contenedor (filas con filete), nunca una caja de vidrio dentro de otra: la caja interior
+   recortaba la última columna y sus esquinas no coincidían con las del contenedor («corrige los radios»). */
+.seg-tabla { background: none; border: 0; box-shadow: none; border-radius: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.seg-tabla th, .seg-tabla td { border-top-color: var(--v-line); }
+.seg-tabla-wrap { border-radius: 0; }
+
+/* 26. Divisiones entre apartados: dos tarjetas seguidas nunca se tocan (Desempeño tenía 0 px entre Evolución, Comparar…). */
+/* (Sin regla de hermanos: dentro de una rejilla sumaba 16 px solo a la segunda tarjeta y desalineaba la fila.) */
+/* Estado vacío con referencia (Comparar personas): ocupa el sitio del gráfico y dice qué hacer. */
+.des-ref { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 220px; padding: 24px; text-align: center; border: 1px dashed var(--v-line); border-radius: 20px; color: var(--v-t2); }
+.des-ref svg, .des-ref i { width: 28px; height: 28px; color: var(--v-t); }
+.des-ref b { font: 500 var(--fs-md)/1.3 var(--font-ui); color: var(--v-t); }
+.des-ref p { margin: 0; max-width: 42ch; font-size: var(--fs-sm); }
+.pf-card--ancha { margin-bottom: var(--sp-4); }   /* las secciones a todo el ancho de Desempeño/Seguimiento llegan envueltas en contenedores sin clase: el selector de hermanos no las alcanza */
+
+/* 27. (Retirada: pintar el fondo de html/body tapaba la malla de body::before, que va detrás con z-index -1.) */
+
+/* 28. Fichas a pantalla completa (perfil, distrito): ocupan toda el área de contenido junto al menú, con la misma malla de fondo;
+   cabecera como la de una pantalla (título + «Volver»), contenido con ancho máximo. Mantienen el foco atrapado y Escape (openModal). */
+.panel-overlay.panel-overlay--pantalla { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (min-width: 768px) {
+  .con-rail .panel-overlay--pantalla { left: var(--rail-w); }
+  .con-rail.rail-colapsado .panel-overlay--pantalla { left: var(--rail-w-min); }
+}
+.panel.panel--pantalla { width: 100%; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; color: var(--v-t); animation: pantallaEntra .22s var(--ease); }
+@keyframes pantallaEntra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.panel--pantalla .panel-cab { flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 16px; background: none; border: 0; padding: 20px 32px 8px; max-width: 1440px; width: 100%; margin-inline: auto; box-sizing: border-box; }
+.panel--pantalla .panel-cab::after { display: none; }
+.panel--pantalla .panel-titulo { font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); }
+.panel--pantalla .panel-sub { font: 300 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.03em; color: var(--v-t); margin-top: 4px; }
+.panel--pantalla .panel-cuerpo { padding: 8px 32px 48px; }
+.panel--pantalla .panel-cuerpo > * { max-width: 1376px; margin-inline: auto; }
+.panel-volver { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px 0 12px; border-radius: 99px; border: 1px solid var(--v-line); background: var(--v-fill); color: var(--v-t); font: 600 var(--fs-sm)/1 var(--font-ui); cursor: pointer; flex: none; }
+.panel-volver:hover { background: var(--v-fill2); }
+.panel-volver:focus-visible { outline: 2px solid var(--v-t); outline-offset: 2px; }
+.panel-volver svg { width: 18px; height: 18px; }
+@media (max-width: 767px) {
+  .panel-overlay--pantalla { align-items: stretch; }
+  .panel--pantalla .panel-cab { padding: max(12px, env(safe-area-inset-top)) 16px 4px; }
+  .panel--pantalla .panel-cuerpo { padding: 8px 16px max(32px, env(safe-area-inset-bottom)); }
+  .panel--pantalla .panel-sub { font-size: var(--fs-lg); }
+}
+.panel--pantalla > .hoja-tirador { display: none; }   /* una pantalla completa no se arrastra para cerrar: se sale con «Volver» o Escape */
+
+/* 29. Mi cuenta: identidad en una fila compacta (no una tarjeta grande que repite el nombre), subnavegación fija a la
+   izquierda, bloques sin huecos muertos y el selector de fondo en baldosas pequeñas (una fila de 8 en escritorio). */
+#cuenta-host .cuenta-cab { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; margin: 0 0 20px; gap: 16px; }
+#cuenta-host .cuenta-foto { --av: 64px; }
+#cuenta-host .cuenta-nombre { font: 300 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.03em; margin: 0; }
+#cuenta-host .cuenta-mail { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--v-t2); }
+#cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: 24px; }
+#cuenta-host .cuenta-t { margin: 0 0 10px; }
+#cuenta-host .fondo-caja { padding: 14px; gap: 12px; }
+#cuenta-host .fondo-vista { min-height: 64px; }
+#cuenta-host .fondo-opciones { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+#cuenta-host .fondo-op { aspect-ratio: 4 / 3; min-height: 48px; border-radius: 14px; }
+.fondo-op:hover { border-color: var(--v-line); }
+.fondo-op.on { border-color: transparent; box-shadow: 0 0 0 2px var(--v-t); }   /* elegido: aro sólido + ✓ + aria-checked (antes un aro cian) */
+[data-theme="light"] .fondo-op:not(.fondo-op--auto)::before, [data-theme="light"] .fondo-vista.sup-marca::before { opacity: .38; }   /* en claro el patrón casi no se veía y las 8 opciones parecían iguales */
+
+/* Menú: la fila de cuenta activa es la píldora inversa; su texto usa el par medido de esa píldora en los dos temas
+   (en tema claro era navy sobre navy y el nombre desaparecía). */
+.rail .rail-user.active .rail-uname, .rail .rail-user.active .rail-ts, .rail .rail-user[aria-current="page"] .rail-uname, .rail .rail-user[aria-current="page"] .rail-ts { color: var(--v-navy); }
+
+/* 30. Calendario (referencia: «Calendario» del sistema de diseño). Días sin caja: el número en un círculo, el período como
+   una franja translúcida continua con extremos redondeados, hoy en coral, el día elegido en la píldora inversa; puntos de
+   6 px para lo que hay ese día. La agenda del día es una lista de filas, con título ligero (no mayúsculas pesadas). */
+.cal2-mes, .cal2-agenda { background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; box-shadow: none; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.cal2-titulo { font: 300 clamp(1.8rem, 1.2rem + 1.6vw, 2.6rem)/1 var(--font-display); letter-spacing: -.03em; text-transform: lowercase; }
+.cal2-titulo span { font-weight: 300; color: var(--v-t2); }
+.cal2-btn { border-color: var(--v-line); background: var(--v-fill); color: var(--v-t); }
+.cal2-btn:hover { border-color: var(--v-line); background: var(--v-fill2); }
+.cal2-btn--hoy { border-color: var(--v-line); }
+.cal2-chip { border-color: var(--v-line); background: transparent; color: var(--v-t2); }
+.cal2-chip.on { background: var(--v-fill2); border-color: var(--v-line); color: var(--v-t); }
+.cal2-sem { gap: 0; } .cal2-sem span { color: var(--v-t2); }
+.cal2-grid { column-gap: 0; row-gap: 4px; }
+.cal2-dia { position: relative; isolation: isolate; min-height: 60px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; border-radius: 0; box-shadow: none; color: var(--v-t); }
+.cal2-dia:hover { border: 0; background: none; }
+.cal2 { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* el contenedor de mes + agenda no es otra caja */
+.cal2-dia:hover .cal2-num { background: var(--v-fill2); }
+.cal2-dia:focus-visible { outline: none; } .cal2-dia:focus-visible .cal2-num { outline: 2px solid var(--v-t); outline-offset: 2px; }
+.cal2-num { align-self: center; width: 34px; height: 34px; min-width: 0; padding: 0; border-radius: 50%; font: 400 var(--fs-md)/1 var(--font-ui); position: relative; z-index: 1; }
+.cal2-dia--fuera { opacity: .4; }
+/* franja del período: una banda a la altura del número, continua de día a día; redondeada en sus extremos y en el borde de cada semana */
+.cal2-dia--pe { background: none; }
+.cal2-dia--pe::before { content: ''; position: absolute; z-index: 0; left: 0; right: 0; top: 6px; height: 34px; background: var(--v-fill2); }
+.cal2-grid > .cal2-dia--pe:nth-child(7n+1)::before, .cal2-dia--pe-ini::before { left: 4px; border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
+.cal2-grid > .cal2-dia--pe:nth-child(7n)::before, .cal2-dia--pe-fin::before { right: 4px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
+.cal2-dia--hoy .cal2-num { background: var(--v-coral); color: var(--v-navy); font-weight: 600; }
+.cal2-dia--sel { border: 0; box-shadow: none; }
+.cal2-dia--sel .cal2-num { background: var(--v-activo); color: var(--v-activo-txt); font-weight: 600; }
+.cal2-pe { top: 44px; right: auto; left: 50%; transform: translateX(-50%); background: none; color: var(--v-t2); font: 600 .7rem/1 var(--font-ui); padding: 0; display: none; }
+.cal2-puntos { justify-content: center; gap: 3px; }
+.cal2-punto { width: 6px; height: 6px; }
+.cal2-agenda-h { font: 300 2rem/1 var(--font-display); letter-spacing: -.03em; text-transform: none; }
+.cal2-agenda-h span { font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); margin-bottom: 6px; }
+.cal2-agenda-pe { color: var(--v-t2); }
+.cal2-lista { gap: 0; }
+.cal2-ev { padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; }
+.cal2-lista > .cal2-ev:first-child { border-top: 0; }
+.cal2-ev-ico { width: 34px; height: 34px; border-radius: 50%; background: var(--v-fill2); color: var(--v-t); }
+.cal2-ver { border-color: var(--v-line); color: var(--v-t); background: none; }
+.cal2-ver:hover { border-color: var(--v-line); background: var(--v-fill2); }
+@media (max-width: 600px) { .cal2-dia { min-height: 52px; padding: 4px 0; gap: 3px; } .cal2-num { width: 30px; height: 30px; font-size: var(--fs-sm); } .cal2-dia--pe::before { top: 4px; height: 30px; } }
+#cuenta-host .cuenta-grid { gap: 24px; }
+
+/* 31. Paneles y avisos: cabecera sin la franja multicolor (en vidrio era ruido); el filtro activo es la píldora inversa. */
+.panel-cab::after { display: none; }
+.panel-titulo { text-transform: none; letter-spacing: -.01em; font-weight: 500; }
+.aviso-chips .chip.on, .aviso-chips .chip[aria-pressed="true"], .aviso-chips .chip.active { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; }
+/* Elegido/activo en TODOS los chips y filtros: la píldora inversa del sistema (antes coral en unos, cian brillante en otros). */
+.chip.active, .chip[aria-pressed="true"], .tk-chip--on, .eval-chip.on, .btn--chip[aria-pressed="true"], .cal2-chip.on[aria-pressed="true"] { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; box-shadow: none; filter: none; }
+.chip.active:hover, .tk-chip--on:hover, .eval-chip.on:hover { background: var(--v-activo); color: var(--v-activo-txt); filter: none; }
+.chip.active b, .chip[aria-pressed="true"] b, .tk-chip--on b, .eval-chip.on b { color: inherit; }
+
+/* 32. Evaluar: la lista de personas es UNA lista (vidrio) con filas separadas por filetes, no cajas apiladas a 2 px.
+   La fila elegida lleva fondo + texto en negrita + aria-pressed; el foco de teclado se ve (role=button, tabindex=0). */
+.eval-users-grid { display: flex; flex-direction: column; gap: 0; padding: 4px 0; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); overflow: hidden; }
+.eval-ucard { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 10px 14px; margin: 0; cursor: pointer; }
+.eval-users-grid > .eval-ucard:first-child { border-top: 0; }
+.eval-ucard:hover { background: color-mix(in srgb, var(--v-t) 6%, transparent); }
+.eval-ucard--active { background: var(--v-fill2); }
+.eval-ucard--active .eval-ucard-name { font-weight: 700; }
+.eval-ucard:focus-visible { outline: 2px solid var(--v-t); outline-offset: -2px; }
+
+/* 33. Seguimiento: las tablas de cada rol comparten columnas (antes cada grupo medía las suyas y los PE no quedaban
+   alineados de un grupo al siguiente). «Sin evaluar» es un hecho neutro: texto tenue, no una píldora más. */
+@media (min-width: 768px) {
+  .seg-tabla--roles { table-layout: fixed; }
+  .seg-tabla--roles thead th:first-child, .seg-tabla--roles tbody th { width: 24%; }
+}
+.seg-tabla--roles .etiqueta.etq-gris { background: none; border: 0; padding-inline: 0; color: var(--v-t2); font-weight: 400; }
+.seg-tabla--roles .etiqueta.etq-gris::before { background: color-mix(in srgb, var(--v-t) 35%, transparent); }
+
+/* 34. Títulos de sección en un solo estilo: tipo oración, peso medio, sin mayúsculas forzadas (antes .cuenta-t y .hist-sub
+   seguían en MAYÚSCULAS 700 mientras .pf-h ya era ligero: dos voces en la misma pantalla, p. ej. Períodos). */
+.pf-h, .hist-sub, .cuenta-t { font-family: var(--font-display); font-weight: 500; text-transform: none; letter-spacing: -.01em; font-size: var(--fs-lg); line-height: 1.15; margin: var(--sp-5) 0 var(--sp-2); color: var(--v-t); }
+.cuenta-cont { font: 500 var(--fs-xs)/1 var(--font-ui); color: var(--v-t2); margin-left: 6px; vertical-align: 3px; }
+.rub-desc { margin-top: 0; }
+
+/* 35. Menú lateral: si su contenido no cabe, desplaza; nunca encoge piezas (la etiqueta ADMIN se montaba sobre el buscador). */
+.rail > * { flex-shrink: 0; }
+.rail > .rail-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; }   /* la lista de destinos es la que desplaza: marca, buscador y pie (persona y acciones) siempre visibles */
+@media (max-height: 820px) { .rail-prox { display: none; } }   /* en ventanas bajas «Próxima fecha» cede su sitio (está en Inicio y en el Panel) */
+/* Roles y perfiles: sin cajas blancas dentro de la tarjeta de vidrio; el perfil y los desplegables son secciones con filete. */
+.rol-perfil, .rol-card .v2-det, .rol-card details { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; padding-left: 0; padding-right: 0; }
+
+/* 36. Equipos: los equipos son lo principal y van primero; las reglas de calificación (configuración) quedan debajo,
+   plegables, y sus seis valores son una rejilla con filetes en vez de seis cajas blancas dentro de la tarjeta. */
+#tab-equipos.active { display: flex; flex-direction: column; }
+#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; } #tab-equipos > #eq-reglas { order: 2; margin-top: var(--sp-5); }
+.ev-dl > div { background: none; border: 0; border-radius: 0; box-shadow: none; border-top: 1px solid var(--v-line); padding: 12px 4px; }
+.ev-dl { gap: 0 24px; }
+
+/* Reportes: los indicadores del reporte son una franja de cifras dentro de la hoja, no ocho cajas grandes. */
+.rpt-hoja .panel-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0; }
+.rpt-hoja .tarjeta--kpi { background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 14px 12px; }
+
+/* 37. Entregas: en cada tarea, una acción principal sólida y el resto como acciones de texto (antes 4–5 píldoras con
+   borde iguales: no se sabía cuál era la acción). La línea de tiempo no estira los PE sin fechas a la altura del activo. */
+.tk-card .tk-btn:not(.tk-btn--main):not(.tk-btn--peligro) { border-color: transparent; background: none; box-shadow: none; }
+.tk-card .tk-btn:not(.tk-btn--main):not(.tk-btn--peligro):hover { background: var(--v-fill2); }
+.lt { align-items: start; }
+.lt-periodo:has(> .lt-sin) { padding-block: 14px; }
+.lt-periodo:has(> .lt-sin) .lt-sin { margin: 4px 0 0; color: var(--v-t2); }
+
+/* 38. Panel en celular (medido por recorrido.mjs a 390 px): la variación del promedio pasa a su propia línea en vez de
+   desbordar la tarjeta, y las acciones de «Requiere atención» llegan a 44 px con puntero grueso. */
+.kpi-c-sub { white-space: normal; }
+.kpi-c-sub .kpi-delta { display: inline-block; }
+@media (pointer: coarse) { .atn-acc { min-height: 44px; padding-inline: 10px; } .atn-fila { min-height: 48px; } .atn-mas > summary { min-height: 44px; } }
+
+/* 39. Celular, tema claro: la cabecera y la barra inferior son superficies de marca (texto e iconos claros, ver CLAUDE.md);
+   el sólido del tema claro (#EAF1FA) las dejaba blanco sobre blanco. Van en el azul de la columna del menú (texto 7:1). */
+[data-theme="light"] .cab-movil, [data-theme="light"] .bottom-bar { background: var(--v-1); }
+@media (max-width: 480px) {
+  .kpi-c { grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "num" "sub" "bar"; row-gap: 4px; }
+  .kpi-c-num { font-size: 1.9rem; }
+}
+
+/* 40. Selección y escalas, un solo lenguaje:
+   · Puesto 1–3: disco macizo del metal con el número (navy en oscuro, blanco en claro, donde los metales son oscuros).
+   · Chips de elección (PE incluidos, filtros de distritos): elegido = píldora inversa, no un aro.
+   · Escala 1–5: pasos circulares de 40 px sobre una línea fina; el elegido es la píldora inversa, los anteriores tintados. */
+.dc-chip { background: transparent; border-color: var(--v-line); color: var(--v-t2); }
+.dc-chip:hover:not(:disabled) { background: var(--v-fill2); color: var(--v-t); }
+.dc-chip--on, .dc-chip[aria-pressed="true"] { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; }
+.escala { --d: 40px; }
+.escala-barra { min-height: 48px; }
+.escala-linea, .escala-relleno { height: 4px; margin-top: -2px; }
+.escala-linea { background: var(--v-line); }
+.escala-relleno { background: var(--v-t); }
+.escala-paso { width: 40px; height: 40px; max-width: 40px; max-height: 40px; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--v-line); background: var(--v-solido); color: var(--v-t); font: 600 var(--fs-md)/1 var(--font-ui); box-shadow: none; }
+.escala-paso.pasado { background: color-mix(in srgb, var(--v-t) 24%, var(--v-solido)); border-color: transparent; }   /* opaco: la línea pasa por detrás, no a través */
+.escala-paso.on { background: var(--v-activo); color: var(--v-activo-txt); border-color: transparent; transform: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--v-t) 18%, transparent); }
+.escala-paso:hover:not(:disabled) { border-color: var(--v-t); }
+
+/* 41. Perfil a pantalla completa: la cabecera vuelve a dos columnas (identidad + resultado) en vez de apilar el resultado
+   debajo con un gran hueco; el patrón se atenúa; la barra de período + pestañas es una franja de vidrio en una sola fila
+   (antes una banda azul sólida donde PE1/PE3 apenas se leían). */
+.panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px 32px; padding: 24px 28px; }
+.panel--pantalla .perfil--panel .perfil-cab.sup-marca::before { opacity: .14; }
+.panel--pantalla .perfil-nombre { font-size: clamp(2rem, 1.4rem + 1.6vw, 2.8rem); }
+.perfil--panel .perfil-barra { background: var(--v-solido); border: 1px solid var(--v-line); border-radius: 24px; padding: 8px 12px; margin-top: 16px; color: var(--v-t); }
+.perfil--panel .perfil-barra .pb { color: var(--v-t2); }
+.perfil--panel .perfil-barra .pb.active { color: var(--v-t); }
+@media (min-width: 1024px) {
+  .panel--pantalla .perfil-barra { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+  .panel--pantalla .perfil-barra .perfil-pe { flex: 0 1 auto; }
+}
+@media (max-width: 767px) { .panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr); } }
+
+/* 42. Tarjetas de persona con color: cada una toma un tono de la paleta de categorías según su fondo (pat-N, el que
+   la persona eligió en Mi cuenta), como un velo diagonal sobre el vidrio. El texto sigue sobre vidrio (el tono no pasa
+   del 26 % en la esquina y se desvanece), así que su contraste no cambia; el avatar lleva el tono pleno. */
+.pat-0 { --tono: var(--etq-azul); } .pat-1 { --tono: var(--etq-cian); } .pat-2 { --tono: var(--etq-violeta); }
+.pat-3 { --tono: var(--etq-coral); } .pat-4 { --tono: var(--etq-verde); } .pat-5 { --tono: var(--etq-ambar); } .pat-6 { --tono: var(--etq-azul); }
+.pcard.sup-marca, .pcard--mini.sup-marca {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tono, var(--etq-azul)) 26%, transparent) 0%, transparent 62%), var(--v-fill);
+}
+.pcard.sup-marca .avatar, .pcard--mini.sup-marca .avatar { background: color-mix(in srgb, var(--tono, var(--etq-azul)) 55%, var(--v-navy)); color: var(--v-blanco); box-shadow: none; }
+.pcard.sup-marca::before { opacity: .12; }
+
+/* 43. Equipos: la cabecera del detalle alinea al centro «Volver», el título con su estado y las acciones (antes cada
+   bloque arrancaba arriba a una altura distinta). Las reglas plegables muestran que se despliegan (chevron que gira). */
+.eq-detalle-cab { align-items: center; }
+.eq-detalle-t { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0; }
+.eq-detalle-cab .eq-card-sub { margin: 4px 0 0; }
+.eq-detalle-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.ev-reglas-sum { position: relative; padding-right: 40px; }
+.ev-reglas-sum::after { content: ''; position: absolute; right: 8px; top: 50%; width: 10px; height: 10px; margin-top: -7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .2s var(--ease); opacity: .8; }
+.ev-reglas[open] > .ev-reglas-sum::after { transform: rotate(-135deg); margin-top: -2px; }
+@media (prefers-reduced-motion: reduce) { .ev-reglas-sum::after { transition: none; } }
+
+/* 44. Reportes: en pantalla la hoja usa todo el ancho (la impresión mantiene su formato), las cifras son una franja
+   (sección 25) y el «Panorama PE a PE» dibuja las mismas cifras de la tabla como barras. */
+@media screen {
+  .rg-hoja { max-width: none; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; color: var(--v-t); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: none; }
+  .rg-hoja .rpt-hoja-t h2 { font-weight: 300; letter-spacing: -.03em; }
+  .rg-hoja .rpt-sec-t { font-weight: 500; text-transform: none; }
+  .rg-hoja .kpi-num { font-weight: 300; }
+  .rg-hoja .kpi-sub { color: var(--v-t2); }
+}
+.rg-pan { display: grid; gap: 0; }
+.rg-pan-fila { display: grid; grid-template-columns: minmax(120px, .7fr) repeat(3, minmax(0, 1fr)); align-items: center; gap: 16px; padding: 12px 4px; border-top: 1px solid var(--v-line); }
+.rg-pan-cab { border-top: 0; font: 600 var(--fs-xs)/1.2 var(--font-ui); color: var(--v-t2); padding-block: 4px 8px; }
+.rg-pan-pe b { display: block; font: 600 var(--fs-md)/1.1 var(--font-ui); }
+.rg-pan-pe small { color: var(--v-t2); font-size: var(--fs-xs); }
+.rg-pan-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.rg-pan-pista { position: relative; display: block; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--v-t) 12%, transparent); overflow: hidden; }
+.rg-pan-pista i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--rg-c, var(--data)); }
+.rg-pan-bar b { font: 600 var(--fs-sm)/1 var(--font-ui); white-space: nowrap; }   /* la cifra va fuera de la barra: su contraste no depende del color */
+.rg-pan-bar--pub { --rg-c: var(--data); } .rg-pan-bar--plazo { --rg-c: var(--etq-verde); }
+.rg-pan-bar--sex { --rg-c: var(--sex); } .rg-pan-bar--sbu { --rg-c: var(--sbu); } .rg-pan-bar--spr { --rg-c: var(--spr); } .rg-pan-bar--sba { --rg-c: var(--sba); }
+.rg-pan-na { font-size: var(--fs-sm); color: var(--v-t2); }
+@media (max-width: 767px) {
+  .rg-pan-cab { display: none; }
+  .rg-pan-fila { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+}
+@media print { .rg-pan-pista { border: 1px solid #999; } }
+
+/* 45. El título recibe el foco por programa (tras cerrar un modal o una ficha) para que el teclado no se pierda; ese foco
+   no se dibuja (no es una acción del usuario). El nombre del equipo en su ficha: una línea a 1440. */
+h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
+.eq-detalle-t { font: 400 clamp(1.5rem, 1.1rem + 1.2vw, 2.1rem)/1.15 var(--font-display); letter-spacing: -.02em; }
+
+/* 46. Hoja «Más» (celular): panel OPACO (el sólido del tema) con velo detrás; las baldosas de destinos son filas de vidrio sobre
+   ese sólido. Antes era translúcida y la pantalla de debajo se leía a través, montada sobre los iconos y las acciones. */
+.bb-hoja { background: color-mix(in srgb, var(--v-1) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.bb-hoja-panel { background: var(--v-solido); border: 1px solid var(--v-line); border-bottom: 0; color: var(--v-t); box-shadow: 0 -18px 48px var(--v-sombra); }
+[data-theme="light"] .bb-hoja-panel { background: var(--v-1); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
+.bb-hoja-item, .bb-hoja-cuenta { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.bb-hoja-ver, .bb-hoja-badge { color: var(--v-t2); }
+[data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-cuenta { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); color: var(--on-brand); }
+[data-theme="light"] .bb-hoja-panel .bb-hoja-nombre, [data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-ver, [data-theme="light"] .bb-hoja-panel .bb-hoja-badge { color: var(--on-brand); }
+[data-theme="light"] .bb-hoja-panel .btn, [data-theme="light"] .bb-hoja-panel .bb-hoja-acc { color: var(--on-brand); border-color: rgba(255,255,255,.4); }
+
+/* 47. Iconografía: UNA familia (Remix Icon, SVG locales en core/iconos.js, 145 glifos, Apache-2.0) y una escala de tamaños.
+   Los iconos se piden por nombre con data-lucide="..." (el nombre es histórico: ya no se carga Lucide). Estados: reposo =
+   color del texto secundario; activo = color del texto; deshabilitado = 45 %. Un icono que no existe avisa por consola. */
+:root { --ico-xs: 14px; --ico-sm: 16px; --ico-md: 20px; --ico-lg: 24px; --ico-xl: 32px; }
+.ico-xs { width: var(--ico-xs); height: var(--ico-xs); } .ico-sm { width: var(--ico-sm); height: var(--ico-sm); }
+.ico-md { width: var(--ico-md); height: var(--ico-md); } .ico-lg { width: var(--ico-lg); height: var(--ico-lg); } .ico-xl { width: var(--ico-xl); height: var(--ico-xl); }
+button:disabled svg, [aria-disabled="true"] svg { opacity: .45; }
+button > svg, a > svg { flex: none; }
+
+/* 48. Avatar: las iniciales siempre en blanco sobre el disco navy. En tema claro el hero redefine --on-brand a navy (para su
+   texto sobre vidrio claro) y las iniciales desaparecían (navy sobre navy). Las piezas de «Cómo se compone» son filas, no cajas. */
+.avatar, .avatar-ini { color: var(--v-blanco); }
+.ev-pieza { background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ev-formula { gap: 8px; }
+
+/* 49. Correcciones del recorrido manual (Brave):
+   · Pasos del asistente de tarea: el activo es la píldora inversa (antes llevaba una línea coral abajo: barra de acento).
+   · Ficha a pantalla completa: el scrollbar reserva su sitio (scrollbar-gutter) y no recorta la tarjeta de la persona al aparecer.
+   · Detalle de equipo: las acciones empiezan a la izquierda, bajo el título, en su propia fila.
+   · Scrollbars finos y oscuros en las listas con scroll (el de Windows era gris claro sobre vidrio oscuro). */
+.asig-paso { background: var(--v-fill); color: var(--v-t2); }
+.asig-paso--on { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
+.asig-paso--on .asig-paso-n { background: var(--v-activo-txt); color: var(--v-activo); }
+.asig-paso--hecho .asig-paso-n { background: var(--v-t); color: var(--v-1); }
+.panel--pantalla .panel-cuerpo { scrollbar-gutter: stable; }
+.panel--pantalla .panel-cab { padding-right: 32px; }
+.eq-detalle-acc { margin-left: 0; flex: 1 0 100%; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--v-t) 34%, transparent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--v-t) 34%, transparent); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 50. Correcciones de la revisión (9 nov): divisiones y scrollbars.
+   · «Comparación y seguimiento» no se pega a las tarjetas de arriba; el título del grupo de un equipo respira antes de su lista.
+   · El scrollbar del menú no dibuja las flechitas del sistema (▲▼): eran ruido y se montaban sobre los destinos. */
+#ov-body > .acordeon, #ov-body .acordeon.panel-analisis { margin-top: 16px; }
+.eq-grupo-cab { margin: var(--sp-5) 0 var(--sp-2); }
+.eq-grupo-cab .pf-sub { margin: 0; font-size: var(--fs-md); }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+/* 51. Desempeño: el análisis del equipo es el protagonista; las personas son filas compactas (nombre, nivel, valor y línea de
+   tendencia en ~56 px) dentro de un desplegable, no tarjetas grandes de 200 px que empujaban lo importante hacia abajo. */
+.des-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px; }
+.des-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n v" "s ch"; align-items: center; gap: 0 12px; padding: 10px 14px; min-height: 0; border-radius: 16px; text-align: left; }
+.des-card-n { grid-area: n; font: 600 var(--fs-md)/1.2 var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.des-card-s { grid-area: s; font-size: var(--fs-xs); color: var(--v-t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.des-card-v { grid-area: v; display: flex; align-items: center; gap: 8px; justify-self: end; }
+.des-card-v b { font: 400 1.5rem/1 var(--font-display); }
+.des-card-p { display: none; }
+.des-chispa { grid-area: ch; justify-self: end; width: 64px; height: 18px; }
+.des-grupo-t { margin: var(--sp-6) 0 var(--sp-3); font: 600 var(--fs-xs)/1 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--v-t2); }
+.des-cuerpo > .des-grupo-t:first-child, #des-cuerpo > .des-grupo-t:first-of-type { margin-top: 0; }
+
+/* 52. Calendario: una actividad de varios días es una LÍNEA continua que cruza las celdas (redondeada en su primer y último día);
+   lo de un solo día sigue siendo un punto. El color es el de su etiqueta, y el rango también se lee en la agenda («12 – 14 nov»). */
+.cal2-barras { position: absolute; left: 0; right: 0; bottom: 4px; display: grid; gap: 3px; pointer-events: none; }
+.cal2-barra { display: block; height: 5px; background: var(--etq, var(--v-t2)); }
+.cal2-barra--ini { margin-left: 8px; border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
+.cal2-barra--fin { margin-right: 8px; border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
+.cal2-dia { padding-bottom: 14px; }
+
+/* 53. Copyright: dos líneas limpias (titular · derechos / iniciativa), mismo texto de siempre. En celular queda centrado, con el
+   aire justo sobre la barra inferior (que ya reserva #contenido), en el color secundario del tema (antes gris tenue ilegible). */
+.derechos { color: var(--v-t2); line-height: 1.6; text-wrap: balance; }
+.derechos b { color: var(--v-t); font-weight: 600; }
+.derechos-a { white-space: nowrap; }
+.derechos-b { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--v-tm); }
+@media (max-width: 767px) {
+  .derechos { padding: 28px 24px 20px; font-size: .8125rem; }
+  .derechos-sep { display: none; }
+  .derechos-a { display: block; white-space: normal; }
+  .derechos-a:first-child { font-size: .875rem; }
+}
+
+/* 54. Avisos en celular: la barra (filtros + marcar todo + preferencias) es OPACA y fija arriba del listado; el listado pasa por
+   debajo sin verse a través, y la fila de filtros no recorta ni se monta sobre el título del grupo. */
+.avisos-barra { position: sticky; top: 0; z-index: 3; background: var(--v-solido); border-radius: 0 0 20px 20px; padding: 6px 0 10px; margin-bottom: 8px; box-shadow: 0 10px 14px -10px var(--v-sombra); }
+.aviso-chips { overflow-y: hidden; flex: none; padding-bottom: 8px; scrollbar-width: none; }
+.aviso-chips::-webkit-scrollbar { display: none; }
+.avisos-acciones { background: none; padding: 0 4px; }
+
+/* 55. REDISEÑO PARA CELULAR (≤ 767 px): jerarquía en una pantalla de 390 px, no el escritorio apretado.
+   · Perfil: identidad compacta (avatar 56 + nombre), chips en una fila deslizable, anillo de 84 px junto al nivel → ~300 px de
+     cabecera en lugar de ~580 y el contenido empieza en la primera pantalla.
+   · Acción principal de cada tarjeta de tarea: blanco macizo (la inversa del sistema); antes un contorno cian de neón.
+   · Enlaces dentro de tarjetas: color de texto con subrayado (el azul de enlace no llegaba a 4,5:1 sobre vidrio).
+   · Objetivos táctiles de 44 px y texto de 14 px ya los fija movil.css; aquí solo composición. */
+@media (max-width: 767px) {
+  .perfil-cab { padding: 18px 16px 18px !important; gap: 12px !important; border-radius: 28px; }
+  .perfil-id { gap: 12px; align-items: center; }
+  .perfil-av { --av: 56px; border-width: 2px; }
+  .perfil-nombre { font-size: 1.75rem; line-height: 1.05; }
+  .perfil-chips { flex-wrap: nowrap; overflow-x: auto; margin-top: 8px; padding-bottom: 2px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, black calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, black calc(100% - 24px), transparent); }
+  .perfil-chips::-webkit-scrollbar { display: none; }
+  .perfil-chips li { flex: none; }
+  .perfil-acciones { margin-top: 10px; }
+  .perfil-resumen { gap: 14px; padding-top: 4px; }
+  .perfil-resumen .anillo { --tam: 84px; }
+  .perfil-resumen .anillo circle { stroke-width: 11; }
+  .tk-card .tk-btn--main { background: var(--v-activo); color: var(--v-activo-txt); border: 0; font-weight: 600; }
+  .tk-card .tk-btn:not(.tk-btn--main) { min-height: 44px; }
+  .tk-card a, .tk-card .tk-link, .pf-enlace, .tk-card .tk-ver { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+  .pantalla-cab:not(:has(.pantalla-acc)) { margin-bottom: 6px; }
+  .pantalla-cab > p { -webkit-line-clamp: 2; }
+  /* Tablas y listas largas: nunca más anchas que la pantalla; el desplazamiento horizontal es del contenedor, no de la página. */
+  .seg-tabla-wrap, .dc-tabla-wrap { max-width: 100%; overflow-x: auto; }
+}
+@media (max-width: 767px) {
+  .perfil-id { flex-wrap: nowrap; }
+  .perfil-av { flex: none; overflow: visible; }
+  .perfil-av .perfil-av-cam { position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; padding: 4px; border-radius: 50%; background: var(--v-activo); color: var(--v-activo-txt); }
+}
+@media (max-width: 767px) {
+  .perfil-id { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
+  .perfil-id-txt { display: contents; }
+  .perfil-av, .perfil-id > :first-child { grid-column: 1; grid-row: 1; }
+  .perfil-nombre { grid-column: 2; grid-row: 1; margin: 0; }
+  .perfil-chips, .perfil-email, .perfil-acciones { grid-column: 1 / -1; }
+}
+
+/* 56. El resumen fijo de la evaluación va SIEMPRE por encima de la escala que pasa por debajo (los pasos tenían z-index propio y se
+   dibujaban encima del resumen al desplazar): la escala crea su propio contexto de apilamiento y el resumen tiene capa mayor. */
+.escala, .escala-barra { isolation: isolate; }
+.v2-resumen { position: sticky; z-index: 6; }
+
+/* 57. Banco de imágenes (core/banco.js): lista de filas de vidrio con icono, título, descripción, evento y rol; acciones a la derecha
+   (en celular debajo). Sin cajas dentro de cajas: las filas se separan con filetes. */
+.bco-filtros { margin-bottom: 12px; }
+.bco-cuenta { margin: 0 0 8px; font-size: var(--fs-xs); color: var(--v-t2); }
+.bco-lista { padding: 4px 0; }
+.bco-fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--v-line); }
+.bco-lista > .bco-fila:first-child { border-top: 0; }
+.bco-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--v-fill2); border: 1px solid var(--v-line); color: var(--v-t); }
+.bco-ico svg { width: 22px; height: 22px; }
+.bco-t { font: 600 var(--fs-md)/1.25 var(--font-ui); overflow-wrap: anywhere; }
+.bco-d { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--v-t2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bco-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.bco-peq { font-size: var(--fs-xs); color: var(--v-t2); }
+.bco-acc { display: flex; align-items: center; gap: 6px; }
+.bco-abrir { text-decoration: none; }
+.bco-vacio { display: grid; justify-items: start; gap: 12px; }
+@media (max-width: 767px) {
+  .bco-fila { grid-template-columns: auto minmax(0, 1fr); padding: 14px 14px; }
+  .bco-acc { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
+}
+
+/* 58. Mi cuenta rediseñada: a la izquierda la identidad (foto, nombre, correo, chips, cambiar foto) y debajo la
+   navegación; a la derecha el contenido. Sin título repetido ni subtítulo de relleno, y «Tus datos» junto al
+   fondo para que el selector no quede bajo el pliegue. En celular la identidad es una fila y las cuatro
+   secciones caben en una sola fila de iconos con nombre. */
+#tab-cuenta > .page-header > p, #tab-cuenta .pantalla-cab p { display: none; }
+#cuenta-host { margin-top: var(--sp-5); }
+@media (min-width: 900px) {
+  #cuenta-host { grid-template-columns: 290px minmax(0, 1fr); grid-template-areas: "cab cuerpo" "nav cuerpo"; gap: 0 var(--sp-7); }
+  #cuenta-host > .cuenta-cab { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin: 0 0 var(--sp-5); position: static; }
+  #cuenta-host .cuenta-foto { --av: 96px; }
+  #cuenta-host .cuenta-nombre { font-size: var(--fs-xl); overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-mail { margin: 4px 0 10px; overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-chips { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  #cuenta-host .cuenta-cab-acc { width: 100%; }
+  #cuenta-host .cuenta-cab-acc .cuenta-btn { width: 100%; justify-content: center; }
+  #cuenta-host .cuenta-tabs .seg { padding: 6px; border-radius: 24px; }
+}
+@media (min-width: 1280px) {
+  #cuenta-host .cuenta-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  #cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: 0; }
+  #cuenta-host .fondo-opciones { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  #cuenta-host > .cuenta-cab { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "foto id" "acc acc"; align-items: center; gap: 12px 14px; margin: 4px 0 16px; }
+  #cuenta-host .cuenta-foto { grid-area: foto; --av: 64px; }
+  #cuenta-host .cuenta-id { grid-area: id; min-width: 0; width: auto; }
+  #cuenta-host .cuenta-nombre { font-size: var(--fs-lg); overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-mail { margin: 2px 0 6px; overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-chips { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  #cuenta-host .cuenta-cab-acc { grid-area: acc; }
+  #cuenta-host .cuenta-cab-acc .cuenta-btn { width: 100%; justify-content: center; min-height: 48px; }
+  #cuenta-host .cuenta-tabs { overflow: visible; margin: 0 0 16px; }
+  #cuenta-host .cuenta-tabs .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); width: 100%; gap: 2px; padding: 6px; }
+  #cuenta-host .cuenta-tabs .seg-btn { flex-direction: column; gap: 4px; min-height: 56px; padding: 6px 2px; justify-content: center; text-align: center; font-size: var(--fs-xs); }
+}
+
+/* 59. Superposición con el vidrio. movil.css (carga después) devolvía a la barra de avisos un fondo translúcido
+   (--surface-1) y las tarjetas se veían a través de los filtros. Todo lo que queda fijo sobre contenido que se desplaza
+   es opaco (--v-solido) en los dos temas; se gana por especificidad, no con !important. */
+/* Avisos: la barra NO es pegajosa. El panel se parte en dos zonas: la barra fija arriba y el listado que se desplaza debajo,
+   recortado en el borde de la barra. Así no hay nada que se monte sobre las tarjetas ni se vea a través. */
+.panel-cuerpo:has(> #avisos-cuerpo) { overflow: hidden; display: flex; flex-direction: column; padding-bottom: 0; }
+.panel #avisos-cuerpo { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.panel #avisos-cuerpo > .avisos-barra { position: static; flex: none; margin: 0 0 8px; padding: 4px 0 10px; border-radius: 0; box-shadow: none; background: none; border-bottom: 1px solid var(--v-line); }
+.panel #avisos-cuerpo > .avisos-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+.panel.panel--hoja .aviso-grupo-t, .panel .aviso-grupo-t { position: relative; z-index: 1; }
+.perfil--panel .perfil-barra, .perfil:not(.perfil--panel) .perfil-barra { background: var(--v-solido); }
+
+/* 60. Equipos: el nombre del grupo (equipo) es el título de la sección de tareas, no una nota al margen. */
+.eq-grupo { margin-top: var(--sp-6); gap: var(--sp-4); }
+.eq-grupo-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--v-line); }
+.eq-grupo-cab .pf-sub { font: 600 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
+.eq-grupo-cab .pf-sub::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--v-t); margin-right: 10px; vertical-align: 3px; }
+.back-top, #back-top { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); -webkit-backdrop-filter: none; backdrop-filter: none; }

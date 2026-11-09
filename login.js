@@ -22,9 +22,21 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   const err = document.getElementById('li-err');
   err.textContent = 'Tu cuenta está pendiente de aprobación por el administrador. '
                   + 'Podrás entrar en cuanto la active.';
-  err.classList.add('visible');
+  err.classList.add('visible', 'es-info');   // es información sobre su cuenta, no un error de lo que escribió
+  err.setAttribute('role', 'status');
   // Limpia el parámetro para que no reaparezca al recargar.
   history.replaceState(null, '', location.pathname);
+})();
+
+/* Foto del equipo en el panel de marca: si no carga (archivo aún no subido o error de red), el panel muestra el patrón
+   de marca en lugar de un hueco o un icono de imagen rota. */
+(function fotoEquipo() {
+  const foto = document.querySelector('.login-foto');
+  const panel = document.querySelector('.login-panel-brand');
+  if (!foto || !panel) return;
+  const sinFoto = () => panel.classList.add('login-panel-brand--sin-foto');
+  if (foto.complete && !foto.naturalWidth) sinFoto();
+  foto.addEventListener('error', sinFoto);
 })();
 
 function togglePassField(btn, inputId) {
@@ -209,6 +221,13 @@ async function entrarAlPortal() {
   window.location.replace(destinoPortal(profile));
 }
 
+/* Una llamada a Auth que lanza (red caída, bloqueo del navegador) no debe dejar el botón en «Enviando…» para siempre:
+   se convierte en el mismo {error} que devuelve la librería y el flujo normal lo muestra. */
+async function conRed(promesa) {
+  try { return await promesa; }
+  catch (e) { return { error: { message: 'Failed to fetch' } }; }
+}
+
 async function sendResetCode() {
   var email = document.getElementById('reset-email').value.trim();
   var p1    = document.getElementById('reset-pass').value;
@@ -239,10 +258,10 @@ async function sendResetCode() {
 
   cargando(btn, true, 'Enviando código…');
 
-  var res = await SB.auth.signInWithOtp({
+  var res = await conRed(SB.auth.signInWithOtp({
     email: email,
     options: { shouldCreateUser: false }
-  });
+  }));
 
   if (res.error) {
     err.textContent = resetErrEs(res.error.message);
@@ -281,11 +300,11 @@ async function verifyAndResetPassword() {
 
   cargando(btn, true, 'Verificando…');
 
-  var verifyRes = await SB.auth.verifyOtp({
+  var verifyRes = await conRed(SB.auth.verifyOtp({
     email: _resetEmail,
     token: code,
     type: 'magiclink'
-  });
+  }));
 
   if (verifyRes.error) {
     marcarError(err, 'Código inválido o expirado. Intenta de nuevo.',
@@ -294,7 +313,7 @@ async function verifyAndResetPassword() {
     return;
   }
 
-  var updateRes = await SB.auth.updateUser({ password: _resetPass });
+  var updateRes = await conRed(SB.auth.updateUser({ password: _resetPass }));
 
   if (updateRes.error) {
     cargando(btn, false);
