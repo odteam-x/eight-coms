@@ -273,3 +273,34 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
   .login-seg::before, .login-seg-btn, .login-pane, .login-hero-desc-m { transition: none !important; }
 }
 @media print { .login-panel-form::before, .login-panel-form::after { display: none; } }
+
+/* ══ FOTO DEL EQUIPO (noviembre 2026) ═══════════════════════════════════
+   Referencia del dueño: una sola tarjeta con la foto grande a un lado y el formulario al otro. La foto
+   (img/equipo/equipo-coms.webp) cubre el panel de marca; un velo navy de abajo hacia arriba sostiene el texto blanco
+   (peor caso medido: blanco sobre navy al 78 % encima de un blanco puro = 8:1). Sin foto, el patrón de marca. */
+.login-foto { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.login-panel-brand--sin-foto .login-foto { display: none; }
+.login-layout .login-panel-brand:not(.login-panel-brand--sin-foto)::before {
+  opacity: 1; z-index: -1; -webkit-mask-image: none; mask-image: none; filter: none;
+  background: linear-gradient(to top, rgba(3, 27, 69, .92) 0%, rgba(3, 27, 69, .78) 38%, rgba(3, 27, 69, .15) 72%, rgba(3, 27, 69, .35) 100%);
+}
+.login-layout .login-panel-brand:not(.login-panel-brand--sin-foto) { --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.14); --v-line: rgba(255,255,255,.3); color: #F3F8FF; }
+
+@media (min-width: 1024px) {
+  /* La pantalla es una tarjeta centrada sobre la malla: foto (izquierda) + formulario (derecha) */
+  body:has(.login-layout) { padding: 24px 24px 56px; box-sizing: border-box; }
+  .login-layout { width: min(1240px, 100%); height: calc(100dvh - 80px); min-height: 560px; margin: 0 auto; padding: 14px; gap: 14px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); border-radius: 40px;
+    background: var(--v-fill) !important; border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: 0 30px 80px var(--v-sombra); }
+  .login-layout .login-panel-brand, [data-theme="light"] .login-layout .login-panel-brand { margin: 0; border-radius: 28px; justify-content: flex-end; gap: 16px; padding: 32px 36px; }
+  .login-layout .login-panel-brand .login-brand-top { position: absolute; top: 28px; left: 32px; }
+  .login-layout .login-panel-brand .login-brand-center { flex: 0 0 auto; }
+  .login-layout .login-hero-h1 { font-size: clamp(2.2rem, 1rem + 3.4vw, 4rem); }
+  .login-brand-foot { display: none; }
+  .login-layout .login-panel-form { margin: 0; max-width: none; justify-content: center; padding: 24px clamp(24px, 4vw, 64px); background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* sin desenfoque propio: dibujaba una segunda caja dentro de la tarjeta */
+  .derechos--login { left: 0; right: 0; width: auto; text-align: center; }
+}
+@media (max-width: 759px) {
+  /* Celular: la foto es una franja superior con el nombre encima */
+  .login-layout .login-panel-brand:not(.login-panel-brand--sin-foto) { min-height: 180px; align-items: flex-end; border-radius: 0 0 28px 28px; }
+}

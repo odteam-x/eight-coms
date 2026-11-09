@@ -28,6 +28,17 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   history.replaceState(null, '', location.pathname);
 })();
 
+/* Foto del equipo en el panel de marca: si no carga (archivo aún no subido o error de red), el panel muestra el patrón
+   de marca en lugar de un hueco o un icono de imagen rota. */
+(function fotoEquipo() {
+  const foto = document.querySelector('.login-foto');
+  const panel = document.querySelector('.login-panel-brand');
+  if (!foto || !panel) return;
+  const sinFoto = () => panel.classList.add('login-panel-brand--sin-foto');
+  if (foto.complete && !foto.naturalWidth) sinFoto();
+  foto.addEventListener('error', sinFoto);
+})();
+
 function togglePassField(btn, inputId) {
   var inp = document.getElementById(inputId);
   var isPass = inp.type === 'password';
