@@ -442,5 +442,16 @@ console.log('\n[avisos: el panel pinta sus grupos por día]');
   ok(/avisos-grupo-n/.test(nj), 'avisos: cada grupo de día muestra cuántos avisos trae');
 }
 
+console.log('\n[acceso: llamadas a Auth y Panel]');
+{
+  const lj = fs.readFileSync(ROOT + 'login.js', 'utf8');
+  // Si una llamada a Auth lanza (red caída), el botón no puede quedarse en «Enviando…»: conRed la convierte en {error}.
+  for (const fn of ['signInWithOtp', 'verifyOtp', 'updateUser'])
+    ok(new RegExp('conRed\\(SB\\.auth\\.' + fn).test(lj), 'login.js: ' + fn + ' pasa por conRed (el botón se libera si la red falla)');
+  const vc = fs.readFileSync(ROOT + 'vidrio.css', 'utf8');
+  ok(/#tab-overview > #ov-atencion \{ grid-area: atn/.test(vc), 'Panel: «Requiere atención» ocupa la zona superior derecha en escritorio');
+  ok(/es-info/.test(lj) && /\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
+}
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

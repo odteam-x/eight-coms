@@ -930,6 +930,10 @@
       getUser: async () => (as === 'anon' ? { data: { user: null }, error: null } : { data: { user: { id: meId, email: me().email } }, error: null }),
       signInWithPassword: async () => ({ data: null, error: { message: 'Invalid login credentials' } }),
       resetPasswordForEmail: async () => ({ data: {}, error: null }),
+      // Reset por código (login.js): 12345678 es el código bueno; «noexiste» simula una cuenta sin registrar; «ClaveActual-1» es la clave vigente.
+      signInWithOtp: async ({ email }) => (String(email).includes('noexiste') ? { data: null, error: { message: 'Signups not allowed for otp' } } : { data: {}, error: null }),
+      verifyOtp: async ({ token }) => (token === '12345678' ? { data: { session: {} }, error: null } : { data: null, error: { message: 'Token has expired or is invalid' } }),
+      updateUser: async ({ password }) => (password === 'ClaveActual-1' ? { data: null, error: { message: 'New password should be different from the old password.' } } : { data: {}, error: null }),
       signOut: async () => ({}), signUp: async ({ email }) => (String(email).includes('existe') ? { data: null, error: { message: 'User already registered' } } : { data: { user: { email } }, error: null }), onAuthStateChange: cb => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
     storage: { from: bucket => ({

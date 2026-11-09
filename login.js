@@ -210,6 +210,13 @@ async function entrarAlPortal() {
   window.location.replace(destinoPortal(profile));
 }
 
+/* Una llamada a Auth que lanza (red caída, bloqueo del navegador) no debe dejar el botón en «Enviando…» para siempre:
+   se convierte en el mismo {error} que devuelve la librería y el flujo normal lo muestra. */
+async function conRed(promesa) {
+  try { return await promesa; }
+  catch (e) { return { error: { message: 'Failed to fetch' } }; }
+}
+
 async function sendResetCode() {
   var email = document.getElementById('reset-email').value.trim();
   var p1    = document.getElementById('reset-pass').value;
@@ -240,10 +247,10 @@ async function sendResetCode() {
 
   cargando(btn, true, 'Enviando código…');
 
-  var res = await SB.auth.signInWithOtp({
+  var res = await conRed(SB.auth.signInWithOtp({
     email: email,
     options: { shouldCreateUser: false }
-  });
+  }));
 
   if (res.error) {
     err.textContent = resetErrEs(res.error.message);
@@ -282,11 +289,11 @@ async function verifyAndResetPassword() {
 
   cargando(btn, true, 'Verificando…');
 
-  var verifyRes = await SB.auth.verifyOtp({
+  var verifyRes = await conRed(SB.auth.verifyOtp({
     email: _resetEmail,
     token: code,
     type: 'magiclink'
-  });
+  }));
 
   if (verifyRes.error) {
     marcarError(err, 'Código inválido o expirado. Intenta de nuevo.',
@@ -295,7 +302,7 @@ async function verifyAndResetPassword() {
     return;
   }
 
-  var updateRes = await SB.auth.updateUser({ password: _resetPass });
+  var updateRes = await conRed(SB.auth.updateUser({ password: _resetPass }));
 
   if (updateRes.error) {
     cargando(btn, false);

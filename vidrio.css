@@ -206,3 +206,26 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .tk-punto span { background: var(--v-fill); border-color: var(--v-line); font-weight: 400; }
 .tk-punto input:checked + span { background: var(--v-activo); color: var(--v-activo-txt); font-weight: 600; }
 .tk-punto:hover span { border-color: var(--v-t); }
+@media (max-width: 359px) { .login-layout .login-hero-h1 { font-size: clamp(.95rem, 4.9vw, 1.7rem); } }   /* a 320 px el nombre en una línea no cabe junto al botón de tema con el mínimo de 1.25rem */
+
+/* 22. Panel de administración: «Requiere atención» sube a la zona superior, como tarjeta compacta (referencia: PanelAdmin del sistema de diseño).
+   Solo CSS: el marcado y las acciones de admin-personas.js no cambian. Por debajo de 1100 px queda arriba y a todo el ancho, ya compacta. */
+#ov-atencion .atencion { margin: 0 0 var(--sp-4); padding: 18px 22px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: inset 0 1px 0 var(--v-hi); color: var(--v-t); }
+#ov-atencion .atencion .pf-h { margin: 0 0 6px; font-size: 1.05rem; font-weight: 500; }
+#ov-atencion .atencion-lista { gap: 0; }
+#ov-atencion .atencion-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--v-line); border-radius: 0; box-shadow: none; }
+#ov-atencion .atencion-item:first-child { border-top: 0; }
+#ov-atencion .atencion-ico { display: none; }
+#ov-atencion .atencion-n { min-width: 34px; height: 34px; padding: 0 10px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font-size: 1.05rem; font-weight: 600; }
+#ov-atencion .atencion-item--aviso .atencion-n { background: var(--v-coral); border-color: transparent; color: var(--v-navy); }   /* navy sobre coral: 5,6 a 1 (blanco sobre coral no pasa) */
+#ov-atencion .atencion-txt { font-size: var(--fs-sm); }
+#ov-atencion .atencion-item .pf-enlace { grid-column: auto; justify-self: end; white-space: nowrap; color: var(--v-t); }
+#ov-atencion .atencion-ok { background: none; border: 0; padding: 4px 0; color: var(--v-t2); }
+@media (min-width: 1100px) {
+  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 440px); grid-template-rows: auto 1fr auto auto; grid-template-areas: "cab atn" "pe atn" "bv bv" "body body"; column-gap: var(--sp-6); align-items: start; }
+  #tab-overview > .pantalla-cab { grid-area: cab; }
+  #tab-overview > .eval-pe-bar { grid-area: pe; }
+  #tab-overview > #ov-atencion { grid-area: atn; grid-row: 1 / span 2; }
+  #tab-overview > #bv-slot { grid-area: bv; }
+  #tab-overview > #ov-body { grid-area: body; }
+}
