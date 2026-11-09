@@ -568,3 +568,9 @@ h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
 .ico-md { width: var(--ico-md); height: var(--ico-md); } .ico-lg { width: var(--ico-lg); height: var(--ico-lg); } .ico-xl { width: var(--ico-xl); height: var(--ico-xl); }
 button:disabled svg, [aria-disabled="true"] svg { opacity: .45; }
 button > svg, a > svg { flex: none; }
+
+/* 48. Avatar: las iniciales siempre en blanco sobre el disco navy. En tema claro el hero redefine --on-brand a navy (para su
+   texto sobre vidrio claro) y las iniciales desaparecían (navy sobre navy). Las piezas de «Cómo se compone» son filas, no cajas. */
+.avatar, .avatar-ini { color: var(--v-blanco); }
+.ev-pieza { background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ev-formula { gap: 8px; }
