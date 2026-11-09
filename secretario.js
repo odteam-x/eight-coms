@@ -427,7 +427,7 @@ function renderRankingDistritos() {
   const bannerHtml = myDist ? `
     <div class="dist-rank-banner">
       <div class="dist-rank-banner-label">Mi posición en el ranking — ${escHtml(pe)}</div>
-      <div class="dist-rank-banner-pos ${rc}">#${myPos}</div>
+      <div class="dist-rank-banner-pos ${rc}">${myPos <= 3 ? medallaHTML(myPos) : '#' + myPos}</div>
       <div class="dist-rank-banner-sub">de ${districts.length} distritos · ${myDist.total} pts</div>
     </div>` : `
     <div class="dist-rank-banner dist-rank-banner--warn">
@@ -451,7 +451,7 @@ function renderRankingDistritos() {
       }).join('');
       return `<div class="dist-rk-card dist-rk-card--me">
         <div class="dist-rk-head">
-          <div class="dist-rk-pos ${posRc}">#${pos}</div>
+          <div class="dist-rk-pos ${posRc}">${pos <= 3 ? medallaHTML(pos) : '#' + pos}</div>
           <div class="dist-rk-info">
             <div class="dist-rk-name">${escHtml(d.distrito)} <span class="dm-you-tag">Mi distrito</span></div>
             <div class="dist-rk-sub">Puntaje total del período</div>
@@ -466,7 +466,7 @@ function renderRankingDistritos() {
     }
     return `<div class="dist-rk-card dist-rk-card--locked">
       <div class="dist-rk-head">
-        <div class="dist-rk-pos ${posRc}">#${pos}</div>
+        <div class="dist-rk-pos ${posRc}">${pos <= 3 ? medallaHTML(pos) : '#' + pos}</div>
         <div class="dist-rk-info">
           <div class="dist-rk-name dist-rk-blur">Distrito confidencial</div>
           <div class="dist-rk-sub dist-rk-blur">·· pts</div>

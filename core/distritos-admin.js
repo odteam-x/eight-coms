@@ -94,7 +94,7 @@ const DistritosAdmin = (() => {
       const rc = f.pos === 1 ? 'gold' : f.pos === 2 ? 'silver' : f.pos === 3 ? 'bronze' : '';
       const nv = f.prom == null ? null : nivel(f.prom);
       return `<tr class="dc-fila${f.n ? '' : ' dc-fila--vacia'}" data-act="dist" data-arg="abrir" data-arg2="${escHtml(f.id)}">
-        <td class="dc-c-pos" data-label="Posición">${f.pos ? `<span class="rank-num ${rc}">${f.pos}</span>` : '<span class="dc-mut">—</span>'}</td>
+        <td class="dc-c-pos" data-label="Posición">${f.pos ? (f.pos <= 3 ? medallaHTML(f.pos) : `<span class="rank-num">${f.pos}</span>`) : '<span class="dc-mut">—</span>'}</td>
         <th scope="row" data-label="Distrito"><button type="button" class="dc-nombre" data-act="dist" data-arg="abrir" data-arg2="${escHtml(f.id)}">${escHtml(f.nombre)}</button></th>
         ${f.puntos.map((v, i) => `<td class="dc-c-num" data-label="${escHtml(nomPE(D.incl[i]))}">${v == null ? '<span class="dc-mut">—</span>' : `<span class="dc-nota-n dc-nv-${nivel(v).c}">${v}</span>`}</td>`).join('')}
         <td class="dc-c-num" data-label="Total">${f.n ? f.total : '<span class="dc-mut">—</span>'}</td>

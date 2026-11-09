@@ -58,6 +58,6 @@ Fundido de 180 ms al cambiar de vista (una vez por vista), respuesta de pulsaci�
 - Recorrido Playwright (Edge) y revisión en Brave: Panel, Evaluar, Perfil (Criterios), Equipos, Reportes, Auditoría, Rúbrica, Gestiones.
 
 ## Pendiente
-- Medallas en Distritos y en el ranking de la secretaría: usan `medallaHTML` y heredan el cambio, pero no las revisé a ojo una por una.
+- Medallas en el ranking de la secretaría (`secretario.js`): usan `medallaHTML`; Distritos (admin) revisado a ojo, con empates compartiendo medalla.
 - Estrellas en la vista del miembro (`core/rubrica.js`, clásica) y en la hoja del reporte impreso.
 - Tema claro: revisar a ojo el oro de las estrellas (se usa el oro oscuro para llegar a 3:1).
