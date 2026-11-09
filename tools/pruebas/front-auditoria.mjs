@@ -79,6 +79,11 @@ ok(csv.includes('Filtros;origen: Personas') && csv.includes('Registros;2'), 'el 
 ok(A.csvTexto(Array.from({ length: 1 }, fila), { truncado: true }).includes('se cortó en 5000'), 'si se corta por el tope, lo dice');
 ok(/data-arg="csv"/.test(rd('core/auditoria.js')) && /ReporteEquipo\.descargar\('auditoria\.csv'/.test(rd('core/auditoria.js')), 'botón «Descargar CSV» que reutiliza el descargador existente');
 
+console.log('\n[táctil y línea de tiempo (recorrido con el simulador)]');
+const mv = rd('movil.css');
+ok(/\.aud-det > summary/.test(mv) && /\.ev-hist > summary/.test(mv) && /\.v2-det > summary/.test(mv), 'en celular los «ver más» desplegables (puntuación, historial de notas, valores de auditoría) llegan a 44 px');
+ok(/per-mes--der/.test(rd('premium.css')) && /per-mes\$\{pos\(k\.ms\) > 85 \? ' per-mes--der' : ''\}/.test(rd('admin.js')), 'el último mes de la línea de Períodos pasa a la izquierda de su marca y no se corta en el borde');
+
 console.log('\n[cableado y solo lectura]');
 const adm = rd('admin.js'), cfg = rd('config.js'), html = rd('admin.html'), au = rd('core/auditoria.js');
 ok(/tab:'auditoria'[^}]*Auditoría/.test(adm) && /auditoria:'auditoria'/.test(adm) && /Auditoria\.montar\(document\.getElementById\('auditoria-host'\)\)/.test(adm), 'admin.js: menú, pestaña padre y montaje');

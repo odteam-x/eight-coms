@@ -1477,7 +1477,7 @@ function renderLineaPeriodos(todos) {
   }
   const hoy = Date.now();
   host.innerHTML = `<div class="per-linea-pista" style="--pistas:${pistas.length}" role="img" aria-label="Línea de tiempo de los períodos con fechas">
-      ${ticks.map(k => `<i class="per-tick" style="left:${pos(k.ms)}%"></i><span class="per-mes" style="left:${pos(k.ms)}%">${escHtml(k.txt)}</span>`).join('')}
+      ${ticks.map(k => `<i class="per-tick" style="left:${pos(k.ms)}%"></i><span class="per-mes${pos(k.ms) > 85 ? ' per-mes--der' : ''}" style="left:${pos(k.ms)}%">${escHtml(k.txt)}</span>`).join('')}
       ${tramos.map(({ p, ini, fn, k }) => {
         const l = pos(ini), w = Math.max(2, pos(fn) - l);
         const rango = _fechaPer(p.fecha_inicio).replace(/ [0-9]{4}$/, '') + ' – ' + _fechaPer(fin(p)).replace(/ [0-9]{4}$/, '');

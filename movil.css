@@ -151,6 +151,8 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 
 /* Cabeceras de grupos plegables (p. ej. los roles en Distrito) y rótulos pequeños de tarjetas de resumen. */
 .v2-rol > summary { min-height: var(--m-ctrl-sec); padding-block: var(--sp-3); display: flex; align-items: center; }
+/* Los «ver más» desplegables (¿Cómo se puntúa?, Historial de notas de tareas, Ver valores de la auditoría) también llegan a 44 px. */
+.v2-det > summary, .ev-hist > summary, .aud-det > summary { min-height: var(--m-ctrl-sec); display: flex; align-items: center; }
 .dist-scard-lbl, .dist-scard-sub { font-size: var(--fs-xs); }
 
 /* ── Avisos como hoja inferior que mide lo que contiene ─────────────────────────────────────
