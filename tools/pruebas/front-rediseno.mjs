@@ -490,5 +490,10 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
 
+// La barra del perfil (períodos + pestañas) no lleva caja propia: ya son dos píldoras (caja dentro de caja).
+{ const v = fs.readFileSync(ROOT + 'vidrio.css', 'utf8');
+  ok(!/\.perfil--panel \.perfil-barra \{[^}]*background:\s*var\(--v-solido\)[^}]*border:/.test(v), 'perfil: la barra de períodos y pestañas no es una banda con fondo y borde');
+  ok(/\.perfil\.perfil:not\(\.sin-barra\) \.perfil-barra \{ position: static; background: none; border: 0;/.test(v), 'perfil: la barra es plana en escritorio'); }
+
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);

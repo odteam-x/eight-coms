@@ -486,13 +486,6 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px 32px; padding: 24px 28px; }
 .panel--pantalla .perfil--panel .perfil-cab.sup-marca::before { opacity: .14; }
 .panel--pantalla .perfil-nombre { font-size: clamp(2rem, 1.4rem + 1.6vw, 2.8rem); }
-.perfil--panel .perfil-barra { background: var(--v-solido); border: 1px solid var(--v-line); border-radius: 24px; padding: 8px 12px; margin-top: 16px; color: var(--v-t); }
-.perfil--panel .perfil-barra .pb { color: var(--v-t2); }
-.perfil--panel .perfil-barra .pb.active { color: var(--v-t); }
-@media (min-width: 1024px) {
-  .panel--pantalla .perfil-barra { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
-  .panel--pantalla .perfil-barra .perfil-pe { flex: 0 1 auto; }
-}
 @media (max-width: 767px) { .panel--pantalla .perfil--panel .perfil-cab { grid-template-columns: minmax(0, 1fr); } }
 
 /* 42. Tarjetas de persona con color: cada una toma un tono de la paleta de categorías según su fondo (pat-N, el que
@@ -752,7 +745,6 @@ button > svg, a > svg { flex: none; }
 .panel #avisos-cuerpo > .avisos-barra { position: static; flex: none; margin: 0 0 8px; padding: 4px 0 10px; border-radius: 0; box-shadow: none; background: none; border-bottom: 1px solid var(--v-line); }
 .panel #avisos-cuerpo > .avisos-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 .panel.panel--hoja .aviso-grupo-t, .panel .aviso-grupo-t { position: relative; z-index: 1; }
-.perfil--panel .perfil-barra, .perfil:not(.perfil--panel) .perfil-barra { background: var(--v-solido); }
 
 /* 60. Equipos: el nombre del grupo (equipo) es el título de la sección de tareas, no una nota al margen. */
 .eq-grupo { margin-top: var(--sp-6); gap: var(--sp-4); }
@@ -760,3 +752,15 @@ button > svg, a > svg { flex: none; }
 .eq-grupo-cab .pf-sub { font: 600 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
 .eq-grupo-cab .pf-sub::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--v-t); margin-right: 10px; vertical-align: 3px; }
 .back-top, #back-top { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* 61. Barra del perfil (períodos + pestañas) SIN caja. Antes era una banda con fondo y borde que envolvía dos controles que ya son
+   píldoras (períodos y pestañas): una caja dentro de otra. En escritorio es una fila plana (períodos a la izquierda, pestañas a la
+   derecha) que se desplaza con la página; en celular queda fija bajo la cabecera, opaca y de borde a borde con un filete, sin
+   esquinas redondeadas, para que nada pase a través. Vale para Mi perfil y para el perfil de otra persona (admin y secretaría). */
+.perfil.perfil:not(.sin-barra) .perfil-barra { position: static; background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; margin: 20px 0 24px; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; color: var(--v-t); }
+.perfil.perfil:not(.sin-barra) .perfil-barra .perfil-pe { flex: 0 1 auto; max-width: 100%; }
+.perfil.perfil:not(.sin-barra) .perfil-barra .seg { max-width: 100%; }
+@media (max-width: 767px) {
+  .perfil.perfil:not(.sin-barra) .perfil-barra { position: sticky; top: 60px; z-index: var(--z-sticky, 20); flex-direction: column; align-items: stretch; gap: 8px; background: var(--v-solido); border-bottom: 1px solid var(--v-line); margin: 0 calc(var(--m-gutter, 16px) * -1) 16px; padding: 8px var(--m-gutter, 16px) 10px; }
+  .perfil--panel.perfil.perfil:not(.sin-barra) .perfil-barra { top: 0; }
+}
