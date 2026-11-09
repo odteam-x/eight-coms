@@ -284,7 +284,7 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
   opacity: 1; z-index: -1; -webkit-mask-image: none; mask-image: none; filter: none;
   background: linear-gradient(to top, rgba(3, 27, 69, .92) 0%, rgba(3, 27, 69, .78) 38%, rgba(3, 27, 69, .15) 72%, rgba(3, 27, 69, .35) 100%);
 }
-.login-layout .login-panel-brand:not(.login-panel-brand--sin-foto) { --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.14); --v-line: rgba(255,255,255,.3); color: #F3F8FF; }
+.login-layout .login-panel-brand:not(.login-panel-brand--sin-foto) { --v-t: var(--on-brand); --v-t2: var(--on-brand-2); --v-fill: rgba(255,255,255,.14); --v-line: rgba(255,255,255,.3); color: var(--on-brand); }
 
 @media (min-width: 1024px) {
   /* La pantalla es una tarjeta centrada sobre la malla: foto (izquierda) + formulario (derecha) */
