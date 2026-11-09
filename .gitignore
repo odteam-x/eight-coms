@@ -21,7 +21,8 @@ node_modules/
 *.log
 
 # Config local de Claude Code (no compartir)
-.claude/
+.claude/*
+!.claude/launch.json
 
 # Manuales privados generados (se publican en la base, no en el sitio)
 .manuales-privados/
