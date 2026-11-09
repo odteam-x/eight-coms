@@ -705,3 +705,39 @@ button > svg, a > svg { flex: none; }
   .bco-fila { grid-template-columns: auto minmax(0, 1fr); padding: 14px 14px; }
   .bco-acc { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
 }
+
+/* 58. Mi cuenta rediseñada: a la izquierda la identidad (foto, nombre, correo, chips, cambiar foto) y debajo la
+   navegación; a la derecha el contenido. Sin título repetido ni subtítulo de relleno, y «Tus datos» junto al
+   fondo para que el selector no quede bajo el pliegue. En celular la identidad es una fila y las cuatro
+   secciones caben en una sola fila de iconos con nombre. */
+#tab-cuenta > .page-header > p, #tab-cuenta .pantalla-cab p { display: none; }
+#cuenta-host { margin-top: var(--sp-5); }
+@media (min-width: 900px) {
+  #cuenta-host { grid-template-columns: 290px minmax(0, 1fr); grid-template-areas: "cab cuerpo" "nav cuerpo"; gap: 0 var(--sp-7); }
+  #cuenta-host > .cuenta-cab { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin: 0 0 var(--sp-5); position: static; }
+  #cuenta-host .cuenta-foto { --av: 96px; }
+  #cuenta-host .cuenta-nombre { font-size: var(--fs-xl); overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-mail { margin: 4px 0 10px; overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-chips { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  #cuenta-host .cuenta-cab-acc { width: 100%; }
+  #cuenta-host .cuenta-cab-acc .cuenta-btn { width: 100%; justify-content: center; }
+  #cuenta-host .cuenta-tabs .seg { padding: 6px; border-radius: 24px; }
+}
+@media (min-width: 1280px) {
+  #cuenta-host .cuenta-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  #cuenta-host .cuenta-bloque + .cuenta-bloque { margin-top: 0; }
+  #cuenta-host .fondo-opciones { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  #cuenta-host > .cuenta-cab { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "foto id" "acc acc"; align-items: center; gap: 12px 14px; margin: 4px 0 16px; }
+  #cuenta-host .cuenta-foto { grid-area: foto; --av: 64px; }
+  #cuenta-host .cuenta-id { grid-area: id; min-width: 0; width: auto; }
+  #cuenta-host .cuenta-nombre { font-size: var(--fs-lg); overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-mail { margin: 2px 0 6px; overflow-wrap: anywhere; }
+  #cuenta-host .cuenta-chips { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  #cuenta-host .cuenta-cab-acc { grid-area: acc; }
+  #cuenta-host .cuenta-cab-acc .cuenta-btn { width: 100%; justify-content: center; min-height: 48px; }
+  #cuenta-host .cuenta-tabs { overflow: visible; margin: 0 0 16px; }
+  #cuenta-host .cuenta-tabs .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); width: 100%; gap: 2px; padding: 6px; }
+  #cuenta-host .cuenta-tabs .seg-btn { flex-direction: column; gap: 4px; min-height: 56px; padding: 6px 2px; justify-content: center; text-align: center; font-size: var(--fs-xs); }
+}
