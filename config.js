@@ -423,3 +423,9 @@ function renderIconos(contenedor) {
 
 // Pasada inicial: el marcado estático de la página.
 document.addEventListener('DOMContentLoaded', function () { renderIconos(); });
+
+
+/** Cede el hilo al navegador (pintar, atender un toque) entre dos trabajos largos. */
+function cederHilo() {
+  return (window.scheduler && typeof scheduler.yield === 'function') ? scheduler.yield() : new Promise(r => setTimeout(r, 0));
+}

@@ -135,6 +135,15 @@ function pintarGrafico(idCanvas, construir) {
 
   _graficos.get(idCanvas)?.chart?.destroy();
 
+  // Un gráfico dentro de un desplegable cerrado no se ve: se construye cuando la persona lo abre (ahorra el costo de Chart.js
+  // en la carga, sobre todo en celular). Al abrirse pasa por este mismo camino.
+  const cerrado = canvas.closest('details:not([open])');
+  if (cerrado) {
+    _graficos.delete(idCanvas);
+    cerrado.addEventListener('toggle', () => { if (cerrado.open && document.getElementById(idCanvas) === canvas) pintarGrafico(idCanvas, construir); }, { once: true });
+    return null;
+  }
+
   const cfg = construir();
   const chart = new Chart(canvas, { ...cfg, options: fundir(opcionesBase(), cfg.options) });
   _graficos.set(idCanvas, { chart, construir });

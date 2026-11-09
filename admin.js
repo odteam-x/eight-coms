@@ -124,25 +124,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   _periodoEntrada = entrada?.periodoId || null;
 
   await loadAllData();
+  // Lo visible primero (el Panel) y el resto de pestañas después, cediendo el hilo entre cada una: en un teléfono de gama media
+  // las ~15 pintadas seguidas eran una sola tarea de cientos de ms que congelaba el primer toque.
   renderOvPEBar();
+  loadOverview();
+  await cederHilo();
   renderEvalPEBar();
   renderUsuariosPEBar();
   renderRptPEBar();
+  await cederHilo();
   renderUsuarios();
   initPersonas();
+  await cederHilo();
   renderRoles();
   renderPeriodos();
   renderCriterios();
+  await cederHilo();
   Bienvenida.iniciar({ perfil: CU, tipo: 'admin', ir: tab => switchTab(tab, null) });
   renderRubrica();
   renderPerfiles();
+  await cederHilo();
   renderCalendario();
   DistritosAdmin.montar(document.getElementById('distritos-host'), () => ({ periodos: _periodos, distritos: _distritos, usuarios: _users }));
   populateDistritoFilters();
   initScrollEffects();
   actualizarRailProximo();
   registrarBuscadorAdmin();
-  loadOverview();
 });
 
 async function loadAllData() {

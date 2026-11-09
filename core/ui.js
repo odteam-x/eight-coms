@@ -447,10 +447,11 @@ function diasDesdeHoy(iso) {
 }
 
 /** «15 oct» a partir de un YYYY-MM-DD. */
+const _fmtCorta = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short' });   // un formateador, no uno por llamada (toLocaleDateString lo recrea cada vez)
 function fechaCortaISO(iso) {
   const [a, m, d] = String(iso || '').slice(0, 10).split('-').map(Number);
   if (!a || !m || !d) return '';
-  return new Date(a, m - 1, d).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '');
+  return _fmtCorta.format(new Date(a, m - 1, d)).replace('.', '');
 }
 
 /** «en 6 días», «mañana», «hoy», «hace 3 días». */

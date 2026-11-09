@@ -1,0 +1,80 @@
+[
+ {
+  "perfil": "movil",
+  "portal": "admin",
+  "fcp": 716,
+  "dcl": 907,
+  "carga": 1217,
+  "tbt": 729,
+  "reqs": 81,
+  "kb": 301,
+  "nodos": 3212,
+  "pestana_ms": 117,
+  "pestana_max_ms": 188
+ },
+ {
+  "perfil": "movil",
+  "portal": "secretaria",
+  "fcp": 548,
+  "dcl": 826,
+  "carga": 1023,
+  "tbt": 321,
+  "reqs": 79,
+  "kb": 491,
+  "nodos": 1056,
+  "pestana_ms": 72,
+  "pestana_max_ms": 218
+ },
+ {
+  "perfil": "movil",
+  "portal": "miembro",
+  "fcp": 628,
+  "dcl": 973,
+  "carga": 1153,
+  "tbt": 278,
+  "reqs": 74,
+  "kb": 361,
+  "nodos": 674,
+  "pestana_ms": 84,
+  "pestana_max_ms": 144
+ },
+ {
+  "perfil": "escritorio",
+  "portal": "admin",
+  "fcp": 404,
+  "dcl": 463,
+  "carga": 947,
+  "tbt": 64,
+  "reqs": 81,
+  "kb": 480,
+  "nodos": 3212,
+  "pestana_ms": 13,
+  "pestana_max_ms": 27
+ },
+ {
+  "perfil": "escritorio",
+  "portal": "secretaria",
+  "fcp": 344,
+  "dcl": 410,
+  "carga": 762,
+  "tbt": 0,
+  "reqs": 79,
+  "kb": 557,
+  "nodos": 1056,
+  "pestana_ms": 11,
+  "pestana_max_ms": 35
+ },
+ {
+  "perfil": "escritorio",
+  "portal": "miembro",
+  "fcp": 392,
+  "dcl": 454,
+  "carga": 739,
+  "tbt": 8,
+  "reqs": 74,
+  "kb": 600,
+  "nodos": 674,
+  "pestana_ms": 11,
+  "pestana_max_ms": 20
+ }
+]
