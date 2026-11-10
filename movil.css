@@ -209,3 +209,53 @@ textarea, .cfg-textarea { min-height: 112px; padding-block: var(--sp-3); line-he
 .cab-btn svg, .cab-btn i { width: 24px; height: 24px; }
 /* La descripción bajo el título es contexto, no contenido: dos líneas como máximo y en tono suave */
 .pantalla-cab > p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--txt-2); }
+
+
+/* ═══ CELULAR, REDISEÑO DE ESTRUCTURA ═════════════════════════════════════════════════════════════════
+   Referencia: saludo/título GRANDE dentro del contenido, bajo una barra mínima con solo los botones redondos; tarjetas tranquilas;
+   barra inferior flotante. Nada llamativo: el título deja de vivir en la cabecera (no hay razón para que suba) y cada pantalla abre con
+   su propio título, su grupo y una línea de contexto. */
+
+/* 1. Cabecera: isotipo a la izquierda y buscar + avisos como botones redondos a la derecha. Sin título, sin fondo, sin borde,
+      y NO fija: se va con el desplazamiento (así no hay nada que se monte sobre el contenido). */
+html[data-theme] header.cab-movil, header.cab-movil { position: relative; min-height: calc(60px + env(safe-area-inset-top)); background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; box-shadow: none; }
+header.cab-movil .cab-titulos { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* el nombre sigue para lectores de pantalla */
+header.cab-movil .cab-acciones { margin: 0 0 0 auto; gap: 10px; }
+header.cab-movil .cab-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); }
+.perfil.perfil:not(.sin-barra) .perfil-barra { top: env(safe-area-inset-top, 0px); }
+
+/* 2. Cada pantalla abre con su título en el contenido: grupo en pequeño arriba, título grande, una línea de contexto. */
+.pantalla-cab .pantalla-t, .pantalla-cab > h1 { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; font: 600 clamp(1.9rem, 8.4vw, 2.3rem)/1.06 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
+.pantalla-cab h1[data-grupo]::before { display: block; margin-bottom: 6px; font: 600 var(--fs-sm)/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--v-t2); }
+.pantalla-cab:not(:has(> p, > .pantalla-acc, > .pantalla-sub)) { padding-top: 4px; margin: 0 0 var(--sp-4); }
+.pantalla-cab { padding-top: 4px; margin-bottom: var(--sp-4); }
+.pantalla-cab > p { color: var(--v-t2); font-size: var(--fs-md); line-height: 1.45; }
+
+/* 3. Inicio tranquilo: el saludo sobre el fondo (sin bloque de marca ni patrón ni número gigante), con la foto a la derecha y la
+      próxima fecha como UNA tarjeta de vidrio. */
+.inicio-hero.sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-t2); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); --cyan-200: var(--v-t);
+  background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; box-shadow: none; border-radius: 0; padding: 4px max(var(--m-gutter), env(safe-area-inset-right)) 0 max(var(--m-gutter), env(safe-area-inset-left)); margin: 0 0 var(--sp-4);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "saludo foto" "cuenta cuenta"; align-items: center; gap: 14px 16px; color: var(--v-t); }
+.inicio-hero.sup-marca::before, .inicio-hero.sup-marca::after { display: none; }
+.inicio-saludo { grid-area: saludo; min-width: 0; }
+.inicio-hero .tag-marca { display: block; background: none; border: 0; padding: 0; margin: 0 0 6px; color: var(--v-t2); font: 600 var(--fs-sm)/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.inicio-hero .inicio-titulo { margin: 0; font: 600 clamp(2rem, 9vw, 2.5rem)/1.05 var(--font-display); letter-spacing: -.02em; text-transform: none; color: var(--v-t); }
+.inicio-hero .inicio-titulo .acento { font: inherit; font-style: normal; color: inherit; }
+.inicio-hero .inicio-sub { margin: 6px 0 0; color: var(--v-t2); font-size: var(--fs-md); }
+.inicio-av { display: inline-flex; grid-area: foto; --av: 72px; }
+.inicio-cuenta { grid-area: cuenta; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 22px; background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); }
+.inicio-hero .inicio-dias { font: 600 2.25rem/1 var(--font-display); color: var(--v-t); }
+.inicio-hero .inicio-dias-lbl { color: var(--v-t2); max-width: none; font-size: var(--fs-md); }
+.inicio-hero .inicio-dias-lbl strong { color: var(--v-t); }
+.inicio-grid .pf-card, .inicio-grid .pf-card--cian, .inicio-grid .pf-card--azul { background: var(--v-fill); }
+
+/* 4. Barra inferior flotante: una píldora separada de los bordes, con sombra suave. */
+.bottom-bar { inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px; width: auto; padding: 6px 8px; border: 1px solid var(--v-line); border-radius: 28px; box-shadow: 0 12px 30px var(--v-sombra); }
+.con-rail #contenido, .con-rail .amain { padding-bottom: calc(var(--bb-h) + env(safe-area-inset-bottom) + var(--sp-7)); }
+.inicio-hero .tag-marca { color: var(--v-t); opacity: .85; }
+/* Las tareas de Inicio van en filas planas dentro de su tarjeta (no una lista con fondo propio dentro de otra caja). */
+.inicio-grid .pf-tareas, .inicio-grid .pf-tareas--compacta { background: none; border: 0; box-shadow: none; padding: 0; border-radius: 0; }
+.inicio-grid .pf-tarea { background: none; border-radius: 0; }
+.inicio-grid .pf-tarea + .pf-tarea { border-top: 1px solid var(--v-line); }
+
+@media (max-width: 360px) { .bottom-bar { inset: auto 8px calc(8px + env(safe-area-inset-bottom)) 8px; padding: 4px; gap: 0; } .bb-item { min-width: 44px; } }
