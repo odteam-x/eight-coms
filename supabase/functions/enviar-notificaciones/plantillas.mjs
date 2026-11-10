@@ -1,7 +1,5 @@
 // Fuente única de las plantillas. La importan la Edge Function (Deno) y tools/generar-correos.mjs (Node).
 export const SITIO = 'https://eight-coms.vercel.app';
-// Isotipo de CELIDER 08 fijado a un commit del repositorio público: no depende de qué versión sirva producción.
-const LOGO = 'https://raw.githubusercontent.com/odteam-x/eight-coms/5d83153/logo.png';
 
 const C = {
   bg: '#061326', tarjeta: '#0A1D38', fila: '#10264A', texto: '#F3F8FF', texto2: '#A7E8FF',
@@ -11,9 +9,17 @@ const FRANJA = ['#002247', '#005286', '#0087F1', '#00CBFF', '#A7E8FF', '#FF6063'
 const FUENTE_TITULO = "'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif";
 const FUENTE = "'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif";
 
-/** Esqueleto común. `filas` = [[etiqueta, valor]] para el recuadro de detalle (opcional). */
-export function correo({ preheader, titulo, parrafos, filas = [], boton, nota }) {
+/** Cabecera de marca (degradado azul + patrón que se desvanece + isotipo + franja de seis colores) servida por el sitio. 1280×300, se muestra a 560. */
+const CABECERA = `${SITIO}/img/correo/cabecera-oscuro.png`;
+/** Punto de color de cada categoría (paleta de marca). */
+const PUNTO = { Tareas: '#00CBFF', Calificaciones: '#FF6063', Equipos: '#0087F1', Actividades: '#A7E8FF', Cuenta: '#8FB3D1' };
+
+/** Esqueleto común. `filas` = [[etiqueta, valor]] para la ficha de detalle (opcional); `etiqueta` = categoría (Tareas, Cuenta…). */
+export function correo({ preheader, titulo, parrafos, filas = [], boton, nota, etiqueta }) {
   const franja = FRANJA.map(c => `<td style="background:${c};height:6px;font-size:0;line-height:0">&nbsp;</td>`).join('');
+  const chip = etiqueta
+    ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:${C.fila};font-family:${FUENTE};font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:${C.texto2}"><span style="color:${PUNTO[etiqueta] || C.suave}">&#9679;</span>&nbsp; ${etiqueta}</span>`
+    : '';
   const detalle = filas.length
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;background:${C.fila};border-radius:16px">${filas.map(([k, v], i) => `
         <tr><td style="padding:14px 20px;${i ? `border-top:1px solid ${C.trazo};` : ''}font-family:${FUENTE};font-size:14px;color:${C.suave};width:38%;vertical-align:top">${k}</td>
@@ -21,7 +27,7 @@ export function correo({ preheader, titulo, parrafos, filas = [], boton, nota })
       </table>` : '';
   const cta = boton
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="background:${C.coral};border-radius:999px">
-        <a href="${boton.url}" style="display:inline-block;padding:15px 32px;font-family:${FUENTE};font-size:16px;font-weight:700;color:${C.navy};text-decoration:none;border-radius:999px">${boton.texto}</a></td></tr></table>
+        <a href="${boton.url}" style="display:inline-block;padding:15px 34px;font-family:${FUENTE};font-size:16px;font-weight:700;color:${C.navy};text-decoration:none;border-radius:999px">${boton.texto}</a></td></tr></table>
        <p style="margin:0 0 24px;font-family:${FUENTE};font-size:13px;line-height:1.5;color:${C.suave}">Si el botón no funciona, copia este enlace en tu navegador:<br><a href="${boton.url}" style="color:${C.texto2};word-break:break-all">${boton.url}</a></p>`
     : '';
   return `<!doctype html>
@@ -30,24 +36,20 @@ export function correo({ preheader, titulo, parrafos, filas = [], boton, nota })
 <title>${titulo}</title></head>
 <body style="margin:0;padding:0;background:${C.bg}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${C.bg}">${preheader}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg}"><tr><td align="center" style="padding:32px 16px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${C.tarjeta};border-radius:28px;overflow:hidden">
-    <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${franja}</tr></table></td></tr>
-    <tr><td style="background:${C.navy};padding:28px 36px 26px">
-      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="padding-right:14px"><img src="${LOGO}" width="52" height="52" alt="CELIDER 08" style="display:block;border:0;border-radius:50%"></td>
-        <td style="font-family:${FUENTE_TITULO};font-size:20px;font-weight:700;letter-spacing:.01em;color:#FFFFFF;text-transform:uppercase;line-height:1.1">Eight Creators Labs<br><span style="font-family:${FUENTE};font-size:12px;font-weight:600;letter-spacing:.04em;color:${C.texto2};text-transform:none">CELIDER 08 Santiago</span></td>
-      </tr></table>
-    </td></tr>
-    <tr><td style="padding:32px 36px 8px">
-      <h1 style="margin:0 0 16px;font-family:${FUENTE_TITULO};font-size:36px;line-height:1.05;font-weight:700;letter-spacing:-.01em;color:${C.texto}">${titulo}</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg}"><tr><td align="center" style="padding:28px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${C.tarjeta};border-radius:24px;overflow:hidden">
+    <tr><td style="padding:0;line-height:0;font-size:0;background:${C.navy}"><img src="${CABECERA}" width="560" alt="EIGHT CREATORS LABs · CELIDER 08 Santiago" style="display:block;width:100%;max-width:560px;height:auto;border:0"></td></tr>
+    <tr><td style="padding:30px 36px 8px">
+      ${chip}
+      <h1 style="margin:16px 0 14px;font-family:${FUENTE_TITULO};font-size:38px;line-height:1.04;font-weight:700;letter-spacing:-.01em;color:${C.texto}">${titulo}</h1>
       ${parrafos.map(p => `<p style="margin:0 0 16px;font-family:${FUENTE};font-size:16px;line-height:1.55;color:${C.texto}">${p}</p>`).join('\n      ')}
       ${detalle}${cta}
       ${nota ? `<p style="margin:0 0 24px;font-family:${FUENTE};font-size:14px;line-height:1.5;color:${C.suave}">${nota}</p>` : ''}
     </td></tr>
-    <tr><td style="padding:20px 36px 28px;border-top:1px solid ${C.trazo}">
+    <tr><td style="padding:18px 36px 24px;border-top:1px solid ${C.trazo}">
       <p style="margin:0;font-family:${FUENTE};font-size:12px;line-height:1.5;color:${C.suave}">Este mensaje lo envía el portal EIGHT CREATORS LABs de CELIDER 08 Santiago. No respondas a este correo: nadie lo lee.<br><a href="${SITIO}" style="color:${C.texto2}">${SITIO.replace('https://', '')}</a></p>
     </td></tr>
+    <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${franja}</tr></table></td></tr>
   </table>
 </td></tr></table></body></html>
 `;
@@ -270,3 +272,14 @@ export const AVISOS = {
     boton: { texto: 'Ir a Evaluar', url: '{{enlace}}' },
   },
 };
+
+// Categoría (la etiqueta del correo) de cada plantilla. Los correos de acceso son siempre «Cuenta».
+const CATEGORIA_AVISO = {
+  tarea_asignada: 'Tareas', tarea_colectiva_asignada: 'Tareas', tarea_cambio: 'Tareas', tarea_por_vencer: 'Tareas', tarea_vencida: 'Tareas',
+  correccion_solicitada: 'Tareas', tarea_aprobada: 'Tareas', entrega_registrada: 'Tareas', tarea_bloqueada: 'Tareas', estado_cambiado: 'Tareas',
+  calificacion_nueva: 'Calificaciones', calificacion_cambiada: 'Calificaciones', observacion_nueva: 'Calificaciones', evaluaciones_sin_publicar: 'Calificaciones',
+  equipo_incorporado: 'Equipos', equipo_retiro: 'Equipos', actividad_nueva: 'Actividades', actividad_recordatorio: 'Actividades',
+  solicitud_acceso: 'Cuenta', acceso_aprobado: 'Cuenta',
+};
+for (const d of Object.values(AUTH)) d.etiqueta = 'Cuenta';
+for (const [k, d] of Object.entries(AVISOS)) d.etiqueta = CATEGORIA_AVISO[k] || 'Aviso';
