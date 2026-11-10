@@ -259,3 +259,6 @@ header.cab-movil .cab-btn { width: 44px; height: 44px; border-radius: 50%; backg
 .inicio-grid .pf-tarea + .pf-tarea { border-top: 1px solid var(--v-line); }
 
 @media (max-width: 360px) { .bottom-bar { inset: auto 8px calc(8px + env(safe-area-inset-bottom)) 8px; padding: 4px; gap: 0; } .bb-item { min-width: 44px; } }
+/* La insignia de la cabecera móvil, más grande (48 px + aro blanco). */
+header.cab-movil .cab-movil-logo { width: 48px; height: 48px; }
+html[data-theme] header.cab-movil, header.cab-movil { min-height: calc(68px + env(safe-area-inset-top)); }
