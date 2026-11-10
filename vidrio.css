@@ -761,6 +761,6 @@ button > svg, a > svg { flex: none; }
 .perfil.perfil:not(.sin-barra) .perfil-barra .perfil-pe { flex: 0 1 auto; max-width: 100%; }
 .perfil.perfil:not(.sin-barra) .perfil-barra .seg { max-width: 100%; }
 @media (max-width: 767px) {
-  .perfil.perfil:not(.sin-barra) .perfil-barra { position: sticky; top: 60px; z-index: var(--z-sticky, 20); flex-direction: column; align-items: stretch; gap: 8px; background: var(--v-solido); border-bottom: 1px solid var(--v-line); margin: 0 calc(var(--m-gutter, 16px) * -1) 16px; padding: 8px var(--m-gutter, 16px) 10px; }
+  .perfil.perfil:not(.sin-barra) .perfil-barra { position: sticky; top: 60px; z-index: var(--z-sticky, 20); flex-direction: column; align-items: stretch; gap: 8px; background: var(--v-solido); border-bottom: 1px solid var(--v-line); margin: 0 calc(50% - 50vw) 16px; padding: 8px calc(50vw - 50%) 10px; }   /* de borde a borde exacto, sea cual sea el margen de la pantalla */
   .perfil--panel.perfil.perfil:not(.sin-barra) .perfil-barra { top: 0; }
 }

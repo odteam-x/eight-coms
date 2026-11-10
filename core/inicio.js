@@ -54,6 +54,7 @@ const Inicio = (() => {
             ? escHtml(periodo.nombre && periodo.nombre !== periodo.pe ? periodo.nombre : `Período ${periodo.pe}`)
             : 'Todavía no hay un período en curso.'}</p>
         </div>
+        ${typeof Avatar !== 'undefined' ? Avatar.html(persona, { tam: 'xl', clase: 'inicio-av' }) : ''}
         ${proximo ? `
         <div class="inicio-cuenta" role="group" aria-label="Próxima fecha">
           <div class="inicio-dias"><span data-cuenta="${proximo.dias}" data-dec="0">${proximo.dias}</span></div>

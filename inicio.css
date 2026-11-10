@@ -83,3 +83,6 @@
 }
 
 /* Las tarjetas del Inicio son superficies planas: el único bloque de color es el hero. */
+
+/* La foto junto al saludo solo existe en celular (movil.css). */
+.inicio-av { display: none; }
