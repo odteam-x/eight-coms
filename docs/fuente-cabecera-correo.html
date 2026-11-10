@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{background:#888}
+.b{position:relative;width:1280px;height:300px;overflow:hidden;display:flex;align-items:center;padding:0 72px;gap:28px;font-family:'Barlow',sans-serif}
+.b .pat{position:absolute;inset:0;background-size:520px;background-repeat:repeat;-webkit-mask-image:linear-gradient(90deg,transparent 15%,#000 95%);mask-image:linear-gradient(90deg,transparent 15%,#000 95%)}
+.b .iso{position:relative;width:112px;height:112px;border-radius:50%;background:#fff;padding:6px;box-shadow:0 10px 30px rgba(0,20,60,.35)}
+.b .iso img{width:100%;height:100%;border-radius:50%;display:block}
+.b .t{position:relative;font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:.95}
+.b .t b{display:block;font-size:64px}
+.b .t span{display:block;margin-top:12px;font:600 24px 'Barlow',sans-serif;letter-spacing:.14em}
+.b .franja{position:absolute;left:0;right:0;bottom:0;height:10px;display:flex}
+.b .franja i{flex:1}
+.oscuro{background:linear-gradient(115deg,#002247 0%,#005286 52%,#0087F1 100%);color:#fff}
+.oscuro .pat{background-image:url(/img/patrones/patron-3.webp);opacity:.42}
+.oscuro .t span{color:#A7E8FF}
+.claro{background:linear-gradient(115deg,#EEF7FC 0%,#C7EFFF 55%,#A7E8FF 100%);color:#002247}
+.claro .pat{background-image:url(/img/patrones/patron-4.webp);opacity:.55}
+.claro .t span{color:#005286}
+.franja i:nth-child(1){background:#002247}.franja i:nth-child(2){background:#005286}.franja i:nth-child(3){background:#0087F1}.franja i:nth-child(4){background:#00CBFF}.franja i:nth-child(5){background:#A7E8FF}.franja i:nth-child(6){background:#FF6063}
+</style>
+<div class="b oscuro" id="oscuro"><div class="pat"></div><div class="iso"><img src="/logo.png"></div><div class="t"><b>Eight Creators Labs</b><span>CELIDER 08 · SANTIAGO</span></div><div class="franja"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+<div class="b claro" id="claro"><div class="pat"></div><div class="iso"><img src="/logo.png"></div><div class="t"><b>Eight Creators Labs</b><span>CELIDER 08 · SANTIAGO</span></div><div class="franja"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
