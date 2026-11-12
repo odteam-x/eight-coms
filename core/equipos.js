@@ -148,10 +148,6 @@ const Equipos = (() => {
     const [r, m] = await Promise.all([API.getEquipos({ periodoId: S.periodoId }), API.getMiembrosVigentes()]);
     if (!r.ok) { if (r.noDisponible) S.host.innerHTML = noDisponibleHTML(); else renderError(S.host, r.error, listar); return; }
     S.equipos = r.equipos;
-    // Las reglas de calificación del PE elegido, encima de la lista (editables solo por la administración).
-    const per = S.periodos.find(p => String(p.id) === String(S.periodoId));
-    const rg = document.getElementById('eq-reglas');
-    if (per && rg && typeof EvaluacionPerfil !== 'undefined') EvaluacionPerfil.montarReglas(rg, { periodo: { ...per, pe: per.pe || per.nombre }, editable: true });
     S.miembros = new Map();
     for (const x of (m.ok ? m.filas : [])) { if (!S.miembros.has(x.equipo_id)) S.miembros.set(x.equipo_id, []); S.miembros.get(x.equipo_id).push(x.persona_id); }
     pintarLista();

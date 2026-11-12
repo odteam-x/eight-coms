@@ -434,7 +434,8 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 36. Equipos: los equipos son lo principal y van primero; las reglas de calificación (configuración) quedan debajo,
    plegables, y sus seis valores son una rejilla con filetes en vez de seis cajas blancas dentro de la tarjeta. */
 #tab-equipos.active { display: flex; flex-direction: column; }
-#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; } #tab-equipos > #eq-reglas { order: 2; margin-top: var(--sp-5); }
+#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; }
+#tareas-reglas:not(:empty) { margin: 0 0 var(--sp-5); }   /* las reglas de calificación de tareas viven en la pestaña Tareas, entre el selector de PE y la lista */
 .ev-dl > div { background: none; border: 0; border-radius: 0; box-shadow: none; border-top: 1px solid var(--v-line); padding: 12px 4px; }
 .ev-dl { gap: 0 24px; }
 

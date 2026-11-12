@@ -147,7 +147,7 @@ const ACCIONES = {
   partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),
   partMasivo:    ()      => participacionMasiva(),
   estDist:       (a, el) => EstadisticasDistrito.accion(a, el),
-  evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
+  evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('tareas-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),
   asigAtras:     ()      => Asignar.atras(),
   asigSugerir:   ()      => Asignar.sugerir(),
