@@ -824,7 +824,7 @@ html { background: var(--v-1); min-height: 100%; }
 #tab-evaluar.eval-enfoque:has(.eval-form-card) .eval-fijo { gap: var(--sp-2); padding-bottom: var(--sp-2); }
 .eval-enfoque-btn { min-height: 38px; padding: 0 14px; gap: 8px; }
 .eval-enfoque-btn i { width: 16px; height: 16px; }
-.v2-resumen { flex-wrap: nowrap; gap: 14px; padding: 8px 14px; font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-items: center; }
+.v2-resumen { flex-wrap: wrap; gap: 2px 14px; padding: 6px 14px; font-size: var(--fs-xs); align-items: center; }   /* una línea cuando cabe (formulario ancho) y dos como máximo; antes ocupaba 89 px */
 .v2-resumen > * { flex: none; }
 .v2-resumen small { font-size: inherit; }
 .v2-crit { padding: 10px 14px; margin-bottom: 8px; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
@@ -835,4 +835,4 @@ html { background: var(--v-1); min-height: 100%; }
 .v2-crit > details.v2-det[open] { grid-column: 1 / -1; margin-top: 8px; }
 .v2-crit > .eval-com-inp { grid-column: 2; margin-top: 4px; }
 .v2-crit:has(details.v2-det[open]) > .eval-com-inp { grid-column: 1 / -1; }
-@media (max-width: 1099px) { .v2-resumen { flex-wrap: wrap; white-space: normal; } }
+
