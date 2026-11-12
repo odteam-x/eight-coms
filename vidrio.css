@@ -804,3 +804,15 @@ html { background: var(--v-1); min-height: 100%; }
 .fila-aj--tema .fila-aj-txt { flex: 1 1 160px; min-width: 0; }
 .fila-aj--tema .seg { flex: 0 1 auto; margin-left: auto; }
 @media (max-width: 560px) { .fila-aj--tema .seg { flex: 1 1 100%; margin-left: 0; } .fila-aj--tema .seg-btn { flex: 1 1 0; } }
+
+/* 33. Franja superior sin corte (iPhone). Safari de iOS 26 pinta la zona de la hora/notch con el color SÓLIDO de fondo de la página
+   (html = --v-1, el tono más oscuro) y lo difumina contra el contenido; la malla de abajo es más clara, así que se veía una banda
+   oscura con borde borroso. Solución: arriba del todo la malla pasa a ser --v-1 liso y se aclara poco a poco hacia su color
+   real, así el color que muestra el sistema y el de la página coinciden y el degradado queda continuo. Solo celular. */
+@media (max-width: 768px) {
+  html::after {
+    content: ''; position: fixed; z-index: -1; left: 0; right: 0; top: 0; pointer-events: none;
+    height: calc(env(safe-area-inset-top, 0px) + 96px);
+    background: linear-gradient(180deg, var(--v-1) 0, var(--v-1) env(safe-area-inset-top, 0px), transparent 100%);
+  }
+}

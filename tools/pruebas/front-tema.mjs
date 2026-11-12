@@ -18,6 +18,7 @@ for (const f of ['user.html', 'secretario.html', 'admin.html', 'index.html']) {
 }
 ok(/\.login-layout \{ padding-top: env\(safe-area-inset-top\)/.test(v) && /theme-toggle-fixed \{ top: calc\(var\(--sp-3\) \+ env\(safe-area-inset-top\)\)/.test(v), 'acceso: el contenido y el botón de tema dejan el hueco del notch');
 
+ok(/html::after \{[^}]*position: fixed[^}]*env\(safe-area-inset-top/.test(v) && /var\(--v-1\) 0, var\(--v-1\) env\(safe-area-inset-top/.test(v), 'franja superior: arriba la malla es --v-1 liso (el color que Safari pinta bajo la hora) y se aclara hacia su color real');
 console.log('\n[tema rosa]');
 const th = rd('core/theme.js');
 ok(/TEMAS = \['dark', 'light', 'rosa'\]/.test(th) && /window\.setTheme/.test(th) && /rosa: '#3D0A27'/.test(th), 'theme.js: tres temas, setTheme y color de la barra del navegador');

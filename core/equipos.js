@@ -113,7 +113,7 @@ const Equipos = (() => {
         <p class="eq-tarea-meta"><span class="etiqueta etq-azul">Tarea de equipo</span>
           <span>${escHtml(t.equipo_nombre)}</span> · ${Tareas.plazoHTML(t)}
           ${t.prioridad !== 'normal' ? ` · Prioridad ${escHtml(PRIORIDAD[t.prioridad] || t.prioridad)}` : ''}</p>
-        ${t.descripcion ? `<p class="tk-desc">${escHtml(t.descripcion)}</p>` : ''}
+        ${textoLargoHTML(t.descripcion)}
         ${barraAvance(t.avance)}
         <p class="eq-tarea-meta">${Number(t.participantes)} integrante${t.participantes === 1 ? '' : 's'} · ${Number(t.aportes)} aporte${t.aportes === 1 ? '' : 's'}${t.responsable_nombre ? ` · Seguimiento: ${escHtml(t.responsable_nombre)}` : ''}</p>
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<p class="tk-nota tk-nota--bloq"><strong>Bloqueada:</strong> ${escHtml(t.bloqueo_motivo)}</p>` : ''}
@@ -440,9 +440,9 @@ const Equipos = (() => {
       campos: [
         { tipo: 'info', texto: `Una sola tarea para todo el equipo (${part.length} integrante${part.length === 1 ? '' : 's'}): todos la ven desde su cuenta.` },
         { id: 'titulo', tipo: 'texto', label: 'Título', req: true, max: 160 },
-        { id: 'descripcion', tipo: 'area', label: 'Descripción', filas: 3, max: 4000 },
-        { id: 'instrucciones', tipo: 'area', label: 'Instrucciones', filas: 3, max: 4000, ph: 'Paso a paso, material de apoyo…' },
-        { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 2, max: 2000, ph: 'Qué se va a mirar al calificar' },
+        { id: 'descripcion', tipo: 'area', label: 'Descripción', filas: 6, max: 20000 },
+        { id: 'instrucciones', tipo: 'area', label: 'Instrucciones', filas: 6, max: 20000, ph: 'Paso a paso, material de apoyo…' },
+        { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 3, max: 5000, ph: 'Qué se va a mirar al calificar' },
         { id: 'fecha_limite', tipo: 'fecha', label: 'Fecha límite' },
         { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: 'normal', opciones: [{ v: 'baja', l: 'Baja' }, { v: 'normal', l: 'Normal' }, { v: 'alta', l: 'Alta' }] },
         { id: 'peso', tipo: 'select', label: 'Peso de esta tarea en la nota', valor: '1', ayuda: 'Cuánto pesa frente a otras tareas al promediar. Las reglas del PE lo combinan con el tipo de tarea.', opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) },
@@ -537,9 +537,9 @@ const Equipos = (() => {
       case 't-editar':
         return m('Editar la tarea', [
           { id: 'titulo', tipo: 'texto', label: 'Título', req: true, max: 160, valor: t.titulo },
-          { id: 'descripcion', tipo: 'area', label: 'Descripción', filas: 3, max: 4000, valor: t.descripcion },
-          { id: 'instrucciones', tipo: 'area', label: 'Instrucciones', filas: 3, max: 4000, valor: t.instrucciones },
-          { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 2, max: 2000, valor: t.criterios_evaluacion },
+          { id: 'descripcion', tipo: 'area', label: 'Descripción', filas: 6, max: 20000, valor: t.descripcion },
+          { id: 'instrucciones', tipo: 'area', label: 'Instrucciones', filas: 6, max: 20000, valor: t.instrucciones },
+          { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 3, max: 5000, valor: t.criterios_evaluacion },
           { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: t.prioridad, opciones: [{ v: 'baja', l: 'Baja' }, { v: 'normal', l: 'Normal' }, { v: 'alta', l: 'Alta' }] },
           { id: 'peso', tipo: 'select', label: 'Peso', valor: String(Number(t.peso)), opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) }], 'Guardar',
           v => v.titulo ? cambiar(id, { titulo: v.titulo, descripcion: v.descripcion, instrucciones: v.instrucciones, criterios_evaluacion: v.criterios_evaluacion, prioridad: v.prioridad, peso: Number(v.peso) }, 'Tarea actualizada') : 'Escribe un título.');
@@ -577,7 +577,7 @@ const Equipos = (() => {
     const ETIQ = { creada: 'Creada', estado: 'Cambio de estado', prorroga: 'Plazo movido', responsable: 'Cambió el seguimiento', instrucciones: 'Instrucciones actualizadas', contenido: 'Contenido editado', participante_alta: 'Se sumó a la tarea', participante_baja: 'Dejó la tarea', aporte: 'Aporte' };
     const ACC = { calificada: 'Calificada', corregida: 'Nota corregida', anulada: 'Nota anulada', restaurada: 'Nota restaurada', reabierta: 'Reabierta', tarea_anulada: 'Tarea anulada', individual: 'Nota individual', individual_retirada: 'Nota individual retirada' };
     const html = `
-      ${t?.instrucciones ? `<h4 class="pf-sub">Instrucciones</h4><p class="tk-desc">${escHtml(t.instrucciones)}</p>` : ''}
+      ${t?.instrucciones ? `<h4 class="pf-sub">Instrucciones</h4>${textoLargoHTML(t.instrucciones, { max: 600 })}` : ''}
       ${t?.criterios_evaluacion ? `<h4 class="pf-sub">Criterios de evaluación</h4><p class="tk-desc">${escHtml(t.criterios_evaluacion)}</p>` : ''}
       <h4 class="pf-sub">Participación</h4>
       ${p.ok && p.filas.length ? `<ul class="eq-pers-lista">${p.filas.map(f => `<li class="eq-pers"><span>${escHtml(f.nombre)}${f.es_responsable ? ' <small>· seguimiento</small>' : ''}${f.entrego ? ' <small>· entregó</small>' : ''}${f.hasta ? ' <small>· salió</small>' : ''}

@@ -43,7 +43,14 @@
 .tk-tag--alta { color: var(--sba-txt); border-color: currentColor; }
 .tk-plazo--vencida { color: var(--sba-txt); font-weight: 600; }
 .tk-prorroga { border-bottom: 1px dotted currentColor; cursor: help; }
-.tk-desc, .tk-crit { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--txt-2); overflow-wrap: anywhere; }
+.tk-desc, .tk-crit { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--txt-2); overflow-wrap: anywhere; white-space: pre-line; }
+/* Texto largo: recortado con «Ver todo» (core/ui.js · textoLargoHTML) */
+.tk-mas { margin: 0; }
+.tk-mas > summary { list-style: none; cursor: pointer; display: block; }
+.tk-mas > summary::-webkit-details-marker { display: none; }
+.tk-mas-ver, .tk-mas-cerrar { display: inline-block; margin-top: 6px; font: 600 var(--fs-sm)/1.3 var(--font-ui); color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
+.tk-mas[open] .tk-mas-vista, .tk-mas[open] .tk-mas-ver, .tk-mas:not([open]) .tk-mas-cerrar { display: none; }
+.tk-mas-todo { margin-top: 6px; max-height: 60vh; overflow: auto; }
 .tk-crit { font-size: var(--fs-xs); }
 .tk-aviso {
   background: var(--surface-2); border-radius: var(--r-sm); padding: var(--sp-2) var(--sp-3);
