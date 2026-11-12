@@ -73,6 +73,7 @@ const calls = [];
 const sandbox = {
   escHtml: s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
   initials: s => String(s).slice(0, 2).toUpperCase(), fmtNum: n => String(n),
+  textoLargoHTML: t => (t ? `<p class="tk-desc">${String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))}</p>` : ''),   // el real vive en core/ui.js y lo prueba front-texto-largo.mjs
   Tareas: { ESTADOS: { asignada: { txt: 'Asignada', cls: 'a' }, en_curso: { txt: 'En curso', cls: 'e' }, entregada: { txt: 'Entregada', cls: 'x' }, aprobada: { txt: 'Aprobada', cls: 'p' }, devuelta: { txt: 'Devuelta', cls: 'd' }, bloqueada: { txt: 'Bloqueada', cls: 'b' } },
     plazoHTML: () => '<span>plazo</span>', abrirModal: o => calls.push(o) },
   API: {}, document: { body: { classList: { contains: () => false } }, getElementById: () => null }, Store: { get: () => [] }, Selector: {}, renderIconos() {}, renderCargando() {}, renderError() {}, showToast() {},

@@ -505,3 +505,16 @@ function lineaTiempoHTML(periodos, { peActual = null } = {}) {
 function lineasDeTexto(t) {
   return String(t ?? '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
 }
+
+/**
+ * Texto largo de una tarea (descripción, instrucciones): corto se muestra tal cual; largo se muestra recortado con «Ver todo»
+ * (un <details> nativo: teclado, lector de pantalla y sin JS). Respeta los saltos de línea. Todo pasa por escHtml.
+ */
+function textoLargoHTML(txt, { max = 360, clase = 'tk-desc' } = {}) {
+  const t = String(txt || '').trim();
+  if (!t) return '';
+  if (t.length <= max) return `<p class="${escHtml(clase)}">${escHtml(t)}</p>`;
+  const i = t.lastIndexOf(' ', max);
+  const corte = t.slice(0, i > max * 0.6 ? i : max).trim();
+  return `<details class="tk-mas"><summary class="tk-mas-sum"><span class="${escHtml(clase)} tk-mas-vista">${escHtml(corte)}…</span><span class="tk-mas-ver">Ver todo (${t.length.toLocaleString('es-DO')} caracteres)</span><span class="tk-mas-cerrar">Ver menos</span></summary><p class="${escHtml(clase)} tk-mas-todo">${escHtml(t)}</p></details>`;
+}
