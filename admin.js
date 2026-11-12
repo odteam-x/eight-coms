@@ -135,6 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cederHilo();
   renderUsuarios();
   initPersonas();
+  iniciarEnfoqueEvaluar();
   await cederHilo();
   renderRoles();
   renderPeriodos();
@@ -2847,3 +2848,29 @@ function printAdminReport() {
 
 /* initials, setEl, showToast, initScrollEffects → core/render.js.
    El admin no tiene #back-top; initScrollEffects lo comprueba con ?. */
+
+
+/* ── Evaluar: modo enfoque ────────────────────────────────────────────────────────────────────────
+   Mientras se evalúa a alguien, el resumen (avance, atajos) y la descripción ocupaban la mitad de la pantalla y el formulario quedaba en
+   un rectángulo pequeño. Por defecto se ocultan SOLO cuando hay una evaluación abierta (CSS, :has); «Mostrar resumen» los devuelve y se
+   recuerda la elección. Sin nadie elegido, todo sigue a la vista para escoger a quién evaluar. */
+const _K_ENFOQUE = 'ec-eval-enfoque';
+function _pintarEnfoqueEvaluar(on) {
+  const tab = document.getElementById('tab-evaluar'), b = document.getElementById('eval-enfoque-btn');
+  if (!tab || !b) return;
+  tab.classList.toggle('eval-enfoque', on);
+  b.setAttribute('aria-pressed', String(on));
+  b.querySelector('span').textContent = on ? 'Mostrar resumen' : 'Ocultar resumen';
+  b.querySelector('i')?.setAttribute('data-lucide', on ? 'eye' : 'eye-off');
+  if (typeof renderIconos === 'function') renderIconos(b);
+}
+function iniciarEnfoqueEvaluar() {
+  let on = true;
+  try { on = localStorage.getItem(_K_ENFOQUE) !== '0'; } catch (e) { /* modo privado */ }
+  _pintarEnfoqueEvaluar(on);
+}
+function alternarEnfoqueEvaluar() {
+  const on = !document.getElementById('tab-evaluar')?.classList.contains('eval-enfoque');
+  try { localStorage.setItem(_K_ENFOQUE, on ? '1' : '0'); } catch (e) { /* modo privado */ }
+  _pintarEnfoqueEvaluar(on);
+}
