@@ -15,6 +15,9 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 ## Correcciones posteriores
 - **0059 `evaluaciones_versiones_uuid`** (2026-11-11, **pendiente de aplicar en producción**): 0053 declaró `evaluacion_id` y `p_id` como BIGINT pero `evaluaciones.id` es UUID; publicar una evaluación fallaba («column evaluacion_id is of type bigint but expression is of type uuid») y rectificar/retirar no encontraban la función. Guardar borradores no fallaba. Prueba: `tools/pruebas/sql-0059.mjs` (reproduce el defecto con id UUID y comprueba el arreglo). El stub de las demás pruebas sigue con id BIGINT: por eso 0053 pasó sus pruebas.
 
+- **0060 `tareas_texto_largo`** (2026-11-11): topes de texto de las tareas a 20 000 caracteres (descripción, instrucciones) y 5 000 (criterios). Aplicada por la administración.
+- **0061 `tareas_sin_tareas_pierde_puntos`** (2026-11-11, **pendiente de aplicar**): regla por PE «sin tareas calificadas, se pierden los puntos de tareas» (apagada por defecto). Prueba: `tools/pruebas/sql-0061.mjs`.
+
 ## Pendientes a propósito
 - `0006_gestion_miembros.PENDIENTE.sql`: `gestion_miembros` **no existe**. Reescribe 5 funciones y 5 políticas y exige cambios de front en el mismo despliegue.
 - `0015_seed_perfiles.PENDIENTE.sql`: ya hay datos (ver arriba); revisar antes de reaplicar.

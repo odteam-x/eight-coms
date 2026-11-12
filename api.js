@@ -934,6 +934,8 @@ const API = {
     return this._rpc('calif_config_guardar', {
       p_periodo: periodoId, p_peso_tareas: c.peso_tareas, p_mult_individual: c.mult_individual, p_mult_colectiva: c.mult_colectiva,
       p_minimo_tareas: c.minimo_tareas, p_contar_propias: c.contar_propias, p_vencidas_como_cero: c.vencidas_como_cero, p_motivo: motivo,
+      // 0061: solo se envía si la base ya la tiene (config.sin_tareas_pierde_puntos definido); antes de aplicarla, la función no conoce el parámetro.
+      ...(typeof c.sin_tareas_pierde_puntos === 'boolean' ? { p_sin_tareas_pierde_puntos: c.sin_tareas_pierde_puntos } : {}),
     });
   },
   async getCalifConfigHist(periodoId) {
