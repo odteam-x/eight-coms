@@ -2476,10 +2476,14 @@ function selectTareasPE(periodoId, btn) {
 function montarTareas() {
   // Las tareas existen solo en los períodos nuevos (rúbrica por roles).
   if (!esPeriodoV2(_activePETareas)) {
+    const rg0 = document.getElementById('tareas-reglas'); if (rg0) rg0.innerHTML = '';
     document.getElementById('tareas-lista').innerHTML =
       '<div class="empty-box"><div class="empty-txt">Las tareas están disponibles en los períodos nuevos, con la rúbrica por roles. Este período conserva su forma de entrega original: elige uno más reciente.</div></div>';
     return;
   }
+  // Las reglas de calificación de las tareas del PE elegido (peso, mínimo, iniciativas propias, vencidas, «se pierden los puntos»).
+  const rg = document.getElementById('tareas-reglas');
+  if (rg && typeof EvaluacionPerfil !== 'undefined') EvaluacionPerfil.montarReglas(rg, { periodo: { ..._activePETareas, pe: _activePETareas.pe || _activePETareas.nombre }, editable: true });
   const hostEq = document.getElementById('tareas-equipo-host');
   if (hostEq) Equipos.montarTareas(hostEq, { periodoId: _activePETareas.id, yo: CU.id, esAdmin: true, periodos: _periodos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   Tareas.montar({
