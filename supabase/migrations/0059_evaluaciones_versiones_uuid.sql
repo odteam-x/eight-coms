@@ -17,15 +17,18 @@
 --  Idempotente. Aplicar DESPUÉS de 0053..0058. Reversa al final.
 -- ══════════════════════════════════════════════════════════════════════
 
--- ── 1. Columna del historial ──────────────────────────────────────────
-DO $$
+-- ── 1. Todo dentro de un bloque: solo actúa si evaluaciones.id es UUID ──────────────────────────────
+--  Si el id no es UUID (la base de pruebas tiene BIGINT) 0053 ya es correcta y 0059 no hace nada.
+DO $mig59$
 DECLARE v_tipo TEXT; v_id TEXT;
 BEGIN
   SELECT format_type(a.atttypid, a.atttypmod) INTO v_id
     FROM pg_attribute a WHERE a.attrelid = 'public.evaluaciones'::regclass AND a.attname = 'id' AND NOT a.attisdropped;
   IF v_id <> 'uuid' THEN
-    RAISE EXCEPTION '0059 espera evaluaciones.id UUID y es %. No se cambia nada.', v_id;
+    RAISE NOTICE '0059: evaluaciones.id es %; no hay nada que corregir.', v_id;
+    RETURN;
   END IF;
+
   SELECT format_type(a.atttypid, a.atttypmod) INTO v_tipo
     FROM pg_attribute a WHERE a.attrelid = 'public.evaluaciones_versiones'::regclass AND a.attname = 'evaluacion_id' AND NOT a.attisdropped;
   IF v_tipo = 'bigint' THEN
@@ -36,13 +39,12 @@ BEGIN
     ALTER TABLE public.evaluaciones_versiones ALTER COLUMN evaluacion_id TYPE UUID USING NULL::uuid;
     CREATE INDEX IF NOT EXISTS evaluaciones_versiones_eval_idx ON public.evaluaciones_versiones (evaluacion_id, id);
   END IF;
-END $$;
 
-DROP FUNCTION IF EXISTS public.rectificar_evaluacion(BIGINT, JSONB, JSONB, TEXT, JSONB, NUMERIC);
-DROP FUNCTION IF EXISTS public.retirar_evaluacion(BIGINT, TEXT);
-DROP FUNCTION IF EXISTS public.evaluacion_versiones(BIGINT);
+  DROP FUNCTION IF EXISTS public.rectificar_evaluacion(BIGINT, JSONB, JSONB, TEXT, JSONB, NUMERIC);
+  DROP FUNCTION IF EXISTS public.retirar_evaluacion(BIGINT, TEXT);
+  DROP FUNCTION IF EXISTS public.evaluacion_versiones(BIGINT);
 
--- ── 2. Funciones con el tipo de id correcto ───────────────────────────
+  EXECUTE $f$
 CREATE OR REPLACE FUNCTION public.rectificar_evaluacion(
   p_id         UUID,
   p_puntajes   JSONB,
@@ -99,7 +101,9 @@ BEGIN
   RETURN n.version;
 END;
 $$;
+  $f$;
 
+  EXECUTE $f$
 CREATE OR REPLACE FUNCTION public.retirar_evaluacion(p_id UUID, p_motivo TEXT) RETURNS INT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 DECLARE
@@ -134,7 +138,9 @@ BEGIN
   RETURN n.version;
 END;
 $$;
+  $f$;
 
+  EXECUTE $f$
 CREATE OR REPLACE FUNCTION public.evaluacion_versiones(p_id UUID) RETURNS SETOF public.evaluaciones_versiones
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$
 BEGIN
@@ -144,11 +150,19 @@ BEGIN
   RETURN QUERY SELECT * FROM public.evaluaciones_versiones WHERE evaluacion_id = p_id ORDER BY id;
 END;
 $$;
+  $f$;
 
+  EXECUTE $f$
 REVOKE EXECUTE ON FUNCTION public.rectificar_evaluacion(UUID, JSONB, JSONB, TEXT, JSONB, NUMERIC),
   public.retirar_evaluacion(UUID, TEXT), public.evaluacion_versiones(UUID) FROM PUBLIC, anon;
+  $f$;
+
+  EXECUTE $f$
 GRANT  EXECUTE ON FUNCTION public.rectificar_evaluacion(UUID, JSONB, JSONB, TEXT, JSONB, NUMERIC),
   public.retirar_evaluacion(UUID, TEXT), public.evaluacion_versiones(UUID) TO authenticated;
+  $f$;
+
+END $mig59$;
 
 -- ── REVERSA ───────────────────────────────────────────────────────────
 -- Volver a BIGINT no tiene sentido (los ids son UUID). Para deshacer: DROP FUNCTION de las tres funciones UUID y

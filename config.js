@@ -108,6 +108,8 @@ const ACCIONES = {
     const f = window[arg];
     if (typeof f === 'function') f();
   },
+  /** Elige un tema concreto (Mi cuenta → App) y marca el botón activo. */
+  tema:             (arg)         => { window.setTheme?.(arg); document.querySelectorAll('[data-act="tema"]').forEach(b => { const on = b.dataset.arg === document.documentElement.dataset.theme; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); }); },
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
   cuentaTab:        (arg)         => Cuenta.tab(arg),
   instalarApp:      ()            => Pwa.instalar(),
