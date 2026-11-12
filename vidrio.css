@@ -56,20 +56,21 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .logo-img { width: 66px; height: 66px; }
 .rail .rail-buscar { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 99px; color: var(--v-blanco); }
 .rail-prox { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 24px; }
-.bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
+.bottom-bar, .cab-movil { background: color-mix(in srgb, var(--v-1) 55%, transparent); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
 
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
 .pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
   background: var(--v-fill); border: 1px solid var(--v-line);
-  -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur));
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
   border-radius: 28px; color: var(--v-t);
 }
-.pf-card--cian, .pf-card--azul { background: var(--v-fill2); }
+/* Una sola receta de tarjeta: mismo relleno, mismo desenfoque y SIN saturación (saturate(160%) volvía azul intenso las tarjetas con blur y dejaba grises las demás). Las variantes --cian/--azul ya no tiñen la tarjeta. */
+.pf-card--cian, .pf-card--azul { background: var(--v-fill); }
 .modal-box, .tk-box, .panel, .sheet { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); }
 
 /* 5. Hero: vidrio con una forma de contraste recortada */
-.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
+.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
 .sup-marca::before { opacity: .32; -webkit-mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); }
 .sup-marca::after { background: none; }
 .inicio-hero { position: relative; }
@@ -211,7 +212,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 22. Panel de administración: resumen ejecutivo (KPIs 2×2) junto a «Requiere atención» en una sola franja, después desempeño y evolución.
    Cada bloque justifica su espacio: sin descripciones largas, sin indicadores que repitan lo que ya dice una alerta. */
 #ov-body > .panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }   /* solo el Panel: Reportes reutiliza .panel-kpis con su propia rejilla */
-.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
+.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: var(--r-card); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
 .kpi-c-num { grid-area: num; font: 300 2.4rem/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .kpi-c-num small { font-size: .45em; font-weight: 500; color: var(--v-t2); margin-left: 2px; }
 .kpi-c-etq { grid-area: etq; align-self: end; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--v-t2); }
@@ -223,7 +224,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .panel-grid--evol { margin-top: 12px; }
 
 /* «Requiere atención»: componente compacto. Fila de ~36 px = icono · nombre breve · cantidad · acción. */
-.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: var(--r-card); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
 .atn-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .atn-h { margin: 0; font: 500 var(--fs-md)/1.2 var(--font-ui); } .atn-h small { font-size: var(--fs-xs); font-weight: 400; color: var(--v-t2); margin-left: 6px; }
 .atn-total { min-width: 24px; height: 24px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1 var(--font-ui); }
@@ -767,3 +768,39 @@ button > svg, a > svg { flex: none; }
 
 /* 62. La insignia de las cabeceras se nota más: 52 px en la barra lateral (escritorio), más el aro blanco. */
 .rail .rail-logo { width: 52px; height: 52px; }
+
+/* 30. iPhone con notch en modo app (apple-mobile-web-app-status-bar-style = black-translucent): la malla llega hasta el borde
+   superior y pasa por detrás de la hora y los iconos, sin la banda oscura que antes cortaba el degradado. Lo que antes empezaba
+   en el borde superior deja el hueco del notch: la cabecera y las barras de perfil ya lo hacen con env(safe-area-inset-top);
+   aquí, lo que faltaba. env() vale 0 donde no hay notch, así que no cambia nada en escritorio ni en Android. */
+html { background: var(--v-1); min-height: 100%; }
+@media (max-width: 768px) {
+  .login-layout { padding-top: env(safe-area-inset-top); }
+  .theme-toggle-fixed { top: calc(var(--sp-3) + env(safe-area-inset-top)); }
+}
+
+/* 31. Tema ROSA: el coral de la marca como protagonista. Base oscura (vino) para que el texto blanco conserve el contraste;
+   el coral sale en el botón primario y en el brillo de la malla; los acentos y los textos de nivel son rosas claros. Contrastes medidos (tools/pruebas/front-tema.mjs): texto sobre el vidrio en la peor zona de la malla, de 4.8 a 6.8. Es un tema OSCURO (no lleva [data-theme="light"]),
+   así que hereda todas las reglas oscuras y solo redefine los tokens. */
+[data-theme="rosa"] {
+  --v-1:#3D0A27; --v-2:#64103A; --v-3:#76173F; --v-4:#5A0F36;
+  --v-brillo:rgba(255,96,99,.12); --v-calido:rgba(255,180,194,.10);
+  --v-fill:rgba(255,255,255,.10); --v-fill2:rgba(255,255,255,.13); --v-line:rgba(255,255,255,.24); --v-hi:rgba(255,255,255,.22);
+  --v-sombra:rgba(61,10,39,.36); --v-p2:30%; --v-p3:60%; --v-solido:#4A0F31;
+  --v-t:#FFF5F7; --v-t2:#FBE3EA; --v-tm:#F6D3DE;
+  --v-activo:#FFFFFF; --v-activo-txt:#3D0A27;
+  --v-navy:#3D0A27;
+  /* semántica: la acción y los datos pasan al rosa; la alerta conserva su icono y su texto (nunca solo el color) */
+  --action: #FFC9D5; --action-fill: var(--coral); --action-fill-hover: #FF8A8C; --action-on: #3D0A27;
+  --data: #FFB4C2; --data-txt: #FFD3DB; --criterio-txt: #FFD3DB;
+  --marca: var(--cyan-200); --alert: #FFDDA8; --alert-on: #3D0A27;
+  --sex: #FFE3E8; --sbu: #FFB4C2; --spr: #F27A96; --sba: #D14A68; --nivel-on: #3D0A27;
+  --sex-txt: #FFE9ED; --sbu-txt: #FFD6DF; --spr-txt: #FFCBD7; --sba-txt: #FFC2CF;
+}
+[data-theme="rosa"] .avatar { background: var(--v-1); }   /* el círculo de iniciales deja el navy y toma el vino del tema */
+
+/* 32. Mi cuenta → App: selector de tema (Oscuro / Claro / Rosa). El título va arriba y los tres botones debajo, a todo el ancho en celular. */
+.fila-aj--tema { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.fila-aj--tema .fila-aj-txt { flex: 1 1 160px; min-width: 0; }
+.fila-aj--tema .seg { flex: 0 1 auto; margin-left: auto; }
+@media (max-width: 560px) { .fila-aj--tema .seg { flex: 1 1 100%; margin-left: 0; } .fila-aj--tema .seg-btn { flex: 1 1 0; } }

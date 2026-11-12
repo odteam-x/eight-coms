@@ -14,16 +14,27 @@
 (function () {
   var R = document.documentElement, K = 'ec-theme';
 
+  // Tres temas: dark (por defecto), light y rosa (el coral de la marca como principal).
+  var TEMAS = ['dark', 'light', 'rosa'];
+  var COLOR_BARRA = { dark: '#061326', light: '#EEF7FC', rosa: '#3D0A27' };
+
   function aplicar(t) {
+    if (TEMAS.indexOf(t) < 0) t = 'dark';   // un valor viejo o ajeno en localStorage no rompe el sitio
     R.dataset.theme = t;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', t === 'light' ? '#EEF7FC' : '#061326');
+    if (meta) meta.setAttribute('content', COLOR_BARRA[t]);
   }
 
+  /** Elige un tema concreto y lo recuerda. */
+  window.setTheme = function (t) {
+    if (TEMAS.indexOf(t) < 0) return;
+    try { localStorage.setItem(K, t); } catch (e) { /* modo privado */ }
+    aplicar(t);
+  };
+
+  /** Botones de «cambiar tema» (menú, barra, acceso): oscuro → claro → rosa → oscuro. */
   window.toggleTheme = function () {
-    var n = R.dataset.theme === 'light' ? 'dark' : 'light';
-    try { localStorage.setItem(K, n); } catch (e) { /* modo privado */ }
-    aplicar(n);
+    window.setTheme(TEMAS[(TEMAS.indexOf(R.dataset.theme) + 1) % TEMAS.length]);
   };
 
   var guardado = null;

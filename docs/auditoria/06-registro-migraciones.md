@@ -12,6 +12,9 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 | 0015_seed_perfiles (datos) | `perfiles_rol` tiene 6 filas y `criterios_v2` 33 |
 | 0011 (documental, sin SQL) | no hay nada que ejecutar |
 
+## Correcciones posteriores
+- **0059 `evaluaciones_versiones_uuid`** (2026-11-11, **pendiente de aplicar en producción**): 0053 declaró `evaluacion_id` y `p_id` como BIGINT pero `evaluaciones.id` es UUID; publicar una evaluación fallaba («column evaluacion_id is of type bigint but expression is of type uuid») y rectificar/retirar no encontraban la función. Guardar borradores no fallaba. Prueba: `tools/pruebas/sql-0059.mjs` (reproduce el defecto con id UUID y comprueba el arreglo). El stub de las demás pruebas sigue con id BIGINT: por eso 0053 pasó sus pruebas.
+
 ## Pendientes a propósito
 - `0006_gestion_miembros.PENDIENTE.sql`: `gestion_miembros` **no existe**. Reescribe 5 funciones y 5 políticas y exige cambios de front en el mismo despliegue.
 - `0015_seed_perfiles.PENDIENTE.sql`: ya hay datos (ver arriba); revisar antes de reaplicar.
