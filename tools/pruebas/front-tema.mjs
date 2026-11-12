@@ -19,6 +19,14 @@ for (const f of ['user.html', 'secretario.html', 'admin.html', 'index.html']) {
 ok(/\.login-layout \{ padding-top: env\(safe-area-inset-top\)/.test(v) && /theme-toggle-fixed \{ top: calc\(var\(--sp-3\) \+ env\(safe-area-inset-top\)\)/.test(v), 'acceso: el contenido y el botón de tema dejan el hueco del notch');
 
 ok(/html::after \{[^}]*position: fixed[^}]*env\(safe-area-inset-top/.test(v) && /var\(--v-1\) 0, var\(--v-1\) env\(safe-area-inset-top/.test(v), 'franja superior: arriba la malla es --v-1 liso (el color que Safari pinta bajo la hora) y se aclara hacia su color real');
+console.log('\n[telón de diálogos y paneles según el tema]');
+ok(v.includes('.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay { background: var(--v-scrim);') && v.includes('.bb-hoja { background: var(--v-scrim); }'), 'diálogos, avisos, buscador y hojas del celular usan --v-scrim (antes: el azul de marca al 70 % en cualquier tema)');
+ok(/--v-scrim:rgba[(]3,27,69/.test(v) && /--v-scrim:rgba[(]24,36,58/.test(v) && /--v-scrim:rgba[(]61,10,39/.test(v), 'cada tema tiene su telón: navy (oscuro), gris pizarra (claro) y vino (rosa)');
+ok(rd('estadisticas-distrito.css').includes('var(--v-scrim-fuerte'), 'el visor de capturas de estadísticas también sigue el tema');
+ok(v.includes('--nivel-on:#FFFFFF; --action:#00539F;'), 'tema claro: texto de los niveles en blanco sólido y --action oscurecido (daba 2.6-3.9 sobre el vidrio)');
+const cA = (a, b) => { const l = c => { const f = x => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); }; let [x, y] = [l(a), l(b)]; if (x < y) [x, y] = [y, x]; return (x + .05) / (y + .05); };
+ok(cA([0, 83, 159], [201, 218, 240]) >= 4.5, '--action claro #00539F sobre la zona más oscura del vidrio claro (#C9DAF0): ' + cA([0, 83, 159], [201, 218, 240]).toFixed(2));
+
 console.log('\n[tema rosa]');
 const th = rd('core/theme.js');
 ok(/TEMAS = \['dark', 'light', 'rosa'\]/.test(th) && /window\.setTheme/.test(th) && /rosa: '#3D0A27'/.test(th), 'theme.js: tres temas, setTheme y color de la barra del navegador');
