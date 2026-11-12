@@ -11,9 +11,9 @@
  */
 const Gafete = (() => {
   const W = 638, H = 1011, ESC = 2;
-  const C = { navy: '#002247', navy2: '#001633', blue: '#0087F1', cyan: '#00CBFF', ice: '#A7E8FF', coral: '#FF6063', fondo: '#061326' };
-  const FRANJA = ['#002247', '#005286', '#0087F1', '#00CBFF', '#A7E8FF', '#FF6063'];
   const CARGOS = { miembro: 'Miembro', secretaria: 'Secretaría', administracion: 'Administración' };
+  const SANS = 'Barlow, "Helvetica Neue", Arial, sans-serif';
+  const SERIF = '"Source Serif 4", Georgia, serif';
 
   const _img = (src, cors) => new Promise(res => {
     const i = new Image();
@@ -22,6 +22,49 @@ const Gafete = (() => {
   });
 
   function _rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+
+  /**
+   * Paleta de la línea gráfica vigente («vidrio sobre malla», vidrio.css). Se lee de los MISMOS tokens que el sitio, así el gafete
+   * sale con el tema que la persona está usando (oscuro, claro o rosa). `oscura = true` fuerza el oscuro (imagen del pase de Wallet,
+   * cuyo fondo es fijo).
+   */
+  function _paleta(oscura = false) {
+    const css = getComputedStyle(document.documentElement);
+    const v = (n, def) => (css.getPropertyValue(n) || '').trim() || def;
+    const pc = (n, def) => { const x = parseFloat(v(n, '')); return Number.isFinite(x) ? x / 100 : def; };
+    if (oscura) return { v1: '#031B45', v2: '#0A3A82', v3: '#16427F', v4: '#183C74', p2: .34, p3: .62, brillo: 'rgba(0,203,255,.15)', calido: 'rgba(255,96,99,.10)',
+      t: '#F3F8FF', t2: '#E9F0FA', tm: '#E3ECF8', fill: 'rgba(255,255,255,.09)', line: 'rgba(255,255,255,.22)', hi: 'rgba(255,255,255,.20)', sombra: 'rgba(3,27,69,.28)', activo: '#FFFFFF', activoTxt: '#031B45' };
+    return { v1: v('--v-1', '#031B45'), v2: v('--v-2', '#0A3A82'), v3: v('--v-3', '#16427F'), v4: v('--v-4', '#183C74'), p2: pc('--v-p2', .34), p3: pc('--v-p3', .62),
+      brillo: v('--v-brillo', 'rgba(0,203,255,.15)'), calido: v('--v-calido', 'rgba(255,96,99,.10)'), t: v('--v-t', '#F3F8FF'), t2: v('--v-t2', '#E9F0FA'), tm: v('--v-tm', '#E3ECF8'),
+      fill: v('--v-fill', 'rgba(255,255,255,.09)'), line: v('--v-line', 'rgba(255,255,255,.22)'), hi: v('--v-hi', 'rgba(255,255,255,.20)'), sombra: v('--v-sombra', 'rgba(3,27,69,.28)'),
+      activo: v('--v-activo', '#FFFFFF'), activoTxt: v('--v-activo-txt', '#031B45') };
+  }
+
+  /** Malla asimétrica de vidrio.css: degradado a 118° + tres resplandores elípticos. */
+  function _malla(c, w, h, P) {
+    const a = 118 * Math.PI / 180, dx = Math.sin(a), dy = -Math.cos(a), len = Math.abs(w * dx) + Math.abs(h * dy), cx = w / 2, cy = h / 2;
+    const g = c.createLinearGradient(cx - dx * len / 2, cy - dy * len / 2, cx + dx * len / 2, cy + dy * len / 2);
+    g.addColorStop(0, P.v1); g.addColorStop(P.p2, P.v2); g.addColorStop(P.p3, P.v3); g.addColorStop(1, P.v4);
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const brillo = (px, py, rx, ry, col) => {
+      c.save(); c.translate(px * w, py * h); c.scale(rx * w, ry * h);
+      const r = c.createRadialGradient(0, 0, 0, 0, 0, 1); r.addColorStop(0, col); r.addColorStop(.72, 'rgba(0,0,0,0)');
+      c.fillStyle = r; c.fillRect(-1, -1, 2, 2); c.restore();
+    };
+    brillo(.12, .86, .52, .34, P.brillo); brillo(.94, .06, .38, .58, P.calido); brillo(.58, 1.04, .26, .18, P.brillo);
+  }
+
+  /** Contenedor de vidrio: relleno translúcido, borde casi invisible, luz arriba y sombra suave. */
+  function _vidrio(c, x, y, w, h, r, P, { sombra = true } = {}) {
+    c.save();
+    if (sombra) { c.shadowColor = P.sombra; c.shadowBlur = 40; c.shadowOffsetY = 18; }
+    c.fillStyle = P.fill; _rr(c, x, y, w, h, r); c.fill();
+    c.restore();
+    c.save(); _rr(c, x, y, w, h, r); c.clip();
+    const g = c.createLinearGradient(0, y, 0, y + 6); g.addColorStop(0, P.hi); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(x, y, w, 6); c.restore();
+    c.strokeStyle = P.line; c.lineWidth = 1.5; _rr(c, x + .75, y + .75, w - 1.5, h - 1.5, r - .75); c.stroke();
+  }
 
   /** Texto con espaciado entre letras (ctx.letterSpacing no existe en todos los navegadores). Devuelve el ancho. */
   function _txt(c, s, x, y, { fuente, color, espacio = 0, alinear = 'left', maxAncho = 0 }) {
@@ -37,124 +80,113 @@ const Gafete = (() => {
   }
 
   function _qr(c, url, x, y, lado) {
-    c.fillStyle = '#fff'; _rr(c, x, y, lado, lado, 22); c.fill();
+    c.save(); c.shadowColor = 'rgba(3,27,69,.30)'; c.shadowBlur = 24; c.shadowOffsetY = 10;
+    c.fillStyle = '#FFFFFF'; _rr(c, x, y, lado, lado, 22); c.fill(); c.restore();
     const q = qrcode(0, 'M'); q.addData(url); q.make();
-    const n = q.getModuleCount(), pad = 13, m = (lado - pad * 2) / n;
-    c.fillStyle = C.navy;
+    const n = q.getModuleCount(), pad = 12, m = (lado - pad * 2) / n;
+    c.fillStyle = '#031B45';
     for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) c.fillRect(Math.floor(x + pad + k * m), Math.floor(y + pad + r * m), Math.ceil(m), Math.ceil(m));
+  }
+
+  /** Foto en cuadrado redondeado con aro blanco; sin foto, las iniciales. */
+  function _foto(c, foto, nombre, x, y, lado, r, P) {
+    c.save(); c.shadowColor = P.sombra; c.shadowBlur = 44; c.shadowOffsetY = 22;
+    c.fillStyle = '#FFFFFF'; _rr(c, x - 5, y - 5, lado + 10, lado + 10, r + 5); c.fill(); c.restore();
+    c.save(); _rr(c, x, y, lado, lado, r); c.clip();
+    if (foto) {
+      const s = Math.max(lado / foto.width, lado / foto.height), fw = foto.width * s, fh = foto.height * s;
+      c.drawImage(foto, x + (lado - fw) / 2, y + (lado - fh) / 2, fw, fh);
+    } else {
+      c.fillStyle = P.v1; c.fillRect(x, y, lado, lado);
+      _txt(c, String(nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), x + lado / 2, y + lado / 2 + 38, { fuente: `300 120px ${SANS}`, color: '#FFFFFF', alinear: 'center' });
+    }
+    c.restore();
+  }
+
+  /** Insignia del club en círculo con aro blanco. */
+  function _insignia(c, icono, cx, cy, R, P) {
+    c.save(); c.shadowColor = P.sombra; c.shadowBlur = 22; c.shadowOffsetY = 10;
+    c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(cx, cy, R + 4, 0, 7); c.fill(); c.restore();
+    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 7); c.clip(); c.fillStyle = '#031B45'; c.fillRect(cx - R, cy - R, R * 2, R * 2);
+    if (icono) { const s = R * 2 * 1.42; c.drawImage(icono, cx - s / 2, cy - s / 2, s, s); }
+    c.restore();
+  }
+
+  async function _cargarFuentes() {
+    try {
+      await Promise.all([document.fonts.load(`300 62px ${SANS}`), document.fonts.load(`500 22px ${SANS}`), document.fonts.load(`600 18px ${SANS}`),
+        document.fonts.load(`400 19px ${SANS}`), document.fonts.load(`italic 400 62px ${SERIF}`)]);
+    } catch (e) { /* se dibuja con la fuente de respaldo */ }
   }
 
   async function dibujar(canvas, d, url) {
     canvas.width = W * ESC; canvas.height = H * ESC;
     const c = canvas.getContext('2d');
     c.scale(ESC, ESC);
-    try { await Promise.all([document.fonts.load('700 62px "Barlow Condensed"'), document.fonts.load('600 22px "Barlow Condensed"'), document.fonts.load('500 19px Barlow'), document.fonts.load('600 15px Barlow')]); } catch (e) { /* se dibuja con la fuente de respaldo */ }
-    const [patron, icono, foto] = await Promise.all([_img('img/patrones/patron-7.webp'), _img('icono-512.png'), d.avatar_url ? _img(d.avatar_url, true) : null]);
-    const COND = '"Barlow Condensed", "Arial Narrow", sans-serif', BAR = 'Barlow, Arial, sans-serif';
+    await _cargarFuentes();
+    const P = _paleta();
+    const [icono, foto] = await Promise.all([_img('icono-512.png'), d.avatar_url ? _img(d.avatar_url, true) : null]);
 
-    // Fondo: navy + patrón + velo que lo apaga hacia el pie
-    c.save(); _rr(c, 0, 0, W, H, 40); c.clip();
-    c.fillStyle = C.navy; c.fillRect(0, 0, W, H);
-    if (patron) for (let y = 0; y < H; y += 250) for (let x = 0; x < W; x += 250) c.drawImage(patron, x, y, 250, 250);
-    const g = c.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, 'rgba(0,22,51,.30)'); g.addColorStop(.38, 'rgba(0,34,71,.55)'); g.addColorStop(.66, 'rgba(0,22,51,.93)'); g.addColorStop(1, C.navy2);
-    c.fillStyle = g; c.fillRect(0, 0, W, H);
-    FRANJA.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * W / 6, 0, W / 6 + 1, 12); });
-    // Ojal del cordón
-    c.fillStyle = C.fondo; _rr(c, 259, 34, 120, 22, 11); c.fill();
-    c.strokeStyle = 'rgba(167,232,255,.25)'; c.lineWidth = 3; c.stroke();
+    c.save(); _rr(c, 0, 0, W, H, 44); c.clip();
+    _malla(c, W, H, P);
+    // La cabecera cae sobre la parte más oscura de la malla en los tres temas: texto siempre claro.
+    const BLANCO = '#FFFFFF', BLANCO2 = 'rgba(255,255,255,.82)';
+    _vidrio(c, 259, 26, 120, 22, 11, P, { sombra: false });
+    _insignia(c, icono, 92, 118, 42, P);
+    _txt(c, 'LABs · CELIDER 08', 152, 98, { fuente: `600 15px ${SANS}`, color: BLANCO2, espacio: .24 });
+    const wE = _txt(c, 'Eight ', 152, 148, { fuente: `300 58px ${SANS}`, color: BLANCO, espacio: -.01 });
+    _txt(c, 'Creators', 152 + wE, 148, { fuente: `italic 400 58px ${SERIF}`, color: BLANCO });
 
-    // Cabecera: insignia + marca
-    const cx = 190, cy = 148, R = 56;
-    c.fillStyle = 'rgba(255,96,99,.22)'; c.beginPath(); c.arc(cx, cy, R + 9, 0, 7); c.fill();
-    c.fillStyle = C.coral; c.beginPath(); c.arc(cx, cy, R + 4, 0, 7); c.fill();
-    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 7); c.clip(); c.fillStyle = C.navy; c.fillRect(cx - R, cy - R, R * 2, R * 2);
-    if (icono) { const s = R * 2 * 1.42; c.drawImage(icono, cx - s / 2, cy - s / 2, s, s); }
-    c.restore();
-    _txt(c, 'EIGHT', 268, 131, { fuente: `700 62px ${COND}`, color: '#fff', espacio: .01 });
-    _txt(c, 'CREATORS', 268, 187, { fuente: `700 62px ${COND}`, color: '#fff', espacio: .01 });
-    _txt(c, 'LABS · CELIDER 08', 268, 216, { fuente: `600 22px ${COND}`, color: C.ice, espacio: .22 });
+    _foto(c, foto, d.nombre, 169, 196, 300, 44, P);
 
-    // Foto inclinada con marco coral y sombra cian
-    c.save(); c.translate(319, 386); c.rotate(-2.2 * Math.PI / 180); c.translate(-148, -148);
-    c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = 46; c.shadowOffsetY = 26;
-    c.fillStyle = C.cyan; _rr(c, 14, 14, 296, 296, 34); c.fill();
-    c.shadowColor = 'transparent';
-    c.fillStyle = C.coral; _rr(c, 0, 0, 296, 296, 34); c.fill();
-    c.save(); _rr(c, 7, 7, 282, 282, 28); c.clip();
-    if (foto) {
-      const s = Math.max(282 / foto.width, 282 / foto.height), w = foto.width * s, h = foto.height * s;
-      c.drawImage(foto, 7 + (282 - w) / 2, 7 + (282 - h) / 2, w, h);
-    } else {
-      c.fillStyle = C.navy; c.fillRect(7, 7, 282, 282);
-      _txt(c, String(d.nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), 148, 190, { fuente: `700 120px ${COND}`, color: '#fff', alinear: 'center' });
-    }
-    c.restore(); c.restore();
+    // Panel de vidrio con todo lo demás (sin cajas dentro de cajas: columnas con filetes)
+    _vidrio(c, 28, 540, W - 56, 431, 44, P);
+    c.save(); c.shadowColor = P.sombra; c.shadowBlur = 24; c.shadowOffsetY = 10;
+    const tp = 'MIEMBRO DE EIGHT CREATORS';
+    c.font = `600 21px ${SANS}`; const anchoPill = [...tp].reduce((a, ch) => a + c.measureText(ch).width + 21 * .16, 0) + 56;
+    c.fillStyle = P.activo; _rr(c, (W - anchoPill) / 2, 517, anchoPill, 46, 23); c.fill(); c.restore();
+    _txt(c, tp, W / 2, 547, { fuente: `600 21px ${SANS}`, color: P.activoTxt, espacio: .16, alinear: 'center' });
 
-    // Sello «Miembro de EIGHT Creators»
-    c.save(); c.translate(319, 527); c.rotate(-2.2 * Math.PI / 180);
-    c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 18; c.shadowOffsetY = 8;
-    c.fillStyle = C.cyan; _rr(c, -194, -23, 388, 46, 23); c.fill(); c.shadowColor = 'transparent';
-    _txt(c, 'MIEMBRO DE EIGHT CREATORS', 0, 8, { fuente: `700 26px ${COND}`, color: C.navy, espacio: .12, alinear: 'center' });
-    c.restore();
+    _txt(c, String(d.nombre || ''), W / 2, 636, { fuente: `300 74px ${SANS}`, color: P.t, espacio: -.02, alinear: 'center', maxAncho: 540 });
+    _txt(c, String(d.rol || CARGOS[d.cargo] || '').toUpperCase(), W / 2, 678, { fuente: `500 21px ${SANS}`, color: P.t2, espacio: .18, alinear: 'center', maxAncho: 520 });
 
-    // Nombre y rol
-    c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 18; c.shadowOffsetY = 4;
-    _txt(c, String(d.nombre || '').toUpperCase(), 319, 640, { fuente: `700 88px ${COND}`, color: '#fff', espacio: .005, alinear: 'center', maxAncho: 574 });
-    c.shadowColor = 'transparent';
-    _txt(c, String(d.rol || CARGOS[d.cargo] || '').toUpperCase(), 319, 706 - 6, { fuente: `600 31px ${COND}`, color: C.coral, espacio: .1, alinear: 'center', maxAncho: 574 });
-
-    // Datos
+    const filete = y => { c.strokeStyle = P.line; c.lineWidth = 1.5; c.beginPath(); c.moveTo(60, y); c.lineTo(W - 60, y); c.stroke(); };
+    filete(704);
     const desde = d.miembro_desde ? new Date(d.miembro_desde).toLocaleDateString('es-DO', { month: 'short', year: 'numeric' }).replace('.', '') : '—';
     const datos = [['DISTRITO', d.distrito || '—'], ['CARGO', CARGOS[d.cargo] || 'Miembro'], ['MIEMBRO DESDE', desde]];
-    const bw = (W - 88 - 24) / 3;
+    const cw = (W - 120) / 3;
     datos.forEach(([et, val], i) => {
-      const x = 44 + i * (bw + 12), y = 706;
-      c.fillStyle = 'rgba(0,34,71,.72)'; _rr(c, x, y, bw, 80, 18); c.fill();
-      c.strokeStyle = 'rgba(167,232,255,.28)'; c.lineWidth = 2; _rr(c, x + 1, y + 1, bw - 2, 78, 17); c.stroke();
-      _txt(c, et, x + 14, y + 27, { fuente: `600 15px ${BAR}`, color: C.ice, espacio: .12 });
-      _txt(c, String(val).toUpperCase(), x + 14, y + 61, { fuente: `700 31px ${COND}`, color: '#fff', espacio: .03, maxAncho: bw - 26 });
+      const x = 60 + i * cw;
+      if (i) { c.strokeStyle = P.line; c.beginPath(); c.moveTo(x, 722); c.lineTo(x, 782); c.stroke(); }
+      _txt(c, et, x + (i ? 18 : 0), 740, { fuente: `600 13px ${SANS}`, color: P.tm, espacio: .16 });
+      _txt(c, String(val), x + (i ? 18 : 0), 774, { fuente: `500 27px ${SANS}`, color: P.t, maxAncho: cw - (i ? 26 : 14) });
     });
+    filete(806);
 
-    // Pie: QR real + texto
-    _qr(c, url, 44, 817, 160);
-    _txt(c, 'VERIFICA ESTE GAFETE', 230, 862, { fuente: `700 34px ${COND}`, color: '#fff', espacio: .04 });
-    ['Escanea el código para ver el récord público', 'del perfil y comprobar que es miembro.'].forEach((l, i) => _txt(c, l, 230, 897 + i * 26, { fuente: `500 19px ${BAR}`, color: '#cfe7f6' }));
-    _txt(c, location.host.toUpperCase(), 230, 962, { fuente: `600 20px ${COND}`, color: C.cyan, espacio: .14 });
+    _qr(c, url, 60, 826, 124);
+    _txt(c, 'Verifica este gafete', 208, 858, { fuente: `300 34px ${SANS}`, color: P.t, espacio: -.01 });
+    ['Escanea el código para ver el récord', 'público del perfil y comprobar que', 'es miembro.'].forEach((l, i) => _txt(c, l, 208, 886 + i * 22, { fuente: `400 17px ${SANS}`, color: P.t2 }));
+    _txt(c, location.host.toUpperCase(), 208, 954, { fuente: `600 15px ${SANS}`, color: P.tm, espacio: .16 });
     c.restore();
-    c.strokeStyle = 'rgba(167,232,255,.35)'; c.lineWidth = 3; _rr(c, 1.5, 1.5, W - 3, H - 3, 38); c.stroke();
+    c.strokeStyle = P.line; c.lineWidth = 2; _rr(c, 1, 1, W - 2, H - 2, 43); c.stroke();
   }
 
+  function _urlDe(token) { return `${location.origin}/v/${token}`; }
+
   /**
-   * Imagen principal del pase de Google Wallet (1032×812, 5:4): patrón, foto con marco coral y la insignia. Sin texto
-   * (Google lo desaconseja: no se localiza); los datos van en los campos del pase.
+   * Imagen principal del pase de Google Wallet (1032×812, 5:4): malla oscura de la línea gráfica, foto con aro blanco y la insignia.
+   * Sin texto (Google lo desaconseja: no se localiza); los datos van en los campos del pase. Siempre en oscuro: el fondo del pase es fijo.
    */
   async function dibujarHero(canvas, d) {
     const w = 1032, h = 812;
     canvas.width = w; canvas.height = h;
     const c = canvas.getContext('2d');
-    const [patron, icono, foto] = await Promise.all([_img('img/patrones/patron-7.webp'), _img('icono-512.png'), d.avatar_url ? _img(d.avatar_url, true) : null]);
-    c.fillStyle = C.navy; c.fillRect(0, 0, w, h);
-    if (patron) for (let y = 0; y < h; y += 300) for (let x = 0; x < w; x += 300) c.drawImage(patron, x, y, 300, 300);
-    const g = c.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, 'rgba(0,22,51,.35)'); g.addColorStop(.6, 'rgba(0,34,71,.6)'); g.addColorStop(1, 'rgba(0,22,51,.92)');
-    c.fillStyle = g; c.fillRect(0, 0, w, h);
-    FRANJA.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 6, 0, w / 6 + 1, 14); });
-    c.save(); c.translate(w / 2, 400); c.rotate(-2 * Math.PI / 180);
-    const L = 480, k = -L / 2;
-    c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 40; c.shadowOffsetY = 20;
-    c.fillStyle = C.cyan; _rr(c, k + 22, k + 22, L, L, 48); c.fill(); c.shadowColor = 'transparent';
-    c.fillStyle = C.coral; _rr(c, k, k, L, L, 48); c.fill();
-    c.save(); _rr(c, k + 12, k + 12, L - 24, L - 24, 38); c.clip();
-    if (foto) { const s = Math.max((L - 24) / foto.width, (L - 24) / foto.height), fw = foto.width * s, fh = foto.height * s; c.drawImage(foto, k + 12 + (L - 24 - fw) / 2, k + 12 + (L - 24 - fh) / 2, fw, fh); }
-    else { c.fillStyle = C.navy; c.fillRect(k, k, L, L); _txt(c, String(d.nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), 0, 60, { fuente: '700 190px "Barlow Condensed", sans-serif', color: '#fff', alinear: 'center' }); }
-    c.restore(); c.restore();
-    const R = 92, cx = w / 2, cy = 690;
-    c.fillStyle = 'rgba(255,96,99,.25)'; c.beginPath(); c.arc(cx, cy, R + 14, 0, 7); c.fill();
-    c.fillStyle = C.coral; c.beginPath(); c.arc(cx, cy, R + 6, 0, 7); c.fill();
-    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 7); c.clip(); c.fillStyle = C.navy; c.fillRect(cx - R, cy - R, R * 2, R * 2);
-    if (icono) { const s = R * 2 * 1.42; c.drawImage(icono, cx - s / 2, cy - s / 2, s, s); }
-    c.restore();
+    await _cargarFuentes();
+    const P = _paleta(true);
+    const [icono, foto] = await Promise.all([_img('icono-512.png'), d.avatar_url ? _img(d.avatar_url, true) : null]);
+    _malla(c, w, h, P);
+    _foto(c, foto, d.nombre, (w - 460) / 2, 70, 460, 64, P);
+    _insignia(c, icono, w / 2, 640, 92, P);
   }
 
   /** «Añadir a Google Wallet»: sube la imagen del pase, pide el enlace firmado a la función y abre Google Wallet. */
@@ -184,7 +216,6 @@ const Gafete = (() => {
     } finally { boton.disabled = false; rotulo.textContent = antes; }
   }
 
-  function _urlDe(token) { return `${location.origin}/v/${token}`; }
 
   async function abrir(personaId, { esAdmin } = {}) {
     const cuerpo = abrirPanel({ titulo: 'Gafete', subtitulo: 'Con QR verificable', compacto: false });
