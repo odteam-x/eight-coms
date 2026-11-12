@@ -10,6 +10,7 @@
   --v-t:#F3F8FF; --v-t2:#E9F0FA; --v-tm:#E3ECF8;
   --v-activo:#FFFFFF; --v-activo-txt:#031B45;
   --v-coral:#FF6063; --v-navy:#031B45; --v-blanco:#FFFFFF;
+  --v-scrim:rgba(3,27,69,.62); --v-scrim-fuerte:rgba(3,27,69,.84);   /* telón detrás de diálogos, paneles y hojas: sigue al tema */
 }
 [data-theme="light"] {
   --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
@@ -18,6 +19,9 @@
   --v-sombra:rgba(27,73,168,.16); --v-p2:14%; --v-p3:44%; --v-solido:#EAF1FA;
   --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
   --v-activo:#031B45; --v-activo-txt:#FFFFFF;
+  --v-scrim:rgba(24,36,58,.34); --v-scrim-fuerte:rgba(18,28,46,.78);   /* en claro el telón es gris pizarra, no el azul de marca */
+  /* Contrastes del tema claro corregidos al pasar al vidrio: --nivel-on seguía apuntando a --surface-1, que ahora es un blanco translúcido (2.6-3.3 sobre los niveles de las matrices); --action sobre el vidrio sobre la malla azul daba 3.86 (enlaces y «¿Cómo se calcula?»). */
+  --nivel-on:#FFFFFF; --action:#00539F;
 }
 
 /* 1. Tokens del sitio → vidrio */
@@ -546,7 +550,7 @@ h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
 
 /* 46. Hoja «Más» (celular): panel OPACO (el sólido del tema) con velo detrás; las baldosas de destinos son filas de vidrio sobre
    ese sólido. Antes era translúcida y la pantalla de debajo se leía a través, montada sobre los iconos y las acciones. */
-.bb-hoja { background: color-mix(in srgb, var(--v-1) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.bb-hoja { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .bb-hoja-panel { background: var(--v-solido); border: 1px solid var(--v-line); border-bottom: 0; color: var(--v-t); box-shadow: 0 -18px 48px var(--v-sombra); }
 [data-theme="light"] .bb-hoja-panel { background: var(--v-1); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
 .bb-hoja-item, .bb-hoja-cuenta { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -791,6 +795,7 @@ html { background: var(--v-1); min-height: 100%; }
   --v-t:#FFF5F7; --v-t2:#FBE3EA; --v-tm:#F6D3DE;
   --v-activo:#FFFFFF; --v-activo-txt:#3D0A27;
   --v-navy:#3D0A27;
+  --v-scrim:rgba(61,10,39,.62); --v-scrim-fuerte:rgba(61,10,39,.84);
   /* semántica: la acción y los datos pasan al rosa; la alerta conserva su icono y su texto (nunca solo el color) */
   --action: #FFC9D5; --action-fill: var(--coral); --action-fill-hover: #FF8A8C; --action-on: #3D0A27;
   --data: #FFB4C2; --data-txt: #FFD3DB; --criterio-txt: #FFD3DB;
@@ -837,3 +842,10 @@ html { background: var(--v-1); min-height: 100%; }
 .v2-crit > .eval-com-inp { grid-column: 2; margin-top: 4px; }
 .v2-crit:has(details.v2-det[open]) > .eval-com-inp { grid-column: 1 / -1; }
 @media (max-width: 1099px) { .v2-resumen { flex-wrap: wrap; white-space: normal; } }
+
+/* 35. Telón de diálogos, paneles y hojas según el tema. Antes todos usaban el azul de marca al 70 % (premium.css) y, al abrir los avisos
+   en tema claro o rosa, el fondo seguía azul. Ahora sale de --v-scrim (oscuro: navy; claro: gris pizarra; rosa: vino). */
+.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay { background: var(--v-scrim); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.bb-hoja { background: var(--v-scrim); }
+.ed-visor { background: var(--v-scrim-fuerte); }
+.panel-overlay.panel-overlay--pantalla { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }

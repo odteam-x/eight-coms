@@ -38,7 +38,7 @@
 .ed-acciones .btn-save { min-height: 48px; }
 
 /* Visor a pantalla completa de la captura */
-.ed-visor { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: var(--sp-4); background: color-mix(in srgb, var(--navy-900) 82%, transparent); overscroll-behavior: contain; }
+.ed-visor { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: var(--sp-4); background: var(--v-scrim-fuerte, color-mix(in srgb, var(--navy-900) 82%, transparent)); overscroll-behavior: contain; }
 .ed-visor-caja { position: relative; max-width: min(1100px, 100%); max-height: 100%; display: flex; }
 .ed-visor-caja img { display: block; max-width: 100%; max-height: calc(100dvh - var(--sp-4) * 2); object-fit: contain; border-radius: var(--r-fila); background: var(--surface-1); }
 .ed-visor-x { position: absolute; top: var(--sp-2); right: var(--sp-2); min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--surface-1); color: var(--txt); border: 1px solid var(--trazo); display: grid; place-items: center; cursor: pointer; }
