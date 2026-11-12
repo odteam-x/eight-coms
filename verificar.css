@@ -1,21 +1,30 @@
-/* Verificación pública de gafetes (/v/<token>). Solo tokens de shared.css: paleta cerrada. */
-body.verificar { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: var(--bg); color: var(--txt); }
+/* Verificación pública de gafetes (/v/<token>) con la línea gráfica vigente: malla + vidrio (vidrio.css) y los tres temas.
+   Solo tokens: los colores salen de vidrio.css (--v-*), así que oscuro, claro y rosa funcionan sin reglas propias. */
+body.verificar { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); color: var(--v-t); }
 .vf { width: 100%; max-width: 440px; }
-.vf-cargando { text-align: center; color: var(--txt-2); }
-.vf-card { position: relative; padding: 28px 24px 22px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-hi); text-align: center; overflow: hidden; }
-.vf-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, var(--navy-900) 0 16.66%, var(--blue-700) 0 33.33%, var(--blue-500) 0 50%, var(--cyan-400) 0 66.66%, var(--cyan-200) 0 83.33%, var(--coral) 0 100%); }
-.vf-sup { margin: 6px 0 14px; font: 600 12px/1.3 'Barlow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-2); }
-.vf-sello { width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; font: 700 30px/1 'Barlow Condensed', sans-serif; background: var(--data); color: var(--navy-900); }
-.vf-sello--mal { background: var(--alert); }
-.vf-card h1 { margin: 0; font: 700 30px/1.1 'Barlow Condensed', sans-serif; letter-spacing: .02em; text-transform: uppercase; }
-.vf-sub { margin: 6px 0 18px; color: var(--txt-2); font-size: 15px; }
-.vf-foto { display: block; width: 168px; height: 168px; margin: 0 auto 14px; border-radius: 14px; object-fit: cover; border: 3px solid var(--txt); background: var(--surface-1); }
-.vf-foto--ini { display: grid; place-items: center; font: 700 56px/1 'Barlow Condensed', sans-serif; color: var(--txt); }
-.vf-nombre { margin: 0 0 14px; font: 700 28px/1.1 'Barlow Condensed', sans-serif; letter-spacing: .02em; text-transform: uppercase; }
-.vf-datos { margin: 0 0 16px; display: grid; gap: 8px; text-align: left; }
-.vf-datos > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; border-radius: 8px; background: var(--surface-1); }
-.vf-datos dt { color: var(--txt-2); font-size: 14px; }
-.vf-datos dd { margin: 0; font-weight: 600; text-align: right; }
-.vf-pie { margin: 0; font-size: 13px; line-height: 1.45; color: var(--txt-2); }
-.vf-mal p { color: var(--txt-2); }
-@media (max-width: 380px) { .vf-card { padding: 24px 16px 18px; } .vf-datos > div { flex-direction: column; gap: 2px; } .vf-datos dd { text-align: left; } }
+.vf-cargando { text-align: center; color: var(--v-t2); }
+
+.vf-card { position: relative; padding: 32px 26px 24px; border-radius: 40px; text-align: center; color: var(--v-t);
+  background: var(--v-fill); border: 1px solid var(--v-line); box-shadow: inset 0 1px 0 var(--v-hi), 0 24px 60px var(--v-sombra);
+  -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); }
+.vf-sup { margin: 0 0 18px; font: 600 12px/1.3 'Barlow', sans-serif; letter-spacing: .22em; text-transform: uppercase; color: var(--v-t2); }
+.vf-sello { width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
+  font: 400 30px/1 'Barlow', sans-serif; background: var(--v-activo); color: var(--v-activo-txt); box-shadow: 0 10px 24px var(--v-sombra); }
+.vf-sello--mal { background: var(--v-coral); color: var(--v-navy); }
+.vf-card h1 { margin: 0; font: 300 36px/1.1 'Barlow', sans-serif; letter-spacing: -.02em; text-transform: none; color: var(--v-t); }
+.vf-sub { margin: 8px 0 22px; color: var(--v-t2); font-size: 15px; line-height: 1.45; }
+.vf-foto { display: block; width: 168px; height: 168px; margin: 0 auto 16px; border-radius: 44px; object-fit: cover;
+  border: 5px solid var(--v-blanco); background: var(--v-solido); box-shadow: 0 18px 40px var(--v-sombra); }
+.vf-foto--ini { display: grid; place-items: center; font: 300 64px/1 'Barlow', sans-serif; color: var(--v-blanco); background: var(--v-1); }
+.vf-nombre { margin: 0 0 6px; font: 300 40px/1.08 'Barlow', sans-serif; letter-spacing: -.02em; text-transform: none; color: var(--v-t); overflow-wrap: anywhere; }
+
+/* Datos: filas separadas por filetes (sin cajas ni barras de color) */
+.vf-datos { margin: 18px 0 18px; display: grid; text-align: left; border-top: 1px solid var(--v-line); }
+.vf-datos > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 13px 4px; border-bottom: 1px solid var(--v-line); }
+.vf-datos dt { color: var(--v-tm); font-size: 14px; }
+.vf-datos dd { margin: 0; font-weight: 500; text-align: right; color: var(--v-t); }
+.vf-pie { margin: 0; font-size: 13px; line-height: 1.5; color: var(--v-t2); }
+.vf-mal h1, .vf-mal p { color: var(--v-t); }
+.vf-mal p { color: var(--v-t2); }
+@media (max-width: 380px) { .vf-card { padding: 26px 18px 20px; } .vf-datos > div { flex-direction: column; gap: 2px; } .vf-datos dd { text-align: left; } }
