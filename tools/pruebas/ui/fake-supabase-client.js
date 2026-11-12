@@ -670,8 +670,8 @@
   DB.tarea_equipo_eventos = [];
   DB.calificaciones_historial = [];
   DB.periodo_calif_config = [
-    { periodo_id: P.pe2, peso_tareas: 20, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: false },
-    { periodo_id: P.pe3, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: true },
+    { periodo_id: P.pe2, peso_tareas: 20, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, confirmado: false },
+    { periodo_id: P.pe3, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, confirmado: true },
   ];
   DB.periodo_calif_config_hist = [];
   seq.teq = 1; seq.ap = 1; seq.hn = 1; seq.eqi = 100;
@@ -863,7 +863,7 @@
       if (a.p_peso_tareas < 0 || a.p_peso_tareas > 100) throw new Error('El peso de las tareas va de 0 a 100 %.');
       const pub = DB.evaluaciones.some(e => e.periodo_id === a.p_periodo && e.estado === 'publicado'); if (pub && (a.p_motivo || '').trim().length < 5) throw new Error('Ya hay evaluaciones publicadas: cambiar las reglas cambia sus resultados; explica el motivo (minimo 5 caracteres).');
       let c = DB.periodo_calif_config.find(x => x.periodo_id === a.p_periodo); if (!c) DB.periodo_calif_config.push(c = { periodo_id: a.p_periodo });
-      Object.assign(c, { peso_tareas: a.p_peso_tareas, mult_individual: a.p_mult_individual, mult_colectiva: a.p_mult_colectiva, minimo_tareas: a.p_minimo_tareas, contar_propias: a.p_contar_propias, vencidas_como_cero: a.p_vencidas_como_cero, confirmado: true }); return null; },
+      Object.assign(c, { peso_tareas: a.p_peso_tareas, mult_individual: a.p_mult_individual, mult_colectiva: a.p_mult_colectiva, minimo_tareas: a.p_minimo_tareas, contar_propias: a.p_contar_propias, vencidas_como_cero: a.p_vencidas_como_cero, sin_tareas_pierde_puntos: !!a.p_sin_tareas_pierde_puntos, confirmado: true }); return null; },
     tareas_calificacion_detalle: ({ p_periodo, p_persona }) => { const p = p_persona || meId; if (!puedeVer(p)) return [];
       const c = cfgP(p_periodo), it = califItems(p_periodo).filter(i => i.persona_id === p), s = it.filter(i => i.cuenta).reduce((a, i) => a + i.peso_efectivo, 0);
       return it.map(i => ({ ...i, aporte_pct: i.cuenta ? num(100 * i.peso_efectivo / s) : null, aporte_puntos: i.cuenta ? num(100 * i.peso_efectivo * (i.puntos ?? 0) / 10 / s) : null })).sort((a, b) => Number(b.cuenta) - Number(a.cuenta)); },
