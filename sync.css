@@ -1,0 +1,27 @@
+/* Estado de la conexión en tiempo real (core/sync.js). Solo aparece cuando lo que se ve podría estar desactualizado:
+   sin internet o reconectando. Con todo en orden no hay nada en pantalla. Solo tokens de shared.css (sin hex). */
+.sync-estado {
+  position: fixed; top: max(var(--sp-3), env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  z-index: var(--z-toast); display: flex; align-items: center; gap: var(--sp-2);
+  width: max-content; max-width: min(560px, calc(100vw - var(--sp-5) * 2));
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--surface-3); border: 1px solid var(--trazo); border-radius: var(--r-fila);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; color: var(--txt);
+  pointer-events: none;                     /* un aviso, no un obstáculo: no tapa lo de debajo */
+}
+.sync-estado[hidden] { display: none; }
+.sync-punto { flex: none; width: .6rem; height: .6rem; border-radius: 50%; background: var(--alert); }
+.sync-estado[data-estado="reconectando"] .sync-punto { background: var(--data); }
+@media (prefers-reduced-motion: no-preference) {
+  .sync-estado[data-estado="reconectando"] .sync-punto { animation: sync-pulso 1.2s ease-in-out infinite; }
+  @keyframes sync-pulso { 50% { opacity: .35; } }
+}
+
+/* Aviso de que otra persona cambió lo que se está editando (admin.js · avisarCambioEval). Un bloque propio, sin barras de acento. */
+.sync-conflicto {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  margin-bottom: var(--sp-4); padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: var(--r-fila);
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--txt);
+}

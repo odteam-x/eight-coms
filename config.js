@@ -287,6 +287,7 @@ const ACCIONES = {
   peTareas:    (a, el) => selectTareasPE(a, el),
   modalPerfil: (a)     => showPerfilModal(a),
   guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
+  evalRecargar: (a) => { _conflictoEval = false; selectEvalUser(a); },
   evHistorial: (a, el) => verHistorialEvaluacion(a, el.dataset.arg2),
   evEnfoque: () => alternarEnfoqueEvaluar(),
   guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),

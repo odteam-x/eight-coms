@@ -64,32 +64,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initUI();
     if (await loadContenido()) await renderPeriodoActual();
   }
-  initRevalidacion();
+  initSync();
 });
 
-/* ── REVALIDACIÓN AL VOLVER A LA PESTAÑA ── */
-const REVALIDAR_MS = 60000;
+/* ── TIEMPO REAL (core/sync.js; contrato en docs/sincronizacion-tiempo-real.md) ──
+ * Sustituye a la revalidación «al volver a la pestaña tras un minuto». Aquí solo se dice qué vuelve a pedir cada pantalla;
+ * Sync decide cuándo (solo lo que se ve, agrupando ráfagas, sin pisar un diálogo abierto) y vigila el acceso. */
+const _TEMAS_SEC = ['tareas', 'evaluaciones', 'desempeno', 'ranking', 'kpis', 'seguimiento', 'reportes', 'equipos', 'periodos', 'perfil', 'personas', 'distritos', 'estadisticas', 'catalogo'];
 
-function initRevalidacion() {
-  document.addEventListener('visibilitychange', async () => {
-    if (document.hidden) return;
-    if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
+/** Lo que alimenta Inicio, Distrito, Mi perfil, Entregas y Tareas del distrito: se vuelve a pedir y se repinta lo que ya estaba montado. */
+async function refrescarContenidoSec() {
+  if (!(await loadContenido())) return;
+  await renderPeriodoActual();
+  if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
+  if (!Store.necesitaCarga('tareas')) renderTareasDistrito();
+  await Perfil.refrescarTodos();
+}
 
+function initSync() {
+  Sync.iniciar({ perfil: CU });
+  Sync.tab(document.querySelector('.tab-content.active')?.id?.replace('tab-', '') || 'inicio');
+
+  Sync.on(['periodos', 'catalogo', 'perfil'], async () => {
     const idAnterior = Store.periodoActivo()?.id ?? null;
+    const p = await Auth.getProfile(); if (p) Object.assign(CU, p);
     if (!(await loadContexto())) return;
-
-    // Un solo período gobierna todas las secciones: si el admin lo cambió,
-    // todas lo siguen a la vez.
+    // Un solo período gobierna todas las secciones: si la administración cambió el activo, todas lo siguen a la vez.
     const nuevo = Store.periodoActivo();
-    if (nuevo && String(nuevo.id) !== String(idAnterior)) {
-      Store.setPeriodo(nuevo.id);
-      mPE = _trabajosPE = nuevo.pe;
-    }
-    await loadContenido();
-    await initUI();
-    await renderPeriodoActual();
-    if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
-  });
+    if (nuevo && String(nuevo.id) !== String(idAnterior)) { Store.setPeriodo(nuevo.id); mPE = _trabajosPE = nuevo.pe; }
+    buildPEBars(); renderCalendario(); renderLineaTiempo(); actualizarRailProximo(); updateTimestamp();
+  }, { id: 'sec:contexto' });
+
+  Sync.on(_TEMAS_SEC.concat('calendario'), refrescarContenidoSec, { id: 'sec:contenido', vista: ['inicio', 'distrito', 'perfil', 'trabajos', 'tareas'], alEntrar: true });
+  Sync.on(_TEMAS_SEC, () => { Seguimiento.invalidar(); return Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }, { id: 'sec:seguimiento', vista: 'seguimiento' });
+  Sync.on(['desempeno', 'ranking', 'evaluaciones', 'tareas', 'personas', 'periodos', 'catalogo'], () => Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host')), { id: 'sec:desempeno', vista: 'desempeno-distrito' });
+  Sync.on(['reportes', 'ranking', 'evaluaciones', 'tareas', 'equipos', 'estadisticas', 'distritos', 'periodos'], async () => { await ReporteGeneral.montar(document.getElementById('rg-host'), {}); await ReporteEquipo.montar(document.getElementById('reportes-host')); }, { id: 'sec:reportes', vista: 'reportes' });
+  Sync.on(['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { id: 'sec:calendario', vista: 'calendario', alEntrar: true });
+  Sync.on(['banco'], () => Banco.cargar(), { id: 'sec:banco', vista: 'banco' });
 }
 
 /* ── CONTEXTO ── */
