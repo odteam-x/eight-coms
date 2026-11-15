@@ -98,7 +98,7 @@ const Gafete = (() => {
       c.drawImage(foto, x + (lado - fw) / 2, y + (lado - fh) / 2, fw, fh);
     } else {
       c.fillStyle = P.v1; c.fillRect(x, y, lado, lado);
-      _txt(c, String(nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), x + lado / 2, y + lado / 2 + 38, { fuente: `300 120px ${SANS}`, color: '#FFFFFF', alinear: 'center' });
+      _txt(c, String(nombre || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase(), x + lado / 2, y + lado / 2 + 38, { fuente: `300 120px ${SANS}`, color: (/^#[0-9a-f]{6}$/i.test(P.v1) && parseInt(P.v1.slice(1, 3), 16) > 180) ? P.t : '#FFFFFF', alinear: 'center' });
     }
     c.restore();
   }
@@ -129,8 +129,10 @@ const Gafete = (() => {
 
     c.save(); _rr(c, 0, 0, W, H, 44); c.clip();
     _malla(c, W, H, P);
-    // La cabecera cae sobre la parte más oscura de la malla en los tres temas: texto siempre claro.
-    const BLANCO = '#FFFFFF', BLANCO2 = 'rgba(255,255,255,.82)';
+    // La cabecera cae sobre la malla: en oscuro es azul profundo (texto blanco); en el tema claro la malla es pastel casi blanca
+    // y el blanco no se leía (el «Eight Creators» de la cabecera): ahí el texto es el tinta oscura del tema.
+    const mallaClara = /^#[0-9a-f]{6}$/i.test(P.v1) && parseInt(P.v1.slice(1, 3), 16) > 180;
+    const BLANCO = mallaClara ? P.t : '#FFFFFF', BLANCO2 = mallaClara ? P.t2 : 'rgba(255,255,255,.82)';
     _vidrio(c, 259, 26, 120, 22, 11, P, { sombra: false });
     _insignia(c, icono, 92, 118, 42, P);
     _txt(c, 'LABs · CELIDER 08', 152, 98, { fuente: `600 15px ${SANS}`, color: BLANCO2, espacio: .24 });

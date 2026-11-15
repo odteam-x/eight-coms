@@ -61,6 +61,13 @@ let paso = null;
 try {
   for (const f of todas.slice(1)) { paso = f; await db.exec(leer(f)); }
   ok(true, `las ${todas.length} migraciones se aplican en orden numérico sin errores`);
+  // El diagnóstico de producción (supabase/diagnostico.sql, generado desde estas mismas migraciones) no debe encontrar NADA
+  // faltante en una base con la cadena completa: si lo encuentra, el diagnóstico pide algo que ninguna migración crea.
+  try {
+    const diag = fs.readFileSync(R + '../diagnostico.sql', 'utf8');
+    const faltan = (await db.query(diag)).rows;
+    ok(faltan.length === 0, 'supabase/diagnostico.sql no marca nada como faltante con la cadena completa' + (faltan.length ? ': ' + faltan.slice(0, 5).map(f => f.tipo + ' ' + f.nombre).join(', ') : ''));
+  } catch (e) { ok(false, 'diagnostico.sql no se pudo ejecutar → ' + String(e.message).slice(0, 200)); }
 } catch (e) {
   ok(false, `la cadena se detiene en ${paso} → ` + String(e.message).slice(0, 300));
   t.fin();

@@ -883,8 +883,8 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 
 /* 37. Tema claro según la referencia: tarjetas blancas con sombra suave (no vidrio), barra inferior blanca con iconos oscuros y el activo en píldora oscura. */
 [data-theme="light"] .pf-card, [data-theme="light"] .pf-kpi, [data-theme="light"] .tarjeta, [data-theme="light"] .kpi, [data-theme="light"] .tk-card, [data-theme="light"] .lista-aj, [data-theme="light"] .panel-card {
-  background: #FFFFFF; border: 1px solid var(--v-line); box-shadow: 0 1px 2px rgba(15,30,60,.04), 0 10px 28px var(--v-sombra); -webkit-backdrop-filter: none; backdrop-filter: none; }
-[data-theme="light"] .bottom-bar { --on-brand: var(--v-t); --on-brand-2: var(--v-t2); background: #FFFFFF; border-top: 1px solid var(--v-line); box-shadow: 0 -8px 28px var(--v-sombra); color: var(--v-t2); }
+  background: var(--v-blanco); border: 1px solid var(--v-line); box-shadow: 0 1px 2px rgba(15,30,60,.04), 0 10px 28px var(--v-sombra); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-theme="light"] .bottom-bar { --on-brand: var(--v-t); --on-brand-2: var(--v-t2); background: var(--v-blanco); border-top: 1px solid var(--v-line); box-shadow: 0 -8px 28px var(--v-sombra); color: var(--v-t2); }
 [data-theme="light"] .bottom-bar .bb-item { color: var(--v-t2); }
 [data-theme="light"] .bottom-bar .bb-item.active { background: var(--v-activo); color: var(--v-activo-txt); }
 [data-theme="light"] .bottom-bar .bb-item.active .bb-txt, [data-theme="light"] .bottom-bar .bb-item.active svg { color: var(--v-activo-txt); }
@@ -922,3 +922,47 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .inicio-hero h1.inicio-titulo { font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4rem); font-weight: 500; line-height: 1.05; letter-spacing: -.02em; }
 .inicio-hero h1.inicio-titulo .acento { font-weight: 500; }
 @media (max-width: 767px) { .inicio-hero h1.inicio-titulo { font-size: clamp(2.4rem, 11vw, 3.1rem); } }
+
+/* 63. CONTRASTE REAL (medido en pantalla con tools/pruebas/ui/contraste-dom.mjs, no solo en tokens). El vidrio claro sobre la malla
+   azul daba fondos de ~rgb(23,85,177): ahí el coral, el cian y el azul de enlaces caían a 1,9–3,8:1. Ahora, en oscuro, el vidrio es
+   NAVY translúcido (el azul de la malla se ve, pero atenuado) y no se satura el fondo; en claro la zona de contenido de la malla es
+   clara (el azul fuerte queda solo detrás del menú, que es azul de marca sólido). */
+:root:not([data-theme="light"]) { --v-fill: rgba(3,27,69,.64); --v-fill2: rgba(3,27,69,.74); --v-line: rgba(255,255,255,.2); }
+[data-theme="light"] body::before, [data-theme="light"] .panel--pantalla {
+  background:
+    radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 58% at 94% 6%, var(--v-calido) 0%, transparent 68%),
+    linear-gradient(118deg, var(--v-3) 0%, var(--v-3) 34%, var(--v-4) 100%);
+}
+@media (min-width: 768px) { :root:not([data-theme="light"]) .rail { background: var(--v-1) !important; } }
+.cal2-dia--fuera { opacity: .72; }
+.tk-entrega a, .pf-enlace { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+.rail-kbd { color: var(--v-blanco); background: rgba(3,27,69,.4); }
+/* La zona de contenido de la malla clara es CLARA en todas las áreas (gradients.css repite la fórmula por área con estos mismos tokens). */
+[data-theme="light"] { --v-p2: 1%; --v-p3: 3%; }
+/* Tarjeta de persona: al pasar el ratón NO se vuelve navy (perfil.css lo hacía con texto oscuro en el tema claro): cambia el fondo del vidrio. */
+.pcard.sup-marca:hover, .pcard--mini.sup-marca:hover { background: linear-gradient(135deg, color-mix(in srgb, var(--tono, var(--etq-azul)) 26%, transparent) 0%, transparent 62%), var(--v-fill2); filter: none; }
+.seg-como summary { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* Texto de alerta/destructivo legible sobre vidrio en los dos temas */
+:root:not([data-theme="light"]) .btn-texto--peligro, :root:not([data-theme="light"]) .btn-draft--borrar { color: color-mix(in srgb, var(--v-coral) 55%, white); }
+[data-theme="light"] .btn-texto--peligro, [data-theme="light"] .btn-draft--borrar { color: var(--sba-txt); }
+:root:not([data-theme="light"]) .delta--baja { color: color-mix(in srgb, var(--sba-txt) 55%, white); }
+[data-theme="light"] .delta--baja { color: color-mix(in srgb, var(--sba-txt) 78%, black); }
+[data-theme="light"] .eval-estado-badge.estado--publicado { color: color-mix(in srgb, var(--blue-700) 70%, black); }
+/* Botón principal de los diálogos: píldora inversa (navy con texto blanco en claro; blanco con texto navy en oscuro). El degradado coral de premium.css con
+   el texto de vidrio daba BLANCO sobre coral (2,6:1) en el tema claro: el coral nunca lleva texto blanco. */
+.tk-modal-acciones .btn-save, .tk-modal-acciones .tk-btn--main, #tk-modal-ok, .modal-actions .btn-save { background-image: none; background-color: var(--v-activo); color: var(--v-activo-txt); }
+/* Diálogos y paneles OPACOS también en el tema claro (el bloque «Tema claro» de premium.css les devolvía el vidrio translúcido y la página se veía a través). */
+[data-theme="light"] .modal-box, [data-theme="light"] .tk-box, [data-theme="light"] .panel, [data-theme="light"] .sheet, [data-theme="light"] .bus-box, .modal-box, .tk-box, .bus-box { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Menú lateral azul del tema claro mejor integrado: sigue siendo el azul de marca (acento), pero con el borde derecho redondeado y una sombra suave
+   se lee como una hoja que descansa sobre la página y no como una columna pegada al blanco. */
+@media (min-width: 768px) { [data-theme="light"] .rail { border-radius: 0 28px 28px 0; box-shadow: 10px 0 32px color-mix(in srgb, var(--v-azul) 22%, transparent); overflow: hidden; } }
+/* Contraste fino del tema claro (medido): «Próxima fecha» y la tecla Ctrl K del menú azul, y el texto auxiliar sobre los lavados pastel. */
+[data-theme="light"] { --v-tm: color-mix(in srgb, var(--v-t2) 78%, var(--v-t)); }
+[data-theme="light"] .rail-prox { background: color-mix(in srgb, var(--v-navy) 34%, transparent); border-color: rgba(255,255,255,.26); }
+[data-theme="light"] .rail .rail-kbd { background: color-mix(in srgb, var(--v-navy) 34%, transparent); color: var(--v-blanco); }
+/* Estados al pasar el ratón (medidos con contraste-estados.mjs): el día elegido del calendario y el botón principal perdían su fondo y quedaban BLANCO sobre blanco en el tema claro. */
+.cal2-dia--sel:hover .cal2-num { background: var(--v-activo); color: var(--v-activo-txt); }
+.cal2-dia--hoy:hover .cal2-num { background: var(--v-coral); color: var(--v-navy); }
+.btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled), .btn-login:hover:not(:disabled), .btn--primario:hover:not(:disabled), .btn-publish:hover:not(:disabled), .btn-confirm:hover:not(:disabled) { background-image: none; background-color: color-mix(in srgb, var(--v-activo) 86%, var(--v-t2)); color: var(--v-activo-txt); filter: none; }
