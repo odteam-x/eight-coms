@@ -261,7 +261,7 @@ function renderCalendario() {
  *
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
-const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil' };
+const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil' };
 const _userTabParent = { banco:'banco', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
@@ -272,6 +272,7 @@ function switchTab(tab, btn) {
   // El Historial de antes es ahora la pestaña Evolución del perfil.
   // «Mi desempeño» ahora es la pestaña Desempeño de Mi perfil (enlaces guardados y avisos antiguos siguen funcionando).
   if (tab === 'perfil' && original === 'desempeno') Perfil.tab('desempeno', document.getElementById('perfil-host'));
+  if (tab === 'perfil' && original === 'rol') Perfil.tab('rol', document.getElementById('perfil-host'));
   if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) {
     Perfil.tab('evolucion', document.getElementById('perfil-host'));
   }
