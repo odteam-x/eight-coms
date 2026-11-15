@@ -889,3 +889,22 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 [data-theme="light"] .bottom-bar .bb-item.active { background: var(--v-activo); color: var(--v-activo-txt); }
 [data-theme="light"] .bottom-bar .bb-item.active .bb-txt, [data-theme="light"] .bottom-bar .bb-item.active svg { color: var(--v-activo-txt); }
 [data-theme="light"] .sup-marca::before, [data-theme="light"] .fondo-vista.sup-marca::before { opacity: 0; }   /* el patrón del hero dibujaba un rectángulo visible sobre el lavado pastel */
+
+/* 38. Auditoría en tablet (captura del dueño, iPad): «Qué pasó» y «Quién» se partían letra por letra porque overflow-wrap:anywhere deja la columna en 1 carácter; los filtros de fecha quedaban como cajas vacías. Las columnas tienen ancho mínimo y las fechas se ven. */
+.aud-tabla td { overflow-wrap: break-word; word-break: normal; }
+.aud-tabla th:nth-child(1), .aud-tabla td:nth-child(1) { min-width: 128px; }
+.aud-tabla th:nth-child(2), .aud-tabla td:nth-child(2) { min-width: 150px; }
+.aud-tabla th:nth-child(3), .aud-tabla td:nth-child(3) { min-width: 220px; }
+.aud-tabla th:nth-child(4), .aud-tabla td:nth-child(4) { min-width: 130px; }
+.aud-tabla th:nth-child(5), .aud-tabla td:nth-child(5) { min-width: 240px; }
+.aud-filtros input[type="date"] { min-width: 160px; color: var(--v-t); background: var(--v-fill2); border: 1px solid var(--v-line); color-scheme: light dark; }
+.aud-filtros input[type="date"]::-webkit-datetime-edit { color: var(--v-t); }
+.aud-filtros input[type="date"]::-webkit-calendar-picker-indicator { opacity: .8; }
+
+/* 39. Calendario: menos aire sin uso arriba (captura del dueño: «aprovechar mejor los espacios»). El título y su línea de apoyo comparten renglón en escritorio y el calendario sube ~70 px. */
+@media (min-width: 1024px) {
+  #tab-calendario, #tab-agenda { padding-top: var(--sp-4); }
+  #tab-calendario .pantalla-cab, #tab-agenda .pantalla-cab { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sp-4); row-gap: 2px; margin-bottom: var(--sp-3); }
+  #tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { margin: 0; flex: 1 1 280px; }
+}
+#tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { text-align: left; }
