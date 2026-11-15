@@ -689,3 +689,9 @@ Regla por PE, **apagada por defecto**: `periodo_calif_config.sin_tareas_pierde_p
 ### El gafete con la línea gráfica vigente (2026-11-11)
 
 `core/gafete.js` ya no usa el patrón, la franja de seis colores ni el marco coral. Dibuja la **malla** de `vidrio.css` (degradado a 118° + tres resplandores) con **contenedores de vidrio** (relleno translúcido, filete, luz arriba), tipografía Barlow ligera (300) y «Creators» en Source Serif 4 cursiva, foto con aro blanco y píldora blanca «Miembro de EIGHT Creators». Lee los MISMOS tokens `--v-*` que el sitio (`_paleta()`), así que el gafete sale en el tema que la persona usa (oscuro, claro o rosa); la imagen del pase de Wallet (`dibujarHero`) usa siempre la malla oscura porque el fondo del pase es fijo. Sin cajas dentro de cajas: los datos van en columnas con filetes. `verificar.html` carga `vidrio.css` y su hoja solo usa tokens (el QR siempre es navy sobre blanco para que escanee). Pruebas: `front-gafete.mjs`.
+
+### Jerarquía de títulos y derechos de autor (2026-11-15)
+
+- `vidrio.css` §36: una escala de cuatro niveles con tokens `--h1…--h4` que crecen con el ancho (celular < 640, tablet, escritorio ≥ 1024): N1 pantalla, N2 bloque (etiqueta de grupo, mes/día del calendario, hoja del reporte), N3 sección (`.pf-h .cuenta-t .panel-t-h .rpt-sec-t .rol-t .atn-h`), N4 apartado (`.pf-sub .tk-titulo`). Todos con peso 600. Antes había pesos 300/500/700 y subtítulos mayores que su sección. Un título nuevo se asigna a un nivel; no lleva tamaño propio.
+- Derechos de autor: en el acceso el pie ya no es una barra pegada (celular) ni texto fijo sobre el panel (escritorio): va en su propio renglón al final de la página, centrado, en una línea desde 760 px y en dos en celular. En el portal sigue al final de `#contenido`.
+- Acceso en tablet: el título «CREATORS» se partía; el tamaño se calcula con el ancho real del panel.
