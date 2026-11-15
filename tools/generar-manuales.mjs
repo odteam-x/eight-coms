@@ -31,10 +31,10 @@ const comunAcceso = (rol) => ({
 <h3>Crear tu cuenta</h3>
 ${pasos(
     `Abre el portal y toca ${b('Crear cuenta')}.`,
-    `Escribe tu nombre, tu correo y una contraseña. La barra de seguridad te dice si es débil o fuerte.`,
+    `Escribe tu nombre y tu correo, elige <b>tu distrito</b> (o <b>«Invitado externo»</b>) y el <b>rol con el que quieres que te evalúen</b> (puedes pedir un segundo rol; máximo 2). Después pon una contraseña: la barra de seguridad te dice si es débil o fuerte.`,
     `Revisa tu correo y pulsa el enlace de ${b('Confirmar mi correo')}. Si no llega, mira en «Spam».`,
     `Espera la aprobación de la administración: hasta entonces, al entrar verás un aviso de que tu acceso está pendiente. Cuando te aprueban, te llega un correo y ya puedes entrar.`)}
-${nota('ojo', 'Registrarte no te da ningún permiso: tu rol, tu distrito y tu tipo de acceso los asigna la administración. No puedes cambiarlos tú.')}
+${nota('ojo', 'Registrarte no te da ningún permiso: lo que eliges es una <b>solicitud</b>. Cuando la administración te aprueba, tu distrito y tu rol ya están puestos y entras directo, sin configurar nada. Siempre te registras como <b>miembro</b>: la secretaría de distrito y la administración las asigna la administración.')}
 <h3>Iniciar sesión y recuperar la contraseña</h3>
 ${pasos(`En ${b('Entrar')} escribe tu correo y tu contraseña.`, `Si la olvidaste, toca ${b('Olvidé mi contraseña')}: te enviamos un código de verificación de 6 cifras. Escríbelo y elige la nueva clave.`)}
 ${nota('consejo', 'La contraseña nueva tiene que ser distinta de la actual; si pones la misma, el portal te lo explica en vez de dar un error.')}
@@ -552,13 +552,14 @@ ${nota('consejo', 'Si desactivas a alguien <b>en un período</b>, deja de contar
     {
       id: 'accesos', titulo: 'Aprobar accesos y gestionar a una persona',
       html: `
-<p>Quien se registra queda con <b>acceso pendiente</b>, sin rol ni distrito, y no puede entrar al portal hasta que lo apruebes. Recibes el aviso «Hay una solicitud de acceso».</p>
+<p>Quien se registra queda con <b>acceso pendiente</b> y no puede entrar al portal hasta que lo apruebes. Al registrarse eligió su <b>distrito</b> (o «Invitado externo») y hasta <b>2 roles</b>: eso es una solicitud que se aplica sola cuando apruebas.</p>
+<p> Recibes el aviso «Hay una solicitud de acceso».</p>
 <h3>Aprobar a alguien nuevo</h3>
 ${pasos(
-        `Abre ${b('Personas')} y, en el filtro de estado, elige ${b('Acceso pendiente')} (el número entre paréntesis dice cuántas hay).`,
-        `Toca la tarjeta y abre la pestaña ${b('Gestión')}.`,
-        `Asigna el <b>rol</b> (con qué perfil se evaluará), el <b>distrito</b> y el <b>tipo de acceso</b> (<i>Creator</i> o <i>Secretario</i>).`,
-        `Activa ${b('Acceso aprobado')}. La persona recibe el aviso «Tu acceso fue aprobado» y ya puede entrar.`)}
+        `Abre ${b('Personas y accesos')}: arriba está la tarjeta ${b('Solicitudes de acceso')} (y en el menú, un número junto a «Personas» dice cuántas hay). Cada una muestra lo que pidió: distrito y roles.`,
+        `Toca ${b('Aprobar')}. La persona recibe el aviso «Tu acceso fue aprobado» y entra ya con su distrito y su rol puestos.`,
+        `Si quieres cambiar algo antes, toca ${b('Revisar')} y ajusta en la pestaña ${b('Gestión')}: lo que fijes tú no se pisa con la solicitud.`,
+        `La <b>secretaría de distrito</b> y la <b>administración</b> nunca se piden al registrarse: las asignas tú en ${b('Gestión')} → <i>Tipo de acceso</i>.`)}
 <h3>Qué más se hace en «Gestión»</h3>
 ${tabla(['Campo', 'Para qué sirve'], [
         ['<b>Rol</b>', 'Define el perfil con que se la evalúa. Sin rol no se la puede evaluar en rúbrica por roles.'],

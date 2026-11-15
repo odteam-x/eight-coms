@@ -729,3 +729,7 @@ Seguimiento responde «¿quién está al día?» (estado de cada evaluación, en
 ### Documentación completa del sistema (2026-11-15)
 
 `docs/sistema/` (capítulos 00–14) describe **todos los procesos y actividades** del sistema, las pantallas por portal, los cálculos con ejemplos, los datos y la seguridad, y un análisis de qué está redundante o escondido con una propuesta de ubicación. `docs/DOCUMENTACION-COMPLETA-DEL-SISTEMA.md` es la versión de un solo archivo: se **regenera** con `node tools/compilar-documentacion.mjs` (se editan los capítulos, no el compilado). Cuando cambie un proceso, una pantalla o una fórmula, se actualiza el capítulo que corresponde.
+
+### Registro con solicitud (0070, 2026-11-15)
+
+Al registrarse la persona elige su distrito (o «Invitado externo») y hasta 2 roles. Es una **solicitud** (`profiles.solicitud_distrito/_rol_id/_rol2_id`), validada por `handle_new_user`; el perfil nace igual que siempre (miembro, sin distrito, sin rol, sin aprobar). **Aprobar** (`aprobado` false→true) aplica la solicitud a lo que esté vacío (`profiles_zz_aplicar_solicitud`, y el segundo rol a `persona_roles`); lo que la administración fije no se pisa. **Solo se pide ser miembro**: secretaría y administración las asigna siempre la administración. Pantalla: tarjeta «Solicitudes de acceso» en Personas y accesos + número en el menú. `registro_opciones()` es pública (en `PERMITIDAS_ANON`). El formulario degrada (oculta el bloque) si la 0070 no está aplicada.

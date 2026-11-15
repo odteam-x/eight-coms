@@ -50,6 +50,8 @@
     bienvenida_estado: [],
     distritos: ['01','02','03','04','05','06','07','08','09','10'].map(n => ({ id: '08-' + n, nombre: 'Distrito 08-' + n, activo: true })).concat([{ id: 'EXT', nombre: 'Invitado Externo', activo: true }]),
     profiles: [
+      { id: uuid(95), nombre: 'Lucía Nueva', email: 'lucia@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: false, solicitud_distrito: '08-01', solicitud_rol_id: 1, solicitud_rol2_id: 2 },
+      { id: uuid(96), nombre: 'Mario Invitado', email: 'mario@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: false, solicitud_distrito: 'EXT', solicitud_rol_id: 3, solicitud_rol2_id: null },
       { id: U.admin, nombre: 'Admin General', email: 'admin@x.cl', es_admin: true, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: true },
       { id: U.sec, nombre: 'Sofía Secretaria', email: 'sofia@x.cl', es_admin: false, tipo_miembro: 'secretario', distrito: '08-01', rol_id: 3, aprobado: true },
       { id: U.m1, nombre: 'Ana Fotógrafa', email: 'ana@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: '08-01', rol_id: 1, aprobado: true },
@@ -490,6 +492,7 @@
   const nombreRol = id => DB.roles.find(r => r.id === id)?.nombre ?? null;
   const RPC = {
     hay_gestion_abierta: () => true,
+    registro_opciones: () => ({ distritos: [{ id: '08-01', nombre: 'Distrito 08-01' }, { id: '08-02', nombre: 'Distrito 08-02' }, { id: 'EXT', nombre: 'EXT' }], roles: [{ id: 1, nombre: 'Fotografía' }, { id: 2, nombre: 'Redacción' }, { id: 3, nombre: 'Dirección' }] }),
     // ── 0021 ──
     personas_asignables: ({ p_periodo, p_rol }) => {
       if (!meId) throw new Error('Se requiere sesion.');
