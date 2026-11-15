@@ -987,3 +987,20 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .cr-t { font: 600 var(--fs-md)/1.25 var(--font-ui); color: var(--v-t); }
 .cr-d { color: var(--v-t2); font-size: var(--fs-sm); line-height: 1.4; }
 @media (max-width: 639px) { .cr { padding: var(--sp-4); } .cr-fila { flex-wrap: wrap; } .cr-fila .atn-acc { margin-left: calc(22px + var(--sp-3)); } }
+
+/* 42. Menú lateral. (a) Al achicarlo el isotipo se deformaba en un óvalo: el relleno blanco lo hacía más ancho que el hueco y el flex lo comprimía; ahora es un círculo fijo (caja de borde, tamaño exacto, sin encogerse) en TODOS los temas y estados. (b) Tema claro: el menú era una columna azul distinta del resto; ahora es vidrio claro como en oscuro y rosa (misma estructura, texto oscuro, ítem activo en píldora oscura). */
+.rail .rail-logo, .rail-logo { box-sizing: border-box; flex: none; width: 54px; height: 54px; min-width: 54px; min-height: 54px; padding: 3px; aspect-ratio: 1 / 1; border-radius: 50%; object-fit: contain; }
+.rail-colapsado .rail-marca { padding-inline: 0; overflow: visible; }
+.rail-colapsado .rail-marca .rail-logo { margin-inline: auto; }
+.cab-movil-logo { box-sizing: border-box; flex: none; aspect-ratio: 1 / 1; }
+
+[data-theme="light"] .rail { background: var(--v-solido) !important; color: var(--v-t); border-right: 1px solid var(--v-line); box-shadow: none; }
+[data-theme="light"] .rail .rail-item { color: var(--v-t2); }
+[data-theme="light"] .rail .rail-item:hover { background: var(--v-fill2); color: var(--v-t); }
+[data-theme="light"] .rail .rail-item.active { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
+[data-theme="light"] .rail .rail-buscar, [data-theme="light"] .rail-prox { background: var(--v-1); border: 1px solid var(--v-line); color: var(--v-t2); }
+[data-theme="light"] .rail .rail-kbd { border-color: var(--v-line); color: var(--v-tm); }
+[data-theme="light"] .rail .rail-marca-txt, [data-theme="light"] .rail .rail-user-info, [data-theme="light"] .rail .rail-sep span, [data-theme="light"] .rail .rail-txt { color: inherit; }
+[data-theme="light"] .rail .rail-sep { border-color: var(--v-line); }
+[data-theme="light"] .rail .rail-prox { color: var(--v-t); }
+[data-theme="light"] .rail .rail-logo { box-shadow: 0 0 0 1px var(--v-line), 0 6px 18px var(--v-sombra); }
