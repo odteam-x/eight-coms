@@ -32,7 +32,7 @@ ok(pf.includes("TAB_DESEMPENO = { k: 'desempeno'") && pf.includes("inst.modo ===
 ok(pf.includes("inst.modo === 'propio') { if (k === 'evolucion') k = 'desempeno'; } else if (k === 'desempeno') k = 'evolucion'"), 'los enlaces #perfil/evolucion y #perfil/desempeno siguen abriendo algo en cada modo (el perfil de otra persona conserva Evolución)');
 ok(!/Desempeno\.montarAdmin/.test(rd('user.js')), 'el panel de administración no se monta en el portal del miembro');
 // Desempeño del distrito (auditoría, PDF §4.2): la secretaría usa el mismo módulo SOLO desde su pestaña de distrito y solo si es secretaria; la base ya le entrega solo su distrito.
-ok((rd('secretario.js').match(/Desempeno\.montarAdmin/g) || []).length === 1 && /tab === 'desempeno-distrito'\) Desempeno\.montarAdmin/.test(rd('secretario.js')) && /'desempeno-distrito'\) && !isSecretario\(\)/.test(rd('secretario.js')), 'secretario.js monta el modo de lectura de distrito en un solo sitio y solo para secretarías');
+ok((rd('secretario.js').match(/Desempeno\.montarAdmin/g) || []).length === 2 && /sec:desempeno', vista: 'desempeno-distrito'/.test(rd('secretario.js')) && /tab === 'desempeno-distrito'\) Desempeno\.montarAdmin/.test(rd('secretario.js')) && /'desempeno-distrito'\) && !isSecretario\(\)/.test(rd('secretario.js')), 'secretario.js monta el modo de lectura de distrito en un solo sitio y solo para secretarías');
 ok(/'desFiltro'/.test(cfg.slice(0, cfg.indexOf('const ACCIONES'))), 'desFiltro está en la lista blanca de data-input / data-change');
 ok(/^\s{2}des:\s+\(/m.test(cfg), 'ACCIONES.des existe');
 const usadas = new Set([...src.matchAll(/data-act="([a-zA-Z]+)"/g)].map(m => m[1]));
