@@ -18,6 +18,6 @@ console.log('\n[resumen fijo y criterios]');
 ok(/\.v2-resumen \{ flex-wrap: wrap; gap: 2px 14px; padding: 6px 14px;/.test(css) && !/\.v2-resumen \{[^}]*white-space: nowrap/.test(css), 'el resumen fijo es compacto (dos líneas como máximo, una cuando cabe) y no recorta texto');
 ok(/Tareas <b>\$\{fmtV2\(r\.tareas\)\}<\/b> <small>\(pesan \$\{fmtV2\(r\.peso_tareas\)\} %\)/.test(js) && /sin calificar/.test(js), 'el resumen de Evaluar muestra la nota de tareas y cuánto pesa (o «sin calificar»)');
 ok(/\.v2-crit > details\.v2-det\[open\] \{ grid-column: 1 \/ -1;/.test(css) && /\.v2-crit:has\(details\.v2-det\[open\]\) > \.eval-com-inp \{ grid-column: 1 \/ -1; \}/.test(css), 'descriptores abiertos ocupan todo el ancho y el comentario baja');
-ok(!/#[0-9a-fA-F]{3,8}\b/.test(css.slice(css.indexOf('/* 34. Evaluar con más espacio'))), 'la sección nueva de vidrio.css no usa colores literales');
+ok(!/#[0-9a-fA-F]{3,8}\b/.test(css.slice(css.indexOf('/* 34. Evaluar con más espacio'), css.indexOf('/* 35. Menú lateral'))), 'la sección nueva de vidrio.css no usa colores literales');
 console.log(`\n${pass} correctas, ${fail} fallidas`);
 process.exit(fail ? 1 : 0);
