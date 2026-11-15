@@ -638,7 +638,8 @@ const Perfil = (() => {
     const inst = { id, el, persona, modo, panel, periodo, tab, onPeriodo, rubricaLegacy, periodos, serie: [], tareas: new Map(), seq: 0 };
     _inst.set(id, inst);
 
-    el.innerHTML = esqueletoHTML('perfil');
+    // Refresco en vivo: se deja lo que se ve hasta tener lo nuevo (el esqueleto sería un parpadeo).
+    if (!(typeof Sync !== 'undefined' && Sync.silencioso() && el.firstElementChild)) el.innerHTML = esqueletoHTML('perfil');
     try { await _cargarSerie(inst); }
     catch (e) {
       renderError(el, e.message || String(e), () => montar({ el, persona, modo, periodoId: periodo.id, panel, tab, onPeriodo, rubricaLegacy }));
@@ -712,6 +713,14 @@ const Perfil = (() => {
     await montar({ el: inst.el, persona: inst.persona, modo: inst.modo, periodoId: inst.periodo.id, panel: inst.panel, tab: inst.tab, onPeriodo: inst.onPeriodo, rubricaLegacy: inst.rubricaLegacy });
   }
 
+  /** ¿Hay algún perfil montado y a la vista? (core/sync.js solo refresca perfiles que se ven). */
+  const _visible = i => !!document.getElementById(`${i.id}-cab`) && i.el.isConnected && i.el.getClientRects().length > 0;   // getClientRects: también cuenta el panel de posición fija
+  const hayAbiertos = () => [..._inst.values()].some(_visible);
+  /** Tiempo real: vuelve a pedir y repintar los perfiles abiertos (conservan pestaña y período). */
+  async function refrescarTodos() {
+    for (const inst of [..._inst.values()]) { if (_visible(inst)) await refrescar(inst.id); }
+  }
+
   /**
    * Otra barra de períodos de la página cambió el período: el perfil propio lo
    * sigue (un solo período gobierna la página) sin volver a avisar al portal.
@@ -768,5 +777,5 @@ const Perfil = (() => {
     renderIconos(cuerpo);
   }
 
-  return { montar, abrir, configurar, nuevaTarea, tab, verPeriodo, refrescar, refrescarAvatar, sincronizar };
+  return { montar, abrir, configurar, nuevaTarea, tab, verPeriodo, refrescar, refrescarTodos, hayAbiertos, refrescarAvatar, sincronizar };
 })();

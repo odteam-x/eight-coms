@@ -134,7 +134,7 @@ const Inicio = (() => {
     if (!el || !persona) return;
     const periodo = _periodo();
     const proximos = proximosHitos(Store.periodos(), 4);
-    el.innerHTML = esqueletoHTML('perfil');
+    if (!(typeof Sync !== 'undefined' && Sync.silencioso() && el.firstElementChild)) el.innerHTML = esqueletoHTML('perfil');   // refresco en vivo: sin parpadeo
 
     let ev = null, datos = null, falla = null;
     try {

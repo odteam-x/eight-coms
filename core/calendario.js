@@ -198,7 +198,7 @@ const Calendario = (() => {
           nombres: new Map(personas.map(p => [p.id, p.nombre])),
           mes: new Date(hoy.getFullYear(), hoy.getMonth(), 1), dia: hoyIso(), eventos: [], ver: { hitos: true, tareas: true },
           ocultas: new Set(), etiquetas: [], actividades: [], actividadesOk: true, miDistrito: distrito, distritos };
-    el.innerHTML = esqueletoHTML();
+    if (!(typeof Sync !== 'undefined' && Sync.silencioso() && el.firstElementChild)) el.innerHTML = esqueletoHTML();   // refresco en vivo: sin parpadeo
     await _cargar();
     _pintar();
   }

@@ -172,7 +172,7 @@ const Auditoria = (() => {
     } finally { if (btn) btn.disabled = false; }
   }
 
-  return { montar, filtro, accion, csvTexto, ACCIONES_TXT, ORIGENES };
+  return { montar, cargar, filtro, accion, csvTexto, ACCIONES_TXT, ORIGENES };
 })();
 
 /* Global de la lista blanca de config.js (data-change / data-input). */

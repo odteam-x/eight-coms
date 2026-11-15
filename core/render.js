@@ -414,6 +414,8 @@ function switchTabCore(tab, btn, { contentSelector = '.tab-content', parentMap =
   });
   const panel = document.getElementById(`tab-${tab}`);
   if (panel) { panel.classList.add('active'); panel.setAttribute('aria-hidden', 'false'); }
+  // La vista visible gobierna qué canales de tiempo real están abiertos (core/sync.js).
+  if (typeof Sync !== 'undefined') Sync.tab(tab);
 
   document.querySelectorAll('#desktop-nav .tnav').forEach(b => b.classList.remove('active'));
   if (btn) {
@@ -496,6 +498,8 @@ function updateTimestamp(fecha) {
  */
 function renderCargando(cont) {
   if (!cont) return;
+  // Refresco en vivo (core/sync.js): se conserva lo que ya se ve hasta tener los datos nuevos; vaciarlo y poner un spinner es un parpadeo.
+  if (typeof Sync !== 'undefined' && Sync.silencioso() && cont.firstElementChild && !cont.querySelector(':scope > .loading-box')) return;
   cont.replaceChildren();
   const box = document.createElement('div');
   box.className = 'loading-box';

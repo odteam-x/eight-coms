@@ -95,7 +95,7 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 
 ```json
 { "key": "Content-Security-Policy",
-  "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" }
+  "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" }
 ```
 
 ### Accessibility and performance (Phase 6)
@@ -218,6 +218,12 @@ Redesigned around the person. **Mi perfil** answers "how am I doing"; **Inicio**
 `_ALIAS_TAB` in `user.js` and `secretario.js` maps the old tab names (`scores`, `historial`, `ranking`, `periodos`…) to the new ones so saved links keep working; `#perfil/criterios` opens a profile tab directly.
 
 **Both rubric models must keep working.** Every v2 branch starts with `esPeriodoV2(periodo)`. The profile shows a classic period on its own scale (22/30, level by 26/20/11, bonus, 7 criteria 1–4) and never mixes it with v2 in a chart or a "change vs previous"; its Tareas tab says the period does not use assignable tasks.
+
+### Tiempo real (`core/sync.js`, migración 0062)
+
+Los portales **no recargan para ver cambios ajenos**: `core/sync.js` escucha Supabase Realtime (`postgres_changes`, la RLS decide qué llega) y avisa a las pantallas registradas con `Sync.on(temas, fn, { id, vista })`. **Una pantalla nueva no se suscribe a nada**: se registra en el `initSync()` de su portal. Un cambio de tabla invalida también las vistas derivadas (mapa `TABLAS`), solo se refresca la pestaña que se ve, las ráfagas se agrupan, un diálogo abierto o un texto sin guardar aplazan el refresco y el scroll se conserva. Reconexión con espera creciente, resincronización al volver internet / a la pestaña, revalidación de acceso al cambiar mi perfil. Todo el detalle, la auditoría y lo no verificado contra la base viva: `docs/sincronizacion-tiempo-real.md`.
+
+Reglas: (1) una tabla nueva escuchada va en `TABLAS` **y** en la lista de la migración 0062 (`front-sync.mjs` falla si no coinciden); (2) el repintado debe pasar por `renderCargando()` o respetar `Sync.silencioso()` (si no, parpadea); (3) los formularios largos no se repintan con el refresco: se refresca la lista y se avisa con `Sync.vigilar`; (4) `connect-src` necesita `wss://*.supabase.co`, porque `https:` no cubre `wss:`.
 
 ### Supabase Tables
 

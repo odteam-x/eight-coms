@@ -22,6 +22,7 @@
 const Notif = (() => {
   const POR_PAGINA = 30;
   const REFRESCO_MS = 60000;
+  const REFRESCO_SEGURIDAD_MS = 300000;
 
   const _t = (v, d = '') => (v == null || v === '' ? d : String(v));
   const _dos = (...xs) => xs.map(x => _t(x)).filter(Boolean).join(' · ');
@@ -131,7 +132,12 @@ const Notif = (() => {
     _asegurarEstilos();
     refrescarContador();
     clearInterval(_timer);
-    _timer = setInterval(refrescarContador, REFRESCO_MS);
+    // Con tiempo real (core/sync.js) el contador se mueve solo cuando llega un aviso; el reloj queda de red de seguridad, más espaciado.
+    _timer = setInterval(refrescarContador, typeof Sync !== 'undefined' ? REFRESCO_SEGURIDAD_MS : REFRESCO_MS);
+    if (typeof Sync !== 'undefined') Sync.on('notificaciones', async () => {
+      await refrescarContador();
+      if (document.getElementById('avisos-cuerpo') && _vista === 'lista') await _cargar(false);   // el panel abierto se pone al día sin cerrarse
+    }, { id: 'campana', diferible: false });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescarContador(); });
     irDesdeHash();
     // Un enlace de correo abierto en una pestaña que ya tiene el portal solo cambia el fragmento: no recarga.
@@ -227,7 +233,7 @@ const Notif = (() => {
     if (_cargando) return;
     _cargando = true;
     const host = document.getElementById('avisos-cuerpo');
-    if (host && !mas) host.innerHTML = esqueletoHTML('bloques');
+    if (host && !mas && !(typeof Sync !== 'undefined' && Sync.silencioso() && host.firstElementChild)) host.innerHTML = esqueletoHTML('bloques');   // en vivo: sin parpadeo
     const antes = mas && _lista.length ? _lista[_lista.length - 1].creada : null;
     const [r, res] = await Promise.all([
       API.getNotificaciones({ limite: POR_PAGINA, antes, categoria: _categoria, soloSinLeer: _solo }),

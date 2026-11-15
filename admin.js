@@ -151,7 +151,55 @@ document.addEventListener('DOMContentLoaded', async () => {
   initScrollEffects();
   actualizarRailProximo();
   registrarBuscadorAdmin();
+  initSync();
 });
+
+/* ── TIEMPO REAL (core/sync.js; contrato en docs/sincronizacion-tiempo-real.md) ──
+ * Sync escucha la base y avisa de lo que cambia, lo haga quien lo haga. Aquí solo se dice QUÉ vuelve a pedir cada pantalla:
+ * la misma carga que ya hace al abrirse la pestaña. Sync solo refresca la pestaña que se ve (el resto queda marcado para
+ * cuando se abra), agrupa ráfagas, no repinta debajo de un diálogo abierto y conserva el scroll. */
+const _baseAdmin = () => Sync.unico('admin-base', async () => { await loadAllData(); populateDistritoFilters(); });   // una sola recarga aunque la pidan varias pestañas
+const _TEMAS_ADM = ['tareas', 'evaluaciones', 'desempeno', 'ranking', 'kpis', 'seguimiento', 'reportes', 'equipos', 'periodos', 'personas', 'catalogo', 'distritos', 'estadisticas'];
+
+function initSync() {
+  Sync.iniciar({ perfil: CU });
+  Sync.tab(document.querySelector('.atab-content.active')?.id?.replace('tab-', '') || 'overview');
+  const v = (id, temas, fn, o = {}) => Sync.on(temas, fn, { id: 'admin:' + id, vista: id, ...o });
+
+  // Datos que usan todas las pestañas (personas, períodos, roles, distritos, criterios): se recargan una vez y las pestañas se repintan con ellos.
+  Sync.on(['periodos', 'personas', 'catalogo', 'distritos', 'perfil'], async () => { await _baseAdmin(); actualizarRailProximo(); }, { id: 'admin:base' });
+
+  v('overview',   _TEMAS_ADM.concat('calendario'), async () => { await _baseAdmin(); renderOvPEBar(); await loadOverview(); }, { alEntrar: true });
+  v('desempeno',  ['desempeno', 'ranking', 'evaluaciones', 'tareas', 'personas', 'periodos', 'catalogo'], () => Desempeno.montarAdmin(document.getElementById('desempeno-host')));
+  v('seguimiento', _TEMAS_ADM, () => { Seguimiento.invalidar(); return Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'admin' }); });
+  v('evaluar',    ['evaluaciones', 'tareas', 'personas', 'periodos', 'desempeno', 'catalogo'], async () => { await _baseAdmin(); renderEvalPEBar(); await loadEvalPEData(); });   // la lista; el formulario abierto NO se repinta (lo vigila avisarCambioEval)
+  v('tareas',     ['tareas', 'equipos', 'periodos', 'personas', 'kpis'], async () => { await _baseAdmin(); abrirTareas(); });
+  v('equipos',    ['equipos', 'tareas', 'personas', 'periodos'], async () => { await _baseAdmin(); abrirEquipos(); });
+  v('agenda',     ['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { alEntrar: true });
+  v('banco',      ['banco'], () => Banco.cargar());
+  v('usuarios',   ['personas', 'periodos', 'catalogo', 'distritos'], async () => { await _baseAdmin(); renderUsuariosPEBar(); await renderUsuarios(); initPersonas(); });
+  v('distritos',  ['distritos', 'estadisticas', 'personas', 'periodos', 'ranking', 'evaluaciones'], async () => { await _baseAdmin(); DistritosAdmin.refrescar(); });
+  v('reportes',   ['reportes', 'ranking', 'evaluaciones', 'tareas', 'equipos', 'estadisticas', 'distritos', 'periodos', 'personas'], () => Reportes.abrir());
+  v('auditoria',  ['auditoria'], () => Auditoria.cargar());
+  v('periodos',   ['periodos'], async () => { await _baseAdmin(); renderPeriodos(); });
+  v('calendario', ['calendario'], () => Actividades.abrir());
+  v('roles',      ['catalogo', 'personas'], async () => { await _baseAdmin(); renderRoles(); renderCatalogoV2(); });
+  v('rubrica',    ['catalogo'], async () => { await _baseAdmin(); renderRubricaTab(); });
+  v('gestiones',  ['periodos'], () => renderGestiones());
+  // Fichas de personas abiertas encima (panel lateral): se ponen al día aunque la pestaña de debajo no las use.
+  Sync.on(_TEMAS_ADM, () => Perfil.refrescarTodos(), { id: 'admin:fichas', visible: () => Perfil.hayAbiertos() });
+}
+
+let _vigiaEval = null, _conflictoEval = false;
+/** Otra persona cambió (o borró) la evaluación que se está editando: se avisa SIN tocar lo escrito. */
+function avisarCambioEval(cambio, evaluadoId) {
+  _conflictoEval = true;
+  const area = document.getElementById('eval-form-area'); if (!area) return;
+  let aviso = document.getElementById('eval-aviso');
+  if (!aviso) { aviso = document.createElement('div'); aviso.id = 'eval-aviso'; aviso.className = 'sync-conflicto'; aviso.setAttribute('role', 'status'); area.prepend(aviso); }
+  aviso.innerHTML = `<span>${cambio.tipo === 'DELETE' ? 'Otra persona eliminó esta evaluación.' : 'Otra persona modificó esta evaluación mientras la editabas.'} Lo que escribes no se ha tocado.</span>
+    <button type="button" class="btn-ghost" data-act="evalRecargar" data-arg="${escHtml(evaluadoId)}">Ver la versión nueva</button>`;
+}
 
 async function loadAllData() {
   const [users, roles, pes, crits, rub, cal, dists, crV2, perf] = await Promise.all([
@@ -411,6 +459,8 @@ async function selectEvalUser(userId) {
     API.getTrabajosEntregados(userId, _activePE?.id || null),
   ]);
   if (_selectedEvalUser !== userId) return;      // se eligió a otra persona mientras cargaba
+  _vigiaEval?.off(); _conflictoEval = false;
+  _vigiaEval = ev?.id ? Sync.vigilar('evaluaciones', ev.id, c => avisarCambioEval(c, userId)) : null;   // control de concurrencia: ver avisarCambioEval
   renderEvalForm(ev, userId, trabajos);
   area.classList.remove('cargando');
   area.scrollTop = 0;
@@ -626,7 +676,15 @@ async function verHistorialEvaluacion(evaluacionId, evaluadoId) {
   });
 }
 
+/** Si otra persona tocó esta evaluación desde que se abrió, no se sobrescribe en silencio: se pide confirmar. */
+function _confirmarSobreCambioAjeno() {
+  if (_conflictoEval && !confirm('Otra persona modificó esta evaluación desde que la abriste.\n\nSi guardas ahora, tu versión reemplaza la suya. ¿Guardar de todos modos?')) return false;
+  _conflictoEval = false; _vigiaEval?.silenciar(5000);
+  return true;
+}
+
 async function saveEvaluacion(estado, evaluadoId) {
+  if (!_confirmarSobreCambioAjeno()) return;
   if (!_activePE) return;
   if (esPeriodoV2(_activePE)) { await saveEvaluacionV2(estado, evaluadoId); return; }
   const criterios  = getCriterios();
@@ -923,6 +981,7 @@ function setCampoV2(key, raw, btn) {
 
 async function saveEvaluacionV2(estado, evaluadoId) {
   if (!_formV2 || _formV2.evaluadoId !== evaluadoId) return;
+  if (!_confirmarSobreCambioAjeno()) return;
   const faltan = _formV2.requeridas.filter(k => !_requeridoCumplido(k));
   if (estado === 'publicado' && faltan.length) {
     const nombres = faltan.map(k => _criteriosV2.find(c => c.key === k)?.nombre || k);
