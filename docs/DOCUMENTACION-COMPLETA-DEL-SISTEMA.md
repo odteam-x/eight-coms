@@ -189,9 +189,9 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 8 | Roles, segundo rol, perfiles de evaluación y rúbrica | Administración | Roles y perfiles · Rúbrica | 04 |
 | 9 | Distritos (estructura y ranking) | Administración / secretaría | Distritos | 04, 08 |
 | 10 | Equipos | Administración | Equipos | 04 |
-| 11 | Tarea individual: asignar → ejecutar → entregar → revisar → cerrar | Quien asigna, quien ejecuta, quien revisa | Tareas · Entregas | 05 |
-| 12 | Iniciativa propia | Cualquier persona con acceso | Entregas («+ Mi iniciativa») | 05 |
-| 13 | Tarea de equipo | Administración / secretaría; integrantes | Equipos · Entregas | 05 |
+| 11 | Tarea individual: asignar → ejecutar → entregar → revisar → cerrar | Quien asigna, quien ejecuta, quien revisa | Tareas · Mis tareas | 05 |
+| 12 | Iniciativa propia | Cualquier persona con acceso | Mis tareas («+ Mi iniciativa») | 05 |
+| 13 | Tarea de equipo | Administración / secretaría; integrantes | Equipos · Mis tareas | 05 |
 | 14 | Calificación de tareas (puntos, pesos, correcciones, reglas del PE) | Quien revisa; administración | Tareas (reglas) · perfil | 05 |
 | 15 | Evaluar por rol y publicar | Administración | Evaluar | 06 |
 | 16 | Rectificar o retirar una evaluación publicada | Administración | Evaluar (Historial de versiones) | 06 |
@@ -224,7 +224,7 @@ En paralelo, todo el tiempo: el **calendario** muestra fechas, actividades y tar
 | Grupo del menú | Entradas | Procesos que cubre |
 |---|---|---|
 | Centro de control | Panel · Desempeño · Seguimiento | 18 |
-| Operaciones | Evaluar · Tareas · Equipos · Calendario · Banco | 15, 11–14, 10, 19, 22 |
+| Operaciones | Evaluar · Tareas · Equipos · Calendario · Imágenes (Banco de imágenes) | 15, 11–14, 10, 19, 22 |
 | Organización | Personas · Distritos | 7, 9, 17 |
 | (suelto) | Reportes · Auditoría | 18, 22 |
 | Configuración | Un solo ítem que abre el índice: Períodos, Actividades, Rúbrica, Roles y perfiles, Gestiones, tema, selector de entrada | 5, 6, 8, 19 |
@@ -316,7 +316,7 @@ En **Mi cuenta → Seguridad**: contraseña nueva y repetirla (mínimo 8 caracte
 
 ### Los pasos
 
-**Miembro:** 1) Conoce tu rol (descripción, responsabilidades y competencias) · 2) Pon tu foto y revisa tu nombre (Mi cuenta → Perfil) · 3) Cuéntanos qué rol te gustaría hacer (preferencias) · 4) Mira tus fechas (Calendario) · 5) Así se entrega un trabajo (Entregas).
+**Miembro:** 1) Conoce tu rol (descripción, responsabilidades y competencias) · 2) Pon tu foto y revisa tu nombre (Mi cuenta → Perfil) · 3) Cuéntanos qué rol te gustaría hacer (preferencias) · 4) Mira tus fechas (Calendario) · 5) Así se entrega un trabajo (Mis tareas).
 
 **Secretaría:** 1) Conoce tu rol · 2) Foto y nombre · 3) Conoce a tu distrito · 4) Asigna tu primera tarea · 5) Sigue a tu distrito (Seguimiento).
 
@@ -341,10 +341,10 @@ En celular, el botón de cerrar de la ventana tapa un poco la última letra del 
 
 | Pestaña | Qué hay |
 |---|---|
-| **Perfil** | Nombre (con **Guardar**), correo, tipo de acceso y distrito (solo lectura: los asigna la administración), **foto** y el **fondo de la tarjeta** (siete patrones de la marca, o «Auto») que ven quienes pueden abrir tu perfil |
+| **Perfil** | Nombre (con **Guardar**), correo, tipo de acceso y distrito (solo lectura: los asigna la administración), **foto** el **fondo de la tarjeta** (siete patrones de la marca, o «Auto») que ven quienes pueden abrir tu perfil, y **Mi gafete** (tu identificación con QR) |
 | **Mi rol** | Tu rol principal con descripción, responsabilidades y requisitos; tu rol secundario si lo tienes; y **«Mi rol y mis preferencias»**: ordena con flechas los roles que te gustaría hacer y marca uno como predeterminado (la estrella solo en roles que tengas habilitados). **No se muestra a la administración** (no se evalúa) |
 | **Seguridad** | Cambiar la contraseña |
-| **App** | **Tema** (oscuro, claro o rosa; se recuerda en ese dispositivo), **Instalar en tu celular**, la bienvenida/novedades, la **ayuda y manual de uso** y **Cerrar sesión** |
+| **App y ayuda** | **Tema** (oscuro, claro o rosa; se recuerda en ese dispositivo), **Instalar en tu celular**, la bienvenida/novedades, la **ayuda y manual de uso** y **Cerrar sesión** |
 
 ### Foto de perfil
 
@@ -570,11 +570,11 @@ Quién puede cada cambio (matriz `tarea_transicion_valida`):
 
 **Actores.** Quien asigna (administración a cualquiera; secretaría a miembros de **su** distrito); la persona asignada; quien revisa (administración o secretaría del distrito, **nunca** la propia tarea).
 
-**Pantallas.** Admin/Secretaría → **Tareas** (asignar y revisar) · Todos → **Entregas** (mis tareas) · Perfil → pestaña Tareas.
+**Pantallas.** Admin/Secretaría → **Tareas** (asignar y revisar) · Todos → **Mis tareas** · Perfil → pestaña Tareas.
 
 ### 11.1 Asignar (asistente «Nueva tarea» en tres pasos)
 
-Se abre con **+ Nueva tarea** en Tareas, o desde el perfil de una persona, o desde un día del calendario.
+Se abre con **+ Nueva tarea** en Tareas (si hay equipos activos en el período, primero pregunta **«¿para quién es?»**: **para personas** —una tarea para cada una— o **para un equipo** —una sola tarea compartida—), o desde el perfil de una persona, o desde un día del calendario.
 
 **Paso 1 · Qué.** Título (obligatorio, hasta 160 caracteres), **Qué se espera** (hasta **20 000** caracteres desde 0060: se puede pegar documentación completa), **fecha límite**, **prioridad** (baja, normal, alta), el **período** (si hay varios por roles) y, opcional, una **actividad** del calendario y **el rol para el que es el trabajo** (carga las responsabilidades y las competencias de ese rol).
 
@@ -626,7 +626,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 **Objetivo.** Que cualquier persona registre trabajo que decidió hacer por su cuenta y pueda contarlo como iniciativa.
 
-**Actor.** Cualquier persona con acceso aprobado. **Pantalla.** **Entregas → + Mi iniciativa** (formulario simple de `core/tareas.js`).
+**Actor.** Cualquier persona con acceso aprobado. **Pantalla.** **Mis tareas → + Mi iniciativa** (formulario simple de `core/tareas.js`).
 
 ### Actividades
 
@@ -648,7 +648,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 **Actores.** Administración (o la secretaría del distrito del equipo si ella no participa) asigna y revisa; los integrantes aportan y entregan.
 
-**Pantallas.** Admin → **Equipos** (dentro del equipo) · Entregas (bloque «Equipos») · Secretaría → **Tareas**.
+**Pantallas.** Admin → **Equipos** (dentro del equipo) · Mis tareas (bloque «Equipos») · Secretaría → **Tareas**.
 
 ### Actividades
 
@@ -1008,10 +1008,10 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 
 - **Saludo y cuenta regresiva**: «Hola, Ana», el período en curso y una tarjeta con **los días que faltan** para la próxima fecha (por ejemplo «10 días para entrega de scores · PE2 · 25 nov»).
 - **Primeros pasos / Novedades**: tarjeta con el avance del asistente de bienvenida y botón **Continuar**.
-- **Tu evaluación**: anillo con la nota (0–100), el **nivel** (por ejemplo «Bueno»), «Individual sobre 100» y el **percentil en tu rol**; botón **Ver mi perfil**. Si no hay evaluación publicada, dice **cuándo se publicará**.
-- **Para atender**: tus tareas abiertas (las devueltas primero, después por fecha límite) con **Ir a Entregas**. Si no hay, lo dice.
+- **Tu evaluación**: anillo con la nota (0–100), el **nivel** (por ejemplo «Bueno»), «Individual sobre 100» y el **percentil en tu rol**; botones **Ver mi perfil** y **Ver mi desempeño**. Si no hay evaluación publicada, dice **cuándo se publicará**.
+- **Para atender**: tus tareas abiertas (las devueltas primero, después por fecha límite) con **Ir a Mis tareas**. Si no hay, lo dice.
 - **Próximas fechas**: las siguientes fechas del período y **Ver línea de tiempo**.
-- **En un período clásico** dice que las tareas no aplican y apunta a Entregas.
+- **En un período clásico** dice que las tareas no aplican y apunta a Mis tareas.
 - **Secretaría**: añade un bloque **«Tu distrito»** y la **bandeja de trabajo del distrito**: una fila por persona con lo que ella puede resolver hoy (tareas **vencidas** = abiertas con fecha anterior a hoy, la bloqueada no cuenta; y **entregas por revisar**), ordenada por días de atraso y después por tiempo de espera; cada fila abre el perfil.
 
 ## 8.2 Mi perfil (todas las personas)
@@ -1121,7 +1121,7 @@ Seguimiento de asistencia o participación más fino que «participa sí/no», t
 
 **Objetivo.** Que todos vean en un solo lugar las fechas de los períodos, las actividades del equipo o del distrito y los plazos de sus tareas.
 
-**Pantallas.** **Calendario** (para todos los roles; en administración se llama «Calendario» en Operaciones) y **Actividades** (administración: Configuración → Actividades; el calendario también permite crear desde un día).
+**Pantallas.** **Calendario** (para todos los roles) y, en administración, su **Lista de actividades** (botón en el propio Calendario; también se puede **crear una actividad** desde un día o con **Nueva actividad**). Los **tipos** (etiquetas) se administran en Configuración.
 
 ### 19.1 Qué junta el calendario
 
@@ -1222,7 +1222,7 @@ Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `nod
 
 **Objetivo.** Un lugar común con los **enlaces** a las fotos y videos de cada evento.
 
-**Pantalla.** **Banco** (administración: Operaciones; miembro y secretaría: junto a Entregas).
+**Pantalla.** **Banco de imágenes** (menú: «Imágenes»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
 
 ### Actividades
 
@@ -1317,6 +1317,10 @@ Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `nod
 
 **Actor.** Administración. **Pantalla.** **Configuración** (`tab-configuracion`; `core/configuracion.js`).
 
+### Lo primero que se ve: «Preparar la evaluación»
+
+Arriba del índice hay una **lista de verificación** de solo lectura sobre el período elegido: cada persona con **rol** y **distrito**, cada rol en uso con su **perfil de evaluación vigente**, **fechas** completas y **reglas de tareas confirmadas**. Cada fila pendiente tiene un botón que lleva a donde se resuelve.
+
 ### Apartados
 
 Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya está cargado) y tiene un botón que **abre la pantalla que lo edita**; el tema y el selector de entrada se cambian **ahí mismo**.
@@ -1325,7 +1329,7 @@ Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya est
 |---|---|
 | **Organización** | Gestión · Períodos de evaluación · Distritos · Personas y accesos · Equipos |
 | **Evaluación** | Roles y perfiles · Rúbrica y criterios · Reglas de calificación de tareas (se abren en Tareas) · Niveles de desempeño (solo lectura) |
-| **Calendario y actividades** | Actividades y tipos · Calendario |
+| **Calendario y actividades** | Tipos de actividad (las actividades se crean y listan desde el Calendario) · Calendario |
 | **Comunicación** | Avisos y correos (informativo) · Banco de imágenes |
 | **Apariencia y entrada** | **Tema** (oscuro/claro/rosa, aquí mismo) · Selector de entrada («Volver a mostrar») · Mi cuenta |
 | **Seguridad y registro** | Auditoría · Gafetes (informativo: se gestionan desde el perfil) · Reportes |
@@ -1402,18 +1406,18 @@ Reglas visuales transversales: título de pantalla con 4 niveles de jerarquía; 
 
 ## 11.1 Portal del miembro (`user.html`)
 
-Cinco destinos más Mi cuenta. Se entra con `Auth.requireRole('miembro')`.
+Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Imágenes). Se entra con `Auth.requireRole('miembro')`.
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Inicio** | ¿Qué necesito hacer ahora? | Ver cuenta regresiva, mi evaluación (anillo, nivel, percentil), tareas por atender, próximas fechas, bienvenida | 3, 18 |
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
-| **Entregas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
-| **Banco** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
+| **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
-En un período **clásico**, Entregas muestra el antiguo formulario «registrar trabajo».
+En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
 
 ---
 
@@ -1422,7 +1426,7 @@ En un período **clásico**, Entregas muestra el antiguo formulario «registrar 
 Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra con `Auth.requireAnyRole(['secretario','miembro'])`.
 
 ### Mi espacio
-**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Entregas**, **Banco** y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
+**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Imágenes** (Banco de imágenes) y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
 
 ### Mi distrito
 
@@ -1447,7 +1451,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
-| **Panel** | ¿Qué requiere atención? ¿cómo va el período? | **Requiere atención** (enlaces a donde se resuelve), **Datos por revisar**, 4 KPIs, análisis (acordeón) | 18 |
+| **Panel** | ¿Qué requiere atención? ¿cómo va el período? | **Requiere atención** (enlaces a donde se resuelve), **Datos por revisar**, **Cierre del período** (lista de verificación), 4 KPIs, análisis (acordeón) | 18 |
 | **Desempeño** | ¿Cómo les va? | KPIs, evolución del equipo, promedio por rol, **comparar dos períodos**, **comparar hasta 5 personas**, tarjetas por persona | 18 |
 | **Seguimiento** | ¿Quién está al día? | Persona × período por rol: estado de evaluación, resultado, hechos de tareas | 18 |
 
@@ -1458,14 +1462,14 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Evaluar** | Puntuar y publicar | Elegir persona, ver evidencia, puntuar núcleo y técnico (y segundo rol), guardar borrador, **publicar**, **rectificar**, **Historial de versiones**, eliminar borradores | 15, 16 |
 | **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega**, **Aprobar y puntuar**, **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
-| **Calendario** | Fechas y tareas del mes | Ver, crear actividad desde un día, asignar tarea desde un día | 19 |
-| **Banco** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
+| **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
 
 ### Organización
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
-| **Personas** | Accesos, roles, distrito | Tarjetas o tabla; filtros de estado; **Gestión**: aprobar, tipo, distrito, rol, **segundo rol**, participación, gafete, eliminar | 1, 7 |
+| **Personas y accesos** (menú: «Personas») | Accesos, roles, distrito | Tarjetas o tabla; filtros de estado; **Gestión**: aprobar, tipo, distrito, rol, **segundo rol**, participación, gafete, eliminar | 1, 7 |
 | **Distritos** | Evaluar y comparar distritos | Ranking acumulado; por distrito: **Resumen · Evaluación · Estadísticas · Personas** | 17 |
 
 ### Sueltos
@@ -1474,13 +1478,13 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Reportes** | **Todos los PE** (reporte general) o **Un PE en detalle** (constructor, hoja imprimible, CSV) | 18 |
 | **Auditoría** | Filtrar y leer cambios sensibles; descargar CSV | 22 |
 
-### Configuración (un solo ítem que abre el índice)
+### Configuración (un solo ítem que abre el índice; arriba, la lista «Preparar la evaluación»)
 
 | Sub-pantalla | Qué se hace | Proceso |
 |---|---|---|
 | **Gestiones** | Abrir gestión, ver archivadas | 5 |
 | **Períodos** | Crear/editar, fechas, modelo, activar | 6 |
-| **Actividades** | Crear actividades y tipos (etiquetas) | 19 |
+| **Actividades** (se abre desde el Calendario) | Lista y creación de actividades, y tipos (etiquetas) | 19 |
 | **Rúbrica** | Competencias comunes y de rol (con anclas), campos de registro; rúbrica clásica | 8 |
 | **Roles y perfiles** | Descripción, responsabilidades, requisitos; perfiles con pesos y versiones | 8 |
 
@@ -1677,7 +1681,7 @@ Cómo cambiar la base desde ahora: ver `docs/auditoria/06-registro-migraciones.m
 
 Este capítulo responde a lo que el dueño del proyecto observa: **hay cosas donde no deben estar y funciones que deberían ser principales y se pierden**. Se apoya en los procesos descritos en los capítulos 03 a 10 y en cómo están hoy las pantallas (capítulo 11).
 
-> **Importante.** Es un **análisis y una propuesta**, no cambios aplicados. Es mi criterio sobre lo que está en el repositorio; cada cambio se decide con el dueño. Se indica el esfuerzo estimado y qué **no** conviene tocar.
+> **Estado (15 de noviembre de 2026).** Este capítulo nació como propuesta y **ya se aplicó casi toda**. Ver la sección 13.7 («Qué se aplicó y qué no»). Se conserva el análisis original para que se entienda por qué.
 
 ## 13.1 Criterios con los que se juzga cada pantalla
 
@@ -1802,6 +1806,24 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 - **Tiempo hasta la primera acción**: cuánto tarda un miembro en encontrar sus tareas, su evaluación y su gafete; cuánto tarda la administración en publicar un período.
 - **Errores evitables**: publicaciones con reglas sin confirmar; personas evaluadas sin rol; tareas asignadas con «Excepción de rol» no intencionada.
 - **Preguntas al equipo**: «¿dónde está X?» (las respuestas deberían bajar tras los renombrados y los enlaces).
+
+## 13.7 Qué se aplicó y qué no
+
+| ID | Qué se hizo | Estado |
+|---|---|---|
+| **A1** | **Cierre del período**: lista de verificación en el Panel (fechas completas · reglas confirmadas · entregas por revisar · evaluaciones publicadas · estadísticas y evaluación de cada distrito). Solo lectura; cada fila lleva a donde se resuelve; lo que no se puede comprobar se omite | ✅ Aplicado |
+| **B5** | **Preparar la evaluación**: lista de verificación al inicio de Configuración (cada persona con rol y distrito · cada rol en uso con perfil vigente · fechas · reglas confirmadas) | ✅ Aplicado |
+| **B1** | **Una sola puerta para asignar**: **+ Nueva tarea** pregunta «¿para personas o para un equipo?»; se quitó el segundo botón «Nueva tarea de equipo» de la lista | ✅ Aplicado |
+| **C1** | «Entregas» → **«Mis tareas»** (menú, título, ayudas, manuales) | ✅ Aplicado |
+| **C2** | El menú dice **«Imágenes»** (cabe en el menú) y la pantalla **«Banco de imágenes»** | ✅ Aplicado (con matiz: el rótulo del menú es corto para que no se trunque) |
+| **C3** | La pantalla se titula **«Personas y accesos»** (el menú conserva «Personas» por el mismo motivo) | ✅ Aplicado (con matiz) |
+| **C4 / A4** | Pestaña **«App y ayuda»** en Mi cuenta | ✅ Aplicado |
+| **A2** | **«Ver mi desempeño»** en la tarjeta «Tu evaluación» de Inicio | ✅ Aplicado |
+| **A3** | **«Mi gafete»** en Mi cuenta → Perfil | ✅ Aplicado |
+| **B2** | Calendario con **Nueva actividad** y **Lista de actividades**; el ítem sigue resaltando «Calendario»; Configuración queda con los **tipos** | ◐ Parcial: la lista sigue siendo su propia pantalla, abierta desde el Calendario (moverla dentro del calendario es un cambio mayor) |
+| **A5** | El aviso de reglas «sin confirmar» aparece en las dos listas (Cierre y Preparar) | ◐ Cubierto por las listas; no hay resumen en la tarjeta de cada PE en Períodos |
+| **B3, B4, B6, A6** | Enlaces y resúmenes menores | ⏸ No se hicieron (bajo impacto; el Panel se deja como está por decisión del dueño) |
+| **E1–E8** | Procesos ausentes (cierre guiado con bloqueo, «Solicito tu ayuda», penalización por tardía, estados de Instagram, reenvío de confirmación, alertas atípicas, paginación y acciones masivas, asistencia) | ⏸ Sin empezar: dependen de decisiones de negocio o de volumen |
 
 ---
 

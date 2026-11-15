@@ -58,7 +58,7 @@ const comunAvisos = (rol) => ({
 ${pasos(
     `Toca la campana ${b('🔔')} de la cabecera (en computadora: ${b('Avisos')} en el menú de la izquierda). Si tienes avisos sin leer, verás un número en rojo.`,
     `Se abre el panel ${b('Avisos')}: agrupados en <i>Hoy / Ayer / Esta semana / Antes</i>, con un icono por categoría (tareas, evaluaciones, actividades, accesos) y cuánto hace que ocurrieron. Los <b>sin leer</b> tienen fondo tenue, una barra a la izquierda y el título en negrita.`,
-    `Toca un aviso: se marca como leído y te lleva a la sección donde se resuelve (por ejemplo, una tarea devuelta te lleva a ${b('Entregas')}).`,
+    `Toca un aviso: se marca como leído y te lleva a la sección donde se resuelve (por ejemplo, una tarea devuelta te lleva a ${b('Mis tareas')}).`,
     `Usa ${b('Sin leer')} para ver solo los pendientes y ${b('Marcar todo')} para dejarlos todos como leídos. ${b('Ver avisos anteriores')} carga más.`)}
 ${captura('m-avisos', 'El centro de avisos (vista de un miembro; para la secretaría y la administración es igual, con sus propios avisos).')}
 ${tabla(['Si ves…', 'Significa'], rol === 'miembro' ? [
@@ -93,17 +93,17 @@ ${tabla(['Pestaña', 'Qué hay'], [
     [b('Perfil'), 'Tu nombre (con ' + b('Guardar') + '), tu correo, tu tipo de acceso y tu distrito (estos tres los asigna la administración), y <b>Tu tarjeta</b>: el fondo de tu perfil, elegido entre los siete patrones de la marca.'],
     [b('Mi rol'), 'Tu rol principal con sus responsabilidades y tus preferencias de rol (no aparece para la administración, que no se evalúa).'],
     [b('Seguridad'), 'Cambiar la contraseña: mínimo 8 caracteres, distinta de la actual.'],
-    [b('App'), 'El tema (oscuro, claro o rosa), instalar el portal en tu celular, la bienvenida o las novedades, la ayuda y ' + b('Cerrar sesión') + '.']])}
+    [b('App y ayuda'), 'El tema (oscuro, claro o rosa), instalar el portal en tu celular, la bienvenida o las novedades, la ayuda y ' + b('Cerrar sesión') + '.']])}
 ${pasos(
     `${b('Cambiar foto')}: elige cualquier imagen del teléfono o la computadora; no importa su tamaño. El portal la recorta en cuadrado y la reduce solo (queda ligera, de pocos KB).`,
     `${b('Perfil')} → ${b('Nombre')}: escríbelo y toca ${b('Guardar')}.`,
     `${b('Perfil')} → ${b('Tu tarjeta')}: elige un fondo o ${b('Auto')}. Lo ven también quienes pueden abrir tu perfil (tu secretaría y la administración).`,
     `${b('Seguridad')}: ${b('Nueva contraseña')} y ${b('Repite la contraseña')} → ${b('Cambiar contraseña')}.`,
-    `${b('App')}: ${b('Tema')} (oscuro, claro o rosa; se recuerda en ese dispositivo), ${b('Instalar en tu celular')} (ver «Entrar y moverte») y ${b('Cerrar sesión')}.`)}
+    `${b('App y ayuda')}: ${b('Tema')} (oscuro, claro o rosa; se recuerda en ese dispositivo), ${b('Instalar en tu celular')} (ver «Entrar y moverte») y ${b('Cerrar sesión')}.`)}
 ${captura('m-cuenta', 'Mi cuenta: tu foto y tus datos arriba y, debajo, las pestañas Perfil, Mi rol, Seguridad y App.')}
 <p>Correo, tipo de acceso y distrito aparecen en «Tus datos» solo para que los veas: los asigna la administración.</p>
 <h3>Tu gafete</h3>
-<p>En tu perfil, ${b('Mi gafete')} abre tu gafete con foto, rol, distrito y un <b>código QR</b>. Quien escanee el QR llega a una página pública que confirma que eres parte del equipo y muestra solo tu nombre, foto, rol y distrito; nada más. Desde ahí puedes ${b('Descargar PNG')}, ${b('Copiar enlace')} o, en Android, ${b('Añadir a Google Wallet')} (si la administración ya lo activó). La administración puede revocar un gafete y generar uno nuevo.</p>`,
+<p>En ${b('Mi cuenta → Perfil')} (y también en tu perfil), ${b('Mi gafete')} abre tu gafete con foto, rol, distrito y un <b>código QR</b>. Quien escanee el QR llega a una página pública que confirma que eres parte del equipo y muestra solo tu nombre, foto, rol y distrito; nada más. Desde ahí puedes ${b('Descargar PNG')}, ${b('Copiar enlace')} o, en Android, ${b('Añadir a Google Wallet')} (si la administración ya lo activó). La administración puede revocar un gafete y generar uno nuevo.</p>`,
 };
 
 const faqComun = [
@@ -146,10 +146,10 @@ ${pasos(
     `Lee el paso y toca ${b('Hecho, seguir')}. Si el paso tiene un botón (por ejemplo ${b('Elegir mis preferencias')}), te lleva a esa pantalla y tu avance queda guardado.`,
     `Puedes dejarla a medias con ${b('Ahora no')}. En ${b('Inicio')} queda una tarjeta ${b('Primeros pasos')} con tu avance y un botón ${b('Continuar')}: retomas justo donde ibas.`,
     `Algunos pasos se marcan solos si ya los hiciste (por ejemplo, si ya tienes foto o preferencias de rol).`,
-    `Al terminar, la tarjeta desaparece. Puedes repasarla cuando quieras desde ${b('Mi cuenta')} → ${b('App')} → ${b('Bienvenida')}, o ${b('Empezar de nuevo')}.`)}
+    `Al terminar, la tarjeta desaparece. Puedes repasarla cuando quieras desde ${b('Mi cuenta')} → ${b('App y ayuda')} → ${b('Bienvenida')}, o ${b('Empezar de nuevo')}.`)}
 ${captura('m-primeros-pasos', 'La tarjeta «Primeros pasos» en Inicio, con la barra de avance y el botón Continuar.')}
 <h3>Si ya usabas el portal: las novedades</h3>
-<p>En vez de la bienvenida ves <b>Novedades del portal</b>: cinco pasos con lo que cambió, cada uno con un botón que te lleva a esa pantalla. Son <i>Mi cuenta ordenada en pestañas</i>, <i>tu rol con lo que se espera de él</i>, <i>tus preferencias de rol</i>, <i>tu historial de todos los períodos</i> y <i>actividades solo para quien corresponde</i>. Se abre sola la primera vez; después queda la tarjeta ${b('Novedades')} en ${b('Inicio')} hasta que la termines, y puedes repasarla desde ${b('Mi cuenta')} → ${b('App')}.</p>
+<p>En vez de la bienvenida ves <b>Novedades del portal</b>: cinco pasos con lo que cambió, cada uno con un botón que te lleva a esa pantalla. Son <i>Mi cuenta ordenada en pestañas</i>, <i>tu rol con lo que se espera de él</i>, <i>tus preferencias de rol</i>, <i>tu historial de todos los períodos</i> y <i>actividades solo para quien corresponde</i>. Se abre sola la primera vez; después queda la tarjeta ${b('Novedades')} en ${b('Inicio')} hasta que la termines, y puedes repasarla desde ${b('Mi cuenta')} → ${b('App y ayuda')}.</p>
 ${captura('s-novedades', 'Las novedades del portal (aquí, la versión de la secretaría): el mismo formato que la bienvenida, con pasos distintos.')}
 ${nota('consejo', 'Quien llega después de esta actualización ve la bienvenida; quien ya estaba, las novedades. Si cierras la ventana con ' + b('Ahora no') + ', no vuelve a abrirse sola: la retomas cuando quieras desde ' + b('Mi cuenta') + '.')}`,
     },
@@ -160,8 +160,8 @@ ${nota('consejo', 'Quien llega después de esta actualización ve la bienvenida;
 ${captura('m-inicio', 'Inicio: cuenta regresiva, tu evaluación y lo que requiere atención.')}
 ${lista(
     `<b>Banda azul:</b> el período en curso y cuántos días faltan para la próxima fecha (por ejemplo, la entrega de scores).`,
-    `<b>Tu evaluación:</b> tu nota del período con su nivel (Excelente, Bueno, En Proceso o Bajo). Si aún no se publica, dice cuándo se publica. ${b('Ver mi perfil')} te lleva al detalle.`,
-    `<b>Para atender:</b> tus tareas que piden acción, primero las devueltas y luego por fecha. ${b('Ir a Entregas')} las abre.`,
+    `<b>Tu evaluación:</b> tu nota del período con su nivel (Excelente, Bueno, En Proceso o Bajo). Si aún no se publica, dice cuándo se publica. ${b('Ver mi perfil')} te lleva al detalle y ${b('Ver mi desempeño')} a tu evolución entre períodos.`,
+    `<b>Para atender:</b> tus tareas que piden acción, primero las devueltas y luego por fecha. ${b('Ir a Mis tareas')} las abre.`,
     `<b>Próximas fechas:</b> las fechas clave del período y en cuántos días son.`)}`,
     },
     {
@@ -191,10 +191,10 @@ ${nota('ejemplo', 'Si tu técnico es 71, significa que sumaste 71 de 100 puntos 
 ${nota('ojo', 'Los períodos anteriores a la «rúbrica por roles» se muestran con la <b>rúbrica clásica</b> (7 criterios del 1 al 4, sobre 30 con el bono). Tienen otra escala y no se mezclan ni se comparan con los nuevos.')}`,
     },
     {
-      id: 'tareas', titulo: 'Entregas: tus tareas',
+      id: 'tareas', titulo: 'Mis tareas: tus tareas y entregas',
       html: `
 <p>Una tarea es lo que se te pidió, para cuándo y qué hiciste. Así, cuando te evalúen, se mira lo que realmente pasó.</p>
-${captura('m-entregas', 'Entregas: filtros, «+ Mi iniciativa» y una tarea devuelta con su observación.')}
+${captura('m-entregas', 'Mis tareas: filtros, «+ Mi iniciativa» y una tarea devuelta con su observación.')}
 <h3>Tareas del equipo</h3>
 <p>Si perteneces a un <b>equipo</b>, debajo de tus tareas ves ${b('Mis equipos')} y las <b>tareas del equipo</b>: una tarea compartida para todo el grupo. Puedes <b>registrar un aporte</b> (qué avanzaste y el avance en %), y cualquiera del equipo puede <b>entregarla</b> con un enlace y/o una nota (es una sola entrega para todos). No puedes aprobarla ni mover su fecha. La nota es <b>del grupo</b> y cuenta una vez para cada integrante.</p>
 ${nota('consejo', 'Tus puntos de tareas ya entran a tu resultado. En «Mi perfil» → Resumen, «Cómo se compone tu evaluación» te muestra tarea por tarea cuál cuenta, cuánto aporta y por qué otra no cuenta.')}
@@ -208,7 +208,7 @@ ${tabla(['Estado', 'Qué significa', 'Qué puedes hacer'], [
         ['Bloqueada', 'Estás esperando algo de otra persona.', 'Retomarla cuando se destrabe. Mientras está bloqueada no cuenta como atrasada.']])}
 <h3>Entregar una tarea</h3>
 ${pasos(
-        `Abre ${b('Entregas')} y busca la tarea (usa ${b('Todas')}, ${b('Abiertas')}, ${b('Vencidas')} o ${b('Aprobadas')}).`,
+        `Abre ${b('Mis tareas')} y busca la tarea (usa ${b('Todas')}, ${b('Abiertas')}, ${b('Vencidas')} o ${b('Aprobadas')}).`,
         `Pulsa ${b('Entregar')}. Escribe un enlace a tu trabajo, una nota, o ambos (debe haber al menos uno).`,
         `Confirma. Desde ese momento queda <i>Entregada</i> y a quien revisa le llega un aviso.`)}
 ${nota('ojo', 'El «a tiempo» se mide en tu <b>primera</b> entrega. Si te devuelven la tarea y la corriges, esa corrección no la vuelve «tarde».')}
@@ -221,7 +221,7 @@ ${lista(
         `Las fechas límite de las tareas que te <b>asignaron</b> no las cambias tú; las mueve quien te las asignó, con un motivo, y te llega un aviso.`,
         `${b('Historial')} muestra cada cambio de estado, quién lo hizo y cuándo.`)}
 <p>La pantalla también tiene la <b>línea de tiempo</b> con las fechas del período y una marca en «hoy».</p>
-${nota('ojo', 'Los períodos de la rúbrica clásica no usan tareas asignables: ahí ' + b('Entregas') + ' muestra el formulario antiguo para registrar trabajos.')}`,
+${nota('ojo', 'Los períodos de la rúbrica clásica no usan tareas asignables: ahí ' + b('Mis tareas') + ' muestra el formulario antiguo para registrar trabajos.')}`,
     },
     {
       id: 'calendario', titulo: 'Calendario',
@@ -266,7 +266,7 @@ ${lista(
     [`Mi tarea dice «vencida» pero ya la entregué`, `«Vencida» solo se usa para tareas sin entregar. Si la entregaste a tiempo, aparece «Entregada» o «Aprobada». Refresca la pantalla; si sigue igual, avísale a quien te la asignó.`],
     [`Me devolvieron una tarea. ¿Pierdo puntos?`, `No por devolverla: las devoluciones se cuentan como un dato de calidad que mira quien te evalúa, pero tu «a tiempo» se queda como en la primera entrega. Corrige y pulsa ${b('Entregar corregida')}.`],
     [`En mis preferencias un rol dice «Aún no habilitado»`, `Significa que la administración todavía no te habilitó ese rol. Puedes dejarlo en tu lista (sirve para que sepan que te interesa), pero no puedes dejarlo como predeterminado hasta que lo tengas.`],
-    [`La bienvenida o las novedades no me aparecen`, `Se abren solas una sola vez. Si las cerraste con ${b('Ahora no')}, entra a ${b('Mi cuenta')} → ${b('App')} y búscalas ahí (se llaman «Bienvenida» o «Novedades del portal»). Si ahí tampoco están, la actualización de la base de datos (migración 0025) aún no se ha aplicado.`],
+    [`La bienvenida o las novedades no me aparecen`, `Se abren solas una sola vez. Si las cerraste con ${b('Ahora no')}, entra a ${b('Mi cuenta')} → ${b('App y ayuda')} y búscalas ahí (se llaman «Bienvenida» o «Novedades del portal»). Si ahí tampoco están, la actualización de la base de datos (migración 0025) aún no se ha aplicado.`],
     [`Mi percentil aparece vacío`, `Tu rol tiene menos de 4 personas evaluadas en el período. En ese caso se usa tu técnico y el portal lo explica en un recuadro.`],
     [`Veo «/5» en un período y «/30» en otro`, `Cambió la forma de puntuar: los períodos nuevos puntúan cada criterio de 0 a su peso; los anteriores, de 1 a 5. Las dos formas se convierten a una nota sobre 100.`],
   ],
@@ -303,7 +303,7 @@ const secretario = {
 ${pasos(
     `Toca ${b('Hecho, seguir')} en cada paso, o ${b('Ahora no')} para dejarla a medias.`,
     `En ${b('Inicio')} queda la tarjeta ${b('Primeros pasos')} con tu avance y ${b('Continuar')}.`,
-    `Puedes repasarla desde ${b('Mi cuenta')} → ${b('App')} → ${b('Bienvenida')}.`)}
+    `Puedes repasarla desde ${b('Mi cuenta')} → ${b('App y ayuda')} → ${b('Bienvenida')}.`)}
 <h3>Si ya usabas el portal: las novedades</h3>
 <p>Cinco pasos con lo que cambió para ti: <i>Mi cuenta en pestañas y tus preferencias de rol</i>, <i>Nueva tarea en tres pasos</i>, <i>actividades para personas de tu distrito</i>, <i>Seguimiento</i> y <i>Reportes de tu distrito</i>. Cada paso tiene un botón que te lleva a la pantalla.</p>
 ${captura('s-novedades', 'Las novedades del portal para la secretaría.')}
@@ -312,9 +312,9 @@ ${captura('s-novedades', 'Las novedades del portal para la secretaría.')}
     {
       id: 'inicio', titulo: 'Inicio y tu espacio personal',
       html: `
-<p>${b('Inicio')}, ${b('Mi perfil')}, ${b('Calendario')} y ${b('Entregas')} funcionan como en el manual del miembro (consulta ese manual para el detalle de la rúbrica, los estados de tareas y el calendario). En ${b('Inicio')}, además, hay un bloque con el estado de tu distrito.</p>
+<p>${b('Inicio')}, ${b('Mi perfil')}, ${b('Calendario')} y ${b('Mis tareas')} funcionan como en el manual del miembro (consulta ese manual para el detalle de la rúbrica, los estados de tareas y el calendario). En ${b('Inicio')}, además, hay un bloque con el estado de tu distrito.</p>
 ${captura('s-inicio', 'Inicio de la secretaría, con el bloque de novedades o primeros pasos mientras no lo termines.')}
-${nota('consejo', 'En el celular, tus dos herramientas de trabajo (' + b('Distrito') + ' y ' + b('Tareas') + ') están en la barra inferior junto a ' + b('Inicio') + ' y ' + b('Entregas') + '. ' + b('Mi perfil') + ', ' + b('Calendario') + ', ' + b('Seguimiento') + ' y ' + b('Reportes') + ' están en ' + b('Más') + '.')}
+${nota('consejo', 'En el celular, tus dos herramientas de trabajo (' + b('Distrito') + ' y ' + b('Tareas') + ') están en la barra inferior junto a ' + b('Inicio') + ' y ' + b('Mis tareas') + '. ' + b('Mi perfil') + ', ' + b('Calendario') + ', ' + b('Seguimiento') + ' y ' + b('Reportes') + ' están en ' + b('Más') + '.')}
 <p>En ${b('Mi cuenta')} también eliges tus <b>preferencias de rol</b>, igual que un miembro (ver su manual).</p>`,
     },
     {
@@ -334,7 +334,7 @@ ${nota('ojo', 'Solo ves a las personas de <b>tu</b> distrito. No es un filtro de
     {
       id: 'tareas', titulo: 'Tareas: asignar y revisar',
       html: `
-<p>Aquí asignas trabajo a las personas de tu distrito y revisas lo que entregan. Tus propias tareas están en ${b('Entregas')}.</p>
+<p>Aquí asignas trabajo a las personas de tu distrito y revisas lo que entregan. Tus propias tareas están en ${b('Mis tareas')}.</p>
 ${captura('s-tareas', 'Tareas: filtros por estado, filtro por persona, «+ Nueva tarea» y una entrega por revisar.')}
 <h3>Asignar una tarea</h3>
 <p>La asignación tiene tres pasos, para decidir con los datos delante: <b>Qué</b>, <b>Quién</b> y <b>Rol y resumen</b>.</p>
@@ -354,7 +354,7 @@ ${tabla(['Aviso', 'Qué pasa'], [
         ['No participa en el período · fecha límite ya pasada', 'Aviso: la tarea no contaría en el resumen, o nacería vencida.']])}
 ${nota('consejo', 'La <b>preferencia</b> de una persona es solo información: puedes asignarle un rol que no prefiere si lo tiene habilitado. Y un rol que prefiere pero no tiene habilitado, no.')}
 <h3>Equipos de tu distrito</h3>
-<p>La administración arma <b>equipos</b> por período. En ${b('Tareas')} (y debajo de tus tareas en ${b('Entregas')}) ves los equipos <b>de tu distrito</b> o con integrantes tuyos. Puedes asignarles una <b>tarea del equipo</b> (una sola, compartida) y revisarla, <b>siempre que tú no seas integrante</b> de ese equipo. Aprobar o devolver funciona igual que con una tarea individual; la <b>nota es del grupo</b>. No creas ni cambias equipos: eso lo hace la administración.</p>
+<p>La administración arma <b>equipos</b> por período. En ${b('Tareas')} (y debajo de tus tareas en ${b('Mis tareas')}) ves los equipos <b>de tu distrito</b> o con integrantes tuyos. Puedes asignarles una <b>tarea del equipo</b> (una sola, compartida) y revisarla, <b>siempre que tú no seas integrante</b> de ese equipo. Aprobar o devolver funciona igual que con una tarea individual; la <b>nota es del grupo</b>. No creas ni cambias equipos: eso lo hace la administración.</p>
 <h3>Revisar una entrega</h3>
 ${pasos(
         `Entra a ${b('Tareas')} y usa el filtro ${b('Por revisar')} (muestra el número).`,
@@ -466,8 +466,8 @@ const admin = {
       id: 'bienvenida', titulo: 'Bienvenida y novedades',
       html: `
 <p>Hay dos recorridos y los dos se abren solos una vez. Si <b>ya usabas el portal</b>, ves <b>Novedades del portal</b>: <i>describe cada rol</i>, <i>roles permitidos por persona</i>, <i>Nueva tarea con rol por persona</i>, <i>actividades para el equipo, un distrito o personas</i> y <i>seguimiento y reportes entre períodos</i>. Si <b>llegas ahora</b>, ves la <b>bienvenida</b>:</p>
-<p>La bienvenida es una guía de cinco pasos: <b>revisar los períodos</b>, <b>describir los roles y sus perfiles</b>, <b>aprobar accesos y asignar rol y distrito</b>, <b>hacer tu primera evaluación</b> y <b>mirar el seguimiento global</b>. Cada paso te lleva a la pantalla; tu avance queda guardado y el ${b('Panel')} muestra la tarjeta ${b('Primeros pasos')} con ${b('Continuar')} hasta que termines (o digas ${b('Ahora no')}). Se repasa desde ${b('Mi cuenta')} → ${b('App')} → ${b('Bienvenida')}.</p>
-<p>Cada recorrido tiene su versión para creator, secretaría y administración, y cada persona retoma donde quedó. En ${b('Mi cuenta')} → ${b('App')} puedes repasarlo. Las personas que ya usaban el portal cuando se aplicó la actualización 0025 reciben las <b>novedades</b>; quienes se registren desde entonces, la <b>bienvenida</b>.</p>`,
+<p>La bienvenida es una guía de cinco pasos: <b>revisar los períodos</b>, <b>describir los roles y sus perfiles</b>, <b>aprobar accesos y asignar rol y distrito</b>, <b>hacer tu primera evaluación</b> y <b>mirar el seguimiento global</b>. Cada paso te lleva a la pantalla; tu avance queda guardado y el ${b('Panel')} muestra la tarjeta ${b('Primeros pasos')} con ${b('Continuar')} hasta que termines (o digas ${b('Ahora no')}). Se repasa desde ${b('Mi cuenta')} → ${b('App y ayuda')} → ${b('Bienvenida')}.</p>
+<p>Cada recorrido tiene su versión para creator, secretaría y administración, y cada persona retoma donde quedó. En ${b('Mi cuenta')} → ${b('App y ayuda')} puedes repasarlo. Las personas que ya usaban el portal cuando se aplicó la actualización 0025 reciben las <b>novedades</b>; quienes se registren desde entonces, la <b>bienvenida</b>.</p>`,
     },
     {
       id: 'entrada', titulo: 'Entrar al panel: gestión y período',

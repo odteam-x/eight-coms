@@ -39,11 +39,11 @@ Quién puede cada cambio (matriz `tarea_transicion_valida`):
 
 **Actores.** Quien asigna (administración a cualquiera; secretaría a miembros de **su** distrito); la persona asignada; quien revisa (administración o secretaría del distrito, **nunca** la propia tarea).
 
-**Pantallas.** Admin/Secretaría → **Tareas** (asignar y revisar) · Todos → **Entregas** (mis tareas) · Perfil → pestaña Tareas.
+**Pantallas.** Admin/Secretaría → **Tareas** (asignar y revisar) · Todos → **Mis tareas** · Perfil → pestaña Tareas.
 
 ### 11.1 Asignar (asistente «Nueva tarea» en tres pasos)
 
-Se abre con **+ Nueva tarea** en Tareas, o desde el perfil de una persona, o desde un día del calendario.
+Se abre con **+ Nueva tarea** en Tareas (si hay equipos activos en el período, primero pregunta **«¿para quién es?»**: **para personas** —una tarea para cada una— o **para un equipo** —una sola tarea compartida—), o desde el perfil de una persona, o desde un día del calendario.
 
 **Paso 1 · Qué.** Título (obligatorio, hasta 160 caracteres), **Qué se espera** (hasta **20 000** caracteres desde 0060: se puede pegar documentación completa), **fecha límite**, **prioridad** (baja, normal, alta), el **período** (si hay varios por roles) y, opcional, una **actividad** del calendario y **el rol para el que es el trabajo** (carga las responsabilidades y las competencias de ese rol).
 
@@ -95,7 +95,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 **Objetivo.** Que cualquier persona registre trabajo que decidió hacer por su cuenta y pueda contarlo como iniciativa.
 
-**Actor.** Cualquier persona con acceso aprobado. **Pantalla.** **Entregas → + Mi iniciativa** (formulario simple de `core/tareas.js`).
+**Actor.** Cualquier persona con acceso aprobado. **Pantalla.** **Mis tareas → + Mi iniciativa** (formulario simple de `core/tareas.js`).
 
 ### Actividades
 
@@ -117,7 +117,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 **Actores.** Administración (o la secretaría del distrito del equipo si ella no participa) asigna y revisa; los integrantes aportan y entregan.
 
-**Pantallas.** Admin → **Equipos** (dentro del equipo) · Entregas (bloque «Equipos») · Secretaría → **Tareas**.
+**Pantallas.** Admin → **Equipos** (dentro del equipo) · Mis tareas (bloque «Equipos») · Secretaría → **Tareas**.
 
 ### Actividades
 

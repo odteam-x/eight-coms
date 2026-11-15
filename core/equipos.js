@@ -666,7 +666,6 @@ const Equipos = (() => {
           <select class="cfg-inp cfg-select" data-change="eqFiltrarTareas" data-f="estado" aria-label="Estado de la tarea">
             ${FILTROS_TQ.map(([v, l]) => `<option value="${v}"${S.tq.estado === v ? ' selected' : ''}>${l}${v === 'revisar' && porRevisar ? ` (${porRevisar})` : ''}</option>`).join('')}
           </select></label>
-        ${soloLectura() || !(S.esAdmin || S.modo === 'tareas') ? '' : `<button type="button" class="btn-save" data-act="eq" data-arg="nueva-desde-tareas"><i data-lucide="plus" aria-hidden="true"></i>Nueva tarea de equipo</button>`}
       </div>
       ${!S.equipos.length ? `<div class="empty-box"><div class="empty-txt">Este PE todavía no tiene equipos${S.esAdmin ? ': créalos en la pestaña Equipos' : ''}.</div></div>`
         : !visibles.length ? `<div class="empty-box"><div class="empty-txt">${S.tareas.length ? 'Ninguna tarea coincide con el filtro.' : 'Todavía no hay tareas de equipo en este PE.'}</div></div>`
@@ -718,7 +717,9 @@ const Equipos = (() => {
     }
   }
 
-  return { montarAdmin, montarMiembro, montarTareas, accion, filtrar, filtrarTareas, tareaHTML, ESTADOS: EST_TAREA };
+  /** ¿Se puede crear una tarea de equipo desde la pestaña Tareas? (hay un PE por roles con equipos activos y no es solo lectura). */
+  const puedeNuevaDeEquipo = () => S.modo === 'tareas' && !soloLectura() && (S.equipos || []).some(e => e.estado === 'activo');
+  return { montarAdmin, montarMiembro, montarTareas, puedeNuevaDeEquipo, nuevaDesdeTareas: () => elegirEquipoParaTarea(), accion, filtrar, filtrarTareas, tareaHTML, ESTADOS: EST_TAREA };
 })();
 
 /* Globales de la lista blanca de config.js (data-input / data-change). */

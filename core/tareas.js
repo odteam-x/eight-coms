@@ -374,6 +374,21 @@ const Tareas = (() => {
     // Quien revisa (administración / secretaría) usa el flujo completo: roles por persona, equipos, validaciones.
     if (c.revisor && typeof Asignar !== 'undefined') {
       c.onCreadas = () => cargar(c);
+      // Una sola puerta para asignar: si hay equipos activos en el período, primero se pregunta si la tarea es para personas o para un equipo.
+      if (typeof Equipos !== 'undefined' && Equipos.puedeNuevaDeEquipo && Equipos.puedeNuevaDeEquipo()) {
+        return abrirModal({
+          titulo: 'Nueva tarea', confirmar: 'Continuar',
+          campos: [
+            { id: 'para', tipo: 'select', label: '¿Para quién es?', valor: 'personas',
+              opciones: [{ v: 'personas', l: 'Para personas (una tarea para cada una)' }, { v: 'equipo', l: 'Para un equipo (una sola tarea compartida)' }],
+              ayuda: 'Con «un equipo» hay una sola tarea con una sola entrega y una nota del grupo. Con «personas», cada una recibe la suya.' },
+          ],
+          onConfirm: async v => {
+            setTimeout(() => (v.para === 'equipo' ? Equipos.nuevaDesdeTareas() : Asignar.abrir(c)), 0);
+            return null;
+          },
+        });
+      }
       return Asignar.abrir(c);
     }
     const campos = [

@@ -56,9 +56,9 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 8 | Roles, segundo rol, perfiles de evaluación y rúbrica | Administración | Roles y perfiles · Rúbrica | 04 |
 | 9 | Distritos (estructura y ranking) | Administración / secretaría | Distritos | 04, 08 |
 | 10 | Equipos | Administración | Equipos | 04 |
-| 11 | Tarea individual: asignar → ejecutar → entregar → revisar → cerrar | Quien asigna, quien ejecuta, quien revisa | Tareas · Entregas | 05 |
-| 12 | Iniciativa propia | Cualquier persona con acceso | Entregas («+ Mi iniciativa») | 05 |
-| 13 | Tarea de equipo | Administración / secretaría; integrantes | Equipos · Entregas | 05 |
+| 11 | Tarea individual: asignar → ejecutar → entregar → revisar → cerrar | Quien asigna, quien ejecuta, quien revisa | Tareas · Mis tareas | 05 |
+| 12 | Iniciativa propia | Cualquier persona con acceso | Mis tareas («+ Mi iniciativa») | 05 |
+| 13 | Tarea de equipo | Administración / secretaría; integrantes | Equipos · Mis tareas | 05 |
 | 14 | Calificación de tareas (puntos, pesos, correcciones, reglas del PE) | Quien revisa; administración | Tareas (reglas) · perfil | 05 |
 | 15 | Evaluar por rol y publicar | Administración | Evaluar | 06 |
 | 16 | Rectificar o retirar una evaluación publicada | Administración | Evaluar (Historial de versiones) | 06 |
@@ -91,7 +91,7 @@ En paralelo, todo el tiempo: el **calendario** muestra fechas, actividades y tar
 | Grupo del menú | Entradas | Procesos que cubre |
 |---|---|---|
 | Centro de control | Panel · Desempeño · Seguimiento | 18 |
-| Operaciones | Evaluar · Tareas · Equipos · Calendario · Banco | 15, 11–14, 10, 19, 22 |
+| Operaciones | Evaluar · Tareas · Equipos · Calendario · Imágenes (Banco de imágenes) | 15, 11–14, 10, 19, 22 |
 | Organización | Personas · Distritos | 7, 9, 17 |
 | (suelto) | Reportes · Auditoría | 18, 22 |
 | Configuración | Un solo ítem que abre el índice: Períodos, Actividades, Rúbrica, Roles y perfiles, Gestiones, tema, selector de entrada | 5, 6, 8, 19 |

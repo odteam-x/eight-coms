@@ -2,7 +2,7 @@
 
 Este capítulo responde a lo que el dueño del proyecto observa: **hay cosas donde no deben estar y funciones que deberían ser principales y se pierden**. Se apoya en los procesos descritos en los capítulos 03 a 10 y en cómo están hoy las pantallas (capítulo 11).
 
-> **Importante.** Es un **análisis y una propuesta**, no cambios aplicados. Es mi criterio sobre lo que está en el repositorio; cada cambio se decide con el dueño. Se indica el esfuerzo estimado y qué **no** conviene tocar.
+> **Estado (15 de noviembre de 2026).** Este capítulo nació como propuesta y **ya se aplicó casi toda**. Ver la sección 13.7 («Qué se aplicó y qué no»). Se conserva el análisis original para que se entienda por qué.
 
 ## 13.1 Criterios con los que se juzga cada pantalla
 
@@ -127,3 +127,21 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 - **Tiempo hasta la primera acción**: cuánto tarda un miembro en encontrar sus tareas, su evaluación y su gafete; cuánto tarda la administración en publicar un período.
 - **Errores evitables**: publicaciones con reglas sin confirmar; personas evaluadas sin rol; tareas asignadas con «Excepción de rol» no intencionada.
 - **Preguntas al equipo**: «¿dónde está X?» (las respuestas deberían bajar tras los renombrados y los enlaces).
+
+## 13.7 Qué se aplicó y qué no
+
+| ID | Qué se hizo | Estado |
+|---|---|---|
+| **A1** | **Cierre del período**: lista de verificación en el Panel (fechas completas · reglas confirmadas · entregas por revisar · evaluaciones publicadas · estadísticas y evaluación de cada distrito). Solo lectura; cada fila lleva a donde se resuelve; lo que no se puede comprobar se omite | ✅ Aplicado |
+| **B5** | **Preparar la evaluación**: lista de verificación al inicio de Configuración (cada persona con rol y distrito · cada rol en uso con perfil vigente · fechas · reglas confirmadas) | ✅ Aplicado |
+| **B1** | **Una sola puerta para asignar**: **+ Nueva tarea** pregunta «¿para personas o para un equipo?»; se quitó el segundo botón «Nueva tarea de equipo» de la lista | ✅ Aplicado |
+| **C1** | «Entregas» → **«Mis tareas»** (menú, título, ayudas, manuales) | ✅ Aplicado |
+| **C2** | El menú dice **«Imágenes»** (cabe en el menú) y la pantalla **«Banco de imágenes»** | ✅ Aplicado (con matiz: el rótulo del menú es corto para que no se trunque) |
+| **C3** | La pantalla se titula **«Personas y accesos»** (el menú conserva «Personas» por el mismo motivo) | ✅ Aplicado (con matiz) |
+| **C4 / A4** | Pestaña **«App y ayuda»** en Mi cuenta | ✅ Aplicado |
+| **A2** | **«Ver mi desempeño»** en la tarjeta «Tu evaluación» de Inicio | ✅ Aplicado |
+| **A3** | **«Mi gafete»** en Mi cuenta → Perfil | ✅ Aplicado |
+| **B2** | Calendario con **Nueva actividad** y **Lista de actividades**; el ítem sigue resaltando «Calendario»; Configuración queda con los **tipos** | ◐ Parcial: la lista sigue siendo su propia pantalla, abierta desde el Calendario (moverla dentro del calendario es un cambio mayor) |
+| **A5** | El aviso de reglas «sin confirmar» aparece en las dos listas (Cierre y Preparar) | ◐ Cubierto por las listas; no hay resumen en la tarjeta de cada PE en Períodos |
+| **B3, B4, B6, A6** | Enlaces y resúmenes menores | ⏸ No se hicieron (bajo impacto; el Panel se deja como está por decisión del dueño) |
+| **E1–E8** | Procesos ausentes (cierre guiado con bloqueo, «Solicito tu ayuda», penalización por tardía, estados de Instagram, reenvío de confirmación, alertas atípicas, paginación y acciones masivas, asistencia) | ⏸ Sin empezar: dependen de decisiones de negocio o de volumen |

@@ -20,10 +20,10 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 
 - **Saludo y cuenta regresiva**: «Hola, Ana», el período en curso y una tarjeta con **los días que faltan** para la próxima fecha (por ejemplo «10 días para entrega de scores · PE2 · 25 nov»).
 - **Primeros pasos / Novedades**: tarjeta con el avance del asistente de bienvenida y botón **Continuar**.
-- **Tu evaluación**: anillo con la nota (0–100), el **nivel** (por ejemplo «Bueno»), «Individual sobre 100» y el **percentil en tu rol**; botón **Ver mi perfil**. Si no hay evaluación publicada, dice **cuándo se publicará**.
-- **Para atender**: tus tareas abiertas (las devueltas primero, después por fecha límite) con **Ir a Entregas**. Si no hay, lo dice.
+- **Tu evaluación**: anillo con la nota (0–100), el **nivel** (por ejemplo «Bueno»), «Individual sobre 100» y el **percentil en tu rol**; botones **Ver mi perfil** y **Ver mi desempeño**. Si no hay evaluación publicada, dice **cuándo se publicará**.
+- **Para atender**: tus tareas abiertas (las devueltas primero, después por fecha límite) con **Ir a Mis tareas**. Si no hay, lo dice.
 - **Próximas fechas**: las siguientes fechas del período y **Ver línea de tiempo**.
-- **En un período clásico** dice que las tareas no aplican y apunta a Entregas.
+- **En un período clásico** dice que las tareas no aplican y apunta a Mis tareas.
 - **Secretaría**: añade un bloque **«Tu distrito»** y la **bandeja de trabajo del distrito**: una fila por persona con lo que ella puede resolver hoy (tareas **vencidas** = abiertas con fecha anterior a hoy, la bloqueada no cuenta; y **entregas por revisar**), ordenada por días de atraso y después por tiempo de espera; cada fila abre el perfil.
 
 ## 8.2 Mi perfil (todas las personas)
