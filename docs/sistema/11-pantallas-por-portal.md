@@ -23,18 +23,18 @@ Reglas visuales transversales: título de pantalla con 4 niveles de jerarquía; 
 
 ## 11.1 Portal del miembro (`user.html`)
 
-Cinco destinos más Mi cuenta. Se entra con `Auth.requireRole('miembro')`.
+Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Imágenes). Se entra con `Auth.requireRole('miembro')`.
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Inicio** | ¿Qué necesito hacer ahora? | Ver cuenta regresiva, mi evaluación (anillo, nivel, percentil), tareas por atender, próximas fechas, bienvenida | 3, 18 |
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
-| **Entregas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
-| **Banco** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
+| **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
-En un período **clásico**, Entregas muestra el antiguo formulario «registrar trabajo».
+En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
 
 ---
 
@@ -43,7 +43,7 @@ En un período **clásico**, Entregas muestra el antiguo formulario «registrar 
 Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra con `Auth.requireAnyRole(['secretario','miembro'])`.
 
 ### Mi espacio
-**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Entregas**, **Banco** y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
+**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Imágenes** (Banco de imágenes) y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
 
 ### Mi distrito
 
@@ -68,7 +68,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
-| **Panel** | ¿Qué requiere atención? ¿cómo va el período? | **Requiere atención** (enlaces a donde se resuelve), **Datos por revisar**, 4 KPIs, análisis (acordeón) | 18 |
+| **Panel** | ¿Qué requiere atención? ¿cómo va el período? | **Requiere atención** (enlaces a donde se resuelve), **Datos por revisar**, **Cierre del período** (lista de verificación), 4 KPIs, análisis (acordeón) | 18 |
 | **Desempeño** | ¿Cómo les va? | KPIs, evolución del equipo, promedio por rol, **comparar dos períodos**, **comparar hasta 5 personas**, tarjetas por persona | 18 |
 | **Seguimiento** | ¿Quién está al día? | Persona × período por rol: estado de evaluación, resultado, hechos de tareas | 18 |
 
@@ -79,14 +79,14 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Evaluar** | Puntuar y publicar | Elegir persona, ver evidencia, puntuar núcleo y técnico (y segundo rol), guardar borrador, **publicar**, **rectificar**, **Historial de versiones**, eliminar borradores | 15, 16 |
 | **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega**, **Aprobar y puntuar**, **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
-| **Calendario** | Fechas y tareas del mes | Ver, crear actividad desde un día, asignar tarea desde un día | 19 |
-| **Banco** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
+| **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
 
 ### Organización
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
-| **Personas** | Accesos, roles, distrito | Tarjetas o tabla; filtros de estado; **Gestión**: aprobar, tipo, distrito, rol, **segundo rol**, participación, gafete, eliminar | 1, 7 |
+| **Personas y accesos** (menú: «Personas») | Accesos, roles, distrito | Tarjetas o tabla; filtros de estado; **Gestión**: aprobar, tipo, distrito, rol, **segundo rol**, participación, gafete, eliminar | 1, 7 |
 | **Distritos** | Evaluar y comparar distritos | Ranking acumulado; por distrito: **Resumen · Evaluación · Estadísticas · Personas** | 17 |
 
 ### Sueltos
@@ -95,13 +95,13 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Reportes** | **Todos los PE** (reporte general) o **Un PE en detalle** (constructor, hoja imprimible, CSV) | 18 |
 | **Auditoría** | Filtrar y leer cambios sensibles; descargar CSV | 22 |
 
-### Configuración (un solo ítem que abre el índice)
+### Configuración (un solo ítem que abre el índice; arriba, la lista «Preparar la evaluación»)
 
 | Sub-pantalla | Qué se hace | Proceso |
 |---|---|---|
 | **Gestiones** | Abrir gestión, ver archivadas | 5 |
 | **Períodos** | Crear/editar, fechas, modelo, activar | 6 |
-| **Actividades** | Crear actividades y tipos (etiquetas) | 19 |
+| **Actividades** (se abre desde el Calendario) | Lista y creación de actividades, y tipos (etiquetas) | 19 |
 | **Rúbrica** | Competencias comunes y de rol (con anclas), campos de registro; rúbrica clásica | 8 |
 | **Roles y perfiles** | Descripción, responsabilidades, requisitos; perfiles con pesos y versiones | 8 |
 

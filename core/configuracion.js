@@ -32,7 +32,7 @@ const Configuracion = (() => {
       { t: 'Niveles de desempeño', d: 'Solo lectura. Rúbrica por roles: Excelente desde 87, Bueno desde 67, En desarrollo desde 37 (sobre 100). Clásica: 26, 20 y 11 de 30. Distritos: 87, 67 y 37 % de 28.', tipo: 'info' },
     ] },
     { id: 'calendario', icono: 'calendar-days', titulo: 'Calendario y actividades', texto: 'Lo que se programa para el equipo y los distritos.', filas: [
-      { t: 'Actividades y tipos', d: 'Crear actividades (para todo el equipo, un distrito o personas elegidas) y administrar los tipos con su nombre y color.', acc: ir('calendario') },
+      { t: 'Tipos de actividad', d: 'Los tipos (etiquetas) con su nombre y color. Crear y ver las actividades se hace desde el Calendario: Lista de actividades.', acc: ir('calendario', 'Abrir actividades') },
       { t: 'Calendario', d: 'Vista del mes con períodos, actividades y tareas.', acc: ir('agenda', 'Abrir') },
     ] },
     { id: 'comunicacion', icono: 'bell', titulo: 'Comunicación', texto: 'Avisos, correos y recursos compartidos.', filas: [

@@ -2612,7 +2612,7 @@ const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
-  configuracion:'configuracion', periodos:'configuracion', calendario:'configuracion', rubrica:'configuracion', perfiles:'configuracion',
+  configuracion:'configuracion', periodos:'configuracion', calendario:'agenda', rubrica:'configuracion', perfiles:'configuracion',
   roles:'configuracion', distritos:'distritos', gestiones:'configuracion',
 };
 

@@ -4,7 +4,7 @@
 
 **Objetivo.** Que todos vean en un solo lugar las fechas de los períodos, las actividades del equipo o del distrito y los plazos de sus tareas.
 
-**Pantallas.** **Calendario** (para todos los roles; en administración se llama «Calendario» en Operaciones) y **Actividades** (administración: Configuración → Actividades; el calendario también permite crear desde un día).
+**Pantallas.** **Calendario** (para todos los roles) y, en administración, su **Lista de actividades** (botón en el propio Calendario; también se puede **crear una actividad** desde un día o con **Nueva actividad**). Los **tipos** (etiquetas) se administran en Configuración.
 
 ### 19.1 Qué junta el calendario
 
@@ -105,7 +105,7 @@ Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `nod
 
 **Objetivo.** Un lugar común con los **enlaces** a las fotos y videos de cada evento.
 
-**Pantalla.** **Banco** (administración: Operaciones; miembro y secretaría: junto a Entregas).
+**Pantalla.** **Banco de imágenes** (menú: «Imágenes»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
 
 ### Actividades
 

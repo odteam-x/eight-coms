@@ -75,6 +75,10 @@
 
 **Actor.** Administración. **Pantalla.** **Configuración** (`tab-configuracion`; `core/configuracion.js`).
 
+### Lo primero que se ve: «Preparar la evaluación»
+
+Arriba del índice hay una **lista de verificación** de solo lectura sobre el período elegido: cada persona con **rol** y **distrito**, cada rol en uso con su **perfil de evaluación vigente**, **fechas** completas y **reglas de tareas confirmadas**. Cada fila pendiente tiene un botón que lleva a donde se resuelve.
+
 ### Apartados
 
 Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya está cargado) y tiene un botón que **abre la pantalla que lo edita**; el tema y el selector de entrada se cambian **ahí mismo**.
@@ -83,7 +87,7 @@ Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya est
 |---|---|
 | **Organización** | Gestión · Períodos de evaluación · Distritos · Personas y accesos · Equipos |
 | **Evaluación** | Roles y perfiles · Rúbrica y criterios · Reglas de calificación de tareas (se abren en Tareas) · Niveles de desempeño (solo lectura) |
-| **Calendario y actividades** | Actividades y tipos · Calendario |
+| **Calendario y actividades** | Tipos de actividad (las actividades se crean y listan desde el Calendario) · Calendario |
 | **Comunicación** | Avisos y correos (informativo) · Banco de imágenes |
 | **Apariencia y entrada** | **Tema** (oscuro/claro/rosa, aquí mismo) · Selector de entrada («Volver a mostrar») · Mi cuenta |
 | **Seguridad y registro** | Auditoría · Gafetes (informativo: se gestionan desde el perfil) · Reportes |

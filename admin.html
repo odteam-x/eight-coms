@@ -90,6 +90,8 @@
   <div id="tab-agenda" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Calendario</h1>
+      <div class="pantalla-acc"><button type="button" class="btn-out" data-act="irTab" data-arg="calendario"><i data-lucide="list-checks"></i>Lista de actividades</button>
+        <button type="button" class="btn-save" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
       <p>Fechas de los períodos, actividades y tareas en un solo lugar. Elige un día para crear una actividad o asignar una tarea.</p>
     </div>
     <div id="agenda-host"></div>
@@ -250,7 +252,8 @@
   <div id="tab-calendario" class="atab-content">
     <div class="pantalla-cab">
       <h1 class="pantalla-t">Actividades</h1>
-      <div class="pantalla-acc"><button type="button" class="btn-save" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
+      <div class="pantalla-acc"><button type="button" class="btn-out" data-act="irTab" data-arg="agenda"><i data-lucide="calendar"></i>Volver al calendario</button>
+        <button type="button" class="btn-save" data-act="actNueva"><i data-lucide="plus"></i>Nueva actividad</button></div>
       <p>Capacitaciones, jornadas, reuniones y todo lo que pasa en el calendario. No dependen de los períodos; las fechas de cada período se editan en Períodos.</p>
     </div>
     <div class="cfg-toolbar"><input class="search-inp" id="search-actividades" aria-label="Buscar actividad" type="search" placeholder="Buscar actividad…" data-input="renderActividades"></div>

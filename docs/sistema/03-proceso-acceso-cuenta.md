@@ -81,7 +81,7 @@ En **Mi cuenta → Seguridad**: contraseña nueva y repetirla (mínimo 8 caracte
 
 ### Los pasos
 
-**Miembro:** 1) Conoce tu rol (descripción, responsabilidades y competencias) · 2) Pon tu foto y revisa tu nombre (Mi cuenta → Perfil) · 3) Cuéntanos qué rol te gustaría hacer (preferencias) · 4) Mira tus fechas (Calendario) · 5) Así se entrega un trabajo (Entregas).
+**Miembro:** 1) Conoce tu rol (descripción, responsabilidades y competencias) · 2) Pon tu foto y revisa tu nombre (Mi cuenta → Perfil) · 3) Cuéntanos qué rol te gustaría hacer (preferencias) · 4) Mira tus fechas (Calendario) · 5) Así se entrega un trabajo (Mis tareas).
 
 **Secretaría:** 1) Conoce tu rol · 2) Foto y nombre · 3) Conoce a tu distrito · 4) Asigna tu primera tarea · 5) Sigue a tu distrito (Seguimiento).
 
@@ -106,10 +106,10 @@ En celular, el botón de cerrar de la ventana tapa un poco la última letra del 
 
 | Pestaña | Qué hay |
 |---|---|
-| **Perfil** | Nombre (con **Guardar**), correo, tipo de acceso y distrito (solo lectura: los asigna la administración), **foto** y el **fondo de la tarjeta** (siete patrones de la marca, o «Auto») que ven quienes pueden abrir tu perfil |
+| **Perfil** | Nombre (con **Guardar**), correo, tipo de acceso y distrito (solo lectura: los asigna la administración), **foto** el **fondo de la tarjeta** (siete patrones de la marca, o «Auto») que ven quienes pueden abrir tu perfil, y **Mi gafete** (tu identificación con QR) |
 | **Mi rol** | Tu rol principal con descripción, responsabilidades y requisitos; tu rol secundario si lo tienes; y **«Mi rol y mis preferencias»**: ordena con flechas los roles que te gustaría hacer y marca uno como predeterminado (la estrella solo en roles que tengas habilitados). **No se muestra a la administración** (no se evalúa) |
 | **Seguridad** | Cambiar la contraseña |
-| **App** | **Tema** (oscuro, claro o rosa; se recuerda en ese dispositivo), **Instalar en tu celular**, la bienvenida/novedades, la **ayuda y manual de uso** y **Cerrar sesión** |
+| **App y ayuda** | **Tema** (oscuro, claro o rosa; se recuerda en ese dispositivo), **Instalar en tu celular**, la bienvenida/novedades, la **ayuda y manual de uso** y **Cerrar sesión** |
 
 ### Foto de perfil
 
