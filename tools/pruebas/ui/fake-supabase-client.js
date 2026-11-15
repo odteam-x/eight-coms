@@ -64,7 +64,7 @@
     periodos_evaluacion: [
       { id: P.pe1, gestion_id: 1, nombre: 'PE1', descripcion: 'Primer período', activo: false, modelo: 'legacy', v2_permitido: false, created_at: '2026-01-01T00:00:00Z' },
       { id: P.pe2, gestion_id: 1, nombre: 'PE2', descripcion: 'Segundo período', activo: true, modelo: 'v2', created_at: '2026-02-01T00:00:00Z', fecha_inicio: dia(-20), fecha_entrega: dia(10) },
-      { id: P.pe3, gestion_id: 1, nombre: 'PE3', descripcion: 'Tercer período', activo: false, modelo: 'v2', created_at: '2026-03-01T00:00:00Z' },
+      { id: P.pe3, gestion_id: 1, nombre: 'PE3', descripcion: 'Tercer período', activo: false, modelo: 'v2', created_at: '2026-03-01T00:00:00Z', fecha_inicio: dia(30), fecha_entrega: dia(60) },
     ],
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],

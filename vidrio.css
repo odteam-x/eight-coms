@@ -1007,3 +1007,7 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 
 /* 43. Rosa sin azul: el «vidrio navy» del §63 (contraste del tema oscuro) se aplicaba también al rosa y las tarjetas se veían azules sobre el vino. El rosa conserva su propio vidrio (rosas claros translúcidos sobre vino); solo el oscuro usa el navy. */
 [data-theme="rosa"] { --v-fill: rgba(255,255,255,.10); --v-fill2: rgba(255,255,255,.15); --v-line: rgba(255,255,255,.26); }
+
+/* 44. Período aún no iniciado (renderPEBar): visible pero apagado; al tocarlo dice cuándo empieza. */
+.pb--futuro { opacity: .6; cursor: not-allowed; }
+.pb--futuro:hover { background: transparent; }
