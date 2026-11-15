@@ -446,7 +446,7 @@ const Desempeno = (() => {
       ${typeof acordeonHTML === 'function'
         ? acordeonHTML({ id: 'des-personas', titulo: `Personas (${lista.length})`, resumen: `${escHtml(etiquetaPrincipal())}. El desempeño del equipo va primero; el detalle de cada persona, aquí.`, abierto: false, cuerpo: seccionIndividual(rs, est, lista) })
         : seccionIndividual(rs, est, lista)}
-      ${seccionTodas(rs, est)}
+      <p class="des-nota des-enlace">¿Quién está al día? El estado de cada evaluación y de las entregas, persona por persona y período por período, está en <button type="button" class="btn-out" data-act="irTab" data-arg="seguimiento">Seguimiento</button>.</p>
       <details class="seg-como"><summary>¿Cómo se calcula?</summary><ul class="rol-lista">
         <li><b>Fuente</b>: los mismos resultados del Seguimiento y del perfil de cada persona; aquí no se recalcula nada.</li>
         <li><b>Promedio del equipo</b>: media simple de los resultados publicados del período, una vez por persona.</li>

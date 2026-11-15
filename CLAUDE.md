@@ -717,3 +717,7 @@ Pestaña admin `configuracion` (`core/configuracion.js`, `configuracion.css`): �
 ### Tema claro según la referencia (2026-11-15)
 
 El tema claro pasa de «malla azul con vidrio» a: página casi blanca con lavado pastel (menta → azul), tarjetas **blancas sólidas** con sombra suave, texto casi negro, barra inferior blanca con el ítem activo en píldora oscura. `--v-1…--v-4` del claro son ahora los tonos de la página; el azul de marca que antes era `--v-1` es **`--v-azul`** (menú lateral y panel del acceso). Reglas del claro en `vidrio.css` §37. Si algo en claro usa `var(--v-1)` esperando el azul, debe pasar a `--v-azul`. Oscuro y rosa no cambian.
+
+### Seguimiento y Desempeño ya no hacen lo mismo (2026-11-15)
+
+Seguimiento responde «¿quién está al día?» (estado de cada evaluación, entregas a tiempo, vencidas, persona × período). Desempeño responde «¿cómo les va?» (resultados, evolución, comparaciones, promedio por rol, detalle de una persona). Se quitó de Desempeño la tabla «Todas las personas» (era la misma matriz persona × período del Seguimiento) y cada pantalla apunta a la otra. Las dos siguen leyendo `seguimiento_global()`: una sola fuente, no se recalcula nada.
