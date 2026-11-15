@@ -340,7 +340,15 @@ function mesDe(iso) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function renderPEBar(container, periodos, current, onSelect) {
+/** Un período «no iniciado» es el que empieza después de hoy. Quien no administra no entra a él: el botón dice «aún no iniciado» y la fecha. */
+function peNoIniciado(p, hoy) {
+  if (!p || !p.inicio) return false;
+  if (!hoy) { const h = new Date(); hoy = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0'); }
+  return String(p.inicio).slice(0, 10) > hoy;
+}
+
+function renderPEBar(container, periodos, current, onSelect, opciones = {}) {
+  const bloquearFuturos = opciones.bloquearFuturos !== false;   // la administración sí entra a un PE futuro (para prepararlo)
   if (!container) return;
 
   if (!periodos || !periodos.length) {
@@ -372,6 +380,15 @@ function renderPEBar(container, periodos, current, onSelect) {
     b.dataset.pe  = p.pe;
     b.setAttribute('aria-pressed', String(activo));
     if (p.nombre && p.nombre !== p.pe) b.title = p.nombre;
+    if (bloquearFuturos && peNoIniciado(p)) {
+      const cuando = typeof fechaCortaISO === 'function' ? fechaCortaISO(p.inicio) : String(p.inicio).slice(0, 10);
+      b.classList.add('pb--futuro'); b.classList.remove('active');
+      b.setAttribute('aria-disabled', 'true'); b.setAttribute('aria-pressed', 'false');
+      b.textContent = p.pe + ' · aún no inicia';
+      b.title = p.pe + ' aún no ha iniciado: empieza el ' + cuando + '.';
+      b.addEventListener('click', () => { if (typeof showToast === 'function') showToast(p.pe + ' aún no ha iniciado. Empieza el ' + cuando + '.', 'info'); });
+      return b;
+    }
     b.addEventListener('click', () => onSelect(p.pe, b));
     return b;
   }));

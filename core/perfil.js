@@ -664,7 +664,7 @@ const Perfil = (() => {
         </div>
       </article>`;
 
-    renderPEBar(document.getElementById(`${id}-pe`), periodos, periodo.pe, pe => _cambiarPeriodo(inst, pe));
+    renderPEBar(document.getElementById(`${id}-pe`), periodos, periodo.pe, pe => _cambiarPeriodo(inst, pe), { bloquearFuturos: inst.modo !== 'admin' });
     _peDesplazable(document.getElementById(`${id}-pe`), true);
     _pintarCabecera(inst);
     _pintarBarra(inst);
