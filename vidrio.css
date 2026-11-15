@@ -928,7 +928,7 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
    azul daba fondos de ~rgb(23,85,177): ahí el coral, el cian y el azul de enlaces caían a 1,9–3,8:1. Ahora, en oscuro, el vidrio es
    NAVY translúcido (el azul de la malla se ve, pero atenuado) y no se satura el fondo; en claro la zona de contenido de la malla es
    clara (el azul fuerte queda solo detrás del menú, que es azul de marca sólido). */
-:root:not([data-theme="light"]) { --v-fill: rgba(3,27,69,.64); --v-fill2: rgba(3,27,69,.74); --v-line: rgba(255,255,255,.2); }
+:root:not([data-theme="light"]):not([data-theme="rosa"]) { --v-fill: rgba(3,27,69,.64); --v-fill2: rgba(3,27,69,.74); --v-line: rgba(255,255,255,.2); }
 [data-theme="light"] body::before, [data-theme="light"] .panel--pantalla {
   background:
     radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
@@ -1004,3 +1004,6 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 [data-theme="light"] .rail .rail-sep { border-color: var(--v-line); }
 [data-theme="light"] .rail .rail-prox { color: var(--v-t); }
 [data-theme="light"] .rail .rail-logo { box-shadow: 0 0 0 1px var(--v-line), 0 6px 18px var(--v-sombra); }
+
+/* 43. Rosa sin azul: el «vidrio navy» del §63 (contraste del tema oscuro) se aplicaba también al rosa y las tarjetas se veían azules sobre el vino. El rosa conserva su propio vidrio (rosas claros translúcidos sobre vino); solo el oscuro usa el navy. */
+[data-theme="rosa"] { --v-fill: rgba(255,255,255,.10); --v-fill2: rgba(255,255,255,.15); --v-line: rgba(255,255,255,.26); }
