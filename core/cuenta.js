@@ -25,11 +25,10 @@ const Cuenta = (() => {
 
   const TABS = [
     { k: 'perfil', etiqueta: 'Perfil', icono: 'user-round' },
-    { k: 'rol', etiqueta: 'Mi rol', icono: 'group-2' },
     { k: 'seguridad', etiqueta: 'Seguridad', icono: 'lock' },
     { k: 'app', etiqueta: 'App y ayuda', icono: 'settings' },
   ];
-  const _tabsDe = () => TABS.filter(t => !(t.k === 'rol' && _p.es_admin));
+  const _tabsDe = () => TABS;
   const _tabGuardada = () => { try { return sessionStorage.getItem('ec-cuenta-tab'); } catch { return null; } };
 
   /** Muestra un panel y oculta los demás (cada panel es un role=tabpanel; los ocultos salen del árbol de accesibilidad). */
@@ -81,7 +80,10 @@ const Cuenta = (() => {
               ${_fila('Correo', 'Con este correo entras al portal.', `<span class="fila-aj-ind cuenta-val">${escHtml(_p.email || '—')}</span>`)}
               ${_fila('Tipo de acceso', 'Lo asigna la administración.', `<span class="fila-aj-ind cuenta-val">${escHtml(tipo)}</span>`)}
               ${_p.es_admin ? '' : _fila('Distrito', 'Lo asigna la administración.', `<span class="fila-aj-ind cuenta-val">${escHtml(_p.distrito || 'Sin asignar')}</span>`)}
-              ${_p.es_admin ? '' : `<button type="button" class="fila-aj" data-act="perfilGafete">
+              ${_p.es_admin ? '' : `<button type="button" class="fila-aj" data-act="tab" data-arg="rol">
+                <div class="fila-aj-txt"><div class="fila-aj-t">Mi rol y mis preferencias</div><div class="fila-aj-d">Qué se espera de tu rol y qué rol te gustaría hacer: ahora están en Mi perfil.</div></div>
+                <span class="fila-aj-ind"><i data-lucide="arrow-right"></i></span></button>
+              <button type="button" class="fila-aj" data-act="perfilGafete">
                 <div class="fila-aj-txt"><div class="fila-aj-t">Mi gafete</div><div class="fila-aj-d">Tu identificación con código QR: verla, descargarla o compartirla.</div></div>
                 <span class="fila-aj-ind"><i data-lucide="id-card"></i></span></button>`}
             </div>
@@ -92,7 +94,6 @@ const Cuenta = (() => {
           </div>
         </div>`)}
 
-      ${_p.es_admin ? '' : panel('rol', '', `<section aria-labelledby="cu-t-roles" id="cuenta-roles" class="cuenta-un-col"></section>`)}
 
       ${panel('seguridad', '', `
         <div class="cuenta-un-col">
@@ -148,7 +149,6 @@ const Cuenta = (() => {
     if (typeof Fondo !== 'undefined') Fondo.montar(host.querySelector('#cuenta-fondo'), _p);
     if (typeof renderIconos === 'function') renderIconos(host);
     // Las personas evaluadas (no la administración) eligen sus preferencias de rol (migración 0021).
-    if (!_p.es_admin && typeof Preferencias !== 'undefined') Preferencias.montar(document.getElementById('cuenta-roles'), _p);
     // Enter dentro de un formulario no recarga ni envía: dispara su botón.
     host.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => {
       e.preventDefault();

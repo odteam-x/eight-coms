@@ -281,7 +281,8 @@ console.log('\n[acceso: Entrar y Crear cuenta en una sola página]');
   ok(/c\.revisor && typeof Asignar/.test(fs.readFileSync(ROOT + 'core/tareas.js', 'utf8')), 'tareas.js: quien revisa usa el flujo nuevo; la iniciativa propia conserva el formulario simple');
   const pref = fs.readFileSync(ROOT + 'core/preferencias.js', 'utf8');
   ok(/predeterminado\(id\)[\s\S]{0,120}habilitado\(id\)/.test(pref) && /no te dan permisos|no te da permisos/.test(pref), 'preferencias: el predeterminado exige un rol habilitado y se dice que la preferencia no es un permiso');
-  ok(/!_p\.es_admin/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')), 'Mi cuenta: la administración (que no se evalúa) no ve «Mis preferencias de rol»');
+  const perfilJs = fs.readFileSync(ROOT + 'core/perfil.js', 'utf8');
+  ok(/inst\.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst\.persona\?\.es_admin/.test(perfilJs) && !/Preferencias\.montar/.test(fs.readFileSync(ROOT + 'core/cuenta.js', 'utf8')), 'Mi rol y preferencias viven en Mi perfil (pestaña Mi rol); la administración (que no se evalúa) no lo ve y Mi cuenta ya no lo monta');
 
   console.log('\n[componentes con lógica, en un contexto con stubs]');
   const ctx = { escHtml, initials: n => String(n).split(' ').map(x => x[0]).join(''), renderIconos() {}, document: { addEventListener() {} }, HTMLInputElement: class {}, console,

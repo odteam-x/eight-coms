@@ -41,6 +41,8 @@ const Perfil = (() => {
   /** En el perfil PROPIO, «Evolución» la reemplaza «Desempeño» (core/desempeno.js): trae la misma evolución y además la
    *  tabla por período y la comparación entre períodos propios. El perfil de OTRA persona (secretaría, admin) conserva Evolución. */
   const TAB_DESEMPENO = { k: 'desempeno', etiqueta: 'Desempeño', icono: 'line-chart' };
+  /** «Mi rol y mis preferencias» vive en el perfil propio (antes estaba en Mi cuenta): el rol es parte de cómo te evalúan. */
+  const TAB_ROL = { k: 'rol', etiqueta: 'Mi rol', icono: 'group-2' };
 
   const _fmt = (n, d = 1) => fmtNum(n, d);
   /** 0–6: qué patrón de la marca lleva la cabecera de esta persona. */
@@ -173,9 +175,10 @@ const Perfil = (() => {
 
     const accionesCfg = [...(_cfg.acciones || [])];
     // El gafete lo ve cada persona en su propio perfil; la administración, en el de cualquiera (0052).
+    if (inst.modo === 'propio') accionesCfg.push({ act: 'tab', etiqueta: 'Mi cuenta', icono: 'settings', arg: 'cuenta' });
     if (inst.modo === 'propio' || _cfg.gafete?.esAdmin) accionesCfg.push({ act: 'perfilGafete', etiqueta: inst.modo === 'propio' ? 'Mi gafete' : 'Gafete', icono: 'id-card' });
     const acciones = accionesCfg.map(a => `
-      <button type="button" class="perfil-accion" data-act="${escHtml(a.act)}" data-arg="${escHtml(p.id)}">
+      <button type="button" class="perfil-accion" data-act="${escHtml(a.act)}" data-arg="${escHtml(a.arg || p.id)}">
         <i data-lucide="${escHtml(a.icono || 'arrow-right')}" aria-hidden="true"></i><span>${escHtml(a.etiqueta)}</span>
       </button>`).join('');
 
@@ -545,7 +548,8 @@ const Perfil = (() => {
     // Las pestañas de gestión (solo administración) van PRIMERO: la configuración queda a un toque.
     const extra = (_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin);
     const base = inst.modo === 'propio' && typeof Desempeno !== 'undefined' ? TABS.map(t => (t.k === 'evolucion' ? TAB_DESEMPENO : t)) : TABS;
-    return [...extra.filter(t => t.soloAdmin), ...base, ...extra.filter(t => !t.soloAdmin)];
+    const conRol = inst.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst.persona?.es_admin ? [...base, TAB_ROL] : base;
+    return [...extra.filter(t => t.soloAdmin), ...conRol, ...extra.filter(t => !t.soloAdmin)];
   }
 
   async function _pintarPanel(inst) {
@@ -561,6 +565,7 @@ const Perfil = (() => {
       else if (inst.tab === 'periodos')  await PerfilPE.pintar(inst, cuerpo, () => seq === inst.seq && inst.tab === 'periodos');
       else if (inst.tab === 'evolucion') _panelEvolucion(inst, cuerpo);
       else if (inst.tab === 'desempeno') await Desempeno.montarPropio(cuerpo, { yo: inst.persona.id });
+      else if (inst.tab === 'rol' && inst.modo === 'propio') { cuerpo.innerHTML = '<section aria-labelledby="cu-t-roles" id="cuenta-roles" class="cuenta-un-col"></section>'; await Preferencias.montar(document.getElementById('cuenta-roles'), (typeof CU !== 'undefined' && CU && CU.id === inst.persona.id) ? CU : inst.persona); }
       else                               await _panelResumen(inst, cuerpo, seq);
     } catch (e) {
       console.error('[Perfil]', e);

@@ -676,7 +676,7 @@ function renderLineaTiempo() {
 /* Se aceptan los nombres viejos por si queda algún enlace guardado. */
 const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
-  ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil',
+  ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil',
 };
 const _secTabParent = { banco:'banco', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
@@ -692,6 +692,7 @@ function switchTab(tab, btn) {
   if (tab === 'perfil' && (original === 'historial' || original === 'reportes')) Perfil.tab('evolucion', document.getElementById('perfil-host'));
   // «Mi desempeño» ahora es la pestaña Desempeño de Mi perfil.
   if (tab === 'perfil' && original === 'desempeno') Perfil.tab('desempeno', document.getElementById('perfil-host'));
+  if (tab === 'perfil' && original === 'rol') Perfil.tab('rol', document.getElementById('perfil-host'));
   if (tab === 'distrito' && original === 'ranking') seleccionarDistritoTab('ranking');
 
   // Entregas reúne trabajos, fechas del período y calendario: es la
