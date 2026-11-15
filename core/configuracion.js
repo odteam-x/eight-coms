@@ -18,7 +18,7 @@ const Configuracion = (() => {
 
   /** Cada apartado: id, título, una línea de contexto y sus filas (qué se configura). `valor(d)` es opcional. */
   const APARTADOS = [
-    { id: 'organizacion', icono: 'building-2', titulo: 'Organización', texto: 'Cómo se divide el trabajo en el tiempo y entre las personas.', filas: [
+    { id: 'organizacion', icono: 'map-pin', titulo: 'Organización', texto: 'Cómo se divide el trabajo en el tiempo y entre las personas.', filas: [
       { t: 'Gestión', d: 'El año de trabajo. Cada gestión tiene sus propios períodos, criterios, rúbrica y calendario; al abrir una nueva se archiva la anterior.', valor: d => d.gestion, acc: ir('gestiones') },
       { t: 'Períodos de evaluación', d: 'Nombre, fechas (inicio, fin del trabajo, entrega, jornada), modelo de rúbrica y cuál está activo.', valor: d => d.periodos != null ? `${d.periodos} períodos${d.periodoActivo ? ' · activo: ' + d.periodoActivo : ''}` : '', acc: ir('periodos') },
       { t: 'Distritos', d: 'Evaluación de distrito, ranking acumulado y estadísticas de Instagram por período.', valor: d => d.distritos != null ? `${d.distritos} distritos` : '', acc: ir('distritos') },
@@ -39,12 +39,12 @@ const Configuracion = (() => {
       { t: 'Avisos y correos', d: 'Qué sale por la campana y por correo lo define la plataforma; cada persona elige sus avisos opcionales en Mi cuenta. Los esenciales (tarea asignada, acceso, cambios de plazo) siempre se envían.', tipo: 'info' },
       { t: 'Banco de imágenes', d: 'Imágenes de apoyo y recursos para el equipo.', acc: ir('banco', 'Abrir') },
     ] },
-    { id: 'apariencia', icono: 'palette', titulo: 'Apariencia y entrada', texto: 'Cómo se ve el portal para ti y cómo empiezas cada sesión.', filas: [
+    { id: 'apariencia', icono: 'image', titulo: 'Apariencia y entrada', texto: 'Cómo se ve el portal para ti y cómo empiezas cada sesión.', filas: [
       { t: 'Tema', d: 'Oscuro, claro o rosa. Se recuerda en este dispositivo.', acc: { tipo: 'tema' } },
       { t: 'Selector de entrada', d: 'Vuelve a mostrar «¿Con qué vas a trabajar?» (gestión y período) al entrar.', acc: { tipo: 'fn', arg: 'restablecerEntrada', etq: 'Volver a mostrar' } },
       { t: 'Mi cuenta', d: 'Tu nombre, foto, contraseña y preferencias de aviso.', acc: ir('cuenta', 'Abrir') },
     ] },
-    { id: 'seguridad', icono: 'shield-check', titulo: 'Seguridad y registro', texto: 'Quién cambió qué y cómo se acredita a las personas.', filas: [
+    { id: 'seguridad', icono: 'history', titulo: 'Seguridad y registro', texto: 'Quién cambió qué y cómo se acredita a las personas.', filas: [
       { t: 'Auditoría', d: 'Registro de cambios de personas, períodos, gestiones, evaluaciones, notas, reglas y equipos, con filtros y descarga en CSV.', acc: ir('auditoria', 'Abrir') },
       { t: 'Gafetes', d: 'Cada persona tiene su gafete con QR. Se abre, revoca o reactiva desde su perfil, en Personas.', tipo: 'info' },
       { t: 'Reportes', d: 'Reporte general, por distrito y por equipo, con exportación.', acc: ir('reportes', 'Abrir') },
