@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="desempeno.css">
   <link rel="stylesheet" href="estadisticas-distrito.css">
   <link rel="stylesheet" href="distritos.css">
+  <link rel="stylesheet" href="configuracion.css">
   <link rel="stylesheet" href="reporte-general.css">
   <link rel="stylesheet" href="derechos.css">
   <link rel="stylesheet" href="vidrio.css">
@@ -263,6 +264,13 @@
     </div>
     <div class="filtros-fila" id="seg-controles"></div>
     <div id="seguimiento-host"></div>
+  </div>
+
+  <!-- ── TAB: CONFIGURACIÓN GENERAL (índice de todo lo configurable; core/configuracion.js) ── -->
+  <div id="tab-configuracion" class="atab-content">
+    <div class="pantalla-cab"><h1 class="pantalla-t">Configuración</h1>
+      <p>Todo lo que se puede configurar en el portal, por apartado. Cada fila dice qué se configura y te lleva a su pantalla.</p></div>
+    <div id="configuracion-host"></div>
   </div>
 
   <!-- ── TAB: AUDITORÍA (registro global de acciones; core/auditoria.js, migración 0055) ── -->
@@ -641,6 +649,7 @@
 <script defer src="core/seguimiento.js"></script>
 <script defer src="core/desempeno.js"></script>
 <script defer src="core/auditoria.js"></script>
+<script defer src="core/configuracion.js"></script>
 <script defer src="core/reporte-equipo.js"></script>
 <script defer src="core/reporte-general.js"></script>
 <script defer src="core/preferencias.js"></script>
