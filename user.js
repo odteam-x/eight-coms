@@ -134,8 +134,8 @@ async function initUI() {
         { tab:'inicio',   icono:'house',       etiqueta:'Inicio'    },
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
         { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
-        { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas'  },
-        { tab:'banco',    icono:'image',       etiqueta:'Banco', titulo:'Banco de imágenes' },
+        { tab:'trabajos', icono:'folder-open', etiqueta:'Mis tareas', titulo:'Mis tareas' },
+        { tab:'banco',    icono:'image',       etiqueta:'Imágenes', titulo:'Banco de imágenes' },
       ]}],
     });
     // montarAvatar() de core/render.js: pinta la foto si la hay, las

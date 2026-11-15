@@ -36,7 +36,7 @@ const Bienvenida = (() => {
           { id: 'cuenta', t: 'Pon tu foto y revisa tu nombre', d: 'Así el equipo te reconoce. Está en Mi cuenta → Perfil.', ir: 'cuenta', sub: enCuenta('perfil'), cta: 'Ir a Mi cuenta', auto: p => !!p.avatar_url },
           { id: 'preferencias', t: 'Cuéntanos qué rol te gustaría hacer', d: 'Ordena tus preferencias de rol. Quien reparte las tareas las tiene en cuenta; no te dan permisos ni te impiden recibir otro trabajo.', ir: 'cuenta', sub: enCuenta('rol'), cta: 'Elegir mis preferencias', auto: 'prefs' },
           { id: 'fechas', t: 'Mira tus fechas', d: 'El Calendario junta las fechas de cada período, las actividades y los plazos de tus tareas.', ir: 'calendario', cta: 'Abrir el calendario' },
-          { id: 'entregas', t: 'Así se entrega un trabajo', d: 'En Entregas ves lo que te asignaron, lo empiezas, lo entregas con un enlace o una nota, y quien revisa lo aprueba o te dice qué corregir.', ir: 'trabajos', cta: 'Ir a Entregas' },
+          { id: 'entregas', t: 'Así se entrega un trabajo', d: 'En Mis tareas ves lo que te asignaron, lo empiezas, lo entregas con un enlace o una nota, y quien revisa lo aprueba o te dice qué corregir.', ir: 'trabajos', cta: 'Ir a Entregas' },
         ],
         secretario: [
           { id: 'rol', t: 'Conoce tu rol', d: 'Además de ser secretaría de tu distrito, tienes un rol en el equipo: esto es lo que se espera de él.', cta: null },

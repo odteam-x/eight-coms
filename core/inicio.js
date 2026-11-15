@@ -66,7 +66,8 @@ const Inicio = (() => {
 
   function _evaluacionHTML(persona, periodo, ev) {
     const cab = `<div class="pf-card-cab"><h2 class="pf-h">Tu evaluación</h2>
-      <button type="button" class="pf-enlace" data-act="tab" data-arg="perfil">Ver mi perfil<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
+      <div class="pf-enlaces"><button type="button" class="pf-enlace" data-act="tab" data-arg="perfil">Ver mi perfil<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+        <button type="button" class="pf-enlace" data-act="tab" data-arg="desempeno">Ver mi desempeño<i data-lucide="arrow-right" aria-hidden="true"></i></button></div></div>`;
     if (!periodo) return `${cab}<p class="pf-vacio">Cuando haya un período en curso verás aquí cómo vas.</p>`;
     if (!ev) {
       const f = fechaLarga(fechaDisponibilidad(periodo, Store.get('calendario') || null));
@@ -91,9 +92,9 @@ const Inicio = (() => {
   /** Tareas que piden atención: devueltas primero, luego por fecha. */
   function _atenderHTML(periodo, datos) {
     const cab = (titulo) => `<div class="pf-card-cab"><h2 class="pf-h">${titulo}</h2>
-      <button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ir a Entregas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
+      <button type="button" class="pf-enlace" data-act="tab" data-arg="trabajos">Ir a Mis tareas<i data-lucide="arrow-right" aria-hidden="true"></i></button></div>`;
     if (!periodo || !esPeriodoV2(periodo)) {
-      return `${cab('Para atender')}<p class="pf-vacio">Este período usa el registro de trabajos: lo que hiciste se agrega en Entregas.</p>`;
+      return `${cab('Para atender')}<p class="pf-vacio">Este período usa el registro de trabajos: lo que hiciste se agrega en Mis tareas.</p>`;
     }
     if (!datos || datos.noDisponible) return `${cab('Para atender')}<p class="pf-vacio">Las tareas todavía no están activas.</p>`;
     if (datos.error) return `${cab('Para atender')}<p class="pf-vacio" role="alert">No se pudieron cargar las tareas.</p>`;
@@ -108,7 +109,7 @@ const Inicio = (() => {
         return `<li class="pf-tarea"><span class="tk-pill tk-pill--${e.cls}">${escHtml(e.txt)}</span>
           <div class="pf-tarea-txt"><div class="pf-tarea-t">${escHtml(t.titulo)}</div><div class="pf-tarea-m">${Tareas.plazoHTML(t)}</div></div></li>`;
       }).join('')}</ul>
-      ${abiertas.length > 4 ? `<p class="pf-nota">y ${abiertas.length - 4} más en Entregas.</p>` : ''}`;
+      ${abiertas.length > 4 ? `<p class="pf-nota">y ${abiertas.length - 4} más en Mis tareas.</p>` : ''}`;
   }
 
   function _fechasHTML(hitos) {

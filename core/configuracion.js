@@ -73,7 +73,7 @@ const Configuracion = (() => {
   function montar(host, { datos } = {}) {
     if (!host) return;
     const d = (typeof datos === 'function' ? datos() : null) || {};
-    host.innerHTML = `<div class="cg">
+    host.innerHTML = `<div id="cg-preparar"></div><div class="cg">
       <nav class="cg-indice" aria-label="Apartados de configuración"><ul>${APARTADOS.map(a => `<li><a href="#cg-${escHtml(a.id)}" data-act="cgIr" data-arg="${escHtml(a.id)}"><i data-lucide="${escHtml(a.icono)}" aria-hidden="true"></i><span>${escHtml(a.titulo)}</span></a></li>`).join('')}</ul></nav>
       <div class="cg-apartados">${APARTADOS.map(a => `<section class="tarjeta cg-ap" id="cg-${escHtml(a.id)}" aria-labelledby="cg-t-${escHtml(a.id)}">
         <h2 class="cuenta-t" id="cg-t-${escHtml(a.id)}">${escHtml(a.titulo)}</h2><p class="cg-ap-txt">${escHtml(a.texto)}</p>

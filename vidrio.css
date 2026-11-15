@@ -256,11 +256,12 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .atn-fila--dato .atn-t { white-space: normal; }
 
 @media (min-width: 1100px) {
-  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-areas: "cab pe" "bv bv" "kpi atn" "evol evol" "acc acc"; column-gap: 16px; align-items: stretch; }
+  #tab-overview.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-areas: "cab pe" "bv bv" "kpi atn" "cie cie" "evol evol" "acc acc"; column-gap: 16px; align-items: stretch; }
   #tab-overview > .pantalla-cab { grid-area: cab; align-self: end; }
   #tab-overview > .eval-pe-bar { grid-area: pe; align-self: end; justify-self: end; }
   #tab-overview > #bv-slot { grid-area: bv; }
   #tab-overview > #ov-atencion { grid-area: atn; }
+  #tab-overview > #ov-cierre { grid-area: cie; }
   #tab-overview > #ov-body { display: contents; }
   #ov-body > .panel-kpis { grid-area: kpi; grid-template-rows: 1fr 1fr; }
   #ov-body > .panel-grid--evol { grid-area: evol; }
@@ -966,3 +967,23 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .cal2-dia--sel:hover .cal2-num { background: var(--v-activo); color: var(--v-activo-txt); }
 .cal2-dia--hoy:hover .cal2-num { background: var(--v-coral); color: var(--v-navy); }
 .btn-save:hover:not(:disabled), .tk-btn--main:hover:not(:disabled), .btn-login:hover:not(:disabled), .btn--primario:hover:not(:disabled), .btn-publish:hover:not(:disabled), .btn-confirm:hover:not(:disabled) { background-image: none; background-color: color-mix(in srgb, var(--v-activo) 86%, var(--v-t2)); color: var(--v-activo-txt); filter: none; }
+
+/* 40. Dos enlaces en la cabecera de «Tu evaluación» (Ver mi perfil · Ver mi desempeño). */
+.pf-enlaces { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2) var(--sp-4); }
+
+/* 41. Listas de verificación (core/cierre.js): «Cierre del período» en el Panel y «Preparar la evaluación» en Configuración. Tarjeta de vidrio, filas con filete, icono de estado (nunca una barra en un borde). */
+.cr { margin: var(--sp-4) 0; padding: var(--sp-4) var(--sp-5); border-radius: 28px; background: var(--v-fill); border: 1px solid var(--v-line); }
+.cr-cab, .cr-sum { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.cr-sum { cursor: pointer; list-style: none; min-height: 44px; }
+.cr-sum::-webkit-details-marker { display: none; }
+.cr-t-h { font: 600 var(--h3)/1.15 var(--font-display); letter-spacing: -.01em; color: var(--v-t); }
+.cr-prog { flex: none; padding: 4px 12px; border-radius: 999px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--v-t); }
+.cr-sub { margin: var(--sp-2) 0 0; color: var(--v-t2); font-size: var(--fs-sm); }
+.cr-lista { list-style: none; margin: var(--sp-3) 0 0; padding: 0; }
+.cr-fila { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--v-line); }
+.cr-ico { flex: none; width: 22px; height: 22px; color: var(--alert); }
+.cr-ok .cr-ico { color: var(--data-txt, var(--v-t)); }
+.cr-txt { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+.cr-t { font: 600 var(--fs-md)/1.25 var(--font-ui); color: var(--v-t); }
+.cr-d { color: var(--v-t2); font-size: var(--fs-sm); line-height: 1.4; }
+@media (max-width: 639px) { .cr { padding: var(--sp-4); } .cr-fila { flex-wrap: wrap; } .cr-fila .atn-acc { margin-left: calc(22px + var(--sp-3)); } }
