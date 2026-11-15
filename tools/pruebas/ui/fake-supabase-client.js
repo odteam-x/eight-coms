@@ -281,7 +281,7 @@
         const prof = DB.profiles.find(x => x.id === p.asignada_a);
         if (!esAdmin() && p.asignada_a !== meId && !(esSec() && distritoIds().includes(p.asignada_a))) throw new Error(esSec() ? 'Solo puedes asignar tareas a miembros de tu distrito.' : 'Solo puedes crear tareas para ti.');
         if (!prof) throw new Error('Persona desconocida');
-        Object.assign(p, { id: seq.tarea++, origen: p.asignada_a === meId ? 'propia' : 'asignada', asignada_por: meId, estado: 'asignada', fecha_limite_original: p.fecha_limite || null,
+        Object.assign(p, { id: seq.tarea++, origen: p.asignada_a === meId ? 'propia' : 'asignada', asignada_por: meId, estado: (p.asignada_a === meId ? 'en_curso' : 'asignada'), fecha_limite_original: p.fecha_limite || null,
           entrega_url: null, entrega_nota: null, revision_nota: null, bloqueo_motivo: null, entregada_en: null, aprobada_en: null, rondas_revision: 0,
           criterios: p.criterios || [], prioridad: p.prioridad || 'normal', descripcion: p.descripcion || '', created_at: ahora(), updated_at: ahora() });
         // 0021: el rol de la tarea debe estar entre los permitidos de la persona (la administración puede salirse: queda marcado)

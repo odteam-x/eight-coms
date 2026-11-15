@@ -212,6 +212,7 @@ const ACCIONES = {
 
   /* ── Acciones del marcado generado por los portales ── */
   irTab:        (a)             => goTab(a),
+  cgIr:         (a)             => window.Configuracion?.ir(a),
   rankTab:      (a)             => switchRankTab(a),
   abrirCerrar:  (a)             => document.getElementById(a)?.classList.toggle('open'),
   // Un solo argumento

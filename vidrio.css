@@ -13,12 +13,14 @@
   --v-scrim:rgba(3,27,69,.62); --v-scrim-fuerte:rgba(3,27,69,.84);   /* telón detrás de diálogos, paneles y hojas: sigue al tema */
 }
 [data-theme="light"] {
-  --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
-  --v-brillo:rgba(0,203,255,.16); --v-calido:rgba(255,138,140,.20);
-  --v-fill:rgba(255,255,255,.58); --v-fill2:rgba(255,255,255,.76); --v-line:rgba(255,255,255,.75); --v-hi:#FFFFFF;
-  --v-sombra:rgba(27,73,168,.16); --v-p2:14%; --v-p3:44%; --v-solido:#EAF1FA;
-  --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
-  --v-activo:#031B45; --v-activo-txt:#FFFFFF;
+  /* Referencia del dueño (2026-11-15): página casi blanca con un lavado pastel menta → azul arriba, tarjetas blancas sólidas con sombra suave, texto casi negro, barra inferior blanca. --v-azul es el azul de marca que antes era --v-1 (menú lateral, panel de acceso). */
+  --v-azul:#1B49A8;
+  --v-1:#F3F6FA; --v-2:#EAF6F1; --v-3:#E2ECFB; --v-4:#F6F7FB;
+  --v-brillo:rgba(150,230,195,.50); --v-calido:rgba(150,190,250,.42);
+  --v-fill:#FFFFFF; --v-fill2:#FFFFFF; --v-line:rgba(15,30,60,.09); --v-hi:#FFFFFF;
+  --v-sombra:rgba(30,50,90,.10); --v-p2:26%; --v-p3:58%; --v-solido:#FFFFFF;
+  --v-t:#0B1220; --v-t2:#445064; --v-tm:#5B6678;
+  --v-activo:#0B1220; --v-activo-txt:#FFFFFF;
   --v-scrim:rgba(24,36,58,.34); --v-scrim-fuerte:rgba(18,28,46,.78);   /* en claro el telón es gris pizarra, no el azul de marca */
   /* Contrastes del tema claro corregidos al pasar al vidrio: --nivel-on seguía apuntando a --surface-1, que ahora es un blanco translúcido (2.6-3.3 sobre los niveles de las matrices); --action sobre el vidrio sobre la malla azul daba 3.86 (enlaces y «¿Cómo se calcula?»). */
   --nivel-on:#FFFFFF; --action:#00539F;
@@ -121,11 +123,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .pcard .pcard-nombre, .pcard b { color: var(--v-t); }
 
 /* 13. Tema claro: el menú es una columna azul propia (la malla ya es clara bajo el contenido) */
-[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-1), color-mix(in srgb, var(--v-1) 75%, var(--v-2))) !important; border-right: 0; }
+[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-azul), color-mix(in srgb, var(--v-azul) 75%, #4A79C6)) !important; border-right: 0; }
 
 /* 14. Tema claro: el hero es vidrio claro, su texto pasa a navy (los tokens de «sobre marca» eran claros) */
 [data-theme="light"] .sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); }
-[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-1); }
+[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-azul); }
 [data-theme="light"] .inicio-sub, [data-theme="light"] .inicio-dias-lbl, [data-theme="light"] .inicio-dias-pe { color: var(--v-t2); }
 
 /* 15. Acceso (referencias: Stripe, Vercel, Figma): enlace de recuperación en la fila de la contraseña, menos ruido junto al formulario */
@@ -191,7 +193,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 @media (min-width: 760px) { .login-layout .login-seg { width: 100%; max-width: 420px; } .login-layout .login-seg-btn { min-width: 0; } }
 /* Tema claro: la malla bajo el panel de marca es azul medio; el texto navy no llega a 4.5:1. El panel pasa a columna azul propia (igual que el menú) con texto claro */
 [data-theme="light"] .login-layout .login-panel-brand {
-  background: linear-gradient(160deg, var(--v-1), color-mix(in srgb, var(--v-1) 72%, var(--v-2))) !important;
+  background: linear-gradient(160deg, var(--v-azul, var(--v-1)), color-mix(in srgb, var(--v-azul, var(--v-1)) 72%, var(--v-2))) !important;
   --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-line: rgba(255,255,255,.26);
 }
 [data-theme="light"] .login-layout .login-panel-brand::before { opacity: .22; }
@@ -462,7 +464,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 
 /* 39. Celular, tema claro: la cabecera y la barra inferior son superficies de marca (texto e iconos claros, ver CLAUDE.md);
    el sólido del tema claro (#EAF1FA) las dejaba blanco sobre blanco. Van en el azul de la columna del menú (texto 7:1). */
-[data-theme="light"] .cab-movil, [data-theme="light"] .bottom-bar { background: var(--v-1); }
+[data-theme="light"] .cab-movil { background: var(--v-1); }
 @media (max-width: 480px) {
   .kpi-c { grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "num" "sub" "bar"; row-gap: 4px; }
   .kpi-c-num { font-size: 1.9rem; }
@@ -551,7 +553,7 @@ h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
    ese sólido. Antes era translúcida y la pantalla de debajo se leía a través, montada sobre los iconos y las acciones. */
 .bb-hoja { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .bb-hoja-panel { background: var(--v-solido); border: 1px solid var(--v-line); border-bottom: 0; color: var(--v-t); box-shadow: 0 -18px 48px var(--v-sombra); }
-[data-theme="light"] .bb-hoja-panel { background: var(--v-1); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
+[data-theme="light"] .bb-hoja-panel { background: var(--v-azul); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
 .bb-hoja-item, .bb-hoja-cuenta { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .bb-hoja-ver, .bb-hoja-badge { color: var(--v-t2); }
 [data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-cuenta { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); color: var(--on-brand); }
@@ -878,3 +880,12 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 
 .pf-sub, .pe-sub, h4.pf-sub, .tk-titulo { font: 600 var(--h4)/1.3 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--v-t); }
 .pf-sub, .pe-sub { color: var(--v-t2); }
+
+/* 37. Tema claro según la referencia: tarjetas blancas con sombra suave (no vidrio), barra inferior blanca con iconos oscuros y el activo en píldora oscura. */
+[data-theme="light"] .pf-card, [data-theme="light"] .pf-kpi, [data-theme="light"] .tarjeta, [data-theme="light"] .kpi, [data-theme="light"] .tk-card, [data-theme="light"] .lista-aj, [data-theme="light"] .panel-card {
+  background: #FFFFFF; border: 1px solid var(--v-line); box-shadow: 0 1px 2px rgba(15,30,60,.04), 0 10px 28px var(--v-sombra); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-theme="light"] .bottom-bar { --on-brand: var(--v-t); --on-brand-2: var(--v-t2); background: #FFFFFF; border-top: 1px solid var(--v-line); box-shadow: 0 -8px 28px var(--v-sombra); color: var(--v-t2); }
+[data-theme="light"] .bottom-bar .bb-item { color: var(--v-t2); }
+[data-theme="light"] .bottom-bar .bb-item.active { background: var(--v-activo); color: var(--v-activo-txt); }
+[data-theme="light"] .bottom-bar .bb-item.active .bb-txt, [data-theme="light"] .bottom-bar .bb-item.active svg { color: var(--v-activo-txt); }
+[data-theme="light"] .sup-marca::before, [data-theme="light"] .fondo-vista.sup-marca::before { opacity: 0; }   /* el patrón del hero dibujaba un rectángulo visible sobre el lavado pastel */
