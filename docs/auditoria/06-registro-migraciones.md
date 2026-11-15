@@ -18,7 +18,7 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 - **0060 `tareas_texto_largo`** (2026-11-11): topes de texto de las tareas a 20 000 caracteres (descripción, instrucciones) y 5 000 (criterios). Aplicada por la administración.
 - **0061 `tareas_sin_tareas_pierde_puntos`** (2026-11-11, **pendiente de aplicar**): regla por PE «sin tareas calificadas, se pierden los puntos de tareas» (apagada por defecto). Prueba: `tools/pruebas/sql-0061.mjs`.
 
-- **0062 `sincronizacion_tiempo_real`** (2026-11-15, **pendiente de aplicar**): publica en `supabase_realtime` las tablas que alimentan las pantallas (solo con RLS y clave primaria; `REVOKE ALL … FROM anon`) y crea `notif_senal` (contador por persona que mueve la campana sin abrir `notificaciones`). Requiere `wss://*.supabase.co` en la CSP (ya en `vercel.json`). Prueba: `tools/pruebas/sql-0062.mjs`. Diseño y qué falta verificar contra la base viva: `docs/sincronizacion-tiempo-real.md`.
+- **0064 `sincronizacion_tiempo_real`** (2026-11-15, **pendiente de aplicar**): publica en `supabase_realtime` las tablas que alimentan las pantallas (solo con RLS y clave primaria; `REVOKE ALL … FROM anon`) y crea `notif_senal` (contador por persona que mueve la campana sin abrir `notificaciones`). Requiere `wss://*.supabase.co` en la CSP (ya en `vercel.json`). Prueba: `tools/pruebas/sql-0064.mjs`. Diseño y qué falta verificar contra la base viva: `docs/sincronizacion-tiempo-real.md`.
 
 ## Pendientes a propósito
 - `0006_gestion_miembros.PENDIENTE.sql`: `gestion_miembros` **no existe**. Reescribe 5 funciones y 5 políticas y exige cambios de front en el mismo despliegue.

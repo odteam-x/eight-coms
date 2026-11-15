@@ -1,5 +1,5 @@
 // Cableado de la sincronización en tiempo real (core/sync.js) en las tres portales: orden de scripts, CSP, que cada tabla escuchada
-// esté publicada por 0062 (y al revés), que cada tema y cada vista que usan los portales EXISTAN (un tema mal escrito nunca dispara y nadie se entera),
+// esté publicada por 0064 (y al revés), que cada tema y cada vista que usan los portales EXISTAN (un tema mal escrito nunca dispara y nadie se entera),
 // reglas del repositorio (sin onclick, sin hex, sin barras de acento) y que lo que se vio como parpadeo/escritura pisada esté cubierto.
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -8,7 +8,7 @@ const rd = f => fs.readFileSync(ROOT + f, 'utf8').split('\r\n').join('\n');   //
 let pass = 0, fail = 0;
 const ok = (c, m) => { c ? pass++ : fail++; console.log(c ? '  ✓' : '  ✗ FALLA:', m); };
 
-const syncJs = rd('core/sync.js'), mig = rd('supabase/migrations/0062_sincronizacion_tiempo_real.sql');
+const syncJs = rd('core/sync.js'), mig = rd('supabase/migrations/0064_sincronizacion_tiempo_real.sql');
 const ctx = vm.createContext({ console, setTimeout, clearTimeout, Promise, Date, Math, JSON, Object, Array, Set, Map, window: {}, document: {} });
 vm.runInContext(syncJs + '\nglobalThis.__S = Sync;', ctx);
 const S = ctx.__S, mapa = S.mapa();
@@ -31,23 +31,23 @@ const verPortales = ['admin.html', 'user.html', 'secretario.html'].map(rd);
 ok(verPortales.every(h => !/<script>/.test(h)), 'ningún portal tiene script en línea');
 ok(!/core\/sync\.js/.test(rd('index.html')) && !/core\/sync\.js/.test(rd('verificar.html')), 'el login y la verificación pública NO cargan Sync (sin sesión no hay nada que escuchar)');
 
-console.log('\n[tablas: lo que se escucha = lo que 0062 publica]');
+console.log('\n[tablas: lo que se escucha = lo que 0064 publica]');
 const listaSql = [...mig.match(/tablas TEXT\[\] := ARRAY\[([\s\S]*?)\];/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]);
 const escuchadas = Object.keys(mapa);
-ok(escuchadas.filter(t => !listaSql.includes(t)).length === 0, 'toda tabla que Sync escucha está en la lista de 0062' + (escuchadas.filter(t => !listaSql.includes(t)).length ? ' → faltan: ' + escuchadas.filter(t => !listaSql.includes(t)) : ''));
-ok(listaSql.filter(t => !escuchadas.includes(t) && t !== 'profiles').length === 0, 'toda tabla publicada por 0062 la usa alguna vista' + (listaSql.filter(t => !escuchadas.includes(t)).length ? ' → sobran: ' + listaSql.filter(t => !escuchadas.includes(t)) : ''));
+ok(escuchadas.filter(t => !listaSql.includes(t)).length === 0, 'toda tabla que Sync escucha está en la lista de 0064' + (escuchadas.filter(t => !listaSql.includes(t)).length ? ' → faltan: ' + escuchadas.filter(t => !listaSql.includes(t)) : ''));
+ok(listaSql.filter(t => !escuchadas.includes(t) && t !== 'profiles').length === 0, 'toda tabla publicada por 0064 la usa alguna vista' + (listaSql.filter(t => !escuchadas.includes(t)).length ? ' → sobran: ' + listaSql.filter(t => !escuchadas.includes(t)) : ''));
 const migs = fs.readdirSync(ROOT + 'supabase/migrations').map(f => rd('supabase/migrations/' + f)).join('\n');
 const sinCrear = escuchadas.filter(t => t !== 'notif_senal' && !new RegExp(`CREATE TABLE( IF NOT EXISTS)? (public\\.)?${t}\\b`, 'i').test(migs + rd('supabase-schema.sql')));
 ok(sinCrear.length === 0, 'cada tabla escuchada existe en alguna migración' + (sinCrear.length ? ' → sin definición en el repo: ' + sinCrear : ''));
 ok(!escuchadas.includes('notificaciones') && !escuchadas.includes('gafetes') && !escuchadas.includes('credenciales') && !escuchadas.includes('manuales_privados'),
   'no se escucha notificaciones (cerrada), gafetes, credenciales ni manuales privados');
 ok(mapa.auditoria_global.solo === 'admin', 'la auditoría solo se escucha siendo administración');
-ok(/REVOKE ALL ON public\.%I FROM anon/.test(mig) && /relrowsecurity/.test(mig) && /indisprimary/.test(mig), '0062: REVOKE a anon, exige RLS activa y clave primaria antes de publicar');
-ok(/-- ── REVERSA/.test(mig), '0062 lleva bloque de reversa');
+ok(/REVOKE ALL ON public\.%I FROM anon/.test(mig) && /relrowsecurity/.test(mig) && /indisprimary/.test(mig), '0064: REVOKE a anon, exige RLS activa y clave primaria antes de publicar');
+ok(/-- ── REVERSA/.test(mig), '0064 lleva bloque de reversa');
 const reg = rd('docs/auditoria/06-registro-migraciones.md');
-ok(/0062/.test(reg) && /sincronizacion_tiempo_real/.test(reg), 'registrada en docs/auditoria/06-registro-migraciones.md');
+ok(/0064/.test(reg) && /sincronizacion_tiempo_real/.test(reg), 'registrada en docs/auditoria/06-registro-migraciones.md');
 const pkg = JSON.parse(rd('tools/pruebas/package.json'));
-ok(/sql-0062\.mjs/.test(pkg.scripts.sql) && /front-sync\.mjs/.test(pkg.scripts.front) && /sync-multisesion\.mjs/.test(pkg.scripts.sync), 'sql-0062, front-sync y sync-multisesion están en los scripts de npm');
+ok(/sql-0064\.mjs/.test(pkg.scripts.sql) && /front-sync\.mjs/.test(pkg.scripts.front) && /sync-multisesion\.mjs/.test(pkg.scripts.sync), 'sql-0064, front-sync y sync-multisesion están en los scripts de npm');
 ok(/'sync'/.test(rd('tools/pruebas/correr.mjs')), '`npm run todo` incluye el grupo sync');
 
 console.log('\n[temas y vistas que usan los portales existen]');

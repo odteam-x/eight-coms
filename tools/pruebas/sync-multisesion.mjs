@@ -159,7 +159,7 @@ console.log('\n[5. Avisos (campana) · el módulo «Solicito tu ayuda» NO exist
   const existe = ['api.js', 'admin.js', 'user.js', 'secretario.js', ...fs.readdirSync(ROOT + 'core').filter(f => f.endsWith('.js')).map(f => 'core/' + f)]
     .some(f => /solicito tu ayuda|solicitud_ayuda|pedir_ayuda/i.test(fs.readFileSync(ROOT + f, 'utf8')))
     || fs.readdirSync(ROOT + 'supabase/migrations').some(f => /solicito tu ayuda|solicitud_ayuda|pedir_ayuda/i.test(fs.readFileSync(ROOT + 'supabase/migrations/' + f, 'utf8')));
-  ok(!existe, 'no hay código ni SQL de «Solicito tu ayuda»: no se inventa; cuando exista bastará Sync.on(\'ayuda\') + su tabla en TABLAS y en 0062');
+  ok(!existe, 'no hay código ni SQL de «Solicito tu ayuda»: no se inventa; cuando exista bastará Sync.on(\'ayuda\') + su tabla en TABLAS y en 0064');
   const m = nuevoMundo();
   const M1 = await abrir(m, 'm1', 'user.html'), M2 = await abrir(m, 'm2', 'user.html'), PC = await abrir(m, 'm1', 'user.html');
   m.insertar('notif_senal', { id: 'm1', destinatario_id: 'm1', tic: 1 });

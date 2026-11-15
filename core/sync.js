@@ -13,7 +13,7 @@
  * SEGURIDAD. Realtime aplica la RLS de cada tabla con el rol de QUIEN escucha: nadie recibe filas que no podría leer con
  * un SELECT. Aquí además se filtran las tablas de administración (`solo: 'admin'`) y el perfil propio (`id=eq.<yo>`).
  * Los eventos DELETE solo llevan la clave primaria (Realtime no puede aplicar RLS a un borrado), nunca datos.
- * Migración 0062: publicación `supabase_realtime`, señal de avisos y REVOKE a anon.
+ * Migración 0064: publicación `supabase_realtime`, señal de avisos y REVOKE a anon.
  *
  * Depende de: SB (supabase-client.js). Usa, si existen: Auth, showToast. Cárgalo después de core/render.js y antes de los portales.
  */

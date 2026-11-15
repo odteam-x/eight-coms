@@ -1,4 +1,4 @@
-// Pruebas de 0062: publicación Realtime y señal de avisos. PGlite con roles reales (SET ROLE), así la RLS y los REVOKE cuentan.
+// Pruebas de 0064: publicación Realtime y señal de avisos. PGlite con roles reales (SET ROLE), así la RLS y los REVOKE cuentan.
 // Lo que NO se puede probar aquí (y está dicho en docs/sincronizacion-tiempo-real.md): que Realtime esté habilitado en el proyecto de
 // Supabase y que el servicio entregue los eventos; aquí se prueba la parte que es SQL: qué tablas se publican, quién las puede leer y la señal.
 import fs from 'node:fs';
@@ -29,9 +29,9 @@ await db.exec(`CREATE TABLE public.etiquetas_sin_pk (x INT)`);
 const publicadas = async () => (await q(`SELECT tablename FROM pg_publication_tables WHERE pubname='supabase_realtime' AND schemaname='public' ORDER BY 1`)).map(r => r.tablename);
 
 console.log('[la migración]');
-const m = sql('0062_sincronizacion_tiempo_real.sql');
-await allowed(m, '0062 se aplica sin errores sobre el esquema real hasta 0035');
-await allowed(m, 'reaplicar 0062 es idempotente');
+const m = sql('0064_sincronizacion_tiempo_real.sql');
+await allowed(m, '0064 se aplica sin errores sobre el esquema real hasta 0035');
+await allowed(m, 'reaplicar 0064 es idempotente');
 const pub = await publicadas();
 ok(JSON.stringify(pub) === JSON.stringify([...new Set(pub)]), 'ninguna tabla queda publicada dos veces');
 

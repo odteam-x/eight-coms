@@ -69,6 +69,6 @@ el frontend desplegado antes que el SQL, borra una tabla del simulador desde la 
 `admin.html?as=admin` → Equipos (lista, reglas del PE, detalle, aprobar una tarea del equipo); `user.html?as=m1` → Mi perfil
 («Cómo se compone tu evaluación», el anillo ya incluye la nota de tareas) y Entregas (Mis equipos + tareas de equipo).
 
-| `sql-0062.mjs` | `0062_sincronizacion_tiempo_real.sql`: qué tablas se publican en Realtime (solo con RLS y clave primaria), `anon` sin nada, escrituras intactas, `notif_senal` (personal, sin datos del aviso, solo lectura) | 35 |
+| `sql-0064.mjs` | `0064_sincronizacion_tiempo_real.sql`: qué tablas se publican en Realtime (solo con RLS y clave primaria), `anon` sin nada, escrituras intactas, `notif_senal` (personal, sin datos del aviso, solo lectura) | 35 |
 | `sync-multisesion.mjs` | `core/sync.js` real en varias sesiones contra `fake-realtime.mjs` (RLS por usuario, bus de eventos, caídas de red): tarea nueva, iniciativa, evaluación→ranking, acceso y rol, campana, PC+iPad+teléfono, sin internet, permisos, diálogo/scroll, concurrencia | 76 |
-| `front-sync.mjs` | Cableado de Sync en los tres portales: scripts, CSP con `wss`, tablas = 0062, temas y vistas existentes, reglas del repo | |
+| `front-sync.mjs` | Cableado de Sync en los tres portales: scripts, CSP con `wss`, tablas = 0064, temas y vistas existentes, reglas del repo | |

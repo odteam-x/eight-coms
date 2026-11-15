@@ -1,8 +1,8 @@
 # Sincronización de datos en tiempo real
 
-Estado: implementada en la rama `feat/sync-tiempo-real` (PR abierto, **sin fusionar**). Migración **0062** pendiente de aplicar a mano en el SQL Editor.
-Código: [`core/sync.js`](../core/sync.js) · estilos del indicador: [`sync.css`](../sync.css) · migración: [`supabase/migrations/0062_sincronizacion_tiempo_real.sql`](../supabase/migrations/0062_sincronizacion_tiempo_real.sql)
-Pruebas: `tools/pruebas/sync-multisesion.mjs` (varias sesiones), `sql-0062.mjs` (publicación y permisos), `front-sync.mjs` (cableado).
+Estado: implementada en la rama `feat/sync-tiempo-real` (PR abierto, **sin fusionar**). Migración **0064** pendiente de aplicar a mano en el SQL Editor.
+Código: [`core/sync.js`](../core/sync.js) · estilos del indicador: [`sync.css`](../sync.css) · migración: [`supabase/migrations/0064_sincronizacion_tiempo_real.sql`](../supabase/migrations/0064_sincronizacion_tiempo_real.sql)
+Pruebas: `tools/pruebas/sync-multisesion.mjs` (varias sesiones), `sql-0064.mjs` (publicación y permisos), `front-sync.mjs` (cableado).
 
 ---
 
@@ -25,7 +25,7 @@ Pruebas: `tools/pruebas/sync-multisesion.mjs` (varias sesiones), `sql-0062.mjs` 
 
 **Módulos que no recibían cambios de otras personas**: todos los anteriores.
 
-**Módulo «Solicito tu ayuda»: NO existe en el repositorio** (búsqueda en `*.js`, `*.html`, `*.sql`, `*.md`: cero resultados). No se ha inventado. Cuando exista bastará **tres líneas**: su tabla en `TABLAS` de `core/sync.js` (con el tema `ayuda`), la misma tabla en la lista de 0062, y `Sync.on('ayuda', …)` en su pantalla; el aviso a las personas elegibles ya viaja por la cola de avisos (campana en vivo, ver §4).
+**Módulo «Solicito tu ayuda»: NO existe en el repositorio** (búsqueda en `*.js`, `*.html`, `*.sql`, `*.md`: cero resultados). No se ha inventado. Cuando exista bastará **tres líneas**: su tabla en `TABLAS` de `core/sync.js` (con el tema `ayuda`), la misma tabla en la lista de 0064, y `Sync.on('ayuda', …)` en su pantalla; el aviso a las personas elegibles ya viaja por la cola de avisos (campana en vivo, ver §4).
 
 **Hallazgo de seguridad/despliegue**: la CSP (`connect-src 'self' https://*.supabase.co`) **bloqueaba el WebSocket de Realtime**: en CSP, `https:` no cubre `wss:`. Se añadió `wss://*.supabase.co` en `vercel.json` y se documentó en `CLAUDE.md`. Sin ese cambio Realtime no habría conectado nunca en producción (y localmente sí, que es lo que habría engañado).
 
@@ -124,7 +124,7 @@ Un canal **por tabla**, abierto solo si alguna vista *activa* (la que se ve, o u
 ## 4. Seguridad y permisos
 
 1. **RLS manda.** `postgres_changes` evalúa la RLS con el rol de quien escucha: un miembro no recibe la tarea de otro, una persona de otro distrito no recibe la iniciativa de distrito (probado en el mundo simulado con la misma lógica de visibilidad que la RLS).
-2. **Migración 0062** (`sql-0062.mjs`, PGlite con `SET ROLE`):
+2. **Migración 0064** (`sql-0064.mjs`, PGlite con `SET ROLE`):
    - Publica en `supabase_realtime` solo tablas que **existen, tienen RLS activa y clave primaria**; si alguna no cumple se omite con `RAISE WARNING` (publicar una tabla sin clave primaria haría fallar sus `UPDATE/DELETE`; sin RLS, Realtime la enviaría a cualquiera con `SELECT`).
    - `REVOKE ALL … FROM anon` sobre todo lo publicado: **anon no tiene `SELECT`, por tanto no recibe nada** (probado: `has_table_privilege('anon', …, 'SELECT')` falso en las 32 tablas y `permission denied` al leer).
    - **No se abre `notificaciones`** (cerrada a `authenticated` desde 0019; lleva errores de correo e intentos). En su lugar nace `notif_senal`: una fila por persona con un contador que sube cuando le llega o lee un aviso (triggers `AFTER INSERT` y `AFTER UPDATE OF leida_en`). Solo contiene `destinatario_id`, `tic`, `actualizado`; RLS `destinatario_id = auth.uid()`; `SELECT` solo propio, ninguna escritura desde el cliente. La campana escucha esa señal y pide el contador con la función de siempre. Probado: otra persona, ni siquiera la administración, ve la señal ajena.
@@ -156,8 +156,8 @@ Un canal **por tabla**, abierto solo si alguna vista *activa* (la que se ve, o u
 | Script | Qué prueba |
 |---|---|
 | `sync-multisesion.mjs` (76 comprobaciones) | El **código real de `core/sync.js`** corriendo en varias «pestañas» (vm) contra `fake-realtime.mjs`, un mundo con RLS por usuario y un bus de eventos: 1) A crea una tarea y B la ve; C (otro distrito) no recibe ni el evento · 2) una iniciativa de distrito se modifica/borra y la ven solo los autorizados · 3) una evaluación publicada y una tarea aprobada actualizan desempeño, indicadores y ranking · 4) acceso y rol: ascenso a secretaría redirige, cambio de rol avisa, otra administradora ve la solicitud y su aprobación · 5) la campana en todos los dispositivos de la persona (el módulo de ayuda no existe: la prueba lo comprueba) · 6) PC + iPad + teléfono · 7) sin internet → resincroniza; fallo del servicio → reintento con espera creciente; pestaña dormida · 8) cambio de distrito, quitar la administración, revocar `aprobado`, borrar el perfil · diálogo abierto, texto sin guardar, scroll, ráfagas, concurrencia, dedupe. |
-| `sql-0062.mjs` (35) | La migración sobre el esquema real hasta 0035 (PGlite con roles): idempotente, qué se publica y qué **no** (sin RLS, sin PK, `notificaciones`), `anon` sin nada, escrituras intactas, señal de avisos y su privacidad, entorno mínimo. |
-| `front-sync.mjs` | Orden de scripts, CSP con `wss`, tablas escuchadas = tablas publicadas por 0062, que todo tema y toda vista que usan los portales existan (un tema mal escrito nunca dispara), reglas del repo (sin `onclick`, sin hex, sin barras de acento, sin emojis), conflicto y escritura propia. |
+| `sql-0064.mjs` (35) | La migración sobre el esquema real hasta 0035 (PGlite con roles): idempotente, qué se publica y qué **no** (sin RLS, sin PK, `notificaciones`), `anon` sin nada, escrituras intactas, señal de avisos y su privacidad, entorno mínimo. |
+| `front-sync.mjs` | Orden de scripts, CSP con `wss`, tablas escuchadas = tablas publicadas por 0064, que todo tema y toda vista que usan los portales existan (un tema mal escrito nunca dispara), reglas del repo (sin `onclick`, sin hex, sin barras de acento, sin emojis), conflicto y escritura propia. |
 
 `tools/pruebas/ui/fake-supabase-client.js` (cliente falso de las pruebas de interfaz) ahora tiene `channel/removeChannel` inertes y `__FAKE.emitir(...)` (reenvío entre pestañas por `BroadcastChannel`) para ver el efecto a mano con `npm run ui`.
 
@@ -167,7 +167,7 @@ Un canal **por tabla**, abierto solo si alguna vista *activa* (la que se ve, o u
 
 El conector de Supabase de esta sesión no tiene permiso de escritura y no se probó contra el proyecto real. **Antes de dar esto por bueno en producción**, comprobar:
 
-1. **Aplicar 0062** en el SQL Editor y ver: `SELECT tablename FROM pg_publication_tables WHERE pubname = 'supabase_realtime' ORDER BY 1;` y los `NOTICE`/`WARNING` de la salida (una tabla sin RLS o sin PK aparece como aviso y se omite).
+1. **Aplicar 0064** en el SQL Editor y ver: `SELECT tablename FROM pg_publication_tables WHERE pubname = 'supabase_realtime' ORDER BY 1;` y los `NOTICE`/`WARNING` de la salida (una tabla sin RLS o sin PK aparece como aviso y se omite).
 2. **Que Realtime esté habilitado** en el proyecto (Dashboard → Database → Replication) y que el plan admita las conexiones/canales: cada pestaña abre un WebSocket y **un canal por tabla escuchada** (hasta ~25 en el Panel del admin, que usa muchos temas; ~10–14 en las demás vistas). Si se acercara a algún límite, la vía es agrupar tablas en un canal por vista.
 3. **Que la CSP con `wss://` cargue en Vercel** (se probó el texto, no el despliegue) y que **iOS Safari** no cierre el socket en segundo plano sin avisar (el código lo asume y lo cubre con la resincronización al volver; no se probó en dispositivo).
 4. **Latencia y coste real** de `postgres_changes` con la RLS de cada tabla bajo carga (el mundo simulado no mide rendimiento). Si el Panel de administración resultara pesado, la palanca es acotar los temas de esa vista.

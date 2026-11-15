@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  0062 — Sincronización en tiempo real (Supabase Realtime · postgres_changes)
+--  0064 — Sincronización en tiempo real (Supabase Realtime · postgres_changes)
 -- ════════════════════════════════════════════════════════════════════════════
 --
 --  PEDIDO. Que quien tiene el portal abierto vea los cambios de otras personas sin recargar la página (core/sync.js).
