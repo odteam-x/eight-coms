@@ -908,3 +908,17 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
   #tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { margin: 0; flex: 1 1 280px; }
 }
 #tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { text-align: left; }
+
+/* 38. Cabecera de pantalla: más aire entre el icono y el título, y menos vacío arriba. Antes el contenido arrancaba 48 px más abajo (más el relleno de la cabecera) y el icono quedaba pegado al texto. */
+@media (min-width: 768px) {
+  .atab-content, .tab-content { padding-top: var(--sp-4); }
+  .atab-content > .pantalla-cab:first-child { padding-top: 0; }
+  .pantalla-cab h1 { column-gap: 18px; }
+  .pantalla-ico { width: 44px; height: 44px; }
+  .pantalla-ico svg { width: 22px; height: 22px; }
+}
+
+/* Bienvenida de Inicio: «Hola, Nombre» es lo primero que se lee y salía pequeño. Más grande y con más cuerpo; el nombre sigue en cursiva. */
+.inicio-hero h1.inicio-titulo { font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4rem); font-weight: 500; line-height: 1.05; letter-spacing: -.02em; }
+.inicio-hero h1.inicio-titulo .acento { font-weight: 500; }
+@media (max-width: 767px) { .inicio-hero h1.inicio-titulo { font-size: clamp(2.4rem, 11vw, 3.1rem); } }
