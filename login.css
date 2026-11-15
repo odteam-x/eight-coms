@@ -205,11 +205,14 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
 
 /* ── Pie de derechos en celular: pegado al borde inferior de la ventana (visible sin deslizar) pero dentro del
    flujo, así que no suma altura: si el formulario cabe, la página no se desplaza; si no, el pie acompaña. ── */
-.derechos--login { position: sticky; bottom: 0; z-index: 5; padding: var(--sp-2) var(--sp-4) max(var(--sp-2), env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--trazo); }
+.derechos--login { position: static; flex: 0 0 auto; padding: var(--sp-5) var(--sp-4) max(var(--sp-5), env(safe-area-inset-bottom)); background: none; border-top: 0; text-align: center; }
+/* Derechos: pertenecen al final de la página, no flotan sobre el formulario (ni barra pegada abajo en celular, ni texto fijo sobre el panel en escritorio). Ocupan su propio renglón, debajo de todo. */
+@media (min-width: 760px) { .derechos--login .derechos-b { display: inline; margin: 0; } .derechos--login .derechos-b::before { content: " · "; color: var(--v-tm); } }
 
 /* ══ TABLET VERTICAL Y ESCRITORIO (≥ 760 px): dos paneles ═══════════════ */
 @media (min-width: 760px) {
-  .login-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: none; height: 100dvh; min-height: 0; }
+  .login-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: none; flex: 1 1 0; min-height: 0; }
+  body:has(.login-layout) { height: 100dvh; overflow: hidden; }
 
   .login-panel-brand {
     flex-direction: column; align-items: stretch; justify-content: flex-start; gap: clamp(16px, 4vh, 48px);
@@ -252,8 +255,7 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
   .btn-login { min-height: clamp(46px, 6vh, 54px); }
   .login-link, .login-aux + .login-aux { margin-top: clamp(8px, 2vh, 20px); }
 
-  /* Pie: fijo sobre el borde inferior del panel del formulario (6/11 del ancho) */
-  .derechos--login { position: fixed; right: 0; bottom: 0; left: auto; width: calc(100% * 6 / 11); padding: var(--sp-3) var(--sp-4); background: none; border-top: 0; pointer-events: none; }
+  .derechos--login { padding: var(--sp-3) var(--sp-4); }
 }
 /* Ventanas bajas: la lista de puntos se compacta y luego se oculta; después el texto de apoyo */
 @media (min-width: 760px) and (max-height: 900px) { .login-puntos span { display: none; } .login-puntos li { padding: var(--sp-3) var(--sp-5); } }
@@ -265,7 +267,6 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
 /* Pantallas diminutas (320 px de ancho o menos de 640 de alto): la banda y el pie son lo primero que se come la altura del
    formulario. El tag se oculta (el nombre ya identifica) y el pie deja de acompañar: queda al final de la página. */
 @media (max-width: 359px) { .login-hero-tag { display: none; } }
-@media (max-width: 759px) and (max-height: 640px) { .derechos--login { position: static; } }
 
 @media (prefers-reduced-motion: reduce) {
   .btn-login, .field input, .pass-meter-fill { transition: none; }
@@ -288,8 +289,8 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
 
 @media (min-width: 1024px) {
   /* La pantalla es una tarjeta centrada sobre la malla: foto (izquierda) + formulario (derecha) */
-  body:has(.login-layout) { padding: 24px 24px 56px; box-sizing: border-box; }
-  .login-layout { width: min(1240px, 100%); height: calc(100dvh - 80px); min-height: 560px; margin: 0 auto; padding: 14px; gap: 14px;
+  body:has(.login-layout) { padding: 24px 24px 0; box-sizing: border-box; }
+  .login-layout { width: min(1240px, 100%); min-height: 560px; margin: 0 auto; padding: 14px; gap: 14px;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); border-radius: 40px;
     background: var(--v-fill) !important; border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: 0 30px 80px var(--v-sombra); }
   .login-layout .login-panel-brand, [data-theme="light"] .login-layout .login-panel-brand { margin: 0; border-radius: 28px; justify-content: flex-end; gap: 16px; padding: 32px 36px; }
@@ -298,9 +299,11 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
   .login-layout .login-hero-h1 { font-size: clamp(2.2rem, 1rem + 3.4vw, 4rem); }
   .login-brand-foot { display: none; }
   .login-layout .login-panel-form { margin: 0; max-width: none; justify-content: center; padding: 24px clamp(24px, 4vw, 64px); background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* sin desenfoque propio: dibujaba una segunda caja dentro de la tarjeta */
-  .derechos--login { left: 0; right: 0; width: auto; text-align: center; }
 }
 @media (max-width: 759px) {
   /* Celular: la foto es una franja superior con el nombre encima */
   .login-layout .login-panel-brand:not(.login-panel-brand--sin-foto) { min-height: 180px; align-items: flex-end; border-radius: 0 0 28px 28px; }
 }
+
+/* Tablet vertical: el panel de marca mide 5/11 del ancho y «CREATORS» en cursiva serif es más ancho que el cálculo base: se partía en «CREATOR / S». */
+@media (min-width: 760px) and (max-width: 1023px) { .login-layout .login-hero-h1 { font-size: clamp(1.8rem, calc((45.4vw - 4rem) / 8.6), 3.4rem); } }
