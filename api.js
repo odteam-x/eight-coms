@@ -51,13 +51,22 @@ const API = {
    * email" activo aún no hay sesión en signUp, así que auth.uid() es NULL y
    * el upsert fallaba en silencio dejando usuarios sin perfil.
    */
-  async register({ email, password, nombre }) {
-    const { error } = await SB.auth.signUp({
-      email, password,
-      options: { data: { nombre } },   // solo se usa para el nombre a mostrar
-    });
+  /** Alta. Los datos de solicitud (distrito, tipo, roles) los valida y guarda el servidor como SOLICITUD (0070): no dan ningún permiso hasta que la administración aprueba. */
+  async register({ email, password, nombre, distrito, rol_id, rol2_id }) {
+    const data = { nombre };
+    if (distrito) data.distrito = distrito;
+    if (rol_id) data.rol_id = String(rol_id);
+    if (rol2_id) data.rol2_id = String(rol2_id);
+    const { error } = await SB.auth.signUp({ email, password, options: { data } });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
+  },
+
+  /** Distritos y roles para el formulario de registro (función pública de 0070). Sin ella, el formulario se registra como antes. */
+  async getOpcionesRegistro() {
+    const { data, error } = await SB.rpc('registro_opciones');
+    if (error || !data) return { ok: false, distritos: [], roles: [] };
+    return { ok: true, distritos: data.distritos || [], roles: data.roles || [] };
   },
 
   // ── REFERENCIA (todos los autenticados pueden leer) ──────────────

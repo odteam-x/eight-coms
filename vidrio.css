@@ -1011,3 +1011,13 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 /* 44. Período aún no iniciado (renderPEBar): visible pero apagado; al tocarlo dice cuándo empieza. */
 .pb--futuro { opacity: .6; cursor: not-allowed; }
 .pb--futuro:hover { background: transparent; }
+
+/* 45. Solicitudes de acceso (Personas): reutiliza la lista de verificación (.cr); botones a la derecha; marca de pendientes en el menú. */
+.sol-acc { margin-bottom: var(--sp-5); }
+.sol-mail { font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--v-tm); }
+.sol-acc-btns { display: flex; gap: var(--sp-2); flex: none; }
+@media (max-width: 639px) { .sol-acc .cr-fila { flex-wrap: wrap; } .sol-acc-btns { width: 100%; } .sol-acc-btns .btn-out, .sol-acc-btns .btn-save { flex: 1 1 0; justify-content: center; } }
+.rail-item, .bb-item { position: relative; }
+.rail-pend { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: auto; border-radius: 999px; background: var(--coral); color: var(--v-navy); font: 700 11px/1 var(--font-ui); }
+.bb-item .rail-pend { position: absolute; top: 2px; right: 4px; margin: 0; }
+.rail-colapsado .rail-pend { position: absolute; top: 4px; right: 6px; margin: 0; }
