@@ -961,5 +961,15 @@
       createSignedUrl: async path => ({ data: { signedUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="800" height="450" fill="#e8eef7"/><text x="40" y="80" font-family="sans-serif" font-size="28" fill="#334">Captura de prueba (simulador)</text><text x="40" y="130" font-family="sans-serif" font-size="20" fill="#556">' + String(path).replace(/[<&>]/g, "") + '</text></svg>') }, error: null }),
       getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
   };
-  window.__FAKE = { DB, U, P, as };
+  // Tiempo real (core/sync.js): canales inertes que se suscriben al instante. Los eventos llegan solo si alguien los emite con
+  // __FAKE.emitir(tabla, 'INSERT'|'UPDATE'|'DELETE', nueva, vieja); entre pestañas del mismo navegador se reenvían por BroadcastChannel
+  // (abre dos pestañas con ?as=… distintos y emite en una: la otra se refresca). La simulación con RLS y caídas de red está en tools/pruebas/fake-realtime.mjs.
+  const _canales = new Set();
+  const _bc = typeof BroadcastChannel === 'function' ? new BroadcastChannel('fake-sb-realtime') : null;
+  const _entregar = (tabla, tipo, nuevo, viejo) => _canales.forEach(c => c.enlaces.forEach(e => { if (e.f.table === tabla) e.cb({ eventType: tipo, new: nuevo || {}, old: viejo || {} }); }));
+  if (_bc) _bc.onmessage = m => _entregar(m.data.tabla, m.data.tipo, m.data.nuevo, m.data.viejo);
+  window.SB.channel = () => { const c = { enlaces: [], on(t, f, cb) { c.enlaces.push({ f, cb }); return c; }, subscribe(cb) { _canales.add(c); Promise.resolve().then(() => cb && cb('SUBSCRIBED')); return c; } }; return c; };
+  window.SB.removeChannel = c => { _canales.delete(c); };
+  window.SB.realtime = { connect() {} };
+  window.__FAKE = { DB, U, P, as, emitir: (tabla, tipo, nuevo, viejo) => { _entregar(tabla, tipo, nuevo, viejo); _bc && _bc.postMessage({ tabla, tipo, nuevo, viejo }); } };
 })();

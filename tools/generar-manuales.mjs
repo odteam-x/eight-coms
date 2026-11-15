@@ -235,7 +235,7 @@ ${pasos(`Abre ${b('Calendario')}. Los puntos de colores marcan lo que hay cada d
       html: `
 <p>En ${b('Mi cuenta')} → ${b('Mi rol y mis preferencias')} hay dos cosas distintas que conviene no confundir:</p>
 ${tabla(['Qué es', 'Quién lo define', 'Para qué sirve'], [
-        ['Tu <b>rol principal</b> y los roles que tienes <b>habilitados</b>', 'La administración', 'Son los roles que puedes asumir. El principal define con qué perfil te evalúan.'],
+        ['Tu <b>rol principal</b> y tu <b>segundo rol</b> (si lo tienes)', 'La administración', 'Una persona puede tener <b>como máximo 2 roles</b>. El principal define tu perfil y el núcleo de la evaluación; el segundo te permite hacer tareas con ese rol y que te evalúen también por él. Cuánto pesa cada rol en tu resultado depende de las tareas que hagas con cada uno.'],
         ['Tus <b>preferencias</b> y tu <b>rol predeterminado</b>', 'Tú', 'Le dicen a quien reparte las tareas qué te gustaría hacer. <b>No te dan permisos ni te impiden recibir otro trabajo.</b>']])}
 ${captura('m-preferencias', 'Mis preferencias de rol: el orden, si cada rol está habilitado, el predeterminado (estrella) y los botones para subir, bajar y quitar.')}
 ${pasos(
@@ -506,6 +506,16 @@ ${nota('consejo', 'Si dejaste borradores que ya no sirven, ' + b('Eliminar borra
 <p>Al abrir a una persona, el resumen y los atajos de arriba se ocultan solos para que el formulario ocupe la pantalla y veas más criterios a la vez. Toca ${b('Mostrar resumen')} (arriba a la derecha) para traerlos de vuelta y ${b('Ocultar resumen')} para volver al modo enfoque; el portal recuerda tu elección. Sin nadie elegido, todo está a la vista para escoger a quién evaluar.</p>
 <p>El resumen de la persona incluye su <b>nota de tareas</b> y cuánto pesa en el resultado («Tareas 80 · pesan 20 %»), o «Tareas sin calificar» si todavía no tiene.</p>
 ${captura('a-evaluar-nucleo', 'Formulario: cada criterio tiene una barra, un número editable y botones − / +.')}
+<h3>Personas con dos roles</h3>
+<p>Si la persona tiene un <b>segundo rol</b> (ver «Personas»), el formulario trae, después de los criterios técnicos del rol principal, una sección <b>Criterios técnicos de [segundo rol] (segundo rol)</b>. Reglas:</p>
+${lista(
+        `El <b>núcleo</b> se puntúa una sola vez (arriba); el segundo rol solo tiene criterios técnicos, de 0 a su peso en el perfil de ese rol.`,
+        `Es <b>opcional</b>: se puede dejar sin puntuar. Si empiezas a puntuarlo, para publicar debes completar lo obligatorio de ese rol.`,
+        `<b>Cuánto pesa cada rol lo deciden las tareas</b>: el técnico final es la mezcla de los dos técnicos según el peso de las tareas aprobadas del período con cada rol. Con una tarea de cada rol del mismo peso, 50 / 50; con tareas de peso 1 en el principal y 3 en el segundo, 25 / 75. Las tareas de equipo y las sin rol cuentan para el principal.`,
+        `Un rol sin tareas que cuenten <b>no pesa</b>: la persona se evalúa solo por el otro. Si hay tareas del segundo rol pero falta su evaluación, el resumen muestra <b>evaluación incompleta</b> y el resultado usa solo el principal (nunca se rellena con 0).`,
+        `El percentil de cada rol se calcula solo entre quienes tienen puntajes <b>de ese rol</b>, y la persona aparece <b>una sola vez</b> en los rankings generales. En Seguimiento, Desempeño y el Reporte general verás «Fotografía + Redacción» junto a su nombre; se agrupa y se filtra por el rol principal.`)}
+${nota('ejemplo', 'Ana es Fotografía (principal) y Redacción (segundo). Técnico de Fotografía 80, de Redacción 60. Hizo una tarea de cada rol con el mismo peso: técnico = 0,5 × 80 + 0,5 × 60 = 70, y el resto del cálculo (núcleo, tareas) sigue igual.')}
+${nota('ojo', 'El segundo rol solo se evalúa en evaluaciones con puntuación por peso. Las anteriores (escala 1 a 5) no lo admiten: el formulario lo avisa.')}
 <h3>La barra de puntos</h3>
 <p>Cada criterio se puntúa <b>de 0 hasta su propio peso</b>. Un criterio técnico con peso 30 va de 0 a 30; uno con peso 15, de 0 a 15; los criterios del núcleo, de 0 a 10. La escala se ve debajo del nombre («Escala 0 a 30 · peso 30»).</p>
 ${tabla(['Para…', 'Haz'], [
@@ -528,13 +538,13 @@ ${nota('ojo', 'Una persona sin rol no se puede evaluar en rúbrica por roles: as
 <p>Una tarjeta por persona (también existe la vista ${b('Tabla')}). Busca por nombre o correo y filtra por distrito.</p>
 ${captura('a-personas', 'Personas: buscador, filtro, vista Tarjetas/Tabla y una tarjeta por persona.')}
 ${pasos(`Toca una tarjeta: se abre su perfil y una pestaña extra, ${b('Gestión')}.`, `En ${b('Gestión')} asignas <b>rol</b>, <b>distrito</b>, <b>tipo de acceso</b> (Creator, Secretario), <b>acceso aprobado</b>, <b>administración</b>, los <b>roles permitidos</b>, su <b>participación en el período</b> y puedes <b>eliminar</b> a la persona.`, `Para un registro nuevo: abre su tarjeta, asígnale rol y distrito y activa ${b('Acceso aprobado')}. Le llega un correo.`)}
-<h3>Roles permitidos y preferencias</h3>
-<p>En ${b('Gestión')} → <b>Roles permitidos</b> marcas, además del rol principal, los roles que esa persona puede asumir. Cada casilla se guarda al marcarla. Debajo ves <b>lo que la persona prefiere</b> (el orden que ella eligió y su rol predeterminado), solo para informar.</p>
+<h3>Dos roles por persona y preferencias</h3>
+<p>En ${b('Gestión')} → <b>Roles</b> ves el <b>rol principal</b> y, con el selector ${b('Segundo rol')}, eliges <b>un solo rol más</b>: el máximo es <b>2 roles por persona</b>. Se guarda al elegirlo y ${b('Sin segundo rol')} lo quita. Quien ya tenía más de 2 roles antes de esta regla no se toca, pero ve un aviso y, al elegir su segundo rol, los demás se quitan. Debajo ves <b>lo que la persona prefiere</b> (el orden que ella eligió y su rol predeterminado), solo para informar.</p>
 ${captura('a-roles-permitidos', 'Gestión de una persona: roles permitidos (casillas) y, debajo, sus preferencias de solo lectura.')}
 ${lista(
-        `El <b>rol principal</b> define con qué perfil se evalúa a la persona. Los <b>permitidos</b> definen con qué roles se le pueden asignar tareas.`,
-        `Una <b>preferencia</b> no concede ni quita nada: una persona puede preferir un rol que no tiene permitido (aparece como «No habilitado»).`,
-        `Si quitas un rol permitido que la persona tenía como predeterminado, se limpia el predeterminado, pero su preferencia se conserva.`,
+        `El <b>rol principal</b> define con qué perfil se evalúa a la persona. El <b>segundo rol</b> define con qué otro rol se le pueden asignar tareas y se la puede evaluar. Sin segundo rol, solo tú puedes asignarle un rol distinto, como excepción visible.`,
+        `Una <b>preferencia</b> no concede ni quita nada: una persona puede preferir un rol que no tiene habilitado (aparece como «No habilitado»).`,
+        `Si quitas el segundo rol de una persona que lo tenía como predeterminado, se limpia el predeterminado, pero su preferencia se conserva.`,
         `Los roles <b>funcionales</b> (administración, secretaría, miembro) son otra cosa y se cambian con ${b('Administradora')} y ${b('Tipo de miembro')}.`)}
 ${nota('ojo', 'Quien se registra queda con acceso pendiente, sin rol ni distrito, y no puede cambiarlos por su cuenta. Hasta que lo apruebes no entra al portal.')}
 ${nota('consejo', 'Si desactivas a alguien <b>en un período</b>, deja de contarse como pendiente por evaluar ahí, pero conserva su historia.')}`,
@@ -862,6 +872,7 @@ function pagina(m) {
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
   <script src="../core/theme.js"></script>
   <link rel="stylesheet" href="../shared.css">
+  <link rel="stylesheet" href="../vidrio.css">
   <link rel="stylesheet" href="ayuda.css">
 </head>
 <body class="ayuda">

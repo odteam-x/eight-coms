@@ -95,7 +95,7 @@ curl -sS "https://cdn.jsdelivr.net/npm/PKG@VER/dist/umd/FILE.js" | openssl dgst 
 
 ```json
 { "key": "Content-Security-Policy",
-  "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" }
+  "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" }
 ```
 
 ### Accessibility and performance (Phase 6)
@@ -218,6 +218,12 @@ Redesigned around the person. **Mi perfil** answers "how am I doing"; **Inicio**
 `_ALIAS_TAB` in `user.js` and `secretario.js` maps the old tab names (`scores`, `historial`, `ranking`, `periodos`…) to the new ones so saved links keep working; `#perfil/criterios` opens a profile tab directly.
 
 **Both rubric models must keep working.** Every v2 branch starts with `esPeriodoV2(periodo)`. The profile shows a classic period on its own scale (22/30, level by 26/20/11, bonus, 7 criteria 1–4) and never mixes it with v2 in a chart or a "change vs previous"; its Tareas tab says the period does not use assignable tasks.
+
+### Tiempo real (`core/sync.js`, migración 0064)
+
+Los portales **no recargan para ver cambios ajenos**: `core/sync.js` escucha Supabase Realtime (`postgres_changes`, la RLS decide qué llega) y avisa a las pantallas registradas con `Sync.on(temas, fn, { id, vista })`. **Una pantalla nueva no se suscribe a nada**: se registra en el `initSync()` de su portal. Un cambio de tabla invalida también las vistas derivadas (mapa `TABLAS`), solo se refresca la pestaña que se ve, las ráfagas se agrupan, un diálogo abierto o un texto sin guardar aplazan el refresco y el scroll se conserva. Reconexión con espera creciente, resincronización al volver internet / a la pestaña, revalidación de acceso al cambiar mi perfil. Todo el detalle, la auditoría y lo no verificado contra la base viva: `docs/sincronizacion-tiempo-real.md`.
+
+Reglas: (1) una tabla nueva escuchada va en `TABLAS` **y** en la lista de la migración 0064 (`front-sync.mjs` falla si no coinciden); (2) el repintado debe pasar por `renderCargando()` o respetar `Sync.silencioso()` (si no, parpadea); (3) los formularios largos no se repintan con el refresco: se refresca la lista y se avisa con `Sync.vigilar`; (4) `connect-src` necesita `wss://*.supabase.co`, porque `https:` no cubre `wss:`.
 
 ### Supabase Tables
 
@@ -690,6 +696,10 @@ Regla por PE, **apagada por defecto**: `periodo_calif_config.sin_tareas_pierde_p
 
 `core/gafete.js` ya no usa el patrón, la franja de seis colores ni el marco coral. Dibuja la **malla** de `vidrio.css` (degradado a 118° + tres resplandores) con **contenedores de vidrio** (relleno translúcido, filete, luz arriba), tipografía Barlow ligera (300) y «Creators» en Source Serif 4 cursiva, foto con aro blanco y píldora blanca «Miembro de EIGHT Creators». Lee los MISMOS tokens `--v-*` que el sitio (`_paleta()`), así que el gafete sale en el tema que la persona usa (oscuro, claro o rosa); la imagen del pase de Wallet (`dibujarHero`) usa siempre la malla oscura porque el fondo del pase es fijo. Sin cajas dentro de cajas: los datos van en columnas con filetes. `verificar.html` carga `vidrio.css` y su hoja solo usa tokens (el QR siempre es navy sobre blanco para que escanee). Pruebas: `front-gafete.mjs`.
 
+### Dos roles por persona (0062, 2026-11-15)
+
+Máximo **2 roles distintos** por persona: el principal (`profiles.rol_id`, decide perfil y núcleo) y **uno** secundario (la fila de `persona_roles` distinta del principal). Triggers `persona_roles_max2` y `profiles_rol_max2`; los datos previos con más de 2 no se borran (`personas_con_mas_de_dos_roles()`). **Una evaluación por persona y período** (no se tocó la unicidad ni nada que la lea): el segundo rol va en `evaluaciones.puntajes_rol2` / `perfil2_id` (solo criterios técnicos, escala por peso; el núcleo se puntúa una vez; el perfil lo fija el servidor al primer guardado con datos). Impacto en `resultados_periodo()`: `w2` = peso de las tareas que cuentan hechas con el rol 2 / peso total (las de equipo y las sin `rol_id` cuentan para el principal); `técnico = (1−w2)·t1 + w2·t2`; percentil por rol sobre quienes tienen puntajes de ESE rol (la persona aparece una sola vez en rankings); sin tareas del rol 2 → `w2 = 0`; con tareas pero sin evaluación del rol 2 → `rol2_incompleta` y se usa solo el principal (nunca 0). Un solo rol da EXACTAMENTE el resultado anterior (paridad probada). `rectificar_evaluacion()` recibe `p_puntajes_rol2` (el cliente solo lo manda si hay algo que cambiar: compatible con una base sin 0062). Front: `API.dosRolesDisponible()`, Evaluar (`_rolesExtra`, sección «segundo rol», claves `r2:` en la pantalla), Personas → Gestión (selector «Segundo rol»), «Cómo se compone tu evaluación» (`dosRolesHTML`). Pruebas: `sql-0062.mjs`, `front-dos-roles.mjs`. Seguimiento, Desempeño y el Reporte general muestran «Rol + Segundo rol» (Seguimiento/Desempeño lo leen de `persona_roles` en `API.getSeguimientoGlobal`; el Reporte general, de `rol2_nombre` de `resultados_periodo`); agrupan y filtran por el rol principal, así que nadie se repite en rankings.
+
 ### Jerarquía de títulos y derechos de autor (2026-11-15)
 
 - `vidrio.css` §36: una escala de cuatro niveles con tokens `--h1…--h4` que crecen con el ancho (celular < 640, tablet, escritorio ≥ 1024): N1 pantalla, N2 bloque (etiqueta de grupo, mes/día del calendario, hoja del reporte), N3 sección (`.pf-h .cuenta-t .panel-t-h .rpt-sec-t .rol-t .atn-h`), N4 apartado (`.pf-sub .tk-titulo`). Todos con peso 600. Antes había pesos 300/500/700 y subtítulos mayores que su sección. Un título nuevo se asigna a un nivel; no lleva tamaño propio.
@@ -707,3 +717,11 @@ Pestaña admin `configuracion` (`core/configuracion.js`, `configuracion.css`): �
 ### Tema claro según la referencia (2026-11-15)
 
 El tema claro pasa de «malla azul con vidrio» a: página casi blanca con lavado pastel (menta → azul), tarjetas **blancas sólidas** con sombra suave, texto casi negro, barra inferior blanca con el ítem activo en píldora oscura. `--v-1…--v-4` del claro son ahora los tonos de la página; el azul de marca que antes era `--v-1` es **`--v-azul`** (menú lateral y panel del acceso). Reglas del claro en `vidrio.css` §37. Si algo en claro usa `var(--v-1)` esperando el azul, debe pasar a `--v-azul`. Oscuro y rosa no cambian.
+
+### Seguimiento y Desempeño ya no hacen lo mismo (2026-11-15)
+
+Seguimiento responde «¿quién está al día?» (estado de cada evaluación, entregas a tiempo, vencidas, persona × período). Desempeño responde «¿cómo les va?» (resultados, evolución, comparaciones, promedio por rol, detalle de una persona). Se quitó de Desempeño la tabla «Todas las personas» (era la misma matriz persona × período del Seguimiento) y cada pantalla apunta a la otra. Las dos siguen leyendo `seguimiento_global()`: una sola fuente, no se recalcula nada.
+
+### Manuales con la identidad vigente (2026-11-15)
+
+`ayuda/ayuda.css` usa vidrio sobre malla (se carga `vidrio.css` antes): fondo de malla, tarjetas de vidrio, Barlow ligera, avisos con punto de color (sin barra en un borde) y los tres temas. Las capturas (`ayuda/img/*.jpg` y `*-pc.jpg`) se regeneran del simulador con `node tools/pruebas/ui/server.mjs . 3171` y `node tools/capturas-manual.mjs http://localhost:3171 [filtro]` (Edge/Chrome headless por el protocolo de depuración; tema oscuro; la bienvenida usa `?bv=1|2|3`). Tras un cambio visual importante, volver a correrlo y regenerar los manuales con `node tools/generar-manuales.mjs`.

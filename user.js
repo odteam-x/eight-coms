@@ -23,35 +23,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Con el contexto (perfil, criterios, períodos) ya se puede pintar todo:
   // el perfil pide por sí mismo lo que necesita de cada período.
   if (await loadContexto()) await initUI();
-  initRevalidacion();
+  initSync();
 });
 
-/* ── REVALIDACIÓN AL VOLVER A LA PESTAÑA ──────────────────────────────
- * Sin esto, si el admin cambia el período activo mientras el miembro tiene
- * la pestaña abierta, el miembro no se entera nunca y la etiqueta "Última
- * actualización" miente: marca cuándo se cargó la página, no cuándo cambió
- * el dato.
+/* ── TIEMPO REAL ──────────────────────────────────────────────────────
+ * Antes: revalidar solo al volver a la pestaña tras un minuto. Ahora core/sync.js escucha la base (Supabase Realtime) y avisa
+ * de lo que cambia —lo haga quien lo haga—, reconecta tras una caída, revalida al volver a la pestaña y al recuperar internet,
+ * y vigila el acceso (rol, aprobación) sin reiniciar sesión. Aquí solo se dice QUÉ vuelve a pedir cada pantalla.
+ * Contrato en docs/sincronizacion-tiempo-real.md.
  */
-const REVALIDAR_MS = 60000;
+const _TEMAS_NOTA = ['tareas', 'evaluaciones', 'desempeno', 'ranking', 'kpis', 'seguimiento', 'reportes', 'equipos', 'periodos', 'perfil', 'personas', 'catalogo'];
 
-function initRevalidacion() {
-  document.addEventListener('visibilitychange', async () => {
-    if (document.hidden) return;
-    if (_lastUpdated && Date.now() - _lastUpdated.getTime() < REVALIDAR_MS) return;
+function initSync() {
+  Sync.iniciar({ perfil: CU });
+  Sync.tab(document.querySelector('.tab-content.active')?.id?.replace('tab-', '') || 'inicio');
 
+  // Contexto compartido por todas las pantallas: períodos, criterios, perfiles. Un período nuevo o activado cambia la barra y el rail.
+  Sync.on(['periodos', 'catalogo', 'perfil'], async () => {
     const idAnterior = Store.periodoActivo()?.id ?? null;
+    const p = await Auth.getProfile(); if (p) Object.assign(CU, p);               // Sync ya releyó el perfil: aquí se actualiza la copia del portal
     if (!(await loadContexto())) return;
-
-    // Si el admin cambió el período activo, seguirlo.
     const nuevo = Store.periodoActivo();
-    if (nuevo && String(nuevo.id) !== String(idAnterior)) {
-      Store.setPeriodo(nuevo.id);
-      mPE = nuevo.pe;
-      _trabajosPE = nuevo.pe;
-    }
-    await initUI();
-    if (!Store.necesitaCarga('trabajos')) renderTrabajosTab();
-  });
+    if (nuevo && String(nuevo.id) !== String(idAnterior)) { Store.setPeriodo(nuevo.id); mPE = nuevo.pe; _trabajosPE = nuevo.pe; }
+    buildPEBars(); renderCalendario(); renderLineaTiempo(); actualizarRailProximo(); updateTimestamp();
+  }, { id: 'user:contexto' });
+
+  Sync.on(_TEMAS_NOTA.concat('calendario'), () => montarInicio(), { id: 'user:inicio', vista: 'inicio', alEntrar: true });
+  Sync.on(_TEMAS_NOTA, () => Perfil.refrescarTodos(), { id: 'user:perfil', vista: 'perfil', alEntrar: true });
+  Sync.on(['tareas', 'equipos', 'periodos', 'kpis', 'evaluaciones'], async () => { if (!Store.necesitaCarga('trabajos')) await renderTrabajosTab(); }, { id: 'user:entregas', vista: 'trabajos', alEntrar: true });
+  Sync.on(['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { id: 'user:calendario', vista: 'calendario', alEntrar: true });
+  Sync.on(['banco'], () => Banco.cargar(), { id: 'user:banco', vista: 'banco' });
 }
 
 /* ── CONTEXTO (crítico, paralelo) ── */

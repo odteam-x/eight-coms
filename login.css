@@ -307,3 +307,11 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
 
 /* Tablet vertical: el panel de marca mide 5/11 del ancho y «CREATORS» en cursiva serif es más ancho que el cálculo base: se partía en «CREATOR / S». */
 @media (min-width: 760px) and (max-width: 1023px) { .login-layout .login-hero-h1 { font-size: clamp(1.8rem, calc((45.4vw - 4rem) / 8.6), 3.4rem); } }
+
+/* Escritorio: el botón de tema flotaba justo sobre la esquina redondeada de la tarjeta (mitad dentro, mitad fuera). Ahora queda dentro de la tarjeta, en su esquina superior derecha. */
+@media (min-width: 1024px) {
+  .theme-toggle-fixed { top: 46px; right: max(46px, calc((100vw - 1240px) / 2 + 22px)); }
+}
+
+/* Celular: el formulario se centraba en el alto sobrante y dejaba un hueco grande bajo la banda de marca; ahora arranca justo debajo y el sobrante queda antes del pie. */
+@media (max-width: 759px) { .login-layout .login-panel-form { align-self: start; margin-top: var(--sp-5); } }

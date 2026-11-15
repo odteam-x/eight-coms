@@ -221,9 +221,11 @@ const Tareas = (() => {
    *   onNoDisponible: la migración 0016 no está aplicada
    */
   async function montar({ id, el, periodoId, yo, revisor = false, esAdmin = false, personas = [], onCambio, onNoDisponible, soloPersona = null }) {
+    // Volver a montar la MISMA lista (refresco en vivo, core/sync.js) conserva el filtro y la persona elegidos: no se cambia lo que alguien está mirando.
+    const prev = ctxs.get(id), mismo = !!(prev && prev.el === el && String(prev.periodoId) === String(periodoId) && !soloPersona);
     const c = {
       id, el, periodoId, yo, revisor, esAdmin, onCambio, onNoDisponible, soloPersona, paraId: soloPersona,
-      puedeCrear: !soloLectura(), filtro: revisor ? 'porRevisar' : 'todas', persona: '',
+      puedeCrear: !soloLectura(), filtro: mismo ? prev.filtro : revisor ? 'porRevisar' : 'todas', persona: mismo ? prev.persona : '',
       personas: new Map(personas.map(p => [p.id, p])),
       catalogo: new Map((Store.get('criteriosV2') || []).map(k => [k.key, k.nombre])),
       tareas: [],
@@ -233,7 +235,7 @@ const Tareas = (() => {
     // Si no hay nada por revisar, partir de «Abiertas» y no de una lista vacía.
     ctxs.set(id, c);
     const res = await cargar(c);
-    if (res?.ok && c.revisor && !soloPersona && !c.tareas.some(t => t.estado === 'entregada')) { c.filtro = 'abiertas'; render(c); }
+    if (res?.ok && !mismo && c.revisor && !soloPersona && !c.tareas.some(t => t.estado === 'entregada')) { c.filtro = 'abiertas'; render(c); }
     return c;
   }
 

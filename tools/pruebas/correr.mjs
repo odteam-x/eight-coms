@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
-const grupos = ['sql', 'cadena', 'correo', 'front', 'rg'];
+const grupos = ['sql', 'cadena', 'correo', 'front', 'sync', 'rg'];
 const cmds = grupos.flatMap(g => pkg.scripts[g].split('&&').map(s => s.trim()));
 const filtro = process.argv[2];
 const lista = [...new Set(cmds)].filter(c => c.startsWith('node ') && (!filtro || c.includes(filtro)));

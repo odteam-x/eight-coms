@@ -74,6 +74,20 @@ const EvaluacionPerfil = (() => {
       <td class="ev-razon">${escHtml(rz.txt)}</td></tr>`;
   }
 
+  /** Segundo rol (0062): cómo se mezcla el técnico de los dos roles. Vacío para quien tiene un solo rol. */
+  function dosRolesHTML(fila, T) {
+    if (!fila || !fila.rol2_id || !fila.rol2_nombre) return '';
+    const r1 = escHtml(fila.rol_nombre || 'su rol principal'), r2 = escHtml(fila.rol2_nombre);
+    if (fila.rol2_incompleta) {
+      return `<p class="pf-nota ev-aviso" role="status"><b>Evaluación incompleta de ${r2}.</b> ${T.Tu} ${T.ten} tareas hechas como ${r2}, pero falta su evaluación técnica: por ahora el resultado usa solo ${r1}. Nunca se rellena con 0.</p>`;
+    }
+    if (fila.tecnico_rol2 == null) {
+      return `<p class="pf-nota">${T.Tu} ${T.ten} también el rol <b>${r2}</b>. Cuenta en el resultado cuando se hacen tareas con ese rol y se evalúa; hoy el técnico sale solo de ${r1}.</p>`;
+    }
+    const p = Number(fila.peso_rol2) || 0;
+    return `<p class="pf-nota">Técnico <b>${f1(fila.tecnico)}</b> = ${f1(100 - p)} % ${r1} (<b>${f1(fila.tecnico_rol1)}</b>) + ${f1(p)} % ${r2} (<b>${f1(fila.tecnico_rol2)}</b>). El peso de cada rol sale de las tareas aprobadas con ese rol: más tareas como ${r2}, más pesa; sin tareas, no pesa. El núcleo se evalúa una sola vez.</p>`;
+  }
+
   /**
    * Pinta la sección en `host`.
    *   fila      : la fila de resultados_periodo() de esa persona (o null si no tiene evaluación publicada)
@@ -130,7 +144,7 @@ const EvaluacionPerfil = (() => {
 
     host.innerHTML = `
       <div class="pf-card-cab"><h3 class="pf-h" id="${host.id}-h">Cómo se compone ${T.tu} evaluación</h3></div>
-      ${resumen}${coberturaHTML(cb, T)}${tabla}${aviso}
+      ${resumen}${dosRolesHTML(fila, T)}${coberturaHTML(cb, T)}${tabla}${aviso}
       <details class="v2-det ev-hist"><summary>Historial de notas de tareas</summary><div data-hist><p class="pf-vacio">Cargando…</p></div></details>`;
     const det = host.querySelector('.ev-hist');
     det?.addEventListener('toggle', async () => {

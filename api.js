@@ -421,13 +421,15 @@ const API = {
     return error ? { ok: false, error: error.message } : { ok: true, n: (data || []).length };
   },
 
-  async upsertEvaluacion({ periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext, comentarios, respuestas = null, estado = 'borrador' }) {
+  async upsertEvaluacion({ periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext, comentarios, respuestas = null, estado = 'borrador', puntajes_rol2 }) {
     const { data, error } = await SB
       .from('evaluaciones')
       .upsert(
         { periodo_id, evaluado_id, evaluador_id, puntajes, bono_ext: bono_ext ?? 0, comentarios, estado,
           // solo si 0020 está aplicada: sin la columna, mandarla haría fallar el guardado
-          ...(respuestas ? { respuestas } : {}) },
+          ...(respuestas ? { respuestas } : {}),
+          // 0062: solo si la persona tiene segundo rol (undefined = no se manda: sin la columna fallaría el guardado)
+          ...(puntajes_rol2 !== undefined ? { puntajes_rol2 } : {}) },
         { onConflict: 'periodo_id,evaluado_id' }
       )
       .select()
@@ -472,8 +474,19 @@ const API = {
     if (/does not exist|42703|schema cache/i.test((error.message || '') + (error.code || ''))) return (this._rectDisp = false);
     return false;
   },
-  async rectificarEvaluacion({ id, puntajes, comentarios, motivo, respuestas = null, bono = null }) {
-    const r = await this._rpc('rectificar_evaluacion', { p_id: id, p_puntajes: puntajes, p_comentarios: comentarios, p_motivo: motivo, p_respuestas: respuestas, p_bono: bono });
+  /** ¿Existe el segundo rol en las evaluaciones (0062)? Solo «la columna no existe» es definitivo. */
+  _dosRolesDisp: null,
+  async dosRolesDisponible() {
+    if (this._dosRolesDisp !== null) return this._dosRolesDisp;
+    const { error } = await SB.from('evaluaciones').select('perfil2_id').limit(1);
+    if (!error) return (this._dosRolesDisp = true);
+    if (/does not exist|42703|schema cache/i.test((error.message || '') + (error.code || ''))) return (this._dosRolesDisp = false);
+    return false;
+  },
+  async rectificarEvaluacion({ id, puntajes, comentarios, motivo, respuestas = null, bono = null, puntajes_rol2 = null }) {
+    const r = await this._rpc('rectificar_evaluacion', { p_id: id, p_puntajes: puntajes, p_comentarios: comentarios, p_motivo: motivo, p_respuestas: respuestas, p_bono: bono,
+      // 0062: el parámetro solo existe con la migración aplicada; se manda únicamente si hay algo que cambiar
+      ...(puntajes_rol2 ? { p_puntajes_rol2: puntajes_rol2 } : {}) });
     return r.ok ? { ok: true, version: r.data } : r;
   },
   async retirarEvaluacion(id, motivo) {
@@ -495,13 +508,14 @@ const API = {
         // Sin cambios reales no se pide motivo (la base también lo rechazaría: «No hay cambios que rectificar»).
         const mismo = (a, b) => JSON.stringify(Object.entries(a || {}).sort(([x], [y]) => (x < y ? -1 : 1))) === JSON.stringify(Object.entries(b || {}).sort(([x], [y]) => (x < y ? -1 : 1)));
         if (mismo(datos.puntajes, previa.puntajes) && mismo(datos.comentarios, previa.comentarios)
-            && (datos.respuestas == null || mismo(datos.respuestas, previa.respuestas)) && Number(datos.bono_ext ?? previa.bono_ext ?? 0) === Number(previa.bono_ext ?? 0)) {
+            && (datos.respuestas == null || mismo(datos.respuestas, previa.respuestas))
+            && (datos.puntajes_rol2 === undefined || mismo(datos.puntajes_rol2, previa.puntajes_rol2)) && Number(datos.bono_ext ?? previa.bono_ext ?? 0) === Number(previa.bono_ext ?? 0)) {
           return { ok: true, sinCambios: true };
         }
         const motivo = await pedirMotivo('rectificar');
         if (!motivo) return { ok: false, cancelado: true };
         const r = await this.rectificarEvaluacion({ id: previa.id, puntajes: datos.puntajes, comentarios: datos.comentarios, motivo,
-          respuestas: datos.respuestas || null, bono: datos.bono_ext ?? null });
+          respuestas: datos.respuestas || null, bono: datos.bono_ext ?? null, puntajes_rol2: datos.puntajes_rol2 ?? null });
         return r.ok ? { ...r, rectificada: true } : r;
       }
       const motivo = await pedirMotivo('retirar');
@@ -1464,7 +1478,18 @@ const API = {
     const g = gestionId ?? await _gid();
     const { data, error } = await SB.rpc('seguimiento_global', { p_gestion: g });
     if (error) return { ok: false, noDisponible: this._rpcAusente(error), error: error.message, rows: [] };
-    return { ok: true, rows: data ?? [] };
+    const rows = data ?? [];
+    // Segundo rol (0062): se agrega el nombre para mostrarlo junto al principal. Mejor esfuerzo: sin la tabla o sin permiso, queda igual.
+    try {
+      const [pr, ro] = await Promise.all([SB.from('persona_roles').select('persona_id, rol_id'), SB.from('roles').select('id, nombre')]);
+      if (!pr.error && !ro.error && pr.data?.length) {
+        const nom = new Map((ro.data || []).map(r => [Number(r.id), r.nombre]));
+        const extra = new Map();
+        pr.data.forEach(x => extra.set(x.persona_id, x.rol_id));
+        rows.forEach(r => { const e = extra.get(r.persona_id); if (e != null && Number(e) !== Number(r.rol_id)) r.rol2_nombre = nom.get(Number(e)) || null; });
+      }
+    } catch { /* sin segundo rol visible */ }
+    return { ok: true, rows };
   },
   /** Hechos de las tareas por actividad y por persona (reporte_actividades, 0025; necesita también 0021 y 0024). */
   async getReporteActividades(gestionId = null) {
