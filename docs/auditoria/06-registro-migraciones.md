@@ -17,6 +17,7 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 
 - **0060 `tareas_texto_largo`** (2026-11-11): topes de texto de las tareas a 20 000 caracteres (descripción, instrucciones) y 5 000 (criterios). Aplicada por la administración.
 - **0061 `tareas_sin_tareas_pierde_puntos`** (2026-11-11, **pendiente de aplicar**): regla por PE «sin tareas calificadas, se pierden los puntos de tareas» (apagada por defecto). Prueba: `tools/pruebas/sql-0061.mjs`.
+- **0062 `dos_roles_por_persona`** (2026-11-15, **pendiente de aplicar**): máximo 2 roles por persona (principal + 1), puntajes técnicos del segundo rol en la misma evaluación (`puntajes_rol2`, `perfil2_id`), mezcla por el peso de las tareas de cada rol en `resultados_periodo()`, `rectificar_evaluacion()` con un parámetro más. Quien ya tenga más de 2 roles no se toca: `personas_con_mas_de_dos_roles()`. Prueba: `tools/pruebas/sql-0062.mjs` (con paridad).
 
 ## Pendientes a propósito
 - `0006_gestion_miembros.PENDIENTE.sql`: `gestion_miembros` **no existe**. Reescribe 5 funciones y 5 políticas y exige cambios de front en el mismo despliegue.

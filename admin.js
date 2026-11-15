@@ -38,6 +38,8 @@ let _perfiles    = [];
 let _resV2 = {};
 /** Estado del formulario v2 abierto: { evaluadoId, perfil, puntajes, claves }. */
 let _formV2 = null;
+let _dosRoles = false;     // 0062 aplicada: las evaluaciones admiten un segundo rol
+let _rolesExtra = {};      // persona_id → rol_id habilitado además del principal (el segundo rol)
 
 /* parseJSON → core/render.js */
 
@@ -276,6 +278,15 @@ async function loadEvalPEData() {
     v2 ? API.getResultadosV2(_activePE.id, { borradores: true }) : Promise.resolve({ ok: true, rows: [] }),
   ]);
   _evalPECache = evs;
+  // Segundo rol (0062): quién lo tiene y si la base ya lo admite. Si algo falla, el formulario sigue con un solo rol.
+  try {
+    _dosRoles = v2 ? await API.dosRolesDisponible() : false;
+    _rolesExtra = {};
+    if (_dosRoles) {
+      const pr = await API.getPersonaRoles();
+      (pr.rows || []).forEach(x => { const u = _users.find(y => y.id === x.persona_id); if (u && Number(u.rol_id) !== Number(x.rol_id)) _rolesExtra[x.persona_id] = Number(x.rol_id); });
+    }
+  } catch { _dosRoles = false; _rolesExtra = {}; }
   _resV2 = Object.fromEntries((res.rows || []).map(r => [r.evaluado_id, r]));
   // Datos para los atajos (participación y, en períodos por roles, tareas). Si fallan, el atajo no cuenta.
   try {
@@ -707,11 +718,20 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
     : (ev?.perfil_id && _perfiles.find(p => String(p.id) === String(ev.perfil_id)))
       || perfilVigenteDe(evaluado.rol_id, _activePE.id, _perfiles, _periodos);
 
+  // Segundo rol (0062): perfil fijado por el servidor si ya se guardó; si no, el vigente para el rol habilitado.
+  const guardado2 = parseJSON(ev?.puntajes_rol2);
+  const rol2Id = _dosRoles ? (_rolesExtra[evaluadoId] || null) : null;
+  const perfil2 = !_dosRoles ? null
+    : (ev?.perfil2_id && _perfiles.find(p => String(p.id) === String(ev.perfil2_id)))
+      || (rol2Id && ev?.escala !== 'cinco' && perfilVigenteDe(rol2Id, _activePE.id, _perfiles, _periodos)) || null;
+  const rol2Nombre = perfil2 ? (_roles.find(r => String(r.id) === String(perfil2.rol_id))?.nombre || 'segundo rol') : '';
+  const ap2 = perfil2 ? criteriosAplicables(perfil2, _criteriosV2, { conservar: Object.keys(guardado2) }) : null;
+
   const cabecera = `
     <div class="eval-form-header">
       <div>
         <div class="eval-miembro-name">${escHtml(evaluado?.nombre || '—')}</div>
-        <div class="eval-miembro-rol">${escHtml(evaluado?.roles?.nombre || 'Sin rol')}${evaluado?.distrito ? ' · ' + escHtml(evaluado.distrito) : ''}${perfil ? ' · perfil v' + perfil.version : ''}</div>
+        <div class="eval-miembro-rol">${escHtml(evaluado?.roles?.nombre || 'Sin rol')}${rol2Nombre ? ' + ' + escHtml(rol2Nombre) : ''}${evaluado?.distrito ? ' · ' + escHtml(evaluado.distrito) : ''}${perfil ? ' · perfil v' + perfil.version : ''}</div>
       </div>
       <span class="eval-estado-badge estado--${estado}">${estado}</span>
     </div>`;
@@ -743,6 +763,11 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
     registro: ap.registro,
     puntajes: Object.fromEntries(Object.entries(guardado).map(([k, v]) => [k, Number(v)])),
     respuestas: { ...respGuardadas },
+    // Segundo rol: solo criterios técnicos (el núcleo se puntúa una vez). Sus claves van con el prefijo «r2:» en la pantalla.
+    perfil2Id: perfil2 ? perfil2.id : null,
+    claves2: ap2 ? ap2.tecnicos.map(c => c.key) : [],
+    requeridas2: ap2 ? ap2.tecnicos.filter(c => c.obligatorio !== false && c.activo !== false).map(c => c.key) : [],
+    puntajes2: Object.fromEntries(Object.entries(guardado2).map(([k, v]) => [k, Number(v)])),
   };
 
   // Control de puntaje de un criterio, según la escala de ESTA evaluación.
@@ -752,6 +777,15 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
     const max = c.tipo === 'nucleo' ? ESCALA_NUCLEO_V2 : Number(c.peso) || 0;
     if (!max) return '<p class="v2-nota v2-nota--regla" role="alert">Este criterio no tiene peso en el perfil: no se puede puntuar.</p>';
     return puntosHTML({ max, valor: v, key: c.key, nombre: c.nombre, peso: c.tipo === 'nucleo' ? null : c.peso, accionPaso: 'puntosPaso', entrada: 'puntosInputV2' });
+  };
+
+  // Fila de un criterio del segundo rol: solo puntos (de 0 a su peso); el comentario va en la nota general.
+  const fila2 = c => {
+    const max = Number(c.peso) || 0;
+    return `<div class="v2-crit"><div class="v2-crit-head"><div class="v2-crit-nombre">${escHtml(c.nombre)}${c.obligatorio === false ? ' <span class="etiqueta etq-gris">Opcional</span>' : ''}</div></div>
+      ${c.descripcion ? `<p class="v2-crit-desc">${escHtml(c.descripcion)}</p>` : ''}
+      ${max ? puntosHTML({ max, valor: _formV2.puntajes2[c.key] ?? null, key: 'r2:' + c.key, nombre: c.nombre, peso: c.peso, accionPaso: 'puntosPaso', entrada: 'puntosInputV2' })
+             : '<p class="v2-nota v2-nota--regla" role="alert">Este criterio no tiene peso en el perfil: no se puede puntuar.</p>'}</div>`;
   };
 
   const fila = c => `
@@ -788,6 +822,9 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
   const resumen = r ? `
       <span>Núcleo <b>${fmtV2(r.nucleo)}</b></span>
       <span>Técnico <b>${fmtV2(r.tecnico)}</b></span>
+      ${r.rol2_id && r.rol2_nombre ? (r.rol2_incompleta
+        ? `<span title="Tiene tareas de ${escHtml(r.rol2_nombre)} pero falta su evaluación: el resultado usa solo el rol principal">${escHtml(r.rol2_nombre)} <b>evaluación incompleta</b></span>`
+        : r.tecnico_rol2 != null ? `<span title="Técnico del segundo rol y cuánto pesa en el técnico, según sus tareas">${escHtml(r.rol2_nombre)} <b>${fmtV2(r.tecnico_rol2)}</b> <small>(pesa ${fmtV2(r.peso_rol2)} %)</small></span>` : '') : ''}
       ${r.tareas != null ? `<span title="Nota de sus tareas aprobadas y cuánto pesan en el resultado de este PE">Tareas <b>${fmtV2(r.tareas)}</b> <small>(pesan ${fmtV2(r.peso_tareas)} %)</small></span>` : '<span title="Sin tareas calificadas que cuenten: el resultado es solo la evaluación y no se penaliza">Tareas <small>sin calificar</small></span>'}
       <span>Individual <b>${fmtV2(r.individual)}</b></span>
       <span>General <b>${fmtV2(r.general)}</b>${r.rol_pequeno ? ' <small>(rol pequeño)</small>' : ''}</span>` : '';
@@ -802,6 +839,8 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
       ${ap.nucleo.map(fila).join('')}
       <div class="v2-form-sec">Criterios técnicos de ${escHtml(evaluado?.roles?.nombre || 'su rol')}<small>Solo se compara con quienes tienen el mismo rol. Ordenados por peso.</small></div>
       ${ap.tecnicos.map(fila).join('')}
+      ${ap2 && ap2.tecnicos.length ? `<div class="v2-form-sec">Criterios técnicos de ${escHtml(rol2Nombre)} (segundo rol)<small>Cuenta según las tareas que haga con este rol: más tareas de ${escHtml(rol2Nombre)}, más pesa. Si no hay tareas de este rol, no pesa. Se puede dejar vacío.</small></div>${ap2.tecnicos.map(fila2).join('')}` : ''}
+      ${_dosRoles && rol2Id && !perfil2 ? `<p class="v2-fuera"><strong>Segundo rol sin evaluar:</strong> ${ev?.escala === 'cinco' ? 'esta evaluación usa la escala 1–5 (anterior) y el segundo rol solo se evalúa con puntuación por peso.' : 'no hay un perfil de evaluación vigente para ese rol. Créalo en <em>Configuración → Perfiles</em>.'}</p>` : ''}
       ${ap.registro.length ? `<div class="v2-form-sec">Registro de la evaluación<small>Datos que se guardan con la evaluación y no puntúan.</small></div>${ap.registro.map(campo).join('')}` : ''}
       <p class="v2-fuera"><strong>No se evalúan (${ap.fuera.length}):</strong> ${escHtml(ap.fuera.map(c => c.nombre).join(' · '))}. No aparecen en este formulario y no entran al denominador.</p>
 
@@ -860,9 +899,11 @@ function setScoreV2(key, n, btn) {
 }
 
 /* ── Puntos por peso (0023): barra, número y − / + ───────────────────────────────────────────── */
+function _bolsaV2(key) { return key.startsWith('r2:') ? [_formV2.puntajes2, key.slice(3)] : [_formV2.puntajes, key]; }
 function _fijarPuntosV2(g, key, v, origen) {
   if (!_formV2) return;
-  if (v == null) delete _formV2.puntajes[key]; else _formV2.puntajes[key] = v;
+  const [bolsa, k] = _bolsaV2(key);
+  if (v == null) delete bolsa[k]; else bolsa[k] = v;
   puntosActualizar(g, v, origen);
   actualizarProgresoV2();
 }
@@ -882,7 +923,7 @@ function puntosInputV2(el, ev) {
 /** − / +: de un punto en un punto; sin puntuar, «+» empieza en 1 y «−» en 0. */
 function puntosPasoV2(key, el) {
   const g = el.closest('.pts'); if (!g || !_formV2) return;
-  const max = Number(g.dataset.max), d = Number(el.dataset.arg2), cur = _formV2.puntajes[key];
+  const max = Number(g.dataset.max), d = Number(el.dataset.arg2), [bolsa, kk] = _bolsaV2(key), cur = bolsa[kk];
   const sig = cur == null ? (d > 0 ? 1 : 0) : Math.max(0, Math.min(max, cur + d));
   _fijarPuntosV2(g, key, Math.min(sig, max), null);
 }
@@ -903,6 +944,11 @@ function actualizarProgresoV2() {
   el.innerHTML = faltan
     ? `<b>${hechos}</b> de ${req.length} obligatorios · <span class="v2-faltan">faltan ${faltan} para poder publicar</span>`
     : `<b>${hechos}</b> de ${req.length} obligatorios · completo`;
+  // Segundo rol: opcional, pero si se empieza hay que completarlo para publicar.
+  if (_formV2.perfil2Id && _formV2.claves2.length) {
+    const n2 = Object.keys(_formV2.puntajes2).length, h2 = _formV2.requeridas2.filter(k => _formV2.puntajes2[k] != null).length;
+    el.innerHTML += n2 ? ` · segundo rol: <b>${h2}</b> de ${_formV2.requeridas2.length}${h2 < _formV2.requeridas2.length ? ' <span class="v2-faltan">(complétalo para publicar)</span>' : ''}` : ' · segundo rol: sin puntuar';
+  }
 }
 
 /** Clic en un campo de registro: pulsar de nuevo el elegido lo deja sin responder. */
@@ -929,6 +975,12 @@ async function saveEvaluacionV2(estado, evaluadoId) {
     showToast(`No se puede publicar: faltan ${faltan.length} obligatorio${faltan.length === 1 ? '' : 's'} (${nombres.slice(0, 3).join(', ')}${nombres.length > 3 ? '…' : ''}).`, 'error');
     return;
   }
+  // Segundo rol: si se empezó a puntuar, para publicar debe estar completo (la base lo exige igual).
+  const faltan2 = _formV2.perfil2Id && Object.keys(_formV2.puntajes2).length ? _formV2.requeridas2.filter(k => _formV2.puntajes2[k] == null) : [];
+  if (estado === 'publicado' && faltan2.length) {
+    showToast(`No se puede publicar: faltan ${faltan2.length} criterio${faltan2.length === 1 ? '' : 's'} del segundo rol (o déjalo todo sin puntuar).`, 'error');
+    return;
+  }
   // Texto libre: se lee al guardar; sí/no y opciones ya están en _formV2.respuestas.
   const respuestas = { ..._formV2.respuestas };
   (_formV2.registro || []).filter(c => tipoCampoDe(c) === 'texto').forEach(c => {
@@ -947,6 +999,8 @@ async function saveEvaluacionV2(estado, evaluadoId) {
   const res = await API.guardarEvaluacion({
     periodo_id: _activePE.id, evaluado_id: evaluadoId, evaluador_id: CU.id,
     puntajes: _formV2.puntajes, bono_ext: 0, comentarios, estado,
+    // 0062: solo si la persona tiene segundo rol (undefined = no se manda)
+    puntajes_rol2: _formV2.perfil2Id ? _formV2.puntajes2 : undefined,
     // Solo con 0020 aplicada: sin la columna, mandarla haría fallar el guardado.
     respuestas: API.v2Dinamico(_criteriosV2) ? respuestas : null,
   }, pedirMotivoEvaluacion);
