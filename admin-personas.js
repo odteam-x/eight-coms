@@ -272,12 +272,12 @@ function participacionMasiva() {
 async function gestionParticipante(id, eraInactivo) { await toggleParticipante(id, eraInactivo); invalidarPersonasRes(); _refrescarGestion(); }
 function borrarDesdePerfil(id) { cerrarPanel(); confirmDeleteUser(id); }
 
-/** «Roles permitidos» (0021): el rol principal + los que la administración habilita. Las PREFERENCIAS de la persona
- *  se muestran aparte y solo para informar: no conceden ni quitan nada. */
+/** «Roles» (0021 + 0062): el rol principal + como mucho UN segundo rol (máximo 2 por persona). El segundo rol permite asignarle
+ *  tareas con ese rol y evaluarla por él. Las PREFERENCIAS de la persona se muestran aparte y solo informan. */
 async function rolesPermitidosHTML(u) {
   if (!API.rolesAmpliados(_roles)) {
-    return `<section class="pf-card" aria-labelledby="gp-h-roles"><h3 class="pf-h" id="gp-h-roles">Roles permitidos</h3>
-      <p class="gp-s">Habilitar más de un rol por persona necesita la migración 0021 en la base de datos.</p></section>`;
+    return `<section class="pf-card" aria-labelledby="gp-h-roles"><h3 class="pf-h" id="gp-h-roles">Roles</h3>
+      <p class="gp-s">Habilitar un segundo rol necesita la migración 0021 en la base de datos.</p></section>`;
   }
   const [extra, pref] = await Promise.all([API.getPersonaRoles(u.id), API.getPreferenciasRol(u.id)]);
   if (extra.noDisponible) return '';
@@ -285,12 +285,18 @@ async function rolesPermitidosHTML(u) {
   const nombre = id => _roles.find(r => Number(r.id) === Number(id))?.nombre || '—';
   const candidatos = _roles.filter(r => r.activo && Number(r.id) !== Number(u.rol_id));
   const prefs = pref.rows || [];
+  const extras = [...hab].filter(id => id !== Number(u.rol_id));
+  const exceso = extras.length > 1;   // dato anterior al límite de 2 roles: se muestra y se pide dejar uno
   return `<section class="pf-card" aria-labelledby="gp-h-roles" id="gp-roles-permitidos" data-persona="${escHtml(u.id)}">
-      <h3 class="pf-h" id="gp-h-roles">Roles permitidos</h3>
-      <p class="gp-s">Además de su rol principal (<b>${escHtml(u.roles?.nombre || 'sin rol')}</b>), esta persona puede recibir trabajo de los roles que marques.
-        Un rol no marcado solo se le puede asignar la administración, como excepción visible.</p>
-      ${candidatos.length ? `<div class="gp-checks" role="group" aria-label="Roles que puede asumir además del principal">${candidatos.map(r => `
-        <label class="tk-check"><input type="checkbox" value="${escHtml(r.id)}"${hab.has(Number(r.id)) ? ' checked' : ''} data-change="gestionRolPermitido"><span>${escHtml(r.nombre)}</span></label>`).join('')}</div>`
+      <h3 class="pf-h" id="gp-h-roles">Roles <small>máx. 2 por persona</small></h3>
+      <p class="gp-s">Rol principal: <b>${escHtml(u.roles?.nombre || 'sin rol')}</b> (define su perfil y el núcleo de la evaluación). Un <b>segundo rol</b> permite asignarle tareas con ese rol y evaluarla también por él: cuenta en su resultado según las tareas que haga con cada rol.
+        Sin segundo rol, solo la administración puede asignarle tareas de otro rol, como excepción visible.</p>
+      ${exceso ? `<p class="gp-s gp-aviso" role="alert">Esta persona tiene ${extras.length + 1} roles (${escHtml([u.rol_id, ...extras].map(nombre).join(', '))}): el máximo es 2. Elige un solo segundo rol y se quitarán los demás.</p>` : ''}
+      ${candidatos.length ? `<label class="gp-t" for="gp-rol2">Segundo rol</label>
+        <select class="cfg-inp cfg-select" id="gp-rol2" data-change="gestionRolPermitido" aria-label="Segundo rol (máximo 2 roles por persona)">
+          <option value=""${extras.length ? '' : ' selected'}>Sin segundo rol</option>
+          ${candidatos.map(r => `<option value="${escHtml(r.id)}"${extras[0] === Number(r.id) ? ' selected' : ''}>${escHtml(r.nombre)}</option>`).join('')}
+        </select>`
         : '<p class="gp-s">No hay otros roles activos.</p>'}
       <div class="gp-pref">
         <div class="gp-t">Lo que prefiere esta persona</div>
@@ -300,14 +306,14 @@ async function rolesPermitidosHTML(u) {
       </div>
     </section>`;
 }
-/** data-change de cada casilla de «Roles permitidos»: guarda el conjunto completo. */
+/** data-change del selector «Segundo rol»: guarda el único segundo rol (o ninguno). El límite de 2 roles lo impone también la base (0062). */
 async function gestionRolPermitido(el) {
   const sec = el.closest('#gp-roles-permitidos'); if (!sec) return;
-  const marcados = [...sec.querySelectorAll('input[type=checkbox]:checked')].map(i => Number(i.value));
-  sec.querySelectorAll('input').forEach(i => { i.disabled = true; });
+  const marcados = el.value ? [Number(el.value)] : [];
+  sec.querySelectorAll('select').forEach(i => { i.disabled = true; });
   const r = await API.setPersonaRoles(sec.dataset.persona, marcados);
   if (!r.ok) showToast('No se pudo guardar: ' + r.error, 'error');
-  else showToast('Roles permitidos actualizados', 'ok');
+  else showToast(marcados.length ? 'Segundo rol actualizado' : 'Segundo rol quitado', 'ok');
   _refrescarGestion();
 }
 
