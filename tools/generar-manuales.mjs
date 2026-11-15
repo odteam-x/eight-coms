@@ -213,7 +213,7 @@ ${pasos(
         `Confirma. Desde ese momento queda <i>Entregada</i> y a quien revisa le llega un aviso.`)}
 ${nota('ojo', 'El «a tiempo» se mide en tu <b>primera</b> entrega. Si te devuelven la tarea y la corriges, esa corrección no la vuelve «tarde».')}
 <h3>Crear tu propia tarea («Mi iniciativa»)</h3>
-${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha.`, `Guarda. Cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
+${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha.`, `Guarda. La tarea queda <b>En curso</b> desde ese momento: no tienes que tocar «Empezar». Cuando la termines, entrégala; cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
 ${nota('consejo', 'Nadie aprueba su propia tarea. Eso es lo que evita inflar la «iniciativa»: solo cuenta lo que otra persona revisó.')}
 <h3>Bloquear, mover plazos, historial</h3>
 ${lista(
