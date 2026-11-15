@@ -902,13 +902,8 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .aud-filtros input[type="date"]::-webkit-datetime-edit { color: var(--v-t); }
 .aud-filtros input[type="date"]::-webkit-calendar-picker-indicator { opacity: .8; }
 
-/* 39. Calendario: menos aire sin uso arriba (captura del dueño: «aprovechar mejor los espacios»). El título y su línea de apoyo comparten renglón en escritorio y el calendario sube ~70 px. */
-@media (min-width: 1024px) {
-  #tab-calendario, #tab-agenda { padding-top: var(--sp-4); }
-  #tab-calendario .pantalla-cab, #tab-agenda .pantalla-cab { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sp-4); row-gap: 2px; margin-bottom: var(--sp-3); }
-  #tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { margin: 0; flex: 1 1 280px; }
-}
-#tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { text-align: left; }
+/* 39. Calendario: menos aire arriba en escritorio. La cabecera (kicker, título y línea de apoyo) queda APILADA como en todas las pantallas; una versión anterior ponía el título y la línea de apoyo en un mismo renglón y en miembro y secretaría el texto de apoyo quedaba suelto a la derecha. */
+@media (min-width: 1024px) { #tab-calendario, #tab-agenda { padding-top: var(--sp-4); } }
 
 /* 38. Cabecera de pantalla: más aire entre el icono y el título, y menos vacío arriba. Antes el contenido arrancaba 48 px más abajo (más el relleno de la cabecera) y el icono quedaba pegado al texto. */
 @media (min-width: 768px) {
