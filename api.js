@@ -1478,7 +1478,18 @@ const API = {
     const g = gestionId ?? await _gid();
     const { data, error } = await SB.rpc('seguimiento_global', { p_gestion: g });
     if (error) return { ok: false, noDisponible: this._rpcAusente(error), error: error.message, rows: [] };
-    return { ok: true, rows: data ?? [] };
+    const rows = data ?? [];
+    // Segundo rol (0062): se agrega el nombre para mostrarlo junto al principal. Mejor esfuerzo: sin la tabla o sin permiso, queda igual.
+    try {
+      const [pr, ro] = await Promise.all([SB.from('persona_roles').select('persona_id, rol_id'), SB.from('roles').select('id, nombre')]);
+      if (!pr.error && !ro.error && pr.data?.length) {
+        const nom = new Map((ro.data || []).map(r => [Number(r.id), r.nombre]));
+        const extra = new Map();
+        pr.data.forEach(x => extra.set(x.persona_id, x.rol_id));
+        rows.forEach(r => { const e = extra.get(r.persona_id); if (e != null && Number(e) !== Number(r.rol_id)) r.rol2_nombre = nom.get(Number(e)) || null; });
+      }
+    } catch { /* sin segundo rol visible */ }
+    return { ok: true, rows };
   },
   /** Hechos de las tareas por actividad y por persona (reporte_actividades, 0025; necesita también 0021 y 0024). */
   async getReporteActividades(gestionId = null) {
