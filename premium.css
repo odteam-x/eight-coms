@@ -534,6 +534,12 @@ details.rail-grupo[open] > .rail-sep .rail-chev { transform: rotate(180deg); }
   body.imprimiendo-reporte #contenido::before, body.imprimiendo-reporte #contenido::after { display: none !important; }
   body.imprimiendo-reporte .rpt-hoja { max-width: none; border-radius: 0; padding: 0; background: none; gap: 18px; }
   body.imprimiendo-reporte .rpt-sec, body.imprimiendo-reporte .rpt-persona { break-inside: avoid; }
+  /* Tablas del reporte en papel: sin scroll horizontal, sin ancho mínimo de pantalla, el encabezado se repite y una fila no se corta. */
+  body.imprimiendo-reporte .rpt-tabla { overflow: visible; }
+  body.imprimiendo-reporte .rpt-tabla table { min-width: 0; }
+  body.imprimiendo-reporte .rpt-tabla thead { display: table-header-group; }
+  body.imprimiendo-reporte .rpt-tabla tr { break-inside: avoid; }
+  body.imprimiendo-reporte .rpt-sec-t { break-after: avoid; }
   body.imprimiendo-reporte .rpt-logo { display: block !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body.imprimiendo-reporte * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
