@@ -27,7 +27,7 @@ const Cuenta = (() => {
     { k: 'perfil', etiqueta: 'Perfil', icono: 'user-round' },
     { k: 'rol', etiqueta: 'Mi rol', icono: 'group-2' },
     { k: 'seguridad', etiqueta: 'Seguridad', icono: 'lock' },
-    { k: 'app', etiqueta: 'App', icono: 'settings' },
+    { k: 'app', etiqueta: 'App y ayuda', icono: 'settings' },
   ];
   const _tabsDe = () => TABS.filter(t => !(t.k === 'rol' && _p.es_admin));
   const _tabGuardada = () => { try { return sessionStorage.getItem('ec-cuenta-tab'); } catch { return null; } };
@@ -81,6 +81,9 @@ const Cuenta = (() => {
               ${_fila('Correo', 'Con este correo entras al portal.', `<span class="fila-aj-ind cuenta-val">${escHtml(_p.email || '—')}</span>`)}
               ${_fila('Tipo de acceso', 'Lo asigna la administración.', `<span class="fila-aj-ind cuenta-val">${escHtml(tipo)}</span>`)}
               ${_p.es_admin ? '' : _fila('Distrito', 'Lo asigna la administración.', `<span class="fila-aj-ind cuenta-val">${escHtml(_p.distrito || 'Sin asignar')}</span>`)}
+              ${_p.es_admin ? '' : `<button type="button" class="fila-aj" data-act="perfilGafete">
+                <div class="fila-aj-txt"><div class="fila-aj-t">Mi gafete</div><div class="fila-aj-d">Tu identificación con código QR: verla, descargarla o compartirla.</div></div>
+                <span class="fila-aj-ind"><i data-lucide="id-card"></i></span></button>`}
             </div>
           </div>
           <div class="cuenta-bloque">

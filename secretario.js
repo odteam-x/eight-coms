@@ -232,8 +232,8 @@ async function initUI() {
           { tab:'inicio',   icono:'house',       etiqueta:'Inicio', fav: sec },
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
-          { tab:'trabajos', icono:'folder-open', etiqueta:'Entregas', fav: sec },
-          { tab:'banco',    icono:'image',       etiqueta:'Banco', titulo:'Banco de imágenes' },
+          { tab:'trabajos', icono:'folder-open', etiqueta:'Mis tareas', titulo:'Mis tareas', fav: sec },
+          { tab:'banco',    icono:'image',       etiqueta:'Imágenes', titulo:'Banco de imágenes' },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },

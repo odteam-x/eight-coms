@@ -92,10 +92,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
-        { tab:'banco',    icono:'image',            etiqueta:'Banco', titulo:'Banco de imágenes' },
+        { tab:'banco',    icono:'image',            etiqueta:'Imágenes', titulo:'Banco de imágenes' },
       ]},
       { titulo:'Organización', items: [
-        { tab:'usuarios', icono:'users',            etiqueta:'Personas' },
+        { tab:'usuarios', icono:'users',            etiqueta:'Personas', titulo:'Personas y accesos' },
         { tab:'distritos', icono:'map-pin',        etiqueta:'Distritos' },
       ]},
       { items: [
@@ -2680,12 +2680,25 @@ async function confirmarAbrirGestion() {
   location.assign('admin.html');
 }
 
+/** «Preparar la evaluación» (core/cierre.js) arriba de la Configuración: solo lectura, sobre el período elegido. */
+async function _montarPreparar() {
+  const el = document.getElementById('cg-preparar'); if (!el || typeof Cierre === 'undefined') return;
+  const pe = _activePEOv || _periodos.find(p => p.activo) || _periodos[0];
+  if (!pe) { el.innerHTML = ''; return; }
+  const v2 = esPeriodoV2(pe);
+  const cfg = v2 ? await API.getCalifConfig(pe.id) : null;
+  const lista = Cierre.preparar({ pe, users: _users, roles: _roles, v2, reglas: cfg && cfg.ok ? cfg.config : null, perfilVigente: (rolId, peId) => perfilVigenteDe(rolId, peId, _perfiles, _periodos) });
+  el.innerHTML = Cierre.html(lista, { titulo: `Preparar la evaluación · ${pe.nombre}`, sub: 'Lo que tiene que existir antes de evaluar. Solo lee: no cambia nada.', id: 'cg-lista-preparar' });
+  renderIconos(el);
+}
+
 function switchTabAdminHooks(tab) {
   if (tab === 'configuracion') Configuracion.montar(document.getElementById('configuracion-host'), { datos: () => ({
     gestion: (typeof _gestiones !== 'undefined' && (_gestiones.find(g => g.activa || g.actual || g.estado === 'activa') || {}).nombre) || '',
     periodos: _periodos.length, periodoActivo: (_periodos.find(p => p.activo) || {}).nombre || '',
     personas: _users.filter(u => !u.es_admin).length, pendientes: _users.filter(u => u.aprobado === false).length,
     roles: _roles.length, distritos: _distritos.length }) });
+  if (tab === 'configuracion') setTimeout(_montarPreparar, 0);
   if (tab === 'calendario') Actividades.abrir();
   if (tab === 'rubrica') renderRubricaTab();
   if (tab === 'roles') renderRoles();

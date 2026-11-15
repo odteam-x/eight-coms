@@ -447,7 +447,7 @@ const Perfil = (() => {
     const periodo = inst.periodo;
     if (!esPeriodoV2(periodo)) {
       cuerpo.innerHTML = `<div class="empty-box"><div class="empty-txt">Este período se evaluó con la rúbrica clásica y no usa tareas asignables.
-        ${inst.modo === 'propio' ? 'Tus entregas están en la pestaña Entregas.' : ''}</div></div>`;
+        ${inst.modo === 'propio' ? 'Tus tareas están en «Mis tareas».' : ''}</div></div>`;
       return;
     }
     // Quien asigna y revisa (secretario del distrito, admin) las gestiona AQUÍ,

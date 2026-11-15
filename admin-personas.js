@@ -462,4 +462,28 @@ async function renderAtencion() {
         <ul class="atn-lista">${datos.map(filaDato).join('')}</ul></details>` : ''}
     </section>`;
   renderIconos(el);
+  renderCierre(pe);
+}
+
+/** «Cierre del período» (core/cierre.js): lista de verificación de solo lectura bajo «Requiere atención». Cada comprobación que no se pueda
+ *  hacer (por ejemplo, una consulta que falla) se omite en vez de afirmar algo que no se comprobó. */
+async function renderCierre(pe) {
+  const el = document.getElementById('ov-cierre'); if (!el) return;
+  if (!pe || typeof Cierre === 'undefined') { el.innerHTML = ''; return; }
+  const v2 = esPeriodoV2(pe);
+  const [evs, part, cfg, est, evd] = await Promise.all([
+    API.getEvaluacionesByPE(pe.id), API.getParticipantes(pe.id),
+    v2 ? API.getCalifConfig(pe.id) : Promise.resolve(null),
+    API.getEstadisticasDistritosByPE(pe.id), API.getEvalDistritosByPE(pe.id),
+  ]);
+  const inactivos = new Set((part || []).filter(r => !r.activo).map(r => r.user_id));
+  let porRevisar = null;
+  if (v2) { const lista = await API.getTareas({ periodoId: pe.id }); if (lista.ok) porRevisar = lista.tareas.filter(t => t.estado === 'entregada').length; }
+  const lista = Cierre.cierre({
+    pe, users: _users, inactivos, evaluaciones: evs, v2,
+    reglas: cfg && cfg.ok ? cfg.config : null, porRevisar,
+    distritos: _distritos, estadisticas: est && est.ok ? est.data : null, evalsDistrito: Array.isArray(evd) ? evd : null,
+  });
+  el.innerHTML = Cierre.html(lista, { titulo: `Cierre de ${pe.nombre}`, plegable: true, id: 'cierre-periodo' });
+  renderIconos(el);
 }
