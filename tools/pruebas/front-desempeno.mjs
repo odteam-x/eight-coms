@@ -207,6 +207,44 @@ const P = (n, v, extra = {}) => ({ ...extra, periodo_id: 'id' + n, periodo_nombr
   ok(!/id="des-h-evo"[^]*id="des-h-evo"/.test(h), 'sin ids duplicados entre el detalle y la evolución del equipo');
 }
 
+// ── Ranking (por rol, quitando roles) ──
+{
+  const rows = [];
+  [['Ana', 90, 1, 'Dirección'], ['Beto', 80, 1, 'Dirección'], ['Cata', 80, 2, 'Redacción'], ['Dani', 70, 2, 'Redacción'], ['Eli', 60, 3, 'Diseño']]
+    .forEach(([n, v, r, rn], i) => rows.push(fila({ ...P(1, v), persona_id: 'k' + i, nombre: n, rol_id: r, rol_nombre: rn })));
+  rows.push(fila({ ...P(1, 99), persona_id: 'kb', nombre: 'Borrador', estado_eval: 'borrador' }));
+  const { ctx, dom } = entorno(rows);
+  await ctx.Desempeno.montarAdmin(dom['host'] = el('host'));
+  const cuerpo = () => dom['des-rk-cuerpo']?.innerHTML || '';
+  const h0 = dom['des-cuerpo'].innerHTML;
+  ok(/id="des-h-rk"/.test(h0) && /Roles que cuentan/.test(h0), 'Ranking: la sección existe con sus filtros de roles');
+  // el cuerpo del ranking vive dentro de des-cuerpo; el doble de DOM lo ve solo si el id existe: lo tomamos del HTML pintado
+  const orden = h => [...h.matchAll(/aria-label="Ver el perfil de ([^"]+)"/g)].map(m => m[1]);
+  const seccion = h0.slice(h0.indexOf('id="des-rk-cuerpo"'), h0.indexOf('Comparar dos períodos'));
+  ok(orden(seccion).slice(0, 5).join() === 'Ana,Beto,Cata,Dani,Eli', 'ordena de mayor a menor: ' + orden(seccion).slice(0, 5).join());
+  ok(!/Borrador/.test(seccion), 'un borrador no entra en el ranking');
+  ok(/<td data-label="Puesto">[^<]*(<[^>]+>[^<]*)*<\/td>/.test(seccion), 'cada fila tiene su puesto');
+  // desmarcar un rol (excluir Dirección)
+  const rolDir = { id: '', value: '1', checked: false, classList: { contains: c => c === 'des-rk-rol' } };
+  ctx.Desempeno.cambio(rolDir);
+  const h1 = dom['des-rk-cuerpo'].innerHTML;
+  ok(!/Ana|Beto/.test(h1.replace(/aria-label="[^"]*"/g, '$&')) || !/>Ana</.test(h1), 'sin Dirección: Ana y Beto salen');
+  ok(orden(h1).join() === 'Cata,Dani,Eli', 'quedan solo los roles marcados: ' + orden(h1).join());
+  // agrupar por rol
+  ctx.Desempeno.cambio({ id: 'des-rk-agrupar', checked: true, classList: { contains: () => false } });
+  const h2 = dom['des-rk-cuerpo'].innerHTML;
+  ok(/<h3 class="pf-sub">Diseño/.test(h2) && /<h3 class="pf-sub">Redacción/.test(h2) && !/Dirección/.test(h2), 'un ranking por rol, sin el rol excluido');
+  // top 1
+  ctx.Desempeno.cambio({ id: 'des-rk-top', value: '1', classList: { contains: () => false } });
+  ok(orden(dom['des-rk-cuerpo'].innerHTML).join() === 'Eli,Cata', 'mostrar 1: la primera de cada rol: ' + orden(dom['des-rk-cuerpo'].innerHTML).join());
+  // empates comparten puesto
+  ctx.Desempeno.cambio({ id: 'des-rk-agrupar', checked: false, classList: { contains: () => false } });
+  ctx.Desempeno.cambio({ id: 'des-rk-top', value: '0', classList: { contains: () => false } });
+  rolDir.checked = true; ctx.Desempeno.cambio(rolDir);
+  const medallas = [...dom['des-rk-cuerpo'].innerHTML.matchAll(/data-label="Puesto">([^<]*)/g)].map(m => m[1]);
+  ok(orden(dom['des-rk-cuerpo'].innerHTML).length === 5, 'volver a marcar el rol lo devuelve (5 personas)');
+}
+
 // ── Sin datos / sin migración ──
 {
   const { ctx, dom } = entorno([]);

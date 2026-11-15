@@ -424,6 +424,60 @@ const Desempeno = (() => {
     </section>`;
   }
 
+  /* ── Ranking (por rol, con roles que se pueden quitar) ─────────────────
+   * Ordena a las personas por la métrica elegida en UN período (el último con datos, o el que se elija). Filtros propios: roles
+   * incluidos (se desmarcan los que no cuentan), «agrupar por rol» (un ranking por rol, no uno solo), cuántas mostrar y el período.
+   * No calcula nada: ordena valores ya publicados; los empates comparten posición (1, 1, 3…). */
+  function filasRanking() {
+    return S.rows.filter(r => r.modelo === S.modelo && r.participa && (!S.distrito || r.distrito === S.distrito));
+  }
+  function rolesRanking() {
+    return [...new Map(filasRanking().map(r => [String(r.rol_id ?? ''), r.rol_nombre || 'Sin rol'])).entries()].sort((a, b) => a[1].localeCompare(b[1], 'es'));
+  }
+  function posiciones(lista) {
+    let pos = 0, ant = null, i = 0;
+    return lista.map(x => { i++; if (ant === null || x.v !== ant) { pos = i; ant = x.v; } return { ...x, pos }; });
+  }
+  function seccionRanking() {
+    if (!S.rk) S.rk = { roles: null, top: 10, agrupar: false, per: '' };
+    const pers = periodosSel().filter(p => filasRanking().some(r => r.periodo_id === p.id && r.estado_eval === 'publicado' && valor(r) != null));
+    if (!pers.length) return `<section class="pf-card pf-card--ancha"><h2 class="pf-h">Ranking</h2><p class="pf-vacio">Cuando haya resultados publicados en los períodos elegidos, aparecerá aquí el ranking.</p></section>`;
+    if (!pers.some(p => p.id === S.rk.per)) S.rk.per = pers[pers.length - 1].id;
+    const roles = rolesRanking();
+    const incl = S.rk.roles || new Set(roles.map(([id]) => id));
+    const opt = (v, t, sel) => `<option value="${escHtml(v)}"${sel ? ' selected' : ''}>${escHtml(t)}</option>`;
+    return `<section class="pf-card pf-card--ancha" aria-labelledby="des-h-rk">
+      <h2 class="pf-h" id="des-h-rk">Ranking <small>${escHtml(etiquetaMetrica())}${escHtml(deEscala())} · solo resultados publicados</small></h2>
+      <div class="filtros-fila des-rk-ctrl">
+        <label class="eq-f"><span>Período</span><select class="cfg-inp cfg-select" id="des-rk-per" data-change="desFiltro">${pers.map(p => opt(p.id, p.nombre, p.id === S.rk.per)).join('')}</select></label>
+        <label class="eq-f"><span>Mostrar</span><select class="cfg-inp cfg-select" id="des-rk-top" data-change="desFiltro">${[[5, '5 primeras'], [10, '10 primeras'], [20, '20 primeras'], [0, 'Todas']].map(([v, t]) => opt(String(v), t, v === S.rk.top)).join('')}</select></label>
+        <label class="tk-check"><input type="checkbox" id="des-rk-agrupar" data-change="desFiltro"${S.rk.agrupar ? ' checked' : ''}><span>Un ranking por rol</span></label>
+      </div>
+      <fieldset class="des-periodos"><legend>Roles que cuentan <small>(desmarca los que no quieras en el ranking)</small></legend>
+        ${roles.map(([id, nom]) => `<label class="tk-check"><input type="checkbox" class="des-rk-rol" value="${escHtml(id)}" data-change="desFiltro"${incl.has(id) ? ' checked' : ''}><span>${escHtml(nom)}</span></label>`).join('')}
+      </fieldset>
+      <div id="des-rk-cuerpo">${cuerpoRanking()}</div></section>`;
+  }
+  function cuerpoRanking() {
+    const incl = S.rk.roles || new Set(rolesRanking().map(([id]) => id));
+    const base = filasRanking().filter(r => r.periodo_id === S.rk.per && r.estado_eval === 'publicado' && valor(r) != null && incl.has(String(r.rol_id ?? '')))
+      .map(r => ({ id: r.persona_id, nombre: r.nombre || '—', rol: r.rol_nombre || 'Sin rol', rolId: String(r.rol_id ?? ''), distrito: r.distrito, v: valor(r) }))
+      .sort((a, b) => b.v - a.v || a.nombre.localeCompare(b.nombre, 'es'));
+    if (!base.length) return '<p class="pf-vacio">Ningún rol marcado tiene resultados en este período.</p>';
+    const tope = S.rk.top || Infinity;
+    const tabla = lista => `<div class="seg-tabla-wrap"><table class="seg-tabla des-rk"><thead><tr><th scope="col">Puesto</th><th scope="col">Persona</th><th scope="col">Rol</th><th scope="col">Distrito</th><th scope="col">Resultado</th></tr></thead>
+      <tbody>${posiciones(lista).slice(0, tope).map(x => `<tr>
+        <td data-label="Puesto">${typeof medallaHTML === 'function' ? medallaHTML(x.pos) : escHtml(String(x.pos))}</td>
+        <th scope="row" class="seg-persona" data-label="Persona"><button type="button" class="seg-nombre" data-act="perfilVer" data-arg="${escHtml(x.id)}" aria-label="Ver el perfil de ${escHtml(x.nombre)}">${escHtml(x.nombre)}</button></th>
+        <td data-label="Rol">${escHtml(x.rol)}</td><td data-label="Distrito">${escHtml(x.distrito || '—')}</td><td data-label="Resultado">${valorHTML(x.v, true)}</td></tr>`).join('')}</tbody></table></div>`;
+    if (!S.rk.agrupar) return tabla(base);
+    const grupos = new Map(); for (const x of base) { if (!grupos.has(x.rolId)) grupos.set(x.rolId, { nombre: x.rol, lista: [] }); grupos.get(x.rolId).lista.push(x); }
+    return [...grupos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(g => `<h3 class="pf-sub">${escHtml(g.nombre)} <small>${g.lista.length} ${g.lista.length === 1 ? 'persona' : 'personas'}${g.lista.length < 4 ? ' · rol pequeño' : ''}</small></h3>${tabla(g.lista)}`).join('');
+  }
+  function repintarRanking() {
+    const el = document.getElementById('des-rk-cuerpo'); if (el) el.innerHTML = cuerpoRanking();
+  }
+
   function pintarAdmin() {
     limpiarGraficos();
     const cuerpo = document.getElementById('des-cuerpo');
@@ -439,6 +493,8 @@ const Desempeno = (() => {
       ${seccionKpisAdmin(rs, est)}
       ${seccionEvolucion(est)}
       ${seccionPorRol(rs, est)}
+      <h2 class="des-grupo-t">Ranking</h2>
+      ${seccionRanking()}
       <h2 class="des-grupo-t">Comparar</h2>
       ${seccionComparar(rs)}
       ${seccionPersonas(rs, est)}
@@ -486,7 +542,7 @@ const Desempeno = (() => {
     const rows = res.rows;
     const modelo = previo?.modelo && rows.some(r => r.modelo === previo.modelo) ? previo.modelo : (rows.some(r => r.modelo === 'v2') ? 'v2' : 'legacy');
     S = { host, modo: 'admin', rows, modelo, pun: new Map(), metrica: previo && previo.modelo === modelo ? previo.metrica : (modelo === 'v2' ? 'individual' : 'total_clasico'), rol: previo?.rol || '', distrito: previo?.distrito || '', q: previo?.q || '',
-      personas: new Set(previo?.personas || []), sel: previo?.sel || null, cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null, per: new Set(), periodos: [] };
+      personas: new Set(previo?.personas || []), sel: previo?.sel || null, cmpA: previo?.cmpA || null, cmpB: previo?.cmpB || null, rk: previo?.rk || null, per: new Set(), periodos: [] };
     prepararPeriodos(previo);
     await cargarPuntajesAdmin(rows);
     host.innerHTML = `<div class="filtros-fila des-ctrl" id="des-ctrl"></div><div id="des-cuerpo"></div>`;
@@ -699,8 +755,16 @@ const Desempeno = (() => {
       document.querySelectorAll('#des-lista li').forEach(li => { li.hidden = !!q && !li.dataset.nombre.includes(q); });
       return;
     }
+    if (id === 'des-rk-per') { S.rk.per = el.value; return repintarRanking(); }
+    if (id === 'des-rk-top') { S.rk.top = Number(el.value) || 0; return repintarRanking(); }
+    if (id === 'des-rk-agrupar') { S.rk.agrupar = !!el.checked; return repintarRanking(); }
+    if (el.classList && el.classList.contains('des-rk-rol')) {
+      if (!S.rk.roles) S.rk.roles = new Set(rolesRanking().map(([i]) => i));
+      if (el.checked) S.rk.roles.add(el.value); else S.rk.roles.delete(el.value);
+      return repintarRanking();
+    }
     if (id === 'des-modelo') {
-      S.modelo = el.value === 'legacy' ? 'legacy' : 'v2'; S.metrica = S.modelo === 'v2' ? 'individual' : 'total_clasico'; S.personas = new Set(); S.cmpA = S.cmpB = null;
+      S.modelo = el.value === 'legacy' ? 'legacy' : 'v2'; S.metrica = S.modelo === 'v2' ? 'individual' : 'total_clasico'; S.personas = new Set(); S.cmpA = S.cmpB = null; S.rk = null;
       if (S.modo === 'admin') { prepararPeriodos(null); controlesAdmin(); pintarAdmin(); } else pintarPropio();
       return;
     }
