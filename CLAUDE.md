@@ -699,3 +699,7 @@ Regla por PE, **apagada por defecto**: `periodo_calif_config.sin_tareas_pierde_p
 ### Configuración general (2026-11-15)
 
 Pestaña admin `configuracion` (`core/configuracion.js`, `configuracion.css`): índice de TODO lo configurable agrupado en seis apartados (Organización, Evaluación, Calendario y actividades, Comunicación, Apariencia y entrada, Seguridad y registro). Cada fila dice qué se configura, el valor actual (conteos ya cargados) y un botón que abre la pantalla que lo edita (`ACCIONES.irTab`); el tema y el selector de entrada se cambian ahí mismo. **Para una opción nueva en la plataforma, se suma su fila a `APARTADOS`: no hay otra lista.** Las pantallas Períodos, Actividades, Rúbrica, Roles y Gestiones ya no tienen entrada propia en el menú: cuelgan de Configuración (`_tabParentMap`).
+
+### Tema claro según la referencia (2026-11-15)
+
+El tema claro pasa de «malla azul con vidrio» a: página casi blanca con lavado pastel (menta → azul), tarjetas **blancas sólidas** con sombra suave, texto casi negro, barra inferior blanca con el ítem activo en píldora oscura. `--v-1…--v-4` del claro son ahora los tonos de la página; el azul de marca que antes era `--v-1` es **`--v-azul`** (menú lateral y panel del acceso). Reglas del claro en `vidrio.css` §37. Si algo en claro usa `var(--v-1)` esperando el azul, debe pasar a `--v-azul`. Oscuro y rosa no cambian.
