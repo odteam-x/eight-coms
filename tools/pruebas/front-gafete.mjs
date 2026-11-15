@@ -22,6 +22,13 @@ ok(/supabase\\.co\$/.test(js), 'la foto solo se acepta del almacenamiento del pr
 const css = rd('verificar.css');
 ok(!/#[0-9a-fA-F]{3,8}\b/.test(css), 'verificar.css sin colores literales (solo tokens)');
 
+ok(rd('verificar.html').includes('href="/vidrio.css"') && rd('verificar.html').indexOf('/vidrio.css') < rd('verificar.html').indexOf('/verificar.css'), 'verificar.html: carga vidrio.css (malla, vidrio y los tres temas) antes de su propia hoja');
+ok(!/border-left|box-shadow: *inset *[0-9]px 0 0/.test(css), 'verificar.css: sin barras de acento en un borde (patrón prohibido)');
+const g0 = rd('core/gafete.js');
+ok(g0.includes('function _paleta') && g0.includes("'--v-1'") && g0.includes('function _malla') && g0.includes('function _vidrio'), 'el gafete se dibuja con los tokens del sitio (--v-*): malla y vidrio, y sigue el tema vigente (oscuro, claro o rosa)');
+ok(!/patron-7|FRANJA|C\.coral|C\.navy/.test(g0), 'el gafete ya no usa la línea gráfica vieja (patrón, franja de seis colores, marco coral)');
+ok(/_paleta\(true\)/.test(g0) && g0.includes('dibujarHero'), 'la imagen del pase de Wallet usa la malla oscura (su fondo es fijo)');
+
 console.log('\n[gafete en los portales]');
 for (const f of ['user.html', 'secretario.html', 'admin.html']) {
   const h = rd(f);

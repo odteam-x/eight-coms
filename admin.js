@@ -788,6 +788,7 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
   const resumen = r ? `
       <span>Núcleo <b>${fmtV2(r.nucleo)}</b></span>
       <span>Técnico <b>${fmtV2(r.tecnico)}</b></span>
+      ${r.tareas != null ? `<span title="Nota de sus tareas aprobadas y cuánto pesan en el resultado de este PE">Tareas <b>${fmtV2(r.tareas)}</b> <small>(pesan ${fmtV2(r.peso_tareas)} %)</small></span>` : '<span title="Sin tareas calificadas que cuenten: el resultado es solo la evaluación y no se penaliza">Tareas <small>sin calificar</small></span>'}
       <span>Individual <b>${fmtV2(r.individual)}</b></span>
       <span>General <b>${fmtV2(r.general)}</b>${r.rol_pequeno ? ' <small>(rol pequeño)</small>' : ''}</span>` : '';
 
