@@ -725,3 +725,7 @@ Seguimiento responde «¿quién está al día?» (estado de cada evaluación, en
 ### Manuales con la identidad vigente (2026-11-15)
 
 `ayuda/ayuda.css` usa vidrio sobre malla (se carga `vidrio.css` antes): fondo de malla, tarjetas de vidrio, Barlow ligera, avisos con punto de color (sin barra en un borde) y los tres temas. Las capturas (`ayuda/img/*.jpg` y `*-pc.jpg`) se regeneran del simulador con `node tools/pruebas/ui/server.mjs . 3171` y `node tools/capturas-manual.mjs http://localhost:3171 [filtro]` (Edge/Chrome headless por el protocolo de depuración; tema oscuro; la bienvenida usa `?bv=1|2|3`). Tras un cambio visual importante, volver a correrlo y regenerar los manuales con `node tools/generar-manuales.mjs`.
+
+### Documentación completa del sistema (2026-11-15)
+
+`docs/sistema/` (capítulos 00–14) describe **todos los procesos y actividades** del sistema, las pantallas por portal, los cálculos con ejemplos, los datos y la seguridad, y un análisis de qué está redundante o escondido con una propuesta de ubicación. `docs/DOCUMENTACION-COMPLETA-DEL-SISTEMA.md` es la versión de un solo archivo: se **regenera** con `node tools/compilar-documentacion.mjs` (se editan los capítulos, no el compilado). Cuando cambie un proceso, una pantalla o una fórmula, se actualiza el capítulo que corresponde.
