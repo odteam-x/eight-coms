@@ -170,6 +170,7 @@ const EvaluacionPerfil = (() => {
           <div><dt>Mínimo de tareas calificadas</dt><dd><b>${Number(c.minimo_tareas)}</b><small>con menos, no se calcula nota de tareas (no se rellena con 0)</small></dd></div>
           <div><dt>¿Cuentan las iniciativas propias?</dt><dd><b>${si(c.contar_propias)}</b></dd></div>
           <div><dt>¿Las vencidas sin entregar cuentan como 0?</dt><dd><b>${si(c.vencidas_como_cero)}</b><small>regla institucional; apagada por defecto</small></dd></div>
+          ${typeof c.sin_tareas_pierde_puntos === 'boolean' ? `<div><dt>Sin tareas calificadas, ¿se pierden los puntos de tareas?</dt><dd><b>${si(c.sin_tareas_pierde_puntos)}</b><small>${c.sin_tareas_pierde_puntos ? 'quien no llegue al mínimo de tareas tiene 0 en tareas: pierde ' + f1(c.peso_tareas) + ' puntos de 100' : 'quien no tiene tareas calificadas conserva su evaluación completa'}</small></dd></div>` : ''}
         </dl>
         <p class="ev-nota-formula">Se calcula al consultar: crear, corregir o anular una nota cambia el resultado en todas las pantallas a la vez. Las tareas pendientes de revisar, bloqueadas o anuladas no se cuentan como 0.</p>
       </details>`;
@@ -190,11 +191,13 @@ const EvaluacionPerfil = (() => {
         num('min', 'Mínimo de tareas calificadas', c.minimo_tareas, 'Con menos tareas calificadas que esto, la persona no tiene nota de tareas.'),
         { id: 'propias', tipo: 'select', label: '¿Cuentan las iniciativas propias?', valor: c.contar_propias ? 'si' : 'no', opciones: [{ v: 'si', l: 'Sí' }, { v: 'no', l: 'No' }] },
         { id: 'venc', tipo: 'select', label: '¿Las vencidas sin entregar cuentan como 0?', valor: c.vencidas_como_cero ? 'si' : 'no', opciones: [{ v: 'no', l: 'No (recomendado)' }, { v: 'si', l: 'Sí (regla institucional)' }] },
+        ...(typeof c.sin_tareas_pierde_puntos === 'boolean' ? [{ id: 'pierde', tipo: 'select', label: 'Sin tareas calificadas, ¿se pierden los puntos de tareas?', valor: c.sin_tareas_pierde_puntos ? 'si' : 'no', opciones: [{ v: 'no', l: 'No: conserva su evaluación completa' }, { v: 'si', l: 'Sí: tiene 0 en tareas y pierde esos puntos' }], ayuda: 'Aplica a quien no tenga tareas calificadas o no llegue al mínimo. Con «Sí», las personas sin tareas asignadas también pierden los puntos.' }] : []),
         { id: 'motivo', tipo: 'area', label: 'Motivo del cambio', filas: 2, max: 500, ayuda: 'Obligatorio si el PE ya tiene evaluaciones publicadas.' },
       ],
       onConfirm: async v => {
         const nueva = { peso_tareas: Number(String(v.peso).replace(',', '.')), mult_individual: Number(String(v.mi).replace(',', '.')), mult_colectiva: Number(String(v.mc).replace(',', '.')),
-          minimo_tareas: Number(v.min), contar_propias: v.propias === 'si', vencidas_como_cero: v.venc === 'si' };
+          minimo_tareas: Number(v.min), contar_propias: v.propias === 'si', vencidas_como_cero: v.venc === 'si',
+          ...(typeof c.sin_tareas_pierde_puntos === 'boolean' ? { sin_tareas_pierde_puntos: v.pierde === 'si' } : {}) };
         if (![nueva.peso_tareas, nueva.mult_individual, nueva.mult_colectiva, nueva.minimo_tareas].every(Number.isFinite)) return 'Revisa los números.';
         const r = await API.guardarCalifConfig(periodo.id, nueva, v.motivo || null);
         if (!r.ok) return r.error;

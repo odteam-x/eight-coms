@@ -18,7 +18,9 @@ for (const p of ['admin.html', 'user.html', 'secretario.html']) {
   ok(!/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/.test(h.replace(/<script type="application\/ld\+json"[\s\S]*?<\/script>/g, '')), p + ': ningún <script> en línea (CSP)');
 }
 const admin = rd('admin.html');
-ok(/id="tab-equipos"[\s\S]*id="eq-reglas"[\s\S]*id="eq-host"/.test(admin), 'admin.html: pestaña Equipos con sus anclas (#eq-reglas, #eq-host)');
+ok(/id="tab-equipos"[\s\S]*id="eq-host"/.test(admin) && !/id="eq-reglas"/.test(admin), 'admin.html: pestaña Equipos con su ancla (#eq-host); las reglas ya no viven aquí');
+ok(/id="tab-tareas"[\s\S]*id="tareas-reglas"[\s\S]*id="tareas-lista"/.test(admin), 'admin.html: las reglas de calificación de tareas viven en la pestaña Tareas (#tareas-reglas, entre el período y la lista)');
+ok(/EvaluacionPerfil\.editarReglas\(document\.getElementById\('tareas-reglas'\)\)/.test(rd('config.js')) && /EvaluacionPerfil\.montarReglas\(rg, \{ periodo: \{ \.\.\._activePETareas/.test(rd('admin.js')), 'el botón «Editar reglas» y el montaje apuntan a #tareas-reglas y al PE elegido en Tareas');
 ok(/class="pantalla-t">Equipos</.test(admin), 'admin.html: la pestaña abre con .pantalla-cab + h1.pantalla-t');
 const adminJs = rd('admin.js');
 ok(/tab:'equipos'/.test(adminJs) && /equipos:'equipos'/.test(adminJs) && /abrirEquipos\(\)/.test(adminJs), 'admin.js: nav, padre de pestaña y hook de Equipos');
@@ -73,6 +75,7 @@ const calls = [];
 const sandbox = {
   escHtml: s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
   initials: s => String(s).slice(0, 2).toUpperCase(), fmtNum: n => String(n),
+  textoLargoHTML: t => (t ? `<p class="tk-desc">${String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))}</p>` : ''),   // el real vive en core/ui.js y lo prueba front-texto-largo.mjs
   Tareas: { ESTADOS: { asignada: { txt: 'Asignada', cls: 'a' }, en_curso: { txt: 'En curso', cls: 'e' }, entregada: { txt: 'Entregada', cls: 'x' }, aprobada: { txt: 'Aprobada', cls: 'p' }, devuelta: { txt: 'Devuelta', cls: 'd' }, bloqueada: { txt: 'Bloqueada', cls: 'b' } },
     plazoHTML: () => '<span>plazo</span>', abrirModal: o => calls.push(o) },
   API: {}, document: { body: { classList: { contains: () => false } }, getElementById: () => null }, Store: { get: () => [] }, Selector: {}, renderIconos() {}, renderCargando() {}, renderError() {}, showToast() {},

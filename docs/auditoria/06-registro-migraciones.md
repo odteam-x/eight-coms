@@ -12,6 +12,12 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 | 0015_seed_perfiles (datos) | `perfiles_rol` tiene 6 filas y `criterios_v2` 33 |
 | 0011 (documental, sin SQL) | no hay nada que ejecutar |
 
+## Correcciones posteriores
+- **0059 `evaluaciones_versiones_uuid`** (2026-11-11, **pendiente de aplicar en producción**): 0053 declaró `evaluacion_id` y `p_id` como BIGINT pero `evaluaciones.id` es UUID; publicar una evaluación fallaba («column evaluacion_id is of type bigint but expression is of type uuid») y rectificar/retirar no encontraban la función. Guardar borradores no fallaba. Prueba: `tools/pruebas/sql-0059.mjs` (reproduce el defecto con id UUID y comprueba el arreglo). El stub de las demás pruebas sigue con id BIGINT: por eso 0053 pasó sus pruebas.
+
+- **0060 `tareas_texto_largo`** (2026-11-11): topes de texto de las tareas a 20 000 caracteres (descripción, instrucciones) y 5 000 (criterios). Aplicada por la administración.
+- **0061 `tareas_sin_tareas_pierde_puntos`** (2026-11-11, **pendiente de aplicar**): regla por PE «sin tareas calificadas, se pierden los puntos de tareas» (apagada por defecto). Prueba: `tools/pruebas/sql-0061.mjs`.
+
 ## Pendientes a propósito
 - `0006_gestion_miembros.PENDIENTE.sql`: `gestion_miembros` **no existe**. Reescribe 5 funciones y 5 políticas y exige cambios de front en el mismo despliegue.
 - `0015_seed_perfiles.PENDIENTE.sql`: ya hay datos (ver arriba); revisar antes de reaplicar.
@@ -26,3 +32,4 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 3. `node tools/pruebas/cadena.mjs` aplica TODA la cadena en orden: debe seguir verde.
 4. PR → aplicar en producción con el conector (`apply_migration`) o a mano en el SQL Editor, **después de comprobar la huella de los datos** (conteo + `md5` de las columnas que no deben cambiar) antes y después.
 5. Anotarla aquí.
+- **0063 `tareas_propias_en_curso`** (2026-11-15, **pendiente de aplicar**): las tareas de iniciativa propia nacen «En curso» (no hace falta «Empezar»); parchea `tareas_validar_insert()` con `pg_get_functiondef`. Idempotente. Prueba `sql-0063.mjs` (11). UPDATE opcional comentado para las propias ya creadas.

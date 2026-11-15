@@ -153,7 +153,7 @@ const Asignar = (() => {
     cuerpo().innerHTML = `
       ${per}
       ${campo('titulo', 'Título *', `<input class="cfg-inp" id="asig-titulo" type="text" maxlength="160" value="${escHtml(d.titulo)}" placeholder="Ej.: Cobertura de la jornada del sábado">`)}
-      ${campo('desc', 'Qué se espera', `<textarea class="cfg-inp" id="asig-desc" rows="3" maxlength="2000" placeholder="Formato, medidas, dónde se entrega…">${escHtml(d.descripcion)}</textarea>`)}
+      ${campo('desc', 'Qué se espera', `<textarea class="cfg-inp" id="asig-desc" rows="6" maxlength="20000" placeholder="Formato, medidas, dónde se entrega…">${escHtml(d.descripcion)}</textarea>`)}
       ${rol}${act}
       <div class="asig-fila2">
         ${campo('prioridad', 'Prioridad', `<select class="cfg-inp cfg-select" id="asig-prioridad">${[['alta', 'Alta'], ['normal', 'Normal'], ['baja', 'Baja']].map(([v, l]) => `<option value="${v}"${v === d.prioridad ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}

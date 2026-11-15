@@ -93,15 +93,17 @@ ${tabla(['Pestaña', 'Qué hay'], [
     [b('Perfil'), 'Tu nombre (con ' + b('Guardar') + '), tu correo, tu tipo de acceso y tu distrito (estos tres los asigna la administración), y <b>Tu tarjeta</b>: el fondo de tu perfil, elegido entre los siete patrones de la marca.'],
     [b('Mi rol'), 'Tu rol principal con sus responsabilidades y tus preferencias de rol (no aparece para la administración, que no se evalúa).'],
     [b('Seguridad'), 'Cambiar la contraseña: mínimo 8 caracteres, distinta de la actual.'],
-    [b('App'), 'El tema (claro u oscuro), instalar el portal en tu celular, la bienvenida o las novedades, la ayuda y ' + b('Cerrar sesión') + '.']])}
+    [b('App'), 'El tema (oscuro, claro o rosa), instalar el portal en tu celular, la bienvenida o las novedades, la ayuda y ' + b('Cerrar sesión') + '.']])}
 ${pasos(
     `${b('Cambiar foto')}: elige cualquier imagen del teléfono o la computadora; no importa su tamaño. El portal la recorta en cuadrado y la reduce solo (queda ligera, de pocos KB).`,
     `${b('Perfil')} → ${b('Nombre')}: escríbelo y toca ${b('Guardar')}.`,
     `${b('Perfil')} → ${b('Tu tarjeta')}: elige un fondo o ${b('Auto')}. Lo ven también quienes pueden abrir tu perfil (tu secretaría y la administración).`,
     `${b('Seguridad')}: ${b('Nueva contraseña')} y ${b('Repite la contraseña')} → ${b('Cambiar contraseña')}.`,
-    `${b('App')}: ${b('Tema')}, ${b('Instalar en tu celular')} (ver «Entrar y moverte») y ${b('Cerrar sesión')}.`)}
+    `${b('App')}: ${b('Tema')} (oscuro, claro o rosa; se recuerda en ese dispositivo), ${b('Instalar en tu celular')} (ver «Entrar y moverte») y ${b('Cerrar sesión')}.`)}
 ${captura('m-cuenta', 'Mi cuenta: tu foto y tus datos arriba y, debajo, las pestañas Perfil, Mi rol, Seguridad y App.')}
-<p>Correo, tipo de acceso y distrito aparecen en «Tus datos» solo para que los veas: los asigna la administración.</p>`,
+<p>Correo, tipo de acceso y distrito aparecen en «Tus datos» solo para que los veas: los asigna la administración.</p>
+<h3>Tu gafete</h3>
+<p>En tu perfil, ${b('Mi gafete')} abre tu gafete con foto, rol, distrito y un <b>código QR</b>. Quien escanee el QR llega a una página pública que confirma que eres parte del equipo y muestra solo tu nombre, foto, rol y distrito; nada más. Desde ahí puedes ${b('Descargar PNG')}, ${b('Copiar enlace')} o, en Android, ${b('Añadir a Google Wallet')} (si la administración ya lo activó). La administración puede revocar un gafete y generar uno nuevo.</p>`,
 };
 
 const faqComun = [
@@ -211,7 +213,7 @@ ${pasos(
         `Confirma. Desde ese momento queda <i>Entregada</i> y a quien revisa le llega un aviso.`)}
 ${nota('ojo', 'El «a tiempo» se mide en tu <b>primera</b> entrega. Si te devuelven la tarea y la corriges, esa corrección no la vuelve «tarde».')}
 <h3>Crear tu propia tarea («Mi iniciativa»)</h3>
-${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha.`, `Guarda. Cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
+${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha.`, `Guarda. La tarea queda <b>En curso</b> desde ese momento: no tienes que tocar «Empezar». Cuando la termines, entrégala; cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
 ${nota('consejo', 'Nadie aprueba su propia tarea. Eso es lo que evita inflar la «iniciativa»: solo cuenta lo que otra persona revisó.')}
 <h3>Bloquear, mover plazos, historial</h3>
 ${lista(
@@ -500,6 +502,9 @@ ${pasos(
         `Escribe comentarios si quieres y completa los campos de registro (sí/no, opciones, texto) que existan.`,
         `Mira el contador «N de M obligatorios». Guarda como ${b('Borrador')} cuantas veces quieras; ${b('Publicar')} solo se habilita cuando están completos los obligatorios.`)}
 ${nota('consejo', 'Si dejaste borradores que ya no sirven, ' + b('Eliminar borrador') + ' (en el formulario de una persona) borra el borrador de esa persona, y ' + b('Eliminar el borrador') + ' o ' + b('Eliminar los N borradores') + ' (arriba, junto a los estados) borra los borradores del período. Antes de borrar se pide confirmación y las evaluaciones <b>publicadas</b> no se tocan.')}
+<h3>Más espacio para evaluar (modo enfoque)</h3>
+<p>Al abrir a una persona, el resumen y los atajos de arriba se ocultan solos para que el formulario ocupe la pantalla y veas más criterios a la vez. Toca ${b('Mostrar resumen')} (arriba a la derecha) para traerlos de vuelta y ${b('Ocultar resumen')} para volver al modo enfoque; el portal recuerda tu elección. Sin nadie elegido, todo está a la vista para escoger a quién evaluar.</p>
+<p>El resumen de la persona incluye su <b>nota de tareas</b> y cuánto pesa en el resultado («Tareas 80 · pesan 20 %»), o «Tareas sin calificar» si todavía no tiene.</p>
 ${captura('a-evaluar-nucleo', 'Formulario: cada criterio tiene una barra, un número editable y botones − / +.')}
 <h3>La barra de puntos</h3>
 <p>Cada criterio se puntúa <b>de 0 hasta su propio peso</b>. Un criterio técnico con peso 30 va de 0 a 30; uno con peso 15, de 0 a 15; los criterios del núcleo, de 0 a 10. La escala se ve debajo del nombre («Escala 0 a 30 · peso 30»).</p>
@@ -573,6 +578,7 @@ ${tabla(['Aviso al crear', 'Qué hacer'], [
         ['Ya tiene una tarea abierta con el mismo título', 'Puede ser un duplicado. Si es a propósito, marca «Entiendo los avisos».'],
         ['Carga alta (5 o más abiertas) o tareas vencidas', 'Aviso: ya tiene mucho trabajo. Puedes crearla igual.'],
         ['No participa en el período · fecha límite ya pasada', 'La tarea no contaría en el resumen, o nacería vencida.']])}
+<p>El campo <b>Qué se espera</b> admite textos largos (hasta 20.000 caracteres): puedes pegar la documentación completa de lo que hay que hacer. En las listas se ve un extracto y ${b('Ver todo')} despliega el texto entero; ${b('Ver menos')} lo recoge.</p>
 <h3>Qué puede hacer cada parte</h3>
 ${tabla(['Quién', 'Qué hace con una tarea'], [
         ['La persona asignada', '<b>Empezar</b> (pasa a En curso), <b>Entregar</b> (enlace https y/o una nota; uno de los dos es obligatorio), <b>Bloquear</b> con el motivo («¿De qué o de quién depende?») y reanudar. No puede cambiar la fecha, ni aprobar, ni anular.'],
@@ -633,16 +639,19 @@ ${tabla(['Paso', 'Quién', 'Qué ocurre'], [
 <pre class="formula">individual = (1 − w) × (0,6 × técnico + 0,4 × núcleo) + w × nota de tareas
 general    = (1 − w) × (0,4 × núcleo + 0,6 × percentil) + w × nota de tareas
 nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan</pre>
-<p>donde <b>w</b> es el peso de las tareas (por ejemplo 20 % → 0,2). Si la persona no tiene nota de tareas, se queda con su evaluación pura: <b>nadie baja por no tener tareas calificadas</b>.</p>
+<p>donde <b>w</b> es el peso de las tareas (por ejemplo 20 % → 0,2). Si la persona no tiene nota de tareas, por defecto se queda con su evaluación pura: <b>nadie baja por no tener tareas calificadas</b>. Esa es una regla que tú puedes cambiar (ver «¿Se pierden los puntos de tareas?» más abajo).</p>
 ${tabla(['Cuenta', 'No cuenta (y nunca se rellena con 0)'], [
         ['Tareas <b>aprobadas</b> con puntos y no anuladas', 'Entregadas esperando revisión · en curso · devueltas · bloqueadas'],
         ['Tareas del equipo aprobadas (la nota del grupo)', 'Tareas anuladas o con la nota anulada'],
         ['Las de iniciativa propia, <b>si</b> la regla lo permite', 'Aprobadas antes de que existieran los puntos']])}
 <h3>Cambiar las reglas de un período</h3>
 ${pasos(
-        `Abre ${b('Equipos')} y busca el bloque de reglas del PE (resumen «Tareas: N % del resultado»). Toca ${b('Editar reglas')}.`,
-        `Ajusta: <b>Peso de las tareas en el resultado</b> (0 a 100 %), <b>Multiplicador de las tareas individuales</b>, <b>Multiplicador de las tareas del equipo</b>, <b>Mínimo de tareas calificadas</b> (con menos, no hay nota de tareas), <b>¿Cuentan las iniciativas propias?</b> y <b>¿Las vencidas sin entregar cuentan como 0?</b> (No es lo recomendado).`,
+        `Abre ${b('Tareas')} y elige el período arriba: el bloque de reglas del PE (resumen «Tareas: N % del resultado») está justo debajo del selector. Toca ${b('Editar reglas')}. En períodos clásicos no aparece, porque no tienen tareas.`,
+        `Ajusta: <b>Peso de las tareas en el resultado</b> (0 a 100 %), <b>Multiplicador de las tareas individuales</b>, <b>Multiplicador de las tareas del equipo</b>, <b>Mínimo de tareas calificadas</b> (con menos, no hay nota de tareas), <b>¿Cuentan las iniciativas propias?</b> y <b>¿Las vencidas sin entregar cuentan como 0?</b> (No es lo recomendado) y <b>Sin tareas calificadas, ¿se pierden los puntos de tareas?</b>.`,
         `Escribe el <b>Motivo del cambio</b> (obligatorio si el PE ya tiene evaluaciones publicadas) y guarda. Los resultados se <b>recalculan al instante</b> y el cambio queda en el historial.`)}
+<h3>¿Se pierden los puntos de tareas?</h3>
+<p>Con ${b('No')} (lo predeterminado), quien no tiene tareas calificadas —o no llega al mínimo— conserva su evaluación completa. Con ${b('Sí')}, esa persona queda con <b>0 en tareas</b> y pierde el peso entero: con 20 %, su resultado es 0,8 × su evaluación. Es la misma regla para todos: quien no tiene tareas asignadas también pierde esos puntos, así que <b>asigna tareas a todas las personas antes de activarla</b> y deja ${b('¿Cuentan las iniciativas propias?')} en ${b('Sí')} para que lo que alguien proponga y se le apruebe cuente.</p>
+${nota('ejemplo', 'Dos personas con la misma evaluación (80) y peso de tareas 20 %. Una hizo una tarea con 8/10 → 0,8 × 80 + 0,2 × 80 = 80. La otra no tiene tareas y la regla está en «Sí» → 0,8 × 80 = 64.')}
 ${nota('ojo', 'Los períodos que ya existían empiezan con <b>0 %</b> (para no mover resultados ya publicados). Los períodos nuevos nacen con <b>20 %</b>, marcado «Valor inicial, sin confirmar» hasta que lo guardes tú: es una decisión tuya.')}
 ${nota('consejo', 'En el perfil de cada persona, en «Cómo se compone tu evaluación», se ve pieza por pieza qué tarea cuenta, cuánto aporta y por qué una no cuenta.')}`,
     },

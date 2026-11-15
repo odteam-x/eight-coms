@@ -119,10 +119,12 @@ const Cuenta = (() => {
         <div class="cuenta-un-col">
           <h3 class="cuenta-t" id="cu-t-pref">Apariencia y aplicación</h3>
           <div class="lista-aj">
-            <button type="button" class="fila-aj" data-act="fn" data-arg="toggleTheme">
-              <div class="fila-aj-txt"><div class="fila-aj-t">Tema</div><div class="fila-aj-d">Cambia entre claro y oscuro.</div></div>
-              <span class="fila-aj-ind"><i data-lucide="sun-moon"></i></span>
-            </button>
+            <div class="fila-aj fila-aj--tema">
+              <div class="fila-aj-txt"><div class="fila-aj-t">Tema</div><div class="fila-aj-d">Oscuro, claro o rosa.</div></div>
+              <div class="seg" role="group" aria-label="Tema">
+                ${[['dark', 'Oscuro'], ['light', 'Claro'], ['rosa', 'Rosa']].map(([k, etq]) => { const on = (document.documentElement.dataset.theme || 'dark') === k; return `<button type="button" class="seg-btn${on ? ' active' : ''}" aria-pressed="${on}" data-act="tema" data-arg="${k}"><span>${etq}</span></button>`; }).join('')}
+              </div>
+            </div>
             <button type="button" class="fila-aj" id="cuenta-instalar" data-act="instalarApp"></button>
           </div>
           <h3 class="cuenta-t" id="cu-t-ayuda">Ayuda</h3>

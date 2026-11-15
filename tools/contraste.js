@@ -246,7 +246,9 @@ for (const [tema, tokens] of [['oscuro', oscuro], ['claro', claro]]) {
 
 /* ── Hex fuera de :root ── */
 function dentroDeBloqueDeTokens(css, pos) {
-  for (const sel of [':root', '[data-theme="light"]']) {
+  // Los tokens de un tema pueden definirse en cualquier hoja (vidrio.css redefine claro y rosa). El tema rosa NO está en la
+  // comprobación de pares de arriba (esa lee shared.css); sus contrastes se midieron aparte y quedan anotados en vidrio.css §31.
+  for (const sel of [':root', '[data-theme="light"]', '[data-theme="rosa"]']) {
     let i = -1;
     while ((i = css.indexOf(sel, i + 1)) >= 0) {
       const ini = css.indexOf('{', i);

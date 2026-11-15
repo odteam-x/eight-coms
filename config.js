@@ -108,6 +108,8 @@ const ACCIONES = {
     const f = window[arg];
     if (typeof f === 'function') f();
   },
+  /** Elige un tema concreto (Mi cuenta → App) y marca el botón activo. */
+  tema:             (arg)         => { window.setTheme?.(arg); document.querySelectorAll('[data-act="tema"]').forEach(b => { const on = b.dataset.arg === document.documentElement.dataset.theme; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); }); },
   cuentaFoto:       ()            => Cuenta.elegirFoto(),
   cuentaTab:        (arg)         => Cuenta.tab(arg),
   instalarApp:      ()            => Pwa.instalar(),
@@ -145,7 +147,7 @@ const ACCIONES = {
   partTodos:     (a, el) => participacionTodos(a, el.dataset.arg2 === 'true'),
   partMasivo:    ()      => participacionMasiva(),
   estDist:       (a, el) => EstadisticasDistrito.accion(a, el),
-  evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('eq-reglas')),
+  evReglas:      ()      => EvaluacionPerfil.editarReglas(document.getElementById('tareas-reglas')),
   asigSiguiente: ()      => Asignar.siguiente(),
   asigAtras:     ()      => Asignar.atras(),
   asigSugerir:   ()      => Asignar.sugerir(),
@@ -210,6 +212,7 @@ const ACCIONES = {
 
   /* ── Acciones del marcado generado por los portales ── */
   irTab:        (a)             => goTab(a),
+  cgIr:         (a)             => window.Configuracion?.ir(a),
   rankTab:      (a)             => switchRankTab(a),
   abrirCerrar:  (a)             => document.getElementById(a)?.classList.toggle('open'),
   // Un solo argumento
@@ -285,6 +288,7 @@ const ACCIONES = {
   modalPerfil: (a)     => showPerfilModal(a),
   guardarEval: (a, el) => saveEvaluacion(a, el.dataset.arg2),
   evHistorial: (a, el) => verHistorialEvaluacion(a, el.dataset.arg2),
+  evEnfoque: () => alternarEnfoqueEvaluar(),
   guardarDist: (a, el) => saveDistEval(a, el.dataset.arg2),
   participante:(a, el) => toggleParticipante(a, el.dataset.arg2 === 'true'),
   aprobarUser: (a, el) => updateUserAprobado(a, el.dataset.arg2 === 'true'),

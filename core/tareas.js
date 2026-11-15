@@ -125,7 +125,7 @@ const Tareas = (() => {
           ${t.prioridad !== 'normal' ? `<span class="tk-tag tk-tag--${t.prioridad}">Prioridad ${PRIORIDAD[t.prioridad].toLowerCase()}</span>` : ''}
           ${plazoHTML(t)}
         </div>
-        ${t.descripcion ? `<p class="tk-desc">${escHtml(t.descripcion)}</p>` : ''}
+        ${textoLargoHTML(t.descripcion)}
         ${crit.length ? `<p class="tk-crit">Evidencia: ${escHtml(crit.join(' · '))}</p>` : ''}
         ${t.estado === 'devuelta' && t.revision_nota ? `<div class="tk-aviso tk-aviso--devuelta" role="note"><strong>Corregir:</strong> ${escHtml(t.revision_nota)}</div>` : ''}
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<div class="tk-aviso" role="note"><strong>En pausa:</strong> ${escHtml(t.bloqueo_motivo)}</div>` : ''}
@@ -360,7 +360,7 @@ const Tareas = (() => {
     const cat = [...c.catalogo.entries()].map(([k, n]) => ({ v: k, l: n }));
     return [
       { id: 'titulo', tipo: 'texto', label: 'Título', req: true, valor: t.titulo, ph: 'Ej.: Cobertura de la jornada del sábado' },
-      { id: 'descripcion', tipo: 'area', label: 'Qué se espera', valor: t.descripcion, ph: 'Formato, medidas, dónde se entrega…' },
+      { id: 'descripcion', tipo: 'area', label: 'Qué se espera', filas: 6, max: 20000, valor: t.descripcion, ph: 'Formato, medidas, dónde se entrega…' },
       { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: t.prioridad || 'normal',
         opciones: [{ v: 'alta', l: 'Alta' }, { v: 'normal', l: 'Normal' }, { v: 'baja', l: 'Baja' }] },
       ...(cat.length ? [{ id: 'criterios', tipo: 'checks', label: 'Criterios que evidencia (opcional)', valor: t.criterios || [], opciones: cat,

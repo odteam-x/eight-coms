@@ -100,12 +100,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
         { tab:'auditoria', icono:'history',         etiqueta:'Auditoría' },
       ]},
-      { titulo:'Configuración', plegado: true, items: [
-        { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
-        { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
-        { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
-        { tab:'roles',      icono:'sliders-horizontal', etiqueta:'Roles y perfiles' },
-        { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
+      { items: [
+        { tab:'configuracion', icono:'settings',   etiqueta:'Configuración' },
       ]},
     ],
   });
@@ -135,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cederHilo();
   renderUsuarios();
   initPersonas();
+  iniciarEnfoqueEvaluar();
   await cederHilo();
   renderRoles();
   renderPeriodos();
@@ -787,6 +784,7 @@ function renderEvalFormV2(ev, evaluadoId, trabajos) {
   const resumen = r ? `
       <span>Núcleo <b>${fmtV2(r.nucleo)}</b></span>
       <span>Técnico <b>${fmtV2(r.tecnico)}</b></span>
+      ${r.tareas != null ? `<span title="Nota de sus tareas aprobadas y cuánto pesan en el resultado de este PE">Tareas <b>${fmtV2(r.tareas)}</b> <small>(pesan ${fmtV2(r.peso_tareas)} %)</small></span>` : '<span title="Sin tareas calificadas que cuenten: el resultado es solo la evaluación y no se penaliza">Tareas <small>sin calificar</small></span>'}
       <span>Individual <b>${fmtV2(r.individual)}</b></span>
       <span>General <b>${fmtV2(r.general)}</b>${r.rol_pequeno ? ' <small>(rol pequeño)</small>' : ''}</span>` : '';
 
@@ -2475,10 +2473,14 @@ function selectTareasPE(periodoId, btn) {
 function montarTareas() {
   // Las tareas existen solo en los períodos nuevos (rúbrica por roles).
   if (!esPeriodoV2(_activePETareas)) {
+    const rg0 = document.getElementById('tareas-reglas'); if (rg0) rg0.innerHTML = '';
     document.getElementById('tareas-lista').innerHTML =
       '<div class="empty-box"><div class="empty-txt">Las tareas están disponibles en los períodos nuevos, con la rúbrica por roles. Este período conserva su forma de entrega original: elige uno más reciente.</div></div>';
     return;
   }
+  // Las reglas de calificación de las tareas del PE elegido (peso, mínimo, iniciativas propias, vencidas, «se pierden los puntos»).
+  const rg = document.getElementById('tareas-reglas');
+  if (rg && typeof EvaluacionPerfil !== 'undefined') EvaluacionPerfil.montarReglas(rg, { periodo: { ..._activePETareas, pe: _activePETareas.pe || _activePETareas.nombre }, editable: true });
   const hostEq = document.getElementById('tareas-equipo-host');
   if (hostEq) Equipos.montarTareas(hostEq, { periodoId: _activePETareas.id, yo: CU.id, esAdmin: true, periodos: _periodos, personas: _users.filter(u => !u.es_admin).map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   Tareas.montar({
@@ -2497,8 +2499,8 @@ const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
-  periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
-  roles:'periodos', distritos:'periodos', gestiones:'periodos',
+  configuracion:'configuracion', periodos:'configuracion', calendario:'configuracion', rubrica:'configuracion', perfiles:'configuracion',
+  roles:'configuracion', distritos:'distritos', gestiones:'configuracion',
 };
 
 /* ── TAB: GESTIONES ──────────────────────────────────────────────────
@@ -2566,6 +2568,11 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'configuracion') Configuracion.montar(document.getElementById('configuracion-host'), { datos: () => ({
+    gestion: (typeof _gestiones !== 'undefined' && (_gestiones.find(g => g.activa || g.actual || g.estado === 'activa') || {}).nombre) || '',
+    periodos: _periodos.length, periodoActivo: (_periodos.find(p => p.activo) || {}).nombre || '',
+    personas: _users.filter(u => !u.es_admin).length, pendientes: _users.filter(u => u.aprobado === false).length,
+    roles: _roles.length, distritos: _distritos.length }) });
   if (tab === 'calendario') Actividades.abrir();
   if (tab === 'rubrica') renderRubricaTab();
   if (tab === 'roles') renderRoles();
@@ -2847,3 +2854,29 @@ function printAdminReport() {
 
 /* initials, setEl, showToast, initScrollEffects → core/render.js.
    El admin no tiene #back-top; initScrollEffects lo comprueba con ?. */
+
+
+/* ── Evaluar: modo enfoque ────────────────────────────────────────────────────────────────────────
+   Mientras se evalúa a alguien, el resumen (avance, atajos) y la descripción ocupaban la mitad de la pantalla y el formulario quedaba en
+   un rectángulo pequeño. Por defecto se ocultan SOLO cuando hay una evaluación abierta (CSS, :has); «Mostrar resumen» los devuelve y se
+   recuerda la elección. Sin nadie elegido, todo sigue a la vista para escoger a quién evaluar. */
+const _K_ENFOQUE = 'ec-eval-enfoque';
+function _pintarEnfoqueEvaluar(on) {
+  const tab = document.getElementById('tab-evaluar'), b = document.getElementById('eval-enfoque-btn');
+  if (!tab || !b) return;
+  tab.classList.toggle('eval-enfoque', on);
+  b.setAttribute('aria-pressed', String(on));
+  b.querySelector('span').textContent = on ? 'Mostrar resumen' : 'Ocultar resumen';
+  b.querySelector('i')?.setAttribute('data-lucide', on ? 'eye' : 'eye-off');
+  if (typeof renderIconos === 'function') renderIconos(b);
+}
+function iniciarEnfoqueEvaluar() {
+  let on = true;
+  try { on = localStorage.getItem(_K_ENFOQUE) !== '0'; } catch (e) { /* modo privado */ }
+  _pintarEnfoqueEvaluar(on);
+}
+function alternarEnfoqueEvaluar() {
+  const on = !document.getElementById('tab-evaluar')?.classList.contains('eval-enfoque');
+  try { localStorage.setItem(_K_ENFOQUE, on ? '1' : '0'); } catch (e) { /* modo privado */ }
+  _pintarEnfoqueEvaluar(on);
+}

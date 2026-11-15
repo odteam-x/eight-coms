@@ -10,14 +10,20 @@
   --v-t:#F3F8FF; --v-t2:#E9F0FA; --v-tm:#E3ECF8;
   --v-activo:#FFFFFF; --v-activo-txt:#031B45;
   --v-coral:#FF6063; --v-navy:#031B45; --v-blanco:#FFFFFF;
+  --v-scrim:rgba(3,27,69,.62); --v-scrim-fuerte:rgba(3,27,69,.84);   /* telón detrás de diálogos, paneles y hojas: sigue al tema */
 }
 [data-theme="light"] {
-  --v-1:#1B49A8; --v-2:#4A79C6; --v-3:#C9DAF0; --v-4:#F1F5FB;
-  --v-brillo:rgba(0,203,255,.16); --v-calido:rgba(255,138,140,.20);
-  --v-fill:rgba(255,255,255,.58); --v-fill2:rgba(255,255,255,.76); --v-line:rgba(255,255,255,.75); --v-hi:#FFFFFF;
-  --v-sombra:rgba(27,73,168,.16); --v-p2:14%; --v-p3:44%; --v-solido:#EAF1FA;
-  --v-t:#00162E; --v-t2:#2C4461; --v-tm:#2B4163;
-  --v-activo:#031B45; --v-activo-txt:#FFFFFF;
+  /* Referencia del dueño (2026-11-15): página casi blanca con un lavado pastel menta → azul arriba, tarjetas blancas sólidas con sombra suave, texto casi negro, barra inferior blanca. --v-azul es el azul de marca que antes era --v-1 (menú lateral, panel de acceso). */
+  --v-azul:#1B49A8;
+  --v-1:#F3F6FA; --v-2:#EAF6F1; --v-3:#E2ECFB; --v-4:#F6F7FB;
+  --v-brillo:rgba(150,230,195,.50); --v-calido:rgba(150,190,250,.42);
+  --v-fill:#FFFFFF; --v-fill2:#FFFFFF; --v-line:rgba(15,30,60,.09); --v-hi:#FFFFFF;
+  --v-sombra:rgba(30,50,90,.10); --v-p2:26%; --v-p3:58%; --v-solido:#FFFFFF;
+  --v-t:#0B1220; --v-t2:#445064; --v-tm:#5B6678;
+  --v-activo:#0B1220; --v-activo-txt:#FFFFFF;
+  --v-scrim:rgba(24,36,58,.34); --v-scrim-fuerte:rgba(18,28,46,.78);   /* en claro el telón es gris pizarra, no el azul de marca */
+  /* Contrastes del tema claro corregidos al pasar al vidrio: --nivel-on seguía apuntando a --surface-1, que ahora es un blanco translúcido (2.6-3.3 sobre los niveles de las matrices); --action sobre el vidrio sobre la malla azul daba 3.86 (enlaces y «¿Cómo se calcula?»). */
+  --nivel-on:#FFFFFF; --action:#00539F;
 }
 
 /* 1. Tokens del sitio → vidrio */
@@ -56,7 +62,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .logo-img { width: 66px; height: 66px; }
 .rail .rail-buscar { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 99px; color: var(--v-blanco); }
 .rail-prox { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: 24px; }
-.bottom-bar, .cab-movil { background: rgba(3,27,69,.55); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
+.bottom-bar, .cab-movil { background: color-mix(in srgb, var(--v-1) 55%, transparent); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
 
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
 .pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
@@ -65,7 +71,8 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
   border-radius: 28px; color: var(--v-t);
 }
-.pf-card--cian, .pf-card--azul { background: var(--v-fill2); }
+/* Una sola receta de tarjeta: mismo relleno, mismo desenfoque y SIN saturación (saturate(160%) volvía azul intenso las tarjetas con blur y dejaba grises las demás). Las variantes --cian/--azul ya no tiñen la tarjeta. */
+.pf-card--cian, .pf-card--azul { background: var(--v-fill); }
 .modal-box, .tk-box, .panel, .sheet { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); }
 
 /* 5. Hero: vidrio con una forma de contraste recortada */
@@ -116,11 +123,11 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .pcard .pcard-nombre, .pcard b { color: var(--v-t); }
 
 /* 13. Tema claro: el menú es una columna azul propia (la malla ya es clara bajo el contenido) */
-[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-1), color-mix(in srgb, var(--v-1) 75%, var(--v-2))) !important; border-right: 0; }
+[data-theme="light"] .rail { background: linear-gradient(180deg, var(--v-azul), color-mix(in srgb, var(--v-azul) 75%, #4A79C6)) !important; border-right: 0; }
 
 /* 14. Tema claro: el hero es vidrio claro, su texto pasa a navy (los tokens de «sobre marca» eran claros) */
 [data-theme="light"] .sup-marca { --txt: var(--v-t); --txt-2: var(--v-t2); --txt-muted: var(--v-tm); --on-brand: var(--v-t); --on-brand-2: var(--v-t2); }
-[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-1); }
+[data-theme="light"] .inicio-dias, [data-theme="light"] .inicio-cuenta { color: var(--v-azul); }
 [data-theme="light"] .inicio-sub, [data-theme="light"] .inicio-dias-lbl, [data-theme="light"] .inicio-dias-pe { color: var(--v-t2); }
 
 /* 15. Acceso (referencias: Stripe, Vercel, Figma): enlace de recuperación en la fila de la contraseña, menos ruido junto al formulario */
@@ -186,7 +193,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 @media (min-width: 760px) { .login-layout .login-seg { width: 100%; max-width: 420px; } .login-layout .login-seg-btn { min-width: 0; } }
 /* Tema claro: la malla bajo el panel de marca es azul medio; el texto navy no llega a 4.5:1. El panel pasa a columna azul propia (igual que el menú) con texto claro */
 [data-theme="light"] .login-layout .login-panel-brand {
-  background: linear-gradient(160deg, var(--v-1), color-mix(in srgb, var(--v-1) 72%, var(--v-2))) !important;
+  background: linear-gradient(160deg, var(--v-azul, var(--v-1)), color-mix(in srgb, var(--v-azul, var(--v-1)) 72%, var(--v-2))) !important;
   --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-line: rgba(255,255,255,.26);
 }
 [data-theme="light"] .login-layout .login-panel-brand::before { opacity: .22; }
@@ -196,7 +203,6 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .login-layout #pane-login .field-row label { margin-bottom: 0; }
 .login-layout .field-link { display: inline-flex; align-items: center; min-height: 44px; margin-block: -6px; padding-inline: 4px; }
 .login-layout + .derechos--login { color: var(--v-t2); }
-@media (max-width: 759px) { .login-layout + .derechos--login { background: var(--v-solido); } }
 @media (max-width: 759px) {
   .login-layout .login-hero-tag { display: none; }
   .login-layout .login-hero-h1 { white-space: nowrap; font-size: clamp(1.25rem, 6vw, 1.7rem); }
@@ -211,7 +217,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 22. Panel de administración: resumen ejecutivo (KPIs 2×2) junto a «Requiere atención» en una sola franja, después desempeño y evolución.
    Cada bloque justifica su espacio: sin descripciones largas, sin indicadores que repitan lo que ya dice una alerta. */
 #ov-body > .panel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }   /* solo el Panel: Reportes reutiliza .panel-kpis con su propia rejilla */
-.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
+.kpi-c { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "num etq" "num sub" "bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 14px 18px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: var(--r-card); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); min-width: 0; }
 .kpi-c-num { grid-area: num; font: 300 2.4rem/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .kpi-c-num small { font-size: .45em; font-weight: 500; color: var(--v-t2); margin-left: 2px; }
 .kpi-c-etq { grid-area: etq; align-self: end; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--v-t2); }
@@ -223,7 +229,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .panel-grid--evol { margin-top: 12px; }
 
 /* «Requiere atención»: componente compacto. Fila de ~36 px = icono · nombre breve · cantidad · acción. */
-.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 24px; -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
+.atn { padding: 12px 16px 8px; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: var(--r-card); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); color: var(--v-t); }
 .atn-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .atn-h { margin: 0; font: 500 var(--fs-md)/1.2 var(--font-ui); } .atn-h small { font-size: var(--fs-xs); font-weight: 400; color: var(--v-t2); margin-left: 6px; }
 .atn-total { min-width: 24px; height: 24px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1 var(--font-ui); }
@@ -433,7 +439,8 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 /* 36. Equipos: los equipos son lo principal y van primero; las reglas de calificación (configuración) quedan debajo,
    plegables, y sus seis valores son una rejilla con filetes en vez de seis cajas blancas dentro de la tarjeta. */
 #tab-equipos.active { display: flex; flex-direction: column; }
-#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; } #tab-equipos > #eq-reglas { order: 2; margin-top: var(--sp-5); }
+#tab-equipos > .pantalla-cab { order: 0; } #tab-equipos > #eq-host { order: 1; }
+#tareas-reglas:not(:empty) { margin: 0 0 var(--sp-5); }   /* las reglas de calificación de tareas viven en la pestaña Tareas, entre el selector de PE y la lista */
 .ev-dl > div { background: none; border: 0; border-radius: 0; box-shadow: none; border-top: 1px solid var(--v-line); padding: 12px 4px; }
 .ev-dl { gap: 0 24px; }
 
@@ -457,7 +464,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 
 /* 39. Celular, tema claro: la cabecera y la barra inferior son superficies de marca (texto e iconos claros, ver CLAUDE.md);
    el sólido del tema claro (#EAF1FA) las dejaba blanco sobre blanco. Van en el azul de la columna del menú (texto 7:1). */
-[data-theme="light"] .cab-movil, [data-theme="light"] .bottom-bar { background: var(--v-1); }
+[data-theme="light"] .cab-movil { background: var(--v-1); }
 @media (max-width: 480px) {
   .kpi-c { grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "num" "sub" "bar"; row-gap: 4px; }
   .kpi-c-num { font-size: 1.9rem; }
@@ -514,8 +521,8 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
    (sección 25) y el «Panorama PE a PE» dibuja las mismas cifras de la tabla como barras. */
 @media screen {
   .rg-hoja { max-width: none; background: var(--v-fill); border: 1px solid var(--v-line); border-radius: 28px; color: var(--v-t); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: none; }
-  .rg-hoja .rpt-hoja-t h2 { font-weight: 300; letter-spacing: -.03em; }
-  .rg-hoja .rpt-sec-t { font-weight: 500; text-transform: none; }
+  .rg-hoja .rpt-hoja-t h2 { font-weight: 600; letter-spacing: -.015em; }
+  .rg-hoja .rpt-sec-t { font-weight: 600; text-transform: none; }
   .rg-hoja .kpi-num { font-weight: 300; }
   .rg-hoja .kpi-sub { color: var(--v-t2); }
 }
@@ -544,9 +551,9 @@ h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
 
 /* 46. Hoja «Más» (celular): panel OPACO (el sólido del tema) con velo detrás; las baldosas de destinos son filas de vidrio sobre
    ese sólido. Antes era translúcida y la pantalla de debajo se leía a través, montada sobre los iconos y las acciones. */
-.bb-hoja { background: color-mix(in srgb, var(--v-1) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.bb-hoja { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .bb-hoja-panel { background: var(--v-solido); border: 1px solid var(--v-line); border-bottom: 0; color: var(--v-t); box-shadow: 0 -18px 48px var(--v-sombra); }
-[data-theme="light"] .bb-hoja-panel { background: var(--v-1); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
+[data-theme="light"] .bb-hoja-panel { background: var(--v-azul); --v-t: #F3F8FF; --v-t2: #E9F0FA; --v-fill: rgba(255,255,255,.12); --v-fill2: rgba(255,255,255,.18); --v-line: rgba(255,255,255,.26); }   /* en claro, azul de marca con texto claro (7:1) */
 .bb-hoja-item, .bb-hoja-cuenta { background: var(--v-fill); border: 1px solid var(--v-line); color: var(--v-t); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .bb-hoja-ver, .bb-hoja-badge { color: var(--v-t2); }
 [data-theme="light"] .bb-hoja-panel .bb-hoja-item, [data-theme="light"] .bb-hoja-panel .bb-hoja-cuenta { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); color: var(--on-brand); }
@@ -621,10 +628,9 @@ button > svg, a > svg { flex: none; }
 .derechos-a { white-space: nowrap; }
 .derechos-b { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--v-tm); }
 @media (max-width: 767px) {
-  .derechos { padding: 28px 24px 20px; font-size: .8125rem; }
-  .derechos-sep { display: none; }
-  .derechos-a { display: block; white-space: normal; }
-  .derechos-a:first-child { font-size: .875rem; }
+  /* Celular: dos líneas centradas (titular y derechos / iniciativa); si no caben en una, se parten en el punto, no a mitad de palabra */
+  .derechos { padding: 28px 24px 20px; font-size: .8125rem; text-align: center; }
+  .derechos-a { white-space: normal; }
 }
 
 /* 54. Avisos en celular: la barra (filtros + marcar todo + preferencias) es OPACA y fija arriba del listado; el listado pasa por
@@ -749,7 +755,7 @@ button > svg, a > svg { flex: none; }
 /* 60. Equipos: el nombre del grupo (equipo) es el título de la sección de tareas, no una nota al margen. */
 .eq-grupo { margin-top: var(--sp-6); gap: var(--sp-4); }
 .eq-grupo-cab { padding-bottom: var(--sp-2); border-bottom: 1px solid var(--v-line); }
-.eq-grupo-cab .pf-sub { font: 600 var(--fs-xl)/1.05 var(--font-display); letter-spacing: -.02em; color: var(--v-t); margin: 0; }
+.eq-grupo-cab .pf-sub { font: 600 var(--h4)/1.2 var(--font-ui); letter-spacing: 0; color: var(--v-t); margin: 0; }
 .eq-grupo-cab .pf-sub::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--v-t); margin-right: 10px; vertical-align: 3px; }
 .back-top, #back-top { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 
@@ -767,6 +773,122 @@ button > svg, a > svg { flex: none; }
 
 /* 62. La insignia de las cabeceras se nota más: 52 px en la barra lateral (escritorio), más el aro blanco. */
 .rail .rail-logo { width: 52px; height: 52px; }
+
+/* 30. iPhone con notch en modo app (apple-mobile-web-app-status-bar-style = black-translucent): la malla llega hasta el borde
+   superior y pasa por detrás de la hora y los iconos, sin la banda oscura que antes cortaba el degradado. Lo que antes empezaba
+   en el borde superior deja el hueco del notch: la cabecera y las barras de perfil ya lo hacen con env(safe-area-inset-top);
+   aquí, lo que faltaba. env() vale 0 donde no hay notch, así que no cambia nada en escritorio ni en Android. */
+html { background: var(--v-1); min-height: 100%; }
+@media (max-width: 768px) {
+  .login-layout { padding-top: env(safe-area-inset-top); }
+  .theme-toggle-fixed { top: calc(var(--sp-3) + env(safe-area-inset-top)); }
+}
+
+/* 31. Tema ROSA: el coral de la marca como protagonista. Base oscura (vino) para que el texto blanco conserve el contraste;
+   el coral sale en el botón primario y en el brillo de la malla; los acentos y los textos de nivel son rosas claros. Contrastes medidos (tools/pruebas/front-tema.mjs): texto sobre el vidrio en la peor zona de la malla, de 4.8 a 6.8. Es un tema OSCURO (no lleva [data-theme="light"]),
+   así que hereda todas las reglas oscuras y solo redefine los tokens. */
+[data-theme="rosa"] {
+  --v-1:#3D0A27; --v-2:#64103A; --v-3:#76173F; --v-4:#5A0F36;
+  --v-brillo:rgba(255,96,99,.12); --v-calido:rgba(255,180,194,.10);
+  --v-fill:rgba(255,255,255,.10); --v-fill2:rgba(255,255,255,.13); --v-line:rgba(255,255,255,.24); --v-hi:rgba(255,255,255,.22);
+  --v-sombra:rgba(61,10,39,.36); --v-p2:30%; --v-p3:60%; --v-solido:#4A0F31;
+  --v-t:#FFF5F7; --v-t2:#FBE3EA; --v-tm:#F6D3DE;
+  --v-activo:#FFFFFF; --v-activo-txt:#3D0A27;
+  --v-navy:#3D0A27;
+  --v-scrim:rgba(61,10,39,.62); --v-scrim-fuerte:rgba(61,10,39,.84);
+  /* semántica: la acción y los datos pasan al rosa; la alerta conserva su icono y su texto (nunca solo el color) */
+  --action: #FFC9D5; --action-fill: var(--coral); --action-fill-hover: #FF8A8C; --action-on: #3D0A27;
+  --data: #FFB4C2; --data-txt: #FFD3DB; --criterio-txt: #FFD3DB;
+  --marca: var(--cyan-200); --alert: #FFDDA8; --alert-on: #3D0A27;
+  --sex: #FFE3E8; --sbu: #FFB4C2; --spr: #F27A96; --sba: #D14A68; --nivel-on: #3D0A27;
+  --sex-txt: #FFE9ED; --sbu-txt: #FFD6DF; --spr-txt: #FFCBD7; --sba-txt: #FFC2CF;
+}
+[data-theme="rosa"] .avatar { background: var(--v-1); }   /* el círculo de iniciales deja el navy y toma el vino del tema */
+
+/* 32. Mi cuenta → App: selector de tema (Oscuro / Claro / Rosa). El título va arriba y los tres botones debajo, a todo el ancho en celular. */
+.fila-aj--tema { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.fila-aj--tema .fila-aj-txt { flex: 1 1 160px; min-width: 0; }
+.fila-aj--tema .seg { flex: 0 1 auto; margin-left: auto; }
+@media (max-width: 560px) { .fila-aj--tema .seg { flex: 1 1 100%; margin-left: 0; } .fila-aj--tema .seg-btn { flex: 1 1 0; } }
+
+/* 33. Franja superior sin corte (iPhone). Safari de iOS 26 pinta la zona de la hora/notch con el color SÓLIDO de fondo de la página
+   (html = --v-1, el tono más oscuro) y lo difumina contra el contenido; la malla de abajo es más clara, así que se veía una banda
+   oscura con borde borroso. Solución: arriba del todo la malla pasa a ser --v-1 liso y se aclara poco a poco hacia su color
+   real, así el color que muestra el sistema y el de la página coinciden y el degradado queda continuo. Solo celular. */
+@media (max-width: 768px) {
+  html::after {
+    content: ''; position: fixed; z-index: -1; left: 0; right: 0; top: 0; pointer-events: none;
+    height: calc(env(safe-area-inset-top, 0px) + 96px);
+    background: linear-gradient(180deg, var(--v-1) 0, var(--v-1) env(safe-area-inset-top, 0px), transparent 100%);
+  }
+}
+
+/* 34. Evaluar con más espacio (escritorio). Con una evaluación abierta y el modo enfoque activo se ocultan el resumen de avance, los atajos y
+   la descripción (la cabecera dejaba el formulario en la mitad de la pantalla); los criterios se compactan y el resumen fijo pasa a una sola línea. */
+#tab-evaluar.eval-enfoque:has(.eval-form-card) .eval-chips-host,
+#tab-evaluar.eval-enfoque:has(.eval-form-card) .pantalla-cab > p { display: none; }
+#tab-evaluar.eval-enfoque:has(.eval-form-card) .eval-fijo { gap: var(--sp-2); padding-bottom: var(--sp-2); }
+.eval-enfoque-btn { min-height: 38px; padding: 0 14px; gap: 8px; }
+.eval-enfoque-btn i { width: 16px; height: 16px; }
+.v2-resumen { flex-wrap: wrap; gap: 2px 14px; padding: 6px 14px; font-size: var(--fs-xs); align-items: center; }   /* una línea cuando cabe (formulario ancho) y dos como máximo; antes ocupaba 89 px */
+.v2-resumen > * { flex: none; }
+.v2-resumen small { font-size: inherit; }
+.v2-crit { padding: 10px 14px; margin-bottom: 8px; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
+.v2-crit > * { grid-column: 1 / -1; }
+.v2-crit-head { margin-bottom: 4px; }
+/* «Descriptores 1·3·5» y el comentario comparten fila mientras los descriptores están cerrados (−38 px por criterio); abiertos, ocupan todo el ancho. */
+.v2-crit > details.v2-det { grid-column: 1; margin-top: 0; }
+.v2-crit > details.v2-det[open] { grid-column: 1 / -1; margin-top: 8px; }
+.v2-crit > .eval-com-inp { grid-column: 2; margin-top: 4px; }
+.v2-crit:has(details.v2-det[open]) > .eval-com-inp { grid-column: 1 / -1; }
+@media (max-width: 1099px) { .v2-resumen { flex-wrap: wrap; white-space: normal; } }
+
+/* 35. Telón de diálogos, paneles y hojas según el tema. Antes todos usaban el azul de marca al 70 % (premium.css) y, al abrir los avisos
+   en tema claro o rosa, el fondo seguía azul. Ahora sale de --v-scrim (oscuro: navy; claro: gris pizarra; rosa: vino). */
+.tk-overlay, .modal-overlay, .bus-overlay, .panel-overlay { background: var(--v-scrim); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.bb-hoja { background: var(--v-scrim); }
+.ed-visor { background: var(--v-scrim-fuerte); }
+.panel-overlay.panel-overlay--pantalla { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+
+
+/* 36. JERARQUÍA DE TÍTULOS — una escala, cuatro niveles, tres tamaños de pantalla.
+   Los títulos de sección tenían pesos 300, 500 y 700 y tamaños de 14 a 32 px según la pantalla: un subtítulo (25 px) mayor que su
+   sección (21 px), una etiqueta de grupo (14 px) menor que lo que agrupa, el día del calendario (32 px) mayor que la pantalla.
+   Ahora el nivel decide el estilo y el tamaño crece con el ancho (celular → tablet → escritorio), siempre N1 > N2 > N3 > N4.
+     N1 pantalla   h1.pantalla-t · saludo de Inicio · nombre en el perfil
+     N2 bloque     etiqueta de grupo (Desempeño) · mes y día del calendario · título de la hoja del reporte · nombre en Mi cuenta
+     N3 sección    .pf-h .cuenta-t .hist-sub .panel-t-h .rpt-sec-t .rol-t .atn-h
+     N4 apartado   .pf-sub .pe-sub .tk-titulo (título de una tarjeta de tarea)                                                        */
+:root { --h1: 1.75rem; --h2: 1.375rem; --h3: 1.1875rem; --h4: 1rem; }
+@media (min-width: 640px) { :root { --h1: 2rem; --h2: 1.5rem; --h3: 1.25rem; --h4: 1.0625rem; } }
+@media (min-width: 1024px) { :root { --h1: 2.25rem; --h2: 1.625rem; --h3: 1.3125rem; --h4: 1.0625rem; } }
+
+h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-size: var(--h1); font-weight: 600; line-height: 1.08; letter-spacing: -.02em; color: var(--v-t); }
+.perfil-nombre { font-weight: 500; }
+
+.des-grupo-t, .cal2-titulo, .cal2-agenda-h, .cuenta-nombre, .rpt-hoja-t h2, .rg-hoja h2 {
+  font: 600 var(--h2)/1.12 var(--font-display); letter-spacing: -.015em; text-transform: none; color: var(--v-t); }
+.cal2-titulo span, .cal2-agenda-h span.cal2-num { color: inherit; font-weight: inherit; }
+.des-grupo-t { margin: var(--sp-7) 0 var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--v-line); }
+.des-grupo-t:first-of-type { margin-top: var(--sp-3); padding-top: 0; border-top: 0; }
+
+.pf-h, .cuenta-t, .hist-sub, .panel-t-h, .rpt-sec-t, .rol-t, .atn-h,
+#tab-desempeno .pf-h, .pf-card .pf-h, .pf-card-cab .pf-h {
+  font: 600 var(--h3)/1.15 var(--font-display); letter-spacing: -.01em; text-transform: none; color: var(--v-t); }
+.pf-h small, .cuenta-t small, .atn-h small { font: 500 var(--fs-xs)/1 var(--font-ui); color: var(--v-t2); }
+
+.pf-sub, .pe-sub, h4.pf-sub, .tk-titulo { font: 600 var(--h4)/1.3 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--v-t); }
+.pf-sub, .pe-sub { color: var(--v-t2); }
+
+/* 37. Tema claro según la referencia: tarjetas blancas con sombra suave (no vidrio), barra inferior blanca con iconos oscuros y el activo en píldora oscura. */
+[data-theme="light"] .pf-card, [data-theme="light"] .pf-kpi, [data-theme="light"] .tarjeta, [data-theme="light"] .kpi, [data-theme="light"] .tk-card, [data-theme="light"] .lista-aj, [data-theme="light"] .panel-card {
+  background: #FFFFFF; border: 1px solid var(--v-line); box-shadow: 0 1px 2px rgba(15,30,60,.04), 0 10px 28px var(--v-sombra); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-theme="light"] .bottom-bar { --on-brand: var(--v-t); --on-brand-2: var(--v-t2); background: #FFFFFF; border-top: 1px solid var(--v-line); box-shadow: 0 -8px 28px var(--v-sombra); color: var(--v-t2); }
+[data-theme="light"] .bottom-bar .bb-item { color: var(--v-t2); }
+[data-theme="light"] .bottom-bar .bb-item.active { background: var(--v-activo); color: var(--v-activo-txt); }
+[data-theme="light"] .bottom-bar .bb-item.active .bb-txt, [data-theme="light"] .bottom-bar .bb-item.active svg { color: var(--v-activo-txt); }
+[data-theme="light"] .sup-marca::before, [data-theme="light"] .fondo-vista.sup-marca::before { opacity: 0; }   /* el patrón del hero dibujaba un rectángulo visible sobre el lavado pastel */
 
 /* 63. CONTRASTE REAL (medido en pantalla con tools/pruebas/ui/contraste-dom.mjs, no solo en tokens). El vidrio claro sobre la malla
    azul daba fondos de ~rgb(23,85,177): ahí el coral, el cian y el azul de enlaces caían a 1,9–3,8:1. Ahora, en oscuro, el vidrio es
