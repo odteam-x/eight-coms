@@ -34,3 +34,4 @@ Estado **verificado en producción el 2026-11-08** (proyecto `owfmorjlymoxqrzhad
 3. `node tools/pruebas/cadena.mjs` aplica TODA la cadena en orden: debe seguir verde.
 4. PR → aplicar en producción con el conector (`apply_migration`) o a mano en el SQL Editor, **después de comprobar la huella de los datos** (conteo + `md5` de las columnas que no deben cambiar) antes y después.
 5. Anotarla aquí.
+- **0063 `tareas_propias_en_curso`** (2026-11-15, **pendiente de aplicar**): las tareas de iniciativa propia nacen «En curso» (no hace falta «Empezar»); parchea `tareas_validar_insert()` con `pg_get_functiondef`. Idempotente. Prueba `sql-0063.mjs` (11). UPDATE opcional comentado para las propias ya creadas.

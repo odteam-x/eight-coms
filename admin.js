@@ -100,12 +100,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'reportes', icono:'file-bar-chart',   etiqueta:'Reportes' },
         { tab:'auditoria', icono:'history',         etiqueta:'Auditoría' },
       ]},
-      { titulo:'Configuración', plegado: true, items: [
-        { tab:'periodos',   icono:'calendar',      etiqueta:'Períodos'   },
-        { tab:'calendario', icono:'calendar-days', etiqueta:'Actividades' },
-        { tab:'rubrica',    icono:'ruler',         etiqueta:'Rúbrica'    },
-        { tab:'roles',      icono:'sliders-horizontal', etiqueta:'Roles y perfiles' },
-        { tab:'gestiones',  icono:'archive',       etiqueta:'Gestiones'  },
+      { items: [
+        { tab:'configuracion', icono:'settings',   etiqueta:'Configuración' },
       ]},
     ],
   });
@@ -2562,8 +2558,8 @@ const _tabParentMap = {
   cuenta:'cuenta',
   agenda: 'agenda',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
-  periodos:'periodos', calendario:'periodos', rubrica:'periodos', perfiles:'periodos',
-  roles:'periodos', distritos:'periodos', gestiones:'periodos',
+  configuracion:'configuracion', periodos:'configuracion', calendario:'configuracion', rubrica:'configuracion', perfiles:'configuracion',
+  roles:'configuracion', distritos:'distritos', gestiones:'configuracion',
 };
 
 /* ── TAB: GESTIONES ──────────────────────────────────────────────────
@@ -2631,6 +2627,11 @@ async function confirmarAbrirGestion() {
 }
 
 function switchTabAdminHooks(tab) {
+  if (tab === 'configuracion') Configuracion.montar(document.getElementById('configuracion-host'), { datos: () => ({
+    gestion: (typeof _gestiones !== 'undefined' && (_gestiones.find(g => g.activa || g.actual || g.estado === 'activa') || {}).nombre) || '',
+    periodos: _periodos.length, periodoActivo: (_periodos.find(p => p.activo) || {}).nombre || '',
+    personas: _users.filter(u => !u.es_admin).length, pendientes: _users.filter(u => u.aprobado === false).length,
+    roles: _roles.length, distritos: _distritos.length }) });
   if (tab === 'calendario') Actividades.abrir();
   if (tab === 'rubrica') renderRubricaTab();
   if (tab === 'roles') renderRoles();

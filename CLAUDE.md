@@ -701,3 +701,15 @@ Regla por PE, **apagada por defecto**: `periodo_calif_config.sin_tareas_pierde_p
 - `vidrio.css` §36: una escala de cuatro niveles con tokens `--h1…--h4` que crecen con el ancho (celular < 640, tablet, escritorio ≥ 1024): N1 pantalla, N2 bloque (etiqueta de grupo, mes/día del calendario, hoja del reporte), N3 sección (`.pf-h .cuenta-t .panel-t-h .rpt-sec-t .rol-t .atn-h`), N4 apartado (`.pf-sub .tk-titulo`). Todos con peso 600. Antes había pesos 300/500/700 y subtítulos mayores que su sección. Un título nuevo se asigna a un nivel; no lleva tamaño propio.
 - Derechos de autor: en el acceso el pie ya no es una barra pegada (celular) ni texto fijo sobre el panel (escritorio): va en su propio renglón al final de la página, centrado, en una línea desde 760 px y en dos en celular. En el portal sigue al final de `#contenido`.
 - Acceso en tablet: el título «CREATORS» se partía; el tamaño se calcula con el ancho real del panel.
+
+### Tareas de iniciativa propia nacen «En curso» (0063, 2026-11-15)
+
+`tareas_validar_insert()` deja en `en_curso` toda tarea cuyo `origen` es `propia` (la persona la creó para sí; el servidor decide el origen). Las asignadas por otra persona siguen naciendo `asignada` y su dueña pulsa «Empezar». No cambia quién crea qué ni que nadie aprueba su propia tarea. Las propias ya creadas siguen como estaban (hay un UPDATE opcional comentado en la migración).
+
+### Configuración general (2026-11-15)
+
+Pestaña admin `configuracion` (`core/configuracion.js`, `configuracion.css`): índice de TODO lo configurable agrupado en seis apartados (Organización, Evaluación, Calendario y actividades, Comunicación, Apariencia y entrada, Seguridad y registro). Cada fila dice qué se configura, el valor actual (conteos ya cargados) y un botón que abre la pantalla que lo edita (`ACCIONES.irTab`); el tema y el selector de entrada se cambian ahí mismo. **Para una opción nueva en la plataforma, se suma su fila a `APARTADOS`: no hay otra lista.** Las pantallas Períodos, Actividades, Rúbrica, Roles y Gestiones ya no tienen entrada propia en el menú: cuelgan de Configuración (`_tabParentMap`).
+
+### Tema claro según la referencia (2026-11-15)
+
+El tema claro pasa de «malla azul con vidrio» a: página casi blanca con lavado pastel (menta → azul), tarjetas **blancas sólidas** con sombra suave, texto casi negro, barra inferior blanca con el ítem activo en píldora oscura. `--v-1…--v-4` del claro son ahora los tonos de la página; el azul de marca que antes era `--v-1` es **`--v-azul`** (menú lateral y panel del acceso). Reglas del claro en `vidrio.css` §37. Si algo en claro usa `var(--v-1)` esperando el azul, debe pasar a `--v-azul`. Oscuro y rosa no cambian.
