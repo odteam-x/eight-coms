@@ -97,7 +97,7 @@ const Desempeno = (() => {
   function personasDe(rs) {
     const m = new Map();
     for (const r of rs) {
-      if (!m.has(r.persona_id)) m.set(r.persona_id, { id: r.persona_id, nombre: r.nombre || '—', rol: r.rol_nombre || 'Sin rol', distrito: r.distrito, porPer: new Map() });
+      if (!m.has(r.persona_id)) m.set(r.persona_id, { id: r.persona_id, nombre: r.nombre || '—', rol: r.rol_nombre || 'Sin rol', rol2: r.rol2_nombre || '', distrito: r.distrito, porPer: new Map() });
       m.get(r.persona_id).porPer.set(r.periodo_id, r);
     }
     return m;
@@ -305,7 +305,7 @@ const Desempeno = (() => {
     const nv = u ? nivelDe(u.v) : null, on = p.id === S.sel;
     return `<li><button type="button" class="des-card${on ? ' des-card--on' : ''}" data-act="des" data-arg="ver" data-arg2="${escHtml(p.id)}" aria-pressed="${on}">
       <span class="des-card-n">${escHtml(p.nombre)}</span>
-      <span class="des-card-s">${escHtml(p.rol)}${p.distrito ? ' · ' + escHtml(p.distrito) : ''}</span>
+      <span class="des-card-s">${escHtml(p.rol)}${p.rol2 ? ' + ' + escHtml(p.rol2) : ''}${p.distrito ? ' · ' + escHtml(p.distrito) : ''}</span>
       <span class="des-card-v">${u ? `<b style="color:${nv.color}">${escHtml(fmt(u.v))}</b><span class="nivel-badge ${escHtml(nv.clase)}">${escHtml(nv.label)}</span>` : '<span class="des-nd">Sin resultado publicado</span>'}</span>
       <span class="des-card-p">${u ? `${escHtml(est[u.i].p.nombre)}${a ? ' ' + deltaHTML(u.v, a.v, { decimales: 1, ref: est[a.i].p.nombre }) : ''}` : ''}</span>
       ${chispa(vals)}</button></li>`;
@@ -335,7 +335,7 @@ const Desempeno = (() => {
     const o = { nombre: p.nombre, equipo: mediasEquipo(rs) };
     S.det = { fs, o };
     return `<div class="des-det-cab"><div><h2 class="pf-h" id="des-h-det">${escHtml(p.nombre)}</h2>
-      <p class="des-det-s">${escHtml(p.rol)}${p.distrito ? ' · ' + escHtml(p.distrito) : ''} — frente al promedio del equipo${S.rol || S.distrito ? ' (con los filtros aplicados)' : ''}</p></div>
+      <p class="des-det-s">${escHtml(p.rol)}${p.rol2 ? ' + ' + escHtml(p.rol2) : ''}${p.distrito ? ' · ' + escHtml(p.distrito) : ''} — frente al promedio del equipo${S.rol || S.distrito ? ' (con los filtros aplicados)' : ''}</p></div>
       <button type="button" class="btn--secundario" data-act="perfilVer" data-arg="${escHtml(p.id)}">Ver perfil completo</button></div>
       ${conPrincipal(() => seccionKpisPropio(fs, o) + seccionEvolucionPropia(fs, o))}`;
   }

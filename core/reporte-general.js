@@ -527,7 +527,7 @@ const ReporteGeneral = (() => {
         const val = r.modelo === 'v2' ? r.individual : r.total_clasico;
         const visible = r.estado_eval === 'publicado' || r.estado_eval === 'borrador';
         return `<tr><th scope="row"><button type="button" class="seg-nombre" data-act="perfilVer" data-arg="${escHtml(r.persona_id)}" aria-label="Ver el perfil de ${escHtml(r.nombre)}">${escHtml(r.nombre)}</button><small>${escHtml(nombreDistrito(r.distrito || ''))}</small></th>
-          <td data-label="Rol">${escHtml(r.rol_nombre || 'Sin rol')}</td>
+          <td data-label="Rol">${escHtml(r.rol_nombre || 'Sin rol')}${r.rol2_nombre ? ' + ' + escHtml(r.rol2_nombre) : ''}</td>
           <td data-label="Evaluación">${r.participa ? escHtml(ESTADO[r.estado_eval] || r.estado_eval) : '<span class="etiqueta etq-gris">No participa</span>'}</td>
           <td data-label="Resultado">${visible && val != null ? `<b>${escHtml(f1(Number(val)))}</b><small>${r.modelo === 'v2' ? 'sobre 100' : 'escala clásica'}${r.estado_eval === 'borrador' ? ' · borrador (no cuenta)' : ''}</small>` : '—'}</td>
           <td data-label="Tareas">${r.tareas_total ? `<b>${num(r.tareas_total)}</b><small>${num(r.tareas_aprobadas)} aprobadas${num(r.tareas_vencidas) ? ` · ${num(r.tareas_vencidas)} vencida${num(r.tareas_vencidas) === 1 ? '' : 's'}` : ''}</small>` : '—'}</td></tr>`;

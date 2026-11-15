@@ -513,7 +513,7 @@ ${lista(
         `Es <b>opcional</b>: se puede dejar sin puntuar. Si empiezas a puntuarlo, para publicar debes completar lo obligatorio de ese rol.`,
         `<b>Cuánto pesa cada rol lo deciden las tareas</b>: el técnico final es la mezcla de los dos técnicos según el peso de las tareas aprobadas del período con cada rol. Con una tarea de cada rol del mismo peso, 50 / 50; con tareas de peso 1 en el principal y 3 en el segundo, 25 / 75. Las tareas de equipo y las sin rol cuentan para el principal.`,
         `Un rol sin tareas que cuenten <b>no pesa</b>: la persona se evalúa solo por el otro. Si hay tareas del segundo rol pero falta su evaluación, el resumen muestra <b>evaluación incompleta</b> y el resultado usa solo el principal (nunca se rellena con 0).`,
-        `El percentil de cada rol se calcula solo entre quienes tienen puntajes <b>de ese rol</b>, y la persona aparece <b>una sola vez</b> en los rankings generales.`)}
+        `El percentil de cada rol se calcula solo entre quienes tienen puntajes <b>de ese rol</b>, y la persona aparece <b>una sola vez</b> en los rankings generales. En Seguimiento, Desempeño y el Reporte general verás «Fotografía + Redacción» junto a su nombre; se agrupa y se filtra por el rol principal.`)}
 ${nota('ejemplo', 'Ana es Fotografía (principal) y Redacción (segundo). Técnico de Fotografía 80, de Redacción 60. Hizo una tarea de cada rol con el mismo peso: técnico = 0,5 × 80 + 0,5 × 60 = 70, y el resto del cálculo (núcleo, tareas) sigue igual.')}
 ${nota('ojo', 'El segundo rol solo se evalúa en evaluaciones con puntuación por peso. Las anteriores (escala 1 a 5) no lo admiten: el formulario lo avisa.')}
 <h3>La barra de puntos</h3>
