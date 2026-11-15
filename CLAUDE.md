@@ -721,3 +721,7 @@ El tema claro pasa de «malla azul con vidrio» a: página casi blanca con lavad
 ### Seguimiento y Desempeño ya no hacen lo mismo (2026-11-15)
 
 Seguimiento responde «¿quién está al día?» (estado de cada evaluación, entregas a tiempo, vencidas, persona × período). Desempeño responde «¿cómo les va?» (resultados, evolución, comparaciones, promedio por rol, detalle de una persona). Se quitó de Desempeño la tabla «Todas las personas» (era la misma matriz persona × período del Seguimiento) y cada pantalla apunta a la otra. Las dos siguen leyendo `seguimiento_global()`: una sola fuente, no se recalcula nada.
+
+### Manuales con la identidad vigente (2026-11-15)
+
+`ayuda/ayuda.css` usa vidrio sobre malla (se carga `vidrio.css` antes): fondo de malla, tarjetas de vidrio, Barlow ligera, avisos con punto de color (sin barra en un borde) y los tres temas. Las capturas (`ayuda/img/*.jpg` y `*-pc.jpg`) se regeneran del simulador con `node tools/pruebas/ui/server.mjs . 3171` y `node tools/capturas-manual.mjs http://localhost:3171 [filtro]` (Edge/Chrome headless por el protocolo de depuración; tema oscuro; la bienvenida usa `?bv=1|2|3`). Tras un cambio visual importante, volver a correrlo y regenerar los manuales con `node tools/generar-manuales.mjs`.
