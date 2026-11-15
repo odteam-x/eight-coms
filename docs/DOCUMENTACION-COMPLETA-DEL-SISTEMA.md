@@ -1020,7 +1020,7 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 
 **Cabecera**: foto, nombre, rol (y segundo rol), **versión del perfil de evaluación**, distrito y el **anillo con la nota** y su cambio frente al período anterior. **Mi gafete** aparece en el perfil propio; la administración ve «Gafete» en cualquier perfil.
 
-**Cinco pestañas internas**:
+**Pestañas internas** (las dos últimas solo en el perfil propio de miembros y secretarías):
 
 | Pestaña | Qué muestra |
 |---|---|
@@ -1029,6 +1029,8 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 | **Tareas** | Tareas del período (para quien supervisa: lista completa de revisión) |
 | **Períodos** | **Una tarjeta por PE**: tu participación, el estado de tu evaluación y los hechos de tus tareas, y tu equipo si lo hay |
 | **Desempeño** | Evolución, tabla por período y comparar dos períodos propios (reemplaza a *Evolución* en el perfil propio; los perfiles de otras personas conservan *Evolución*) |
+| **Cómo me evalúan** | La rúbrica de tu rol (y de tu segundo rol): cómo se calcula tu resultado, los 5 criterios del núcleo y los técnicos con su peso, cada uno con sus anclas 1-3-5. Se ve aunque aún no haya evaluación publicada |
+| **Mi rol** | Qué se espera de tu rol y tus preferencias de rol (antes estaban en Mi cuenta) |
 
 **Reglas de lectura**: un período **clásico** se muestra en su escala (22/30, nivel por 26/20/11, bono, 7 criterios de 1–4) y **nunca se mezcla** con por roles en un gráfico ni en «cambio frente al período anterior»; su pestaña Tareas dice que el período no usa tareas. Un PE en el que no participaste no aparece.
 
