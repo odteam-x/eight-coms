@@ -8,7 +8,7 @@
 import fs from 'node:fs'; import { chromium } from 'playwright-core';
 const [puerto = '3100', anchosArg = '1440,390', temasArg = 'dark'] = process.argv.slice(2);
 const BASE = `http://localhost:${puerto}`;
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const EDGE = process.env.NAVEGADOR || 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe';
 const ROLES = [{ id: 'admin', url: '/admin.html?as=admin', entrada: true }, { id: 'secretaria', url: '/secretario.html?as=sec' }, { id: 'miembro', url: '/user.html?as=m1' }];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const hall = new Map();

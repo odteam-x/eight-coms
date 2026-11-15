@@ -28,7 +28,7 @@ const SOLO = process.env.SOLO ? new RegExp(process.env.SOLO) : null;   // p. ej.
 const ROLES_SOLO = process.env.ROLES ? process.env.ROLES.split(',') : null;
 const TEMA = process.env.TEMA || '';   // light | dark (por defecto, el del sistema)
 const ALTO = { 1440: 900, 1024: 768, 768: 1024, 390: 844, 320: 640 };
-const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'].find(f => fs.existsSync(f));
+const EDGE = process.env.NAVEGADOR || ['C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(f => fs.existsSync(f));
 
 const ROLES = [
   { id: 'admin', url: '/admin.html?as=admin', entrada: true },

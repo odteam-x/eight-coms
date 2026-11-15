@@ -10,7 +10,7 @@
 import fs from 'node:fs'; import { chromium } from 'playwright-core';
 const [puerto = '3100', anchosArg = '1440,390', temasArg = 'dark,light'] = process.argv.slice(2);
 const BASE = `http://localhost:${puerto}`;
-const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'].find(f => fs.existsSync(f));
+const EDGE = process.env.NAVEGADOR || ['C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(f => fs.existsSync(f));
 const ROLES = [{ id: 'admin', url: '/admin.html?as=admin', entrada: true }, { id: 'secretaria', url: '/secretario.html?as=sec' }, { id: 'miembro', url: '/user.html?as=m1' }];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const hallazgos = new Map();
@@ -26,7 +26,8 @@ const MEDIR = () => {
   const out = [];
   document.querySelectorAll('*').forEach(e => {
     const cs = getComputedStyle(e);
-    if (!/fixed|sticky/.test(cs.position) || cs.visibility === 'hidden' || cs.display === 'none') return;
+    const esCaja = e.matches('.modal-box, .tk-box, .panel, .bus-box, .bb-hoja-panel, .sheet');   // diálogos y paneles: deben ser opacos aunque no sean fixed/sticky
+    if (!(/fixed|sticky/.test(cs.position) || esCaja) || cs.visibility === 'hidden' || cs.display === 'none') return;
     const r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 24 || r.bottom < 0 || r.top > innerHeight) return;
     if (e.closest('[hidden], [inert]') || cs.opacity === '0' || cs.pointerEvents === 'none') return;
     const a = alfa(cs.backgroundColor), blur = /blur/.test(cs.backdropFilter || cs.webkitBackdropFilter || '');
@@ -56,12 +57,17 @@ try {
       const r = await page.evaluate(MEDIR).catch(() => []);
       for (const h of r) { const k = [rol.id, ancho, tema, nombre, h.s].join(' · '); hallazgos.set(k, h); }
     };
-    for (const t of [...new Set(tabs)]) { await page.evaluate(t => { window.switchTab(t, null); window.scrollTo(0, 0); }, t).catch(() => {}); await espera(1300); await revisar('tab-' + t); }
+    for (const t of [...new Set(tabs)]) { await page.evaluate(t => { window.switchTab(t, null); window.scrollTo(0, 0); }, t).catch(() => {}); await espera(1300); await revisar('tab-' + t);
+      // diálogo de la pantalla (el primer «Nueva/Nuevo/Añadir/Crear»): debe ser opaco y no quedar tapado
+      const abrio = await page.evaluate(() => { const raiz = document.querySelector('.atab-content.active, .tab-content.active') || document.body; const b = [...raiz.querySelectorAll('button, a')].find(x => /^[+\s]*(Nueva|Nuevo|Añadir|Crear|Agregar)/i.test((x.textContent || '').trim()) && x.getBoundingClientRect().width > 0); if (b) b.click(); return !!b; }).catch(() => false);
+      if (abrio) { await espera(900); await revisar('dialogo-' + t); await page.keyboard.press('Escape').catch(() => {}); await espera(300); }
+    }
     await page.evaluate(() => window.switchTab(document.querySelector('.rail .rail-item[data-arg], .bottom-bar [data-arg]')?.dataset.arg, null)); await espera(700);
     for (const [n, f] of [
       ['avisos', () => [...document.querySelectorAll('button, a')].find(b => /Avisos|avisos/.test(b.getAttribute('aria-label') || b.textContent))?.click()],
       ['buscador', () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))],
       ['perfil', () => document.querySelector('[data-act="perfilVer"]')?.click()],
+      ['dialogo', () => { const raiz = document.querySelector('.atab-content.active, .tab-content.active') || document.body; [...raiz.querySelectorAll('button, a')].find(x => /^[+\s]*(Nueva|Nuevo|Añadir|Crear|Agregar)/i.test((x.textContent || '').trim()) && x.getBoundingClientRect().width > 0)?.click(); }],
     ]) { await page.evaluate(f).catch(() => {}); await espera(1300); await revisar(n); await page.keyboard.press('Escape').catch(() => {}); await espera(400); }
     await ctx.close();
   }

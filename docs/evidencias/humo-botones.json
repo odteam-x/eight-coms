@@ -1,0 +1,44 @@
+[
+ {
+  "rol": "admin",
+  "ancho": 1440,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa ASIDE.rail"
+ },
+ {
+  "rol": "sec",
+  "ancho": 1440,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa ASIDE.rail"
+ },
+ {
+  "rol": "miembro",
+  "ancho": 1440,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa ASIDE.rail"
+ },
+ {
+  "rol": "admin",
+  "ancho": 390,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa HEADER.cab-movil"
+ },
+ {
+  "rol": "sec",
+  "ancho": 390,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa HEADER.cab-movil"
+ },
+ {
+  "rol": "miembro",
+  "ancho": 390,
+  "tab": "cuenta",
+  "ctl": "cuentaGuardarNombre: «Guardar»",
+  "problema": "lo tapa HEADER.cab-movil"
+ }
+]

@@ -61,7 +61,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
 .pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
   background: var(--v-fill); border: 1px solid var(--v-line);
-  -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur));
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
   border-radius: 28px; color: var(--v-t);
 }
@@ -69,7 +69,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .modal-box, .tk-box, .panel, .sheet { background: var(--v-solido); color: var(--v-t); border: 1px solid var(--v-line); }
 
 /* 5. Hero: vidrio con una forma de contraste recortada */
-.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)) saturate(160%); backdrop-filter: blur(var(--v-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
+.sup-marca { background: var(--v-fill); border: 1px solid var(--v-line); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra); color: var(--v-t); overflow: hidden; }
 .sup-marca::before { opacity: .32; -webkit-mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); mask-image: linear-gradient(to right, transparent 8%, rgba(0,0,0,.35) 40%, black 100%); }
 .sup-marca::after { background: none; }
 .inicio-hero { position: relative; }
@@ -767,3 +767,38 @@ button > svg, a > svg { flex: none; }
 
 /* 62. La insignia de las cabeceras se nota más: 52 px en la barra lateral (escritorio), más el aro blanco. */
 .rail .rail-logo { width: 52px; height: 52px; }
+
+/* 63. CONTRASTE REAL (medido en pantalla con tools/pruebas/ui/contraste-dom.mjs, no solo en tokens). El vidrio claro sobre la malla
+   azul daba fondos de ~rgb(23,85,177): ahí el coral, el cian y el azul de enlaces caían a 1,9–3,8:1. Ahora, en oscuro, el vidrio es
+   NAVY translúcido (el azul de la malla se ve, pero atenuado) y no se satura el fondo; en claro la zona de contenido de la malla es
+   clara (el azul fuerte queda solo detrás del menú, que es azul de marca sólido). */
+:root:not([data-theme="light"]) { --v-fill: rgba(3,27,69,.64); --v-fill2: rgba(3,27,69,.74); --v-line: rgba(255,255,255,.2); }
+[data-theme="light"] body::before, [data-theme="light"] .panel--pantalla {
+  background:
+    radial-gradient(ellipse 52% 34% at 12% 86%, var(--v-brillo) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 58% at 94% 6%, var(--v-calido) 0%, transparent 68%),
+    linear-gradient(118deg, var(--v-3) 0%, var(--v-3) 34%, var(--v-4) 100%);
+}
+[data-theme="light"] .rail { background: var(--v-1) !important; }
+@media (min-width: 768px) { :root:not([data-theme="light"]) .rail { background: var(--v-1) !important; } }
+.cal2-dia--fuera { opacity: .72; }
+.tk-entrega a, .pf-enlace { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; }
+[data-theme="light"] .rail { background: color-mix(in srgb, var(--v-1) 78%, var(--v-navy)) !important; }
+[data-theme="light"] .rail-prox { background: color-mix(in srgb, var(--v-navy) 38%, transparent); border-color: rgba(255,255,255,.28); }
+.rail-kbd { color: var(--v-blanco); background: rgba(3,27,69,.4); }
+/* La zona de contenido de la malla clara es CLARA en todas las áreas (gradients.css repite la fórmula por área con estos mismos tokens). */
+[data-theme="light"] { --v-p2: 1%; --v-p3: 3%; }
+/* Tarjeta de persona: al pasar el ratón NO se vuelve navy (perfil.css lo hacía con texto oscuro en el tema claro): cambia el fondo del vidrio. */
+.pcard.sup-marca:hover, .pcard--mini.sup-marca:hover { background: linear-gradient(135deg, color-mix(in srgb, var(--tono, var(--etq-azul)) 26%, transparent) 0%, transparent 62%), var(--v-fill2); filter: none; }
+.seg-como summary { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* Texto de alerta/destructivo legible sobre vidrio en los dos temas */
+:root:not([data-theme="light"]) .btn-texto--peligro, :root:not([data-theme="light"]) .btn-draft--borrar { color: color-mix(in srgb, var(--v-coral) 55%, white); }
+[data-theme="light"] .btn-texto--peligro, [data-theme="light"] .btn-draft--borrar { color: var(--sba-txt); }
+:root:not([data-theme="light"]) .delta--baja { color: color-mix(in srgb, var(--sba-txt) 55%, white); }
+[data-theme="light"] .delta--baja { color: color-mix(in srgb, var(--sba-txt) 78%, black); }
+[data-theme="light"] .eval-estado-badge.estado--publicado { color: color-mix(in srgb, var(--blue-700) 70%, black); }
+/* Botón principal de los diálogos: píldora inversa (navy con texto blanco en claro; blanco con texto navy en oscuro). El degradado coral de premium.css con
+   el texto de vidrio daba BLANCO sobre coral (2,6:1) en el tema claro: el coral nunca lleva texto blanco. */
+.tk-modal-acciones .btn-save, .tk-modal-acciones .tk-btn--main, #tk-modal-ok, .modal-actions .btn-save { background-image: none; background-color: var(--v-activo); color: var(--v-activo-txt); }
+/* Diálogos y paneles OPACOS también en el tema claro (el bloque «Tema claro» de premium.css les devolvía el vidrio translúcido y la página se veía a través). */
+[data-theme="light"] .modal-box, [data-theme="light"] .tk-box, [data-theme="light"] .panel, [data-theme="light"] .sheet, [data-theme="light"] .bus-box, .modal-box, .tk-box, .bus-box { background: var(--v-solido); -webkit-backdrop-filter: none; backdrop-filter: none; }
