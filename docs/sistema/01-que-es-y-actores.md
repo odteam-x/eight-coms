@@ -26,7 +26,7 @@ El **rol funcional** decide **qué puede hacer una persona en el sistema**. Lo a
 
 | Tipo de acceso | Cómo se identifica | Portal | Qué puede, en una frase |
 |---|---|---|---|
-| **Miembro** | `tipo_miembro = 'miembro'`, `es_admin = false` | `user.html` | Ve y trabaja lo suyo: sus tareas, su evaluación, su perfil, su desempeño, su gafete, el calendario, el banco de imágenes |
+| **Miembro** | `tipo_miembro = 'miembro'`, `es_admin = false` | `user.html` | Ve y trabaja lo suyo: sus tareas, su evaluación, su perfil, su desempeño, su gafete, el calendario, los recursos |
 | **Secretaría de distrito** | `tipo_miembro = 'secretario'` con un distrito | `secretario.html` | Todo lo de un miembro **más** supervisar y trabajar con su distrito: ver a su gente, asignar y revisar tareas, crear actividades de su distrito, seguimiento, desempeño y reportes de su distrito, y subir las estadísticas de Instagram de su distrito |
 | **Administración** | `es_admin = true` | `admin.html` | Todo el sistema: personas, accesos, períodos, rúbrica, evaluar, tareas, equipos, distritos, reportes, auditoría, configuración. **No se evalúa a sí misma** |
 
@@ -77,7 +77,7 @@ Las cuatro cosas **nunca se mezclan**: tipo de acceso · rol principal · rol se
 
 | Quién | Ve |
 |---|---|
-| Miembro | Solo lo suyo: su perfil, evaluaciones **publicadas** suyas, sus tareas, sus equipos, calendario, banco de imágenes, avisos |
+| Miembro | Solo lo suyo: su perfil, evaluaciones **publicadas** suyas, sus tareas, sus equipos, calendario, recursos, avisos |
 | Secretaría | Lo suyo **más** las personas de su distrito (perfiles, tareas, seguimiento, desempeño, reportes) y los equipos con personas de su distrito; evaluaciones **publicadas** de su distrito; el ranking de distritos (los demás distritos se muestran sin detalle) |
 | Administración | Todo, incluidos los **borradores** de evaluación |
 

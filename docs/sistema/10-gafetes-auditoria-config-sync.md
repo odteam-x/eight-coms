@@ -88,7 +88,7 @@ Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya est
 | **Organización** | Gestión · Períodos de evaluación · Distritos · Personas y accesos · Equipos |
 | **Evaluación** | Roles y perfiles · Rúbrica y criterios · Reglas de calificación de tareas (se abren en Tareas) · Niveles de desempeño (solo lectura) |
 | **Calendario y actividades** | Tipos de actividad (las actividades se crean y listan desde el Calendario) · Calendario |
-| **Comunicación** | Avisos y correos (informativo) · Banco de imágenes |
+| **Comunicación** | Avisos y correos (informativo) · Recursos |
 | **Apariencia y entrada** | **Tema** (oscuro/claro/rosa, aquí mismo) · Selector de entrada («Volver a mostrar») · Mi cuenta |
 | **Seguridad y registro** | Auditoría · Gafetes (informativo: se gestionan desde el perfil) · Reportes |
 

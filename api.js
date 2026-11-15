@@ -530,21 +530,21 @@ const API = {
   // ── ADMIN: calendario ────────────────────────────────────────────
   /* Etiquetas y actividades (migración 0018). Si aún no se aplicó, devuelven disponible:false y el calendario sigue con lo demás. */
   _sinTabla(error) { return !!error && /does not exist|42P01|Could not find the table|schema cache/i.test((error.message || '') + (error.code || '')); },
-  /* ══ Banco de imágenes (0058): enlaces con título y descripción. RLS decide quién lee/escribe; autor, rol y distrito los fija el servidor. ══ */
-  async getBancoImagenes() {
+  /* ══ Recursos (0071; antes Banco de imágenes): fichas con tipo, evento, etiquetas y partes (enlaces, colores, tipografías). RLS decide quién lee/escribe; autor, rol y distrito los fija el servidor. ══ */
+  async getRecursos() {
     const g = await _gid();
-    let q = SB.from('banco_imagenes').select('*').order('created_at', { ascending: false });
+    let q = SB.from('recursos').select('*').order('created_at', { ascending: false });
     if (g != null) q = q.eq('gestion_id', g);
     const { data, error } = await q;
     return { ok: !error, disponible: !this._sinTabla(error), rows: data ?? [], error: error?.message };
   },
-  async saveBancoImagen({ id, titulo, descripcion = '', enlace, evento = '' }) {
-    const p = { titulo: String(titulo || '').trim(), descripcion: String(descripcion || '').trim(), enlace: String(enlace || '').trim(), evento: String(evento || '').trim() };
-    const { error } = id ? await SB.from('banco_imagenes').update(p).eq('id', id) : await SB.from('banco_imagenes').insert({ ...p, gestion_id: await _gid() });
+  async saveRecurso({ id, titulo, tipo = 'otro', descripcion = '', evento = '', categoria = '', etiquetas = [], partes = [] }) {
+    const p = { titulo: String(titulo || '').trim(), tipo, descripcion: String(descripcion || '').trim(), evento: String(evento || '').trim(), categoria: String(categoria || '').trim(), etiquetas, partes };
+    const { error } = id ? await SB.from('recursos').update(p).eq('id', id) : await SB.from('recursos').insert({ ...p, gestion_id: await _gid() });
     return { ok: !error, error: error?.message };
   },
-  async deleteBancoImagen(id) {
-    const { error } = await SB.from('banco_imagenes').delete().eq('id', id);
+  async deleteRecurso(id) {
+    const { error } = await SB.from('recursos').delete().eq('id', id);
     return { ok: !error, error: error?.message };
   },
   async getEtiquetas() {
