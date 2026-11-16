@@ -54,6 +54,7 @@ const Sync = (() => {
     equipo_miembros:           { temas: ['equipos', 'tareas', 'reportes'] },
     distritos:                 { temas: ['distritos', 'personas'] },
     banco_imagenes:            { temas: ['banco'] },
+    ayuda_pedidos:             { temas: ['apoyo'] },
     trabajos_entregados:       { temas: ['tareas', 'kpis'] },
     notif_senal:               { temas: ['notificaciones'] },
     auditoria_global:          { temas: ['auditoria'], solo: 'admin' },

@@ -547,6 +547,35 @@ const API = {
     const { error } = await SB.from('banco_imagenes').delete().eq('id', id);
     return { ok: !error, error: error?.message };
   },
+  /* ══ Pedir ayuda (0068): pedidos de ayuda a un ROL. Todo cambio pasa por funciones SECURITY DEFINER (la tabla es de solo lectura);
+     la base decide quién ve y quién puede tomar, y devuelve su mensaje en español cuando rechaza. ══ */
+  async ayudaListar(gestionId = null) {
+    const { data, error } = await SB.rpc('ayuda_listar', { p_gestion: gestionId });
+    return { ok: !error, disponible: !(error && /does not exist|42883|PGRST202|Could not find the function|schema cache/i.test((error.message || '') + (error.code || ''))), rows: data ?? [], error: error?.message };
+  },
+  async ayudaHistorial(id) {
+    const { data, error } = await SB.rpc('ayuda_historial', { p_id: id });
+    return { ok: !error, rows: data ?? [], error: error?.message };
+  },
+  async ayudaCrear({ titulo, descripcion = '', rol_id, prioridad = 'normal', fecha_limite = null, enlace = null, alcance = 'todos' }) {
+    const { data, error } = await SB.rpc('ayuda_crear', { p_titulo: titulo, p_descripcion: descripcion, p_rol_id: rol_id, p_prioridad: prioridad, p_fecha_limite: fecha_limite, p_enlace: enlace, p_alcance: alcance });
+    return { ok: !error, id: data, error: error?.message };
+  },
+  /** accion: tomar | soltar | resolver | confirmar | reabrir | cancelar (los que llevan nota la envían como p_nota). */
+  async ayudaAccion(accion, id, nota = null) {
+    if (!['tomar', 'soltar', 'resolver', 'confirmar', 'reabrir', 'cancelar'].includes(accion)) return { ok: false, error: 'Acción no válida.' };
+    const a = { p_id: id }; if (!['tomar', 'confirmar'].includes(accion)) a.p_nota = nota;
+    const { error } = await SB.rpc('ayuda_' + accion, a);
+    return { ok: !error, error: error?.message };
+  },
+  async ayudaReasignar(id, persona, nota = null) {
+    const { error } = await SB.rpc('ayuda_reasignar', { p_id: id, p_persona: persona, p_nota: nota });
+    return { ok: !error, error: error?.message };
+  },
+  async ayudaCandidatas(id) {
+    const { data, error } = await SB.rpc('ayuda_candidatas', { p_id: id });
+    return { ok: !error, rows: data ?? [], error: error?.message };
+  },
   async getEtiquetas() {
     const g = await _gid();
     let q = SB.from('etiquetas').select('*').order('orden');

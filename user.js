@@ -53,6 +53,7 @@ function initSync() {
   Sync.on(['tareas', 'equipos', 'periodos', 'kpis', 'evaluaciones'], async () => { if (!Store.necesitaCarga('trabajos')) await renderTrabajosTab(); }, { id: 'user:entregas', vista: 'trabajos', alEntrar: true });
   Sync.on(['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { id: 'user:calendario', vista: 'calendario', alEntrar: true });
   Sync.on(['banco'], () => Banco.cargar(), { id: 'user:banco', vista: 'banco' });
+  Sync.on(['apoyo'], () => Apoyo.cargar(), { id: 'user:apoyo', vista: 'apoyo' });
 }
 
 /* ── CONTEXTO (crítico, paralelo) ── */
@@ -135,6 +136,7 @@ async function initUI() {
         { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
         { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
         { tab:'trabajos', icono:'folder-open', etiqueta:'Mis tareas', titulo:'Mis tareas' },
+        { tab:'apoyo',    icono:'heart',       etiqueta:'Pedir ayuda', titulo:'Pedir ayuda' },
         { tab:'banco',    icono:'image',       etiqueta:'Imágenes', titulo:'Banco de imágenes' },
       ]}],
     });
@@ -262,7 +264,7 @@ function renderCalendario() {
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
 const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil' };
-const _userTabParent = { banco:'banco', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
+const _userTabParent = { apoyo:'apoyo', banco:'banco', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
@@ -279,6 +281,7 @@ function switchTab(tab, btn) {
 
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: false });
+  if (tab === 'apoyo') Apoyo.montar({ el: document.getElementById('apoyo-host'), yo: CU.id, distrito: CU.distrito });
   if (tab === 'calendario' && Store.necesitaCarga('calendario')) {
     Store.marcarCargado('calendario');
     Calendario.montar({ el: document.getElementById('calendario-host'), yo: CU.id, modo: 'miembro' });

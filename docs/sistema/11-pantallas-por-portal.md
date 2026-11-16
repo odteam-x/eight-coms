@@ -32,6 +32,7 @@ Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas �
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
 | **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
 | **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Pedir ayuda** | Pedir ayuda a un rol; tomar, resolver y confirmar | Pedir, tomar lo de mi rol, resolver lo que tomé, confirmar o reabrir lo que pedí, cancelar lo mío | 23 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
 En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
@@ -81,6 +82,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
 | **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Pedir ayuda** | Todos los pedidos de ayuda del equipo | Ver todo; reasignar, resolver, confirmar y cancelar; también pedir y tomar si tiene el rol | 23 |
 
 ### Organización
 

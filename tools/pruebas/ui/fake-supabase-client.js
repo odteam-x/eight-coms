@@ -971,5 +971,5 @@
   window.SB.channel = () => { const c = { enlaces: [], on(t, f, cb) { c.enlaces.push({ f, cb }); return c; }, subscribe(cb) { _canales.add(c); Promise.resolve().then(() => cb && cb('SUBSCRIBED')); return c; } }; return c; };
   window.SB.removeChannel = c => { _canales.delete(c); };
   window.SB.realtime = { connect() {} };
-  window.__FAKE = { DB, U, P, as, emitir: (tabla, tipo, nuevo, viejo) => { _entregar(tabla, tipo, nuevo, viejo); _bc && _bc.postMessage({ tabla, tipo, nuevo, viejo }); } };
+  window.__FAKE = { DB, U, P, as, RPC, meId, me, esAdmin, esSec, permitidos, emitir: (tabla, tipo, nuevo, viejo) => { _entregar(tabla, tipo, nuevo, viejo); _bc && _bc.postMessage({ tabla, tipo, nuevo, viejo }); } };
 })();

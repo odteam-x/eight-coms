@@ -154,12 +154,9 @@ console.log('\n[4. Acceso y rol: el afectado se entera sin reiniciar sesión]');
   cerrar(M2, SEC);
 }
 
-console.log('\n[5. Avisos (campana) · el módulo «Solicito tu ayuda» NO existe en el repositorio]');
+console.log('\n[5. Avisos (campana) · «Solicito tu ayuda» (0068) se escucha por Sync]');
 {
-  const existe = ['api.js', 'admin.js', 'user.js', 'secretario.js', ...fs.readdirSync(ROOT + 'core').filter(f => f.endsWith('.js')).map(f => 'core/' + f)]
-    .some(f => /solicito tu ayuda|solicitud_ayuda|pedir_ayuda/i.test(fs.readFileSync(ROOT + f, 'utf8')))
-    || fs.readdirSync(ROOT + 'supabase/migrations').some(f => /solicito tu ayuda|solicitud_ayuda|pedir_ayuda/i.test(fs.readFileSync(ROOT + 'supabase/migrations/' + f, 'utf8')));
-  ok(!existe, 'no hay código ni SQL de «Solicito tu ayuda»: no se inventa; cuando exista bastará Sync.on(\'ayuda\') + su tabla en TABLAS y en 0064');
+  ok(/ayuda_pedidos:\s+\{ temas: \['apoyo'\] \}/.test(fs.readFileSync(ROOT + 'core/sync.js', 'utf8')) && /ADD TABLE public\.ayuda_pedidos/.test(fs.readFileSync(ROOT + 'supabase/migrations/0068_solicito_ayuda.sql', 'utf8')), 'ayuda_pedidos está en TABLAS (tema apoyo) y la publica 0068 (Solicito tu ayuda)');
   const m = nuevoMundo();
   const M1 = await abrir(m, 'm1', 'user.html'), M2 = await abrir(m, 'm2', 'user.html'), PC = await abrir(m, 'm1', 'user.html');
   m.insertar('notif_senal', { id: 'm1', destinatario_id: 'm1', tic: 1 });

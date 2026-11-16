@@ -43,6 +43,11 @@ PERFORM public.notif_emitir(
 | `calificacion_cambiada` | ídem | ídem | ídem | sí |
 | `observacion_nueva` | la persona / equipo que recibe la retroalimentación | `periodo`, `actividad`, `equipo`, `autor` (sin el texto) | `evaluacion` / `tarea` | no |
 | `estado_cambiado` | las personas afectadas por el cambio | `objeto`, `elemento`, `antes`, `ahora`, `cambiado_por` | según objeto | no |
+| `ayuda_solicitada` | quienes tienen el rol pedido (principal o segundo), del distrito si es de distrito; o la persona a quien la administración asigna | `titulo`, `rol`, `solicitante`, `prioridad`, `fecha_limite`, `alcance` (**nunca** la descripción) | `ayuda` | no |
+| `ayuda_tomada` | quien pidió la ayuda | `titulo`, `rol`, `persona` | `ayuda` | sí |
+| `ayuda_resuelta` | quien pidió | `titulo`, `rol`, `persona` (**nunca** la nota) | `ayuda` | no |
+| `ayuda_cancelada` | quien la había tomado (y quien pidió, si cancela la administración) | `titulo`, `rol`, `persona` | `ayuda` | no |
+| `ayuda_reabierta` | quien la había tomado | `titulo`, `rol`, `persona` (**nunca** la nota) | `ayuda` | sí |
 
 Existentes que **se conservan** (y alimentan lo anterior): `tarea_aprobada`, `tarea_bloqueada`,
 `solicitud_acceso`, `acceso_aprobado`, `actividad_nueva`, `actividad_recordatorio`, `evaluaciones_sin_publicar`.

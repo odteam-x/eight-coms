@@ -32,7 +32,11 @@ ok(verPortales.every(h => !/<script>/.test(h)), 'ningún portal tiene script en 
 ok(!/core\/sync\.js/.test(rd('index.html')) && !/core\/sync\.js/.test(rd('verificar.html')), 'el login y la verificación pública NO cargan Sync (sin sesión no hay nada que escuchar)');
 
 console.log('\n[tablas: lo que se escucha = lo que 0064 publica]');
-const listaSql = [...mig.match(/tablas TEXT\[\] := ARRAY\[([\s\S]*?)\];/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]);
+const lista64 = [...mig.match(/tablas TEXT\[\] := ARRAY\[([\s\S]*?)\];/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]);
+// Tablas que publican migraciones POSTERIORES a 0064 con su propio ALTER PUBLICATION (0068: ayuda_pedidos). Misma regla: RLS activa + clave primaria.
+const posteriores = fs.readdirSync(ROOT + 'supabase/migrations').filter(n => /^00(6[5-9]|[7-9]\d)_/.test(n))
+  .flatMap(n => [...rd('supabase/migrations/' + n).matchAll(/ALTER PUBLICATION supabase_realtime ADD TABLE public\.(\w+)/g)].map(m => m[1]));
+const listaSql = [...lista64, ...posteriores];
 const escuchadas = Object.keys(mapa);
 ok(escuchadas.filter(t => !listaSql.includes(t)).length === 0, 'toda tabla que Sync escucha está en la lista de 0064' + (escuchadas.filter(t => !listaSql.includes(t)).length ? ' → faltan: ' + escuchadas.filter(t => !listaSql.includes(t)) : ''));
 ok(listaSql.filter(t => !escuchadas.includes(t) && t !== 'profiles').length === 0, 'toda tabla publicada por 0064 la usa alguna vista' + (listaSql.filter(t => !escuchadas.includes(t)).length ? ' → sobran: ' + listaSql.filter(t => !escuchadas.includes(t)) : ''));

@@ -141,6 +141,7 @@ const ACCIONES = {
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
   banco:         (a, el) => Banco.accion(a, el.dataset.arg2, el),
+  apoyo:         (a, el) => Apoyo.accion(a, el.dataset.arg2, el),
   des:           (a, el) => Desempeno.accion(a, el.dataset.arg2),
   aud:           (a)     => Auditoria.accion(a),
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),
