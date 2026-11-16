@@ -53,7 +53,7 @@ const Tareas = (() => {
     return `<div class="tk-entrega">
         ${tipo ? `<span class="tk-tag tk-tag--tipo" title="Tipo de entrega">${escHtml(TIPOS_ENTREGA[tipo])}</span>` : ''}
         ${t.entrega_url ? `<a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">${txt}</a>` : ''}
-        ${t.entrega_nota ? `<span>${escHtml(t.entrega_nota)}</span>` : ''}
+        ${t.entrega_nota ? textoLargoHTML(t.entrega_nota, { max: 110, clase: 'tk-desc tk-entrega-nota' }) : ''}
       </div>`;
   }
   const ABIERTAS  = ['asignada', 'en_curso', 'devuelta', 'bloqueada'];
