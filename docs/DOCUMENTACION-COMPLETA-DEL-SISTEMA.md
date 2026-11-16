@@ -7,7 +7,7 @@
 # Documentación completa del sistema · EIGHT CREATORS LABs
 
 Portal de evaluación del desempeño del equipo de **CELIDER 08 Santiago** (eight-coms.vercel.app).
-Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase.
+Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase. La **0065** (nivel de tarea, tipo de entrega y quién evalúa la iniciativa) está entregada y **pendiente de aplicar**: los capítulos 05, 07, 11 y 12 la describen.
 
 Este es el documento completo del sistema. No es un resumen: describe **qué es cada cosa, quién la hace, en qué pantalla, con qué reglas, qué avisa, qué guarda y qué puede salir mal**, proceso por proceso, y termina con un análisis de qué está donde no debe y qué funciones importantes quedaron escondidas.
 
@@ -595,7 +595,7 @@ Al crear, la persona recibe un aviso en la campana y un correo (**«tarea asigna
 
 ### 11.3 Ejecutar (la persona asignada)
 
-- **Empezar** (pasa a En curso). **Entregar**: se necesita un **enlace https** y/o una **nota** (uno de los dos es obligatorio); la entrega **solo se escribe en el momento de entregar**.
+- **Empezar** (pasa a En curso). **Entregar**: se necesita un **enlace https** y/o una **nota** (uno de los dos es obligatorio) y, con el enlace, su **tipo de entrega** (enlace, documento, imagen, video u otro; 0065, se sugiere según el enlace); la entrega **solo se escribe en el momento de entregar**.
 - **Bloquear** con el motivo («¿de qué o de quién depende?»): una tarea bloqueada **no cuenta como atrasada** mientras siga así; quien asignó recibe el aviso. **Reanudar** la devuelve a En curso.
 - La persona **no puede** cambiar la fecha, aprobar ni anular.
 - La descripción larga se ve recortada con **«Ver todo (N caracteres)»** que despliega el texto entero.
@@ -603,8 +603,8 @@ Al crear, la persona recibe un aviso en la campana y un correo (**«tarea asigna
 ### 11.4 Revisar (quien revisa)
 
 1. En **Tareas** se usa el filtro **Por revisar** (muestra el número) o se busca por persona.
-2. **Ver entrega**: se lee el enlace o la nota.
-3. **Aprobar y puntuar**: se ponen los **Puntos (0 a 10), obligatorios**, y si corresponde el **Peso de la tarea** (cuánto cuenta frente a las demás; por defecto 1). Una tarea **propia siempre pesa 1**.
+2. **Abrir la entrega**: la tarea muestra una etiqueta con su **tipo** (Documento, Video…) y el enlace dice «Abrir documento», «Ver video», «Ver imagen»…; las entregas anteriores a 0065 siguen diciendo «Ver entrega». Se lee el enlace o la nota.
+3. **Aprobar y puntuar**: se ponen los **Puntos (0 a 10), obligatorios**. **Desde 0065 ya no se elige un peso**: cuánto cuenta la tarea lo da su **nivel** (distrital o regional) y los multiplicadores del período (proceso 14). Quien revisa una **iniciativa regional** es la administración; la secretaría no la ve en «Por revisar».
 4. **Devolver para corregir**: se escribe **«Qué hay que corregir»** (obligatorio y concreto). La persona recibe aviso con la observación (correo incluido).
 5. **Lo de «a tiempo» se mide en la primera entrega**: devolver y corregir no la vuelve tarde.
 
@@ -631,7 +631,8 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 ### Actividades
 
 1. Tocar **+ Mi iniciativa**.
-2. Escribir **título**, **qué hiciste o harás** y, si quiere, una **fecha**.
+2. Escribir **título**, **qué hiciste o harás** y, si quiere, una **fecha** y el **tipo de entrega** esperado.
+2b. **Elegir quién la evalúa** (0065): **Distrital** (la secretaría de su distrito) o **Regional** (la administración). Solo esa instancia podrá aprobarla o devolverla y recibe el aviso de la entrega; no se cambia después (solo la administración puede). Sin secretaría en su distrito la única opción es Regional.
 3. **Guardar.** Desde la migración **0063**, la tarea **nace «En curso»** (no hace falta «Empezar»). Las asignadas por otra persona siguen naciendo «Asignada».
 4. La persona **entrega** (enlace y/o nota) y **otra persona** la revisa.
 
@@ -639,7 +640,9 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 - Una tarea para uno mismo es **siempre** de origen «propia», la haya marcado como la haya marcado (lo decide el servidor).
 - **Nadie aprueba su propia tarea.** Por eso la iniciativa **solo cuenta como iniciativa cuando alguien más la aprueba**: es lo que impide inflarla.
-- Una propia pesa **1** y cuenta para la nota de tareas **solo si la regla del PE «¿Cuentan las iniciativas propias?» está en Sí** (valor por defecto: Sí).
+- Una propia pesa **siempre × 1** por nivel (el nivel solo decide **quién la evalúa**, no se infla el propio promedio) y cuenta para la nota de tareas **solo si la regla del PE «¿Cuentan las iniciativas propias?» está en Sí** (valor por defecto: Sí).
+- **Quién evalúa, impuesto en la base (0065).** `puede_revisar_tarea_fila()` (parcheada en `tareas_validar_update()` y `prorrogar_tarea()`): la administración siempre; la secretaría del distrito de la persona **solo si la iniciativa no es regional**. Una secretaría que intenta aprobar/devolver una regional recibe «No tienes acceso a esta tarea». El aviso «entrega por revisar» (`notif_trg_tarea()` parcheada) llega **solo** a la instancia elegida (distrital sin secretaría → administración).
+- **Casos límite.** Persona **sin secretaría de distrito** → cae a Regional (la base normaliza). **Una secretaría** (o la administración) que crea su iniciativa → siempre Regional: la evalúa la administración, y nadie aprueba la suya.
 - Las propias **ya existentes** que seguían «Asignada» siguen así hasta que su dueña toque «Empezar»; la migración trae un UPDATE opcional comentado para pasarlas a «En curso».
 
 ## Proceso 13 · Tarea de equipo
@@ -656,7 +659,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 2. Los integrantes **de ese momento** reciben el aviso «Tarea para tu equipo». **Quien se suma después** entra a las tareas todavía abiertas (asignada/en curso/bloqueada/devuelta); **quien se va** sale de las abiertas y entregadas. Las **aprobadas y anuladas no cambian**.
 3. **Avanzar**: cualquier integrante registra un aporte (**qué se avanzó** y **avance del equipo 0–100 %**); queda con su autoría fijada por el servidor.
 4. **Entregar**: cualquier integrante pone el **enlace** (https) y/o una **nota**. Es **una** entrega para todo el equipo; la primera mide el plazo.
-5. **Aprobar**: la administración (o la secretaría que no participa) pone **Puntos (0–10)** y **Peso**. La nota es **del grupo**: cada persona cuenta **una vez**.
+5. **Aprobar**: la administración (o la secretaría que no participa) pone **Puntos (0–10)** (sin peso desde 0065: lo da el nivel). La nota es **del grupo**: cada persona cuenta **una vez**.
 6. **Devolver**: con **observación para el equipo** (obligatoria).
 7. **Nota individual**: si una persona rindió distinto, quien revisa le pone una **nota individual** con evidencia (mínimo 10 caracteres). **Reemplaza la del grupo solo para ella** y se muestra aparte.
 8. **Mover plazo / Anular**: solo la administración; anular pide motivo y **solo la administración la reabre** (estado extra «anulada»).
@@ -679,8 +682,20 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 ```
 nota_tareas = 100 · Σ( peso_efectivo · puntos / 10 ) / Σ( peso_efectivo )     sobre las tareas que CUENTAN
-peso_efectivo = peso de la tarea × multiplicador de su tipo (individual | colectiva)
+peso_efectivo = peso heredado × multiplicador de su NIVEL × multiplicador de su tipo (individual | colectiva)     [0065]
 ```
+
+**Desde la migración 0065 el peso de tarea se retiró.** `peso heredado` es `tareas.peso` / `tareas_equipo.peso`: **1 en toda tarea nueva** (los triggers lo fijan; nadie lo cambia) y, en las tareas anteriores, el valor que ya tenían (así sus resultados **no cambian**: paridad probada en `sql-0065.mjs`). El peso nuevo lo da el **nivel** de la tarea:
+
+| Nivel | Qué es | Multiplicador (por PE) |
+|---|---|---|
+| **Distrital** | La asigna una secretaría (siempre es distrital) o la administración para un distrito; tarea de equipo de un equipo con distrito | `mult_distrital` (por defecto **1**) |
+| **Regional** | La asigna la administración como tarea regional | `mult_regional` (por defecto **1**) |
+
+- Con **1 y 1** el nivel no cambia ninguna nota; la administración los sube o baja en **Tareas → Reglas de calificación**. Cambiarlos con evaluaciones publicadas exige motivo y queda en `periodo_calif_config_hist`.
+- Las **iniciativas propias siempre × 1** (su nivel solo decide quién las evalúa).
+- Lo ya creado se reclasificó sin tocar notas: asignadas por la administración → regional; por una secretaría → distrital; iniciativas → distrital si la persona tiene distrito con secretaría, si no regional; tareas de equipo → distrital si el equipo es de un distrito.
+- `resultados_periodo()` no cambia: lee `calif_items()`, que ya trae el `peso_efectivo` por nivel.
 
 **Cuentan**: tareas **aprobadas**, con puntos y no anuladas (y las de iniciativa propia solo si la regla lo permite). **No cuentan —y nunca se rellenan con 0—**: entregadas esperando revisión, en curso, devueltas, bloqueadas, anuladas, con la nota anulada, aprobadas antes de que existieran los puntos. Una **vencida sin entregar cuenta como 0 solo si** la regla «vencidas como cero» está activa (apagada por defecto).
 
@@ -887,8 +902,9 @@ general_eval = 0,4 · núcleo + 0,6 · percentil
 ### Nota de tareas (0–100)
 ```
 nota_tareas = 100 · Σ( peso_efectivo · puntos / 10 ) / Σ( peso_efectivo )
-peso_efectivo = peso de la tarea × multiplicador de su tipo
+peso_efectivo = peso heredado × multiplicador de su NIVEL × multiplicador de su tipo
 ```
+`peso heredado` = 1 en toda tarea nueva (el peso de tarea que elegía quien revisaba se retiró en 0065; las tareas anteriores conservan el suyo, así que sus notas no cambian). El multiplicador de **nivel** (distrital / regional) es una regla del PE, por defecto 1 y 1; una iniciativa propia siempre × 1.
 Detalle de qué tareas cuentan: capítulo 05, proceso 14.
 
 ### Mezcla en el resultado
@@ -935,7 +951,7 @@ Los tres cortes de cada escala viven en un solo archivo (`core/niveles.js`); `sc
 **Ejemplo 1 — evaluación sin tareas.** Núcleo puntuado 8, 7, 9, 6, 8 (de 10): porcentajes 80, 70, 90, 60, 80 → **núcleo = 76**. Perfil Fotografía (pesos 30/25/20/15/10), puntos 24, 17, 14, 9, 6 → **técnico = 70**.
 `individual = 0,6·70 + 0,4·76 = 42 + 30,4 = 72,4` → nivel **Bueno** (≥ 67).
 
-**Ejemplo 2 — con tareas.** Peso de tareas del PE 20 %. Tareas aprobadas: A (8 puntos, peso 2), B (10 puntos, peso 1), C (6 puntos, peso 1):
+**Ejemplo 2 — con tareas.** Peso de tareas del PE 20 %. Tareas aprobadas: A (8 puntos, **regional** con multiplicador ×2 → peso 2), B (10 puntos, distrital → peso 1), C (6 puntos, distrital → peso 1):
 `nota_tareas = 100 · (2·0,8 + 1·1 + 1·0,6) / (2+1+1) = 100 · 3,2 / 4 = 80`.
 `individual = 0,8 · 72,4 + 0,2 · 80 = 57,92 + 16 = 73,9`.
 
@@ -1415,7 +1431,7 @@ Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas �
 | **Inicio** | ¿Qué necesito hacer ahora? | Ver cuenta regresiva, mi evaluación (anillo, nivel, percentil), tareas por atender, próximas fechas, bienvenida | 3, 18 |
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
-| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
+| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar** (con su tipo de entrega), **Bloquear**, **+ Mi iniciativa** (con «¿Quién te evalúa?»: distrital o regional); ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
 | **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
@@ -1435,7 +1451,7 @@ Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra co
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Distrito** | Mi gente y mi lugar | **Resumen** (posición, «Qué falta», evolución) · **Personas** (tarjetas, abrir perfiles en modo supervisión) · **Estadísticas** (subir las cifras de Instagram con captura) · **Ranking de distritos** | 8, 17, 18 |
-| **Tareas** | Asignar y revisar | **+ Nueva tarea** en tres pasos (solo a su distrito, con rol por persona); filtros **Por revisar / Abiertas / Vencidas / Aprobadas**; revisar entregas (**Aprobar con puntos**, **Devolver**); equipos de su distrito | 11, 13 |
+| **Tareas** | Asignar y revisar | **+ Nueva tarea** en tres pasos (solo a su distrito, con rol por persona); filtros **Por revisar / Abiertas / Vencidas / Aprobadas**; revisar entregas (**Aprobar con puntos**, sin peso, **Devolver**; las iniciativas regionales no son suyas); equipos de su distrito | 11, 13 |
 | **Desempeño del distrito** | ¿Cómo les va a mi distrito? | Reutiliza el módulo de Desempeño con los datos de su distrito | 18 |
 | **Seguimiento** | ¿Quién está al día en mi distrito? | Persona × período, por rol | 18 |
 | **Reportes** | Cifras de mi distrito | «Todos los PE» y cortes **Entre períodos / Por actividad**, con CSV | 18 |
@@ -1462,7 +1478,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Evaluar** | Puntuar y publicar | Elegir persona, ver evidencia, puntuar núcleo y técnico (y segundo rol), guardar borrador, **publicar**, **rectificar**, **Historial de versiones**, eliminar borradores | 15, 16 |
-| **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega**, **Aprobar y puntuar**, **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
+| **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega** (con etiqueta de tipo y nivel), **Aprobar y puntuar** (sin peso), **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
 | **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
@@ -1620,9 +1636,9 @@ Reglas de datos que cruzan todo:
 
 Secretos de funciones (no van al repositorio ni a un chat): los de correo/Apps Script, `CORREO_MODO`, `CORREO_PRUEBA_DESTINO`, `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SA_JSON`.
 
-## 12.7 Migraciones (0001 a 0064)
+## 12.7 Migraciones (0001 a 0065)
 
-Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de 2026). Se aplican a mano, en orden. Cada una es **idempotente**, lleva su cabecera (qué hace / qué no cambia) y su **reversa comentada**.
+Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de 2026). Se aplican a mano, en orden. Cada una es **idempotente**, lleva su cabecera (qué hace / qué no cambia) y su **reversa comentada**.
 
 | Rango | Contenido |
 |---|---|
@@ -1647,6 +1663,7 @@ Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviem
 | 0062 | **Dos roles por persona** |
 | 0063 | Tareas propias **En curso** |
 | 0064 | **Sincronización en tiempo real** |
+| 0065 | **Nivel de tarea (distrital/regional), tipo de entrega, peso retirado y quién evalúa la iniciativa** (entregada; **pendiente de aplicar** por el dueño) |
 | 0070 | **Registro con solicitud** (distrito o invitado externo y hasta 2 roles; se aplica al aprobar) |
 
 Huecos de numeración (0027–0029, 0037–0039, 0045–0049): no hay archivos; **no son migraciones perdidas**. `0006_gestion_miembros.PENDIENTE.sql` y `0015_seed_perfiles.PENDIENTE.sql` quedan pendientes a propósito. `supabase-schema.sql` es una **foto histórica**, no la fuente de verdad.
@@ -1657,7 +1674,7 @@ Cómo cambiar la base desde ahora: ver `docs/auditoria/06-registro-migraciones.m
 
 `tools/pruebas/` (se instalan con `npm install` allí). **72 archivos**, más de **2 400 aserciones** a la última auditoría.
 
-- **SQL con PGlite** (Postgres real) como `authenticated` y `anon`, de modo que **la RLS cuenta**: `sql-0015…0064.mjs`. `base-eq.mjs` imita los permisos por defecto de Supabase para que un `REVOKE` olvidado falle. Cada migración tiene **prueba de paridad**: aplicarla no cambia resultados existentes.
+- **SQL con PGlite** (Postgres real) como `authenticated` y `anon`, de modo que **la RLS cuenta**: `sql-0015…0065.mjs`. `base-eq.mjs` imita los permisos por defecto de Supabase para que un `REVOKE` olvidado falle. Cada migración tiene **prueba de paridad**: aplicarla no cambia resultados existentes.
 - **Cadena completa**: `cadena.mjs` aplica todas las migraciones en orden y comprueba lo que anon puede ejecutar.
 - **Frontend**: `front.mjs`, `front-rediseno.mjs` (marcado, acciones, «sin manejadores en línea», reglas visuales prohibidas), `front-equipos`, `front-desempeno`, `front-estadisticas`, `front-distritos`, `front-manual`, `front-tema`, `front-gafete`, `front-sync`, `front-dos-roles`, `front-reglas-tareas`, `front-texto-largo`, etc.
 - **Sincronización**: `sync-multisesion.mjs` simula varias sesiones simultáneas.

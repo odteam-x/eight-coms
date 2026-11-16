@@ -76,7 +76,7 @@ function rosterHTML(personas, vacio = 'No hay personas que mostrar.') {
  * `tareas` (filtradas por RLS a su distrito): no puntúa ni calcula notas.
  *   · vencida  = abierta (asignada / en curso / devuelta) con fecha límite anterior a hoy. «Bloqueada» NO cuenta como
  *     vencida (regla de 0016).
- *   · por revisar = entregada y NO suya (nadie revisa lo propio).
+ *   · por revisar = entregada y NO suya (nadie revisa lo propio), ni iniciativa regional (la evalúa la administración).
  * Orden: primero quien tiene más días de atraso; luego quien tiene entregas esperando más tiempo.
  * @param {object[]} tareas  filas de tareas del distrito
  * @param {{id:string,nombre?:string}[]} personas
@@ -88,7 +88,8 @@ function bandejaDistrito(tareas, personas, { hoy, yo }) {
   const por = new Map();
   const de = id => { if (!por.has(id)) por.set(id, { id, nombre: nombres.get(id) || 'Sin nombre', vencidas: 0, porRevisar: 0, atraso: 0, espera: 0 }); return por.get(id); };
   for (const t of tareas || []) {
-    if (t.asignada_a === yo) continue;
+    // Lo suyo no lo revisa; y una iniciativa REGIONAL la evalúa la administración, no la secretaría (0065).
+    if (t.asignada_a === yo || (t.origen === 'propia' && t.nivel === 'regional')) continue;
     if (t.estado === 'entregada') {
       const f = de(t.asignada_a); f.porRevisar++;
       const desde = String(t.entregada_en || '').slice(0, 10);
