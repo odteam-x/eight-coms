@@ -1064,3 +1064,9 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .tk-card .tk-acciones .tk-btn:hover { background: var(--v-fill2); border-color: var(--v-line); }
 .tk-card .tk-acciones .tk-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
 @media (max-width: 640px) { .tk-lista { grid-auto-rows: auto; } }
+
+/* §49 Cabecera de pantalla: el rótulo de arriba («MI ESPACIO») se separa del icono y del título grande, y el texto de introducción respira. */
+.pantalla-cab > h1[data-grupo]::before { margin-bottom: 16px; }
+.pantalla-cab > h1[data-grupo] { gap: 0 14px; }
+.pantalla-cab { row-gap: var(--sp-3); }
+.pantalla-cab > p { margin-top: var(--sp-1); }
