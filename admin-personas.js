@@ -508,13 +508,15 @@ function renderSolicitudes() {
   _marcarPendientesMenu(pend.length);
   if (!el) return;
   if (!pend.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<section class="cr sol-acc" aria-labelledby="sol-acc-h">
-    <header class="cr-cab"><span class="cr-t-h" id="sol-acc-h">Solicitudes de acceso</span><span class="cr-prog" role="img" aria-label="${pend.length} por aprobar">${pend.length} por aprobar</span></header>
-    <p class="cr-sub">Aprobar aplica lo que cada persona pidió (distrito y roles). Si quieres cambiar algo, ábrela y ajusta en Gestión.</p>
+  // Desplegable: siempre sale cerrado y lo abre la administración. Mientras aprueba varias seguidas se mantiene como lo dejó.
+  const abierta = !!el.querySelector('details.sol-desp[open]');
+  el.innerHTML = `<details class="cr sol-acc sol-desp acordeon"${abierta ? ' open' : ''}><summary><span class="acordeon-t"><b>Solicitudes de acceso</b><small>${pend.length} por aprobar</small></span><i data-lucide="chevron-down" class="acordeon-chev" aria-hidden="true"></i></summary>
+    <div class="acordeon-cuerpo"><p class="cr-sub">Aprobar aplica lo que cada persona pidió (distrito y roles). Si quieres cambiar algo, ábrela y ajusta en Gestión.</p>
     <ul class="cr-lista">${pend.map(u => `<li class="cr-fila">
       <div class="cr-txt"><span class="cr-t">${escHtml(u.nombre || u.email)}<small class="sol-mail"> ${escHtml(u.email || '')}</small></span><small class="cr-d">${escHtml(_textoSolicitud(u))}</small></div>
       <div class="sol-acc-btns"><button type="button" class="btn-out" data-act="perfilVer" data-arg="${escHtml(u.id)}">Revisar</button>
-        <button type="button" class="btn-save" data-act="solAprobar" data-arg="${escHtml(u.id)}">Aprobar</button></div></li>`).join('')}</ul></section>`;
+        <button type="button" class="btn-save" data-act="solAprobar" data-arg="${escHtml(u.id)}">Aprobar</button></div></li>`).join('')}</ul></div></details>`;
+  if (typeof renderIconos === 'function') renderIconos(el);
 }
 
 /** Número de pendientes junto a «Personas» en el menú de computadora y en la barra del celular (nada si no hay). */
