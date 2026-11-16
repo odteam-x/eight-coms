@@ -681,8 +681,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil',
 };
-const _secTabParent = { recursos:'recursos', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
-const _secTabParent = { apoyo:'apoyo', banco:'banco', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
+const _secTabParent = { apoyo:'apoyo', recursos:'recursos', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
   const original = tab;

@@ -264,8 +264,7 @@ function renderCalendario() {
  * Se aceptan los nombres viejos por si queda algún enlace guardado.
  */
 const _ALIAS_TAB = { scores:'perfil', historial:'perfil', reportes:'perfil', rubrica:'perfil', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil' };
-const _userTabParent = { recursos:'recursos', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
-const _userTabParent = { apoyo:'apoyo', banco:'banco', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
+const _userTabParent = { apoyo:'apoyo', recursos:'recursos', inicio:'inicio', perfil:'perfil', calendario:'calendario', trabajos:'trabajos', cuenta:'cuenta' };
 
 function switchTab(tab, btn) {
   const original = tab;
