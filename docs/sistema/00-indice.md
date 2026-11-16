@@ -17,7 +17,7 @@ Este es el documento completo del sistema. No es un resumen: describe **qué es 
 | [06 · Evaluación](06-proceso-evaluacion.md) | Evaluar por rol, borrador, publicar, rectificar, versiones, cobertura, rúbrica clásica, evaluación de distrito |
 | [07 · Cálculo de resultados](07-calculos-y-resultados.md) | Fórmulas exactas, niveles, percentil, nota de tareas, dos roles, ejemplos numéricos y cada regla de borde |
 | [08 · Seguimiento, desempeño, reportes y distritos](08-seguimiento-desempeno-reportes.md) | Cómo se lee lo que ya está calculado: quién está al día, cómo les va, reportes, ranking de distritos, Instagram |
-| [09 · Comunicación](09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, banco de imágenes |
+| [09 · Comunicación](09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, recursos (antes banco de imágenes) |
 | [10 · Gafetes, auditoría, configuración y tiempo real](10-gafetes-auditoria-config-sync.md) | Gafete con QR y Wallet, centro de auditoría, Configuración general, sincronización sin recargar |
 | [11 · Pantallas por portal](11-pantallas-por-portal.md) | Cada pantalla de los tres portales: para qué sirve, quién la ve, qué se hace en ella |
 | [12 · Datos, seguridad y operación](12-datos-seguridad-operacion.md) | Tablas, funciones, permisos, migraciones, trabajos programados, correo, despliegue, pruebas |

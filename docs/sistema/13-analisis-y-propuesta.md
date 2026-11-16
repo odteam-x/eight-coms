@@ -115,7 +115,7 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 |---|---|---|
 | **1** | **A1 + B5: lista de cierre y lista «Preparar la evaluación»** | Son los dos momentos donde un olvido cuesta más (publicar con reglas sin confirmar, o con personas sin rol); reutilizan datos que ya existen y no mueven pantallas |
 | **2** | **B1: una sola puerta para asignar tareas** | Es la mayor confusión funcional: individuales y de equipo en dos pantallas |
-| **3** | **C1–C4: renombrar** («Mis tareas», «Banco de imágenes», «Personas y accesos», «App y ayuda») | Cuesta casi nada y reduce el «dónde está» |
+| **3** | **C1–C4: renombrar** («Mis tareas», «Recursos» [antes «Banco de imágenes»], «Personas y accesos», «App y ayuda») | Cuesta casi nada y reduce el «dónde está» |
 | **4** | **A2, A3: enlaces** a Mi desempeño y Mi gafete desde Inicio / Mi cuenta | Rescatan funciones que hoy se pierden |
 | **5** | **B2: Actividades dentro del Calendario** | Operación diaria en la pantalla de las fechas |
 | **6** | **B3, B4, A5: enlaces y resúmenes** | Reducen redundancia sin quitar nada |
@@ -136,7 +136,7 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 | **B5** | **Preparar la evaluación**: lista de verificación al inicio de Configuración (cada persona con rol y distrito · cada rol en uso con perfil vigente · fechas · reglas confirmadas) | ✅ Aplicado |
 | **B1** | **Una sola puerta para asignar**: **+ Nueva tarea** pregunta «¿para personas o para un equipo?»; se quitó el segundo botón «Nueva tarea de equipo» de la lista | ✅ Aplicado |
 | **C1** | «Entregas» → **«Mis tareas»** (menú, título, ayudas, manuales) | ✅ Aplicado |
-| **C2** | El menú dice **«Imágenes»** (cabe en el menú) y la pantalla **«Banco de imágenes»** | ✅ Aplicado (con matiz: el rótulo del menú es corto para que no se trunque) |
+| **C2** | «Banco» no explica qué es | ✅ Aplicado y superado: el menú y la pantalla se llaman **«Recursos»** (0071, a pedido del dueño) |
 | **C3** | La pantalla se titula **«Personas y accesos»** (el menú conserva «Personas» por el mismo motivo) | ✅ Aplicado (con matiz) |
 | **C4 / A4** | Pestaña **«App y ayuda»** en Mi cuenta | ✅ Aplicado |
 | **A2** | **«Ver mi desempeño»** en la tarjeta «Tu evaluación» de Inicio | ✅ Aplicado |

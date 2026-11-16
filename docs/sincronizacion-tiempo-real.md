@@ -76,7 +76,8 @@ Una tarea aprobada no solo cambia «tareas»: mueve seguimiento, desempeño, ran
 | `roles`, `perfiles_rol`, `perfil_criterios`, `criterios_v2`, `criterios`, `rubrica` | `catalogo`, `evaluaciones`, `desempeno` |
 | `calendario`, `actividades`, `actividad_destinatarios`, `etiquetas` | `calendario`, `kpis` |
 | `equipos`, `equipo_miembros` | `equipos`, `tareas`, `reportes` |
-| `distritos`, `banco_imagenes`, `trabajos_entregados`, `auditoria_global` (solo admin) | `distritos`/`personas`, `banco`, `tareas`/`kpis`, `auditoria` |
+| `distritos`, `trabajos_entregados`, `auditoria_global` (solo admin) | `distritos`/`personas`, `tareas`/`kpis`, `auditoria` |
+| `recursos` (0071; sustituye a `banco_imagenes`, que ya no se escucha) | `recursos` |
 | `notif_senal` | `notificaciones` (campana) |
 
 ### Suscribir y desuscribir al entrar y salir

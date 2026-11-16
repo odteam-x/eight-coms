@@ -148,7 +148,9 @@ WITH esperadas_fn(nombre, migracion) AS (VALUES
   ('auditoria_listar','0055'),
   ('evaluacion_cobertura','0056'),
   ('banco_fijar','0058'),
-  ('es_persona_aprobada','0058')
+  ('es_persona_aprobada','0058'),
+  ('recursos_fijar','0071'),
+  ('recursos_partes_validas','0071')
 ), esperadas_tb(nombre, migracion) AS (VALUES
   ('criterios_v2','0015'),
   ('perfiles_rol','0015'),
@@ -181,7 +183,8 @@ WITH esperadas_fn(nombre, migracion) AS (VALUES
   ('evaluaciones_versiones','0053'),
   ('estadisticas_distrito_hist','0054'),
   ('auditoria_global','0055'),
-  ('banco_imagenes','0058')
+  ('banco_imagenes','0058'),
+  ('recursos','0071')
 ), esperadas_col(tabla_col, migracion) AS (VALUES
   ('periodos_evaluacion.modelo','0015'),
   ('evaluaciones.modelo','0015'),

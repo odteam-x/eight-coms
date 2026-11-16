@@ -23,7 +23,7 @@ Reglas visuales transversales: título de pantalla con 4 niveles de jerarquía; 
 
 ## 11.1 Portal del miembro (`user.html`)
 
-Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Imágenes). Se entra con `Auth.requireRole('miembro')`.
+Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Recursos). Se entra con `Auth.requireRole('miembro')`.
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas �
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
 | **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
-| **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica de cada evento | Ver, filtrar por tipo/evento/rol, buscar, agrupar, añadir, editar lo mío, copiar enlaces y colores | 22 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
 En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
@@ -43,7 +43,7 @@ En un período **clásico**, Mis tareas muestra el antiguo formulario «registra
 Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra con `Auth.requireAnyRole(['secretario','miembro'])`.
 
 ### Mi espacio
-**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Imágenes** (Banco de imágenes) y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
+**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Recursos** y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
 
 ### Mi distrito
 
@@ -80,7 +80,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega**, **Aprobar y puntuar**, **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
-| **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica | Ver, añadir, editar y borrar cualquier recurso | 22 |
 
 ### Organización
 

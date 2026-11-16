@@ -50,7 +50,7 @@
 | 5 | **Entrega tardía**: ¿penalización, etiqueta, o nada? | Solo se mide y se muestra |
 | 6 | **Percentil por técnico o por resultado con tareas** (D-5) | Por técnico |
 | 7 | **Estados «validada/cerrada»** de las estadísticas de Instagram y quién las cierra | Sin definir |
-| 8 | **Banco de imágenes**: ¿lo lee todo el mundo o por rol/distrito? | Lee toda persona aprobada (provisional) |
+| 8 | **Recursos** (antes banco de imágenes): ¿lo lee todo el mundo o por rol/distrito? | Lee toda persona aprobada (provisional) |
 | 9 | **Umbrales de puntuaciones atípicas** (alertas) | Sin definir |
 | 10 | **Reorganización propuesta** (capítulo 13) | A decidir por el dueño |
 

@@ -39,7 +39,7 @@ CSP **en modo enforcing**: `default-src 'self'`; `script-src 'self' https://cdn.
 | **Distritos** | `estadisticas_distrito`, `estadisticas_distrito_hist` |
 | **Calendario** | `calendario` (fechas por período), `actividades`, `actividad_destinatarios`, `etiquetas` |
 | **Avisos** | `notificaciones`, `notificaciones_eventos`, `notif_tipos`, `notif_preferencias`, `notif_senal` |
-| **Soporte** | `auditoria_global`, `banco_imagenes`, `manuales_privados` |
+| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `manuales_privados` |
 
 Reglas de datos que cruzan todo:
 
@@ -130,13 +130,14 @@ Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviem
 | 0053, 0059 | **Rectificación** de evaluaciones y corrección de `UUID` |
 | 0055 | **Auditoría global** |
 | 0056 | Cobertura de evaluación |
-| 0058 | Banco de imágenes |
+| 0058 | Banco de imágenes (sustituido por Recursos en 0071) |
 | 0060 | Texto largo en tareas |
 | 0061 | «Sin tareas, se pierden los puntos» |
 | 0062 | **Dos roles por persona** |
 | 0063 | Tareas propias **En curso** |
 | 0064 | **Sincronización en tiempo real** |
 | 0070 | **Registro con solicitud** (distrito o invitado externo y hasta 2 roles; se aplica al aprobar) |
+| 0071 | **Recursos** (antes banco de imágenes): tipos, evento, etiquetas, partes (enlaces, colores, tipografías); copia el banco sin pérdida |
 
 Huecos de numeración (0027–0029, 0037–0039, 0045–0049): no hay archivos; **no son migraciones perdidas**. `0006_gestion_miembros.PENDIENTE.sql` y `0015_seed_perfiles.PENDIENTE.sql` quedan pendientes a propósito. `supabase-schema.sql` es una **foto histórica**, no la fuente de verdad.
 
@@ -166,3 +167,7 @@ Cómo cambiar la base desde ahora: ver `docs/auditoria/06-registro-migraciones.m
 - **Nunca** una segunda fórmula en JavaScript.
 - Cada cambio visual: `contraste.js`, el simulador a 320/390/768/1024/1440/1920 y las pruebas de front.
 - Manuales: se edita el **generador**, no el HTML; se vuelven a capturar las imágenes cuando cambia una pantalla.
+
+## 12.x Recursos (0071): lo que NO se pudo verificar contra la base viva
+
+La migración 0071 se probó con Postgres real (PGlite, RLS real, paridad con datos de 0058, idempotencia, sin 0058) y la pantalla con el simulador, pero **no se aplicó en producción** (las sesiones de desarrollo tienen el conector de Supabase en solo lectura). **No se pudo verificar**: (1) que `ALTER PUBLICATION supabase_realtime ADD TABLE` surta efecto en el proyecto real (en PGlite solo se comprueba que no falle); (2) los datos reales de `banco_imagenes` (se probó con filas de ejemplo; 0071 conserva autor, rol, distrito y fechas); (3) la pantalla contra el servidor real. Después de aplicarla, compara `SELECT count(*) FROM banco_imagenes` con `SELECT count(*) FROM recursos WHERE banco_id IS NOT NULL` y, tras el despliegue, vuelve a ejecutar 0071 por si alguien añadió un enlace al banco antiguo entre medias. Detalle y decisiones (sin archivos, sin vista previa de imágenes remotas): capítulo 09.

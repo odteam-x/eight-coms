@@ -32,10 +32,13 @@ ok(verPortales.every(h => !/<script>/.test(h)), 'ningún portal tiene script en 
 ok(!/core\/sync\.js/.test(rd('index.html')) && !/core\/sync\.js/.test(rd('verificar.html')), 'el login y la verificación pública NO cargan Sync (sin sesión no hay nada que escuchar)');
 
 console.log('\n[tablas: lo que se escucha = lo que 0064 publica]');
-const listaSql = [...mig.match(/tablas TEXT\[\] := ARRAY\[([\s\S]*?)\];/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]);
+// 0064 publica la lista base; migraciones posteriores añaden tablas nuevas con ALTER PUBLICATION … ADD TABLE (0071: recursos).
+const LEGADAS = ['banco_imagenes'];   // publicada por 0064; la sustituye «recursos» (0071) y el portal ya no la escucha
+const posteriores = fs.readdirSync(ROOT + 'supabase/migrations').filter(f => /^00(6[5-9]|[7-9]\d)_/.test(f)).map(f => rd('supabase/migrations/' + f)).join('\n');
+const listaSql = [...[...mig.match(/tablas TEXT\[\] := ARRAY\[([\s\S]*?)\];/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]), ...[...posteriores.matchAll(/ADD TABLE public\.(\w+)/g)].map(m => m[1])];
 const escuchadas = Object.keys(mapa);
 ok(escuchadas.filter(t => !listaSql.includes(t)).length === 0, 'toda tabla que Sync escucha está en la lista de 0064' + (escuchadas.filter(t => !listaSql.includes(t)).length ? ' → faltan: ' + escuchadas.filter(t => !listaSql.includes(t)) : ''));
-ok(listaSql.filter(t => !escuchadas.includes(t) && t !== 'profiles').length === 0, 'toda tabla publicada por 0064 la usa alguna vista' + (listaSql.filter(t => !escuchadas.includes(t)).length ? ' → sobran: ' + listaSql.filter(t => !escuchadas.includes(t)) : ''));
+ok(listaSql.filter(t => !escuchadas.includes(t) && t !== 'profiles' && !LEGADAS.includes(t)).length === 0, 'toda tabla publicada por 0064 la usa alguna vista' + (listaSql.filter(t => !escuchadas.includes(t)).length ? ' → sobran: ' + listaSql.filter(t => !escuchadas.includes(t)) : ''));
 const migs = fs.readdirSync(ROOT + 'supabase/migrations').map(f => rd('supabase/migrations/' + f)).join('\n');
 const sinCrear = escuchadas.filter(t => t !== 'notif_senal' && !new RegExp(`CREATE TABLE( IF NOT EXISTS)? (public\\.)?${t}\\b`, 'i').test(migs + rd('supabase-schema.sql')));
 ok(sinCrear.length === 0, 'cada tabla escuchada existe en alguna migración' + (sinCrear.length ? ' → sin definición en el repo: ' + sinCrear : ''));
