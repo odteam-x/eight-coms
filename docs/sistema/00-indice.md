@@ -1,7 +1,7 @@
 # Documentación completa del sistema · EIGHT CREATORS LABs
 
 Portal de evaluación del desempeño del equipo de **CELIDER 08 Santiago** (eight-coms.vercel.app).
-Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase.
+Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase. La **0065** (nivel de tarea, tipo de entrega y quién evalúa la iniciativa) está entregada y **pendiente de aplicar**: los capítulos 05, 07, 11 y 12 la describen.
 
 Este es el documento completo del sistema. No es un resumen: describe **qué es cada cosa, quién la hace, en qué pantalla, con qué reglas, qué avisa, qué guarda y qué puede salir mal**, proceso por proceso, y termina con un análisis de qué está donde no debe y qué funciones importantes quedaron escondidas.
 
@@ -17,7 +17,7 @@ Este es el documento completo del sistema. No es un resumen: describe **qué es 
 | [06 · Evaluación](06-proceso-evaluacion.md) | Evaluar por rol, borrador, publicar, rectificar, versiones, cobertura, rúbrica clásica, evaluación de distrito |
 | [07 · Cálculo de resultados](07-calculos-y-resultados.md) | Fórmulas exactas, niveles, percentil, nota de tareas, dos roles, ejemplos numéricos y cada regla de borde |
 | [08 · Seguimiento, desempeño, reportes y distritos](08-seguimiento-desempeno-reportes.md) | Cómo se lee lo que ya está calculado: quién está al día, cómo les va, reportes, ranking de distritos, Instagram |
-| [09 · Comunicación](09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, banco de imágenes |
+| [09 · Comunicación](09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, recursos (antes banco de imágenes) |
 | [10 · Gafetes, auditoría, configuración y tiempo real](10-gafetes-auditoria-config-sync.md) | Gafete con QR y Wallet, centro de auditoría, Configuración general, sincronización sin recargar |
 | [11 · Pantallas por portal](11-pantallas-por-portal.md) | Cada pantalla de los tres portales: para qué sirve, quién la ve, qué se hace en ella |
 | [12 · Datos, seguridad y operación](12-datos-seguridad-operacion.md) | Tablas, funciones, permisos, migraciones, trabajos programados, correo, despliegue, pruebas |

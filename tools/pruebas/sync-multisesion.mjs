@@ -269,7 +269,7 @@ console.log('\n[Vistas: solo lo que se mira consume; entrar y salir abre y cierr
   const m = nuevoMundo();
   const A = await abrir(m, 'admin', 'admin.html', 'tareas');
   const abiertas = () => A.Sync.tablasAbiertas().filter(t => !t.startsWith('@'));
-  ok(abiertas().includes('tareas') && !['auditoria_global', 'banco_imagenes', 'estadisticas_distrito', 'evaluaciones_distrito', 'gestiones'].some(t => abiertas().includes(t)), `en «tareas» no se escucha lo de otras pantallas (${abiertas().length} de ${Object.keys(A.Sync.mapa()).length} tablas)`);
+  ok(abiertas().includes('tareas') && !['auditoria_global', 'recursos', 'estadisticas_distrito', 'evaluaciones_distrito', 'gestiones'].some(t => abiertas().includes(t)), `en «tareas» no se escucha lo de otras pantallas (${abiertas().length} de ${Object.keys(A.Sync.mapa()).length} tablas)`);
   A.Sync.tab('calendario'); await espera(60);
   ok(abiertas().includes('actividades'), 'al entrar a Calendario se suscribe a actividades…');
   ok(!abiertas().includes('tareas_equipo') && !abiertas().includes('calificaciones_historial'), '…y se sueltan las de la pantalla que se dejó (tareas_equipo, calificaciones_historial)');

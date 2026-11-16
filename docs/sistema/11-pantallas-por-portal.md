@@ -23,15 +23,15 @@ Reglas visuales transversales: título de pantalla con 4 niveles de jerarquía; 
 
 ## 11.1 Portal del miembro (`user.html`)
 
-Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Imágenes). Se entra con `Auth.requireRole('miembro')`.
+Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Recursos). Se entra con `Auth.requireRole('miembro')`.
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Inicio** | ¿Qué necesito hacer ahora? | Ver cuenta regresiva, mi evaluación (anillo, nivel, percentil), tareas por atender, próximas fechas, bienvenida | 3, 18 |
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
-| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar**, **Bloquear**, **+ Mi iniciativa**; ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
-| **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar** (con su tipo de entrega), **Bloquear**, **+ Mi iniciativa** (con «¿Quién te evalúa?»: distrital o regional); ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica de cada evento | Ver, filtrar por tipo/evento/rol, buscar, agrupar, añadir, editar lo mío, copiar enlaces y colores | 22 |
 | **Pedir ayuda** | Pedir ayuda a un rol; tomar, resolver y confirmar | Pedir, tomar lo de mi rol, resolver lo que tomé, confirmar o reabrir lo que pedí, cancelar lo mío | 23 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
@@ -44,14 +44,14 @@ En un período **clásico**, Mis tareas muestra el antiguo formulario «registra
 Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra con `Auth.requireAnyRole(['secretario','miembro'])`.
 
 ### Mi espacio
-**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Imágenes** (Banco de imágenes) y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
+**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Recursos** y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
 
 ### Mi distrito
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Distrito** | Mi gente y mi lugar | **Resumen** (posición, «Qué falta», evolución) · **Personas** (tarjetas, abrir perfiles en modo supervisión) · **Estadísticas** (subir las cifras de Instagram con captura) · **Ranking de distritos** | 8, 17, 18 |
-| **Tareas** | Asignar y revisar | **+ Nueva tarea** en tres pasos (solo a su distrito, con rol por persona); filtros **Por revisar / Abiertas / Vencidas / Aprobadas**; revisar entregas (**Aprobar con puntos**, **Devolver**); equipos de su distrito | 11, 13 |
+| **Tareas** | Asignar y revisar | **+ Nueva tarea** en tres pasos (solo a su distrito, con rol por persona); filtros **Por revisar / Abiertas / Vencidas / Aprobadas**; revisar entregas (**Aprobar con puntos**, sin peso, **Devolver**; las iniciativas regionales no son suyas); equipos de su distrito | 11, 13 |
 | **Desempeño del distrito** | ¿Cómo les va a mi distrito? | Reutiliza el módulo de Desempeño con los datos de su distrito | 18 |
 | **Seguimiento** | ¿Quién está al día en mi distrito? | Persona × período, por rol | 18 |
 | **Reportes** | Cifras de mi distrito | «Todos los PE» y cortes **Entre períodos / Por actividad**, con CSV | 18 |
@@ -78,10 +78,10 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
 | **Evaluar** | Puntuar y publicar | Elegir persona, ver evidencia, puntuar núcleo y técnico (y segundo rol), guardar borrador, **publicar**, **rectificar**, **Historial de versiones**, eliminar borradores | 15, 16 |
-| **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega**, **Aprobar y puntuar**, **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
+| **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega** (con etiqueta de tipo y nivel), **Aprobar y puntuar** (sin peso), **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
-| **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica | Ver, añadir, editar y borrar cualquier recurso | 22 |
 | **Pedir ayuda** | Todos los pedidos de ayuda del equipo | Ver todo; reasignar, resolver, confirmar y cancelar; también pedir y tomar si tiene el rol | 23 |
 
 ### Organización

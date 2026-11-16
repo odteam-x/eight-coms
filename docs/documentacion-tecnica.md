@@ -44,7 +44,7 @@ flowchart LR
 | `*.html` | `index` (acceso y registro), `user`, `secretario`, `admin`, `verificar` (público), `offline`, `registro` (redirige) |
 | `api.js`, `auth.js`, `config.js`, `supabase-client.js` | Capa de datos (**todas** las consultas), sesión/permisos de página, utilidades y tabla de acciones, cliente `SB` |
 | `admin*.js`, `user.js`, `secretario.js`, `login.js`, `registro.js`, `verificar.js` | Lógica de cada página |
-| `core/*.js` | 39 módulos compartidos por los tres portales (store, render, perfil, tareas, equipos, rubrica, desempeno, distritos, gafete, notificaciones, auditoria, banco, rail…) |
+| `core/*.js` | 39 módulos compartidos por los tres portales (store, render, perfil, tareas, equipos, rubrica, desempeno, distritos, gafete, notificaciones, auditoria, recursos, rail…) |
 | `*.css` (24) | `shared.css` (tokens y base), por pantalla (`perfil`, `tareas`, `equipos`…), `vidrio.css` (línea gráfica vigente y los tres temas), `movil.css` |
 | `supabase/migrations/` | 51 archivos numerados 0001–0061 con huecos; se aplican **a mano** y en orden |
 | `supabase/functions/` | `enviar-notificaciones`, `auth-correo`, `gafete-wallet` |
@@ -55,7 +55,7 @@ flowchart LR
 
 ## 4. Portales y pestañas
 
-- **Miembro** (`user.html`): Inicio, Mi perfil (Resumen, Criterios, Tareas, Períodos y Desempeño), Calendario, Entregas, Banco de imágenes, Mi cuenta.
+- **Miembro** (`user.html`): Inicio, Mi perfil (Resumen, Criterios, Tareas, Períodos y Desempeño), Calendario, Entregas, Recursos, Mi cuenta.
 - **Secretaría** (`secretario.html`): lo del miembro más Mi distrito (con estadísticas de Instagram), Seguimiento, Reportes y Tareas de su distrito.
 - **Administración** (`admin.html`): Panel, Desempeño, Seguimiento (centro de control); Evaluar, Tareas, Calendario (operaciones); Personas, Equipos, Distritos (organización); Reportes y Auditoría; configuración (Períodos, Rúbrica, Roles, Gestiones). Evaluar tiene un **modo enfoque** que oculta el resumen mientras se evalúa.
 - Todas las vistas de una persona (perfil, panel lateral) salen del componente único `Perfil` (`core/perfil.js`; modos `propio`, `supervision`, `admin`).
@@ -79,7 +79,7 @@ Nombres de tabla tal como aparecen en las migraciones; el detalle de columnas es
 - **Rúbrica:** clásica (`criterios`, `rubrica`) y por roles (`criterios_v2`, `perfiles_rol`, `perfil_criterios`, con perfiles versionados).
 - **Evaluaciones:** `evaluaciones` (puntajes en JSONB, estado `borrador`/`publicado`, `version`), `evaluaciones_versiones` (historial inmutable de publicaciones, rectificaciones y retiros), `evaluaciones_distrito`.
 - **Tareas:** `tareas` (individuales y propias), `tareas_equipo` + participantes + aportes + eventos, `equipos` + `equipo_miembros`, `calificaciones_historial`, `periodo_calif_config` (+ `_hist`).
-- **Comunicación:** `notificaciones`, `notif_tipos`, `notif_preferencias`, `notificaciones_eventos`, `calendario`, `actividades`, `banco_imagenes`.
+- **Comunicación:** `notificaciones`, `notif_tipos`, `notif_preferencias`, `notificaciones_eventos`, `calendario`, `actividades`, `recursos` (antes `banco_imagenes`).
 - **Distritos:** `estadisticas_distrito` (+ historial) y su bucket privado `capturas-distrito`.
 - **Otros:** `gafetes` (token del QR; sin permisos para clientes), `manuales_privados` (solo `is_admin()`), auditoría global (`0055`).
 - **Storage:** `avatars` (lectura pública, cada persona escribe en su carpeta `<uid>/`; 2 MB) y `capturas-distrito` (privado).

@@ -65,7 +65,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .bottom-bar, .cab-movil { background: color-mix(in srgb, var(--v-1) 55%, transparent); -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur)); border-color: var(--v-line); }
 
 /* 4. Vidrio en contenedores (borde casi invisible, sombra suave) */
-.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
+.pf-card, .pf-kpi, .tarjeta, .tarjeta--kpi, .kpi, .lista-aj, .rec-card, .tk-card, .cal2-panel, .v2-kpi, .eq-card, .aud-fila {
   background: var(--v-fill); border: 1px solid var(--v-line);
   -webkit-backdrop-filter: blur(var(--v-blur)); backdrop-filter: blur(var(--v-blur));
   box-shadow: inset 0 1px 0 var(--v-hi), 0 18px 48px var(--v-sombra);
@@ -111,7 +111,7 @@ h1, .pantalla-t, .pf-nombre { font-weight: 300; letter-spacing: -.03em; text-tra
 .seg-btn[aria-selected="true"], .seg-btn.active { background: var(--v-activo); color: var(--v-activo-txt); box-shadow: none; }
 
 @media (prefers-reduced-transparency: reduce) {
-  .pf-card, .pf-kpi, .tarjeta, .kpi, .lista-aj, .sup-marca, .tk-card, .bottom-bar, .cab-movil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--v-solido); }
+  .pf-card, .pf-kpi, .tarjeta, .kpi, .lista-aj, .rec-card, .sup-marca, .tk-card, .bottom-bar, .cab-movil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--v-solido); }
 }
 
 
@@ -685,25 +685,45 @@ button > svg, a > svg { flex: none; }
 .escala, .escala-barra { isolation: isolate; }
 .v2-resumen { position: sticky; z-index: 6; }
 
-/* 57. Banco de imágenes (core/banco.js): lista de filas de vidrio con icono, título, descripción, evento y rol; acciones a la derecha
-   (en celular debajo). Sin cajas dentro de cajas: las filas se separan con filetes. */
+/* 57. Recursos (core/recursos.js; antes Banco de imágenes): tarjetas de vidrio agrupadas por evento o tipo. Cada tarjeta lleva icono,
+   título, chips, descripción, paleta de colores (punto + hex), tipografías, enlaces y etiquetas. Sin cajas dentro de cajas: lo de
+   dentro se separa con espacio y filetes, no con fondos propios; el hover cambia el fondo, nunca el contorno. Táctiles de 44 px. */
 .bco-filtros { margin-bottom: 12px; }
 .bco-cuenta { margin: 0 0 8px; font-size: var(--fs-xs); color: var(--v-t2); }
-.bco-lista { padding: 4px 0; }
-.bco-fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--v-line); }
-.bco-lista > .bco-fila:first-child { border-top: 0; }
+.rec-grupo + .rec-grupo { margin-top: var(--sp-6, 28px); }
+.rec-grupo-t { margin: 0 0 12px; font: 600 var(--fs-md)/1.2 var(--font-ui); color: var(--v-t); overflow-wrap: anywhere; }
+.rec-grupo-t small { margin-left: 6px; font-size: var(--fs-xs); font-weight: 400; color: var(--v-t2); }
+.rec-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+.rec-card { display: grid; gap: 12px; padding: 18px; min-width: 0; }
+.rec-cab { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 .bco-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--v-fill2); border: 1px solid var(--v-line); color: var(--v-t); }
 .bco-ico svg { width: 22px; height: 22px; }
-.bco-t { font: 600 var(--fs-md)/1.25 var(--font-ui); overflow-wrap: anywhere; }
-.bco-d { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--v-t2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rec-t { margin: 0 0 6px; font: 600 var(--fs-md)/1.25 var(--font-ui); overflow-wrap: anywhere; }
+.bco-d { margin: 0; font-size: var(--fs-sm); color: var(--v-t2); overflow-wrap: anywhere; }
 .bco-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-.bco-peq { font-size: var(--fs-xs); color: var(--v-t2); }
-.bco-acc { display: flex; align-items: center; gap: 6px; }
-.bco-abrir { text-decoration: none; }
+.bco-peq { font-size: var(--fs-xs); color: var(--v-t2); overflow-wrap: anywhere; }
+.bco-acc { display: flex; align-items: center; gap: 4px; }
+.rec-colores, .rec-fuentes, .rec-enlaces, .rec-etiquetas { list-style: none; margin: 0; padding: 0; }
+.rec-colores { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.rec-color { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 12px 4px 6px; border: 0; border-radius: 99px; background: none; color: var(--v-t); font: inherit; cursor: pointer; text-align: left; }
+.rec-color:hover { background: var(--v-fill2); }
+.rec-muestra { flex: none; width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--v-t) 28%, transparent); }
+.rec-color-t { display: grid; font-size: var(--fs-sm); line-height: 1.2; } .rec-color-t b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.rec-color-t small, .rec-fuentes small { font-size: var(--fs-xs); color: var(--v-t2); }
+.rec-fuentes { display: grid; gap: 8px; }
+.rec-fuentes li { display: flex; align-items: center; gap: 12px; font-size: var(--fs-sm); }
+.rec-fuentes li > span:last-child { display: grid; line-height: 1.25; overflow-wrap: anywhere; }
+.rec-aa { flex: none; width: 28px; text-align: center; font: 600 var(--fs-lg, 20px)/1 var(--font-ui); color: var(--v-t2); }
+.rec-enlaces { display: grid; gap: 4px; }
+.rec-enlace { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rec-abrir { text-decoration: none; max-width: 100%; overflow-wrap: anywhere; }
+.rec-etiquetas { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.rec-tag { min-height: 44px; padding: 0 10px; border: 0; border-radius: 99px; background: none; color: var(--v-t2); font: 500 var(--fs-xs)/1 var(--font-ui); cursor: pointer; }
+.rec-tag:hover { background: var(--v-fill2); color: var(--v-t); }
+.rec-pie { margin: 0; font-size: var(--fs-xs); color: var(--v-t2); border-top: 1px solid var(--v-line); padding-top: 10px; }
 .bco-vacio { display: grid; justify-items: start; gap: 12px; }
 @media (max-width: 767px) {
-  .bco-fila { grid-template-columns: auto minmax(0, 1fr); padding: 14px 14px; }
-  .bco-acc { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
+  .rec-card { padding: 16px 14px; }
 }
 
 /* 58. Mi cuenta rediseñada: a la izquierda la identidad (foto, nombre, correo, chips, cambiar foto) y debajo la
@@ -883,7 +903,7 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .pf-sub, .pe-sub { color: var(--v-t2); }
 
 /* 37. Tema claro según la referencia: tarjetas blancas con sombra suave (no vidrio), barra inferior blanca con iconos oscuros y el activo en píldora oscura. */
-[data-theme="light"] .pf-card, [data-theme="light"] .pf-kpi, [data-theme="light"] .tarjeta, [data-theme="light"] .kpi, [data-theme="light"] .tk-card, [data-theme="light"] .lista-aj, [data-theme="light"] .panel-card {
+[data-theme="light"] .pf-card, [data-theme="light"] .pf-kpi, [data-theme="light"] .tarjeta, [data-theme="light"] .kpi, [data-theme="light"] .tk-card, [data-theme="light"] .lista-aj, [data-theme="light"] .rec-card, [data-theme="light"] .panel-card {
   background: var(--v-blanco); border: 1px solid var(--v-line); box-shadow: 0 1px 2px rgba(15,30,60,.04), 0 10px 28px var(--v-sombra); -webkit-backdrop-filter: none; backdrop-filter: none; }
 [data-theme="light"] .bottom-bar { --on-brand: var(--v-t); --on-brand-2: var(--v-t2); background: var(--v-blanco); border-top: 1px solid var(--v-line); box-shadow: 0 -8px 28px var(--v-sombra); color: var(--v-t2); }
 [data-theme="light"] .bottom-bar .bb-item { color: var(--v-t2); }
@@ -902,13 +922,8 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .aud-filtros input[type="date"]::-webkit-datetime-edit { color: var(--v-t); }
 .aud-filtros input[type="date"]::-webkit-calendar-picker-indicator { opacity: .8; }
 
-/* 39. Calendario: menos aire sin uso arriba (captura del dueño: «aprovechar mejor los espacios»). El título y su línea de apoyo comparten renglón en escritorio y el calendario sube ~70 px. */
-@media (min-width: 1024px) {
-  #tab-calendario, #tab-agenda { padding-top: var(--sp-4); }
-  #tab-calendario .pantalla-cab, #tab-agenda .pantalla-cab { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sp-4); row-gap: 2px; margin-bottom: var(--sp-3); }
-  #tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { margin: 0; flex: 1 1 280px; }
-}
-#tab-calendario .pantalla-cab > p, #tab-agenda .pantalla-cab > p { text-align: left; }
+/* 39. Calendario: menos aire arriba en escritorio. La cabecera (kicker, título y línea de apoyo) queda APILADA como en todas las pantallas; una versión anterior ponía el título y la línea de apoyo en un mismo renglón y en miembro y secretaría el texto de apoyo quedaba suelto a la derecha. */
+@media (min-width: 1024px) { #tab-calendario, #tab-agenda { padding-top: var(--sp-4); } }
 
 /* 38. Cabecera de pantalla: más aire entre el icono y el título, y menos vacío arriba. Antes el contenido arrancaba 48 px más abajo (más el relleno de la cabecera) y el icono quedaba pegado al texto. */
 @media (min-width: 768px) {
@@ -1011,3 +1026,24 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 /* 44. Período aún no iniciado (renderPEBar): visible pero apagado; al tocarlo dice cuándo empieza. */
 .pb--futuro { opacity: .6; cursor: not-allowed; }
 .pb--futuro:hover { background: transparent; }
+
+/* 45. Solicitudes de acceso (Personas): reutiliza la lista de verificación (.cr); botones a la derecha; marca de pendientes en el menú. */
+.sol-acc { margin-bottom: var(--sp-5); }
+.sol-mail { font: 400 var(--fs-xs)/1.3 var(--font-body); color: var(--v-tm); }
+.sol-acc-btns { display: flex; gap: var(--sp-2); flex: none; }
+@media (max-width: 639px) { .sol-acc .cr-fila { flex-wrap: wrap; } .sol-acc-btns { width: 100%; } .sol-acc-btns .btn-out, .sol-acc-btns .btn-save { flex: 1 1 0; justify-content: center; } }
+.rail-item, .bb-item { position: relative; }
+.rail-pend { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: auto; border-radius: 999px; background: var(--coral); color: var(--v-navy); font: 700 11px/1 var(--font-ui); }
+.bb-item .rail-pend { position: absolute; top: 2px; right: 4px; margin: 0; }
+.rail-colapsado .rail-pend { position: absolute; top: 4px; right: 6px; margin: 0; }
+
+/* 46. «Cómo me evalúan» (Mi perfil): criterios como filas plegables, con su peso a la derecha. */
+.rub-lista { display: grid; gap: var(--sp-2); margin: var(--sp-2) 0 var(--sp-4); }
+.rub-crit { padding: var(--sp-3) var(--sp-4); border-radius: 20px; background: var(--v-fill); border: 1px solid var(--v-line); }
+.rub-crit > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); cursor: pointer; min-height: 44px; list-style: none; }
+.rub-crit > summary::-webkit-details-marker { display: none; }
+.rub-nombre { font: 600 var(--fs-md)/1.25 var(--font-ui); color: var(--v-t); }
+.rub-peso { flex: none; padding: 2px 10px; border-radius: 999px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1.4 var(--font-ui); color: var(--v-t2); }
+.rub-pasos { margin: var(--sp-2) 0 var(--sp-4); padding-left: 1.2em; color: var(--v-t2); }
+.rub-pasos li { margin: 4px 0; max-width: 70ch; }
+.rub-crit > summary { text-align: left; } .rub-nombre { flex: 1 1 auto; text-align: left; }

@@ -100,7 +100,7 @@ function initSync() {
   Sync.on(['desempeno', 'ranking', 'evaluaciones', 'tareas', 'personas', 'periodos', 'catalogo'], () => Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host')), { id: 'sec:desempeno', vista: 'desempeno-distrito' });
   Sync.on(['reportes', 'ranking', 'evaluaciones', 'tareas', 'equipos', 'estadisticas', 'distritos', 'periodos'], async () => { await ReporteGeneral.montar(document.getElementById('rg-host'), {}); await ReporteEquipo.montar(document.getElementById('reportes-host')); }, { id: 'sec:reportes', vista: 'reportes' });
   Sync.on(['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { id: 'sec:calendario', vista: 'calendario', alEntrar: true });
-  Sync.on(['banco'], () => Banco.cargar(), { id: 'sec:banco', vista: 'banco' });
+  Sync.on(['recursos'], () => Recursos.cargar(), { id: 'sec:recursos', vista: 'recursos' });
   Sync.on(['apoyo'], () => Apoyo.cargar(), { id: 'sec:apoyo', vista: 'apoyo' });
 }
 
@@ -234,8 +234,8 @@ async function initUI() {
           { tab:'perfil',   icono:'user-round',  etiqueta:'Mi perfil' },
           { tab:'calendario', icono:'calendar',  etiqueta:'Calendario' },
           { tab:'trabajos', icono:'folder-open', etiqueta:'Mis tareas', titulo:'Mis tareas', fav: sec },
+          { tab:'recursos', icono:'folder-open', etiqueta:'Recursos' },
           { tab:'apoyo',    icono:'heart',       etiqueta:'Pedir ayuda', titulo:'Pedir ayuda' },
-          { tab:'banco',    icono:'image',       etiqueta:'Imágenes', titulo:'Banco de imágenes' },
         ]},
         ...(sec ? [{ titulo: 'Mi distrito', items: [
           { tab:'distrito', icono:'map',         etiqueta:'Distrito', fav: true },
@@ -372,7 +372,8 @@ async function datosTareasDistrito() {
   const porRevisar = new Map();
   for (const t of lista.tareas) {
     // Una persona no revisa lo suyo: no cuenta como «por revisar» para el secretario.
-    if (t.estado === 'entregada' && t.asignada_a !== CU.id) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
+    // Tampoco las iniciativas REGIONALES: las evalúa la administración (0065).
+    if (t.estado === 'entregada' && t.asignada_a !== CU.id && !(t.origen === 'propia' && t.nivel === 'regional')) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
   }
   _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar, tareas: lista.tareas };
   return _tareasDistrito;
@@ -680,6 +681,7 @@ const _ALIAS_TAB = {
   miscore:'perfil', scores:'perfil', historial:'perfil', rubrica:'perfil', evaluacion:'perfil',
   ranking:'distrito', periodos:'trabajos', cal:'calendario', desempeno:'perfil', rol:'perfil',
 };
+const _secTabParent = { recursos:'recursos', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 const _secTabParent = { apoyo:'apoyo', banco:'banco', inicio:'inicio', cuenta:'cuenta', perfil:'perfil', calendario:'calendario', distrito:'distrito', tareas:'tareas', trabajos:'trabajos', seguimiento:'seguimiento', reportes:'reportes', 'desempeno-distrito':'desempeno-distrito' };
 
 function switchTab(tab, btn) {
@@ -701,7 +703,7 @@ function switchTab(tab, btn) {
   // pestaña de "qué debo entregar y cuándo".
   if (tab === 'cuenta') Cuenta.montar(document.getElementById('cuenta-host'), CU);
   if (tab === 'reportes') { ReporteGeneral.montar(document.getElementById('rg-host'), {}); ReporteEquipo.montar(document.getElementById('reportes-host')); }
-  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: false });
+  if (tab === 'recursos') Recursos.montar({ el: document.getElementById('recursos-host'), yo: CU.id, esAdmin: false });
   if (tab === 'apoyo') Apoyo.montar({ el: document.getElementById('apoyo-host'), yo: CU.id, esSec: isSecretario(), distrito: CU.distrito });
   if (tab === 'desempeno-distrito') Desempeno.montarAdmin(document.getElementById('desempeno-distrito-host'));
   if (tab === 'seguimiento') { Seguimiento.invalidar(); Seguimiento.montar(document.getElementById('seguimiento-host'), { modo: 'secretario' }); }

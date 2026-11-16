@@ -487,3 +487,53 @@ async function renderCierre(pe) {
   el.innerHTML = Cierre.html(lista, { titulo: `Cierre de ${pe.nombre}`, plegable: true, id: 'cierre-periodo' });
   renderIconos(el);
 }
+
+/* ── Solicitudes de acceso (0070) ─────────────────────────────────────
+ * Lo primero que se ve en «Personas y accesos» y, con un número, en el menú: quién espera aprobación, con lo que pidió al registrarse
+ * (distrito o «invitado externo» y hasta 2 roles). Aprobar aplica esa solicitud a lo que esté vacío (la aplica la base, no esta pantalla):
+ * la persona entra ya configurada. Secretaría y administración NO se piden: las asigna siempre la administración desde Gestión. */
+function _pendientesAcceso() { return _users.filter(u => u.aprobado === false && !u.es_admin); }
+
+function _textoSolicitud(u) {
+  const dist = u.solicitud_distrito ? ((_distritos.find(d => String(d.id) === String(u.solicitud_distrito)) || {}).nombre || u.solicitud_distrito) : '';
+  const nom = id => (_roles.find(r => String(r.id) === String(id)) || {}).nombre || '';
+  const roles = [nom(u.solicitud_rol_id), nom(u.solicitud_rol2_id)].filter(Boolean);
+  const partes = [dist ? (/^ext/i.test(String(u.solicitud_distrito)) ? 'Invitado externo' : dist) : '', roles.join(' + ')].filter(Boolean);
+  return partes.length ? partes.join(' · ') : 'No indicó distrito ni rol: asígnalos al aprobar (Gestión).';
+}
+
+function renderSolicitudes() {
+  const el = document.getElementById('usr-solicitudes');
+  const pend = _pendientesAcceso();
+  _marcarPendientesMenu(pend.length);
+  if (!el) return;
+  if (!pend.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<section class="cr sol-acc" aria-labelledby="sol-acc-h">
+    <header class="cr-cab"><span class="cr-t-h" id="sol-acc-h">Solicitudes de acceso</span><span class="cr-prog" role="img" aria-label="${pend.length} por aprobar">${pend.length} por aprobar</span></header>
+    <p class="cr-sub">Aprobar aplica lo que cada persona pidió (distrito y roles). Si quieres cambiar algo, ábrela y ajusta en Gestión.</p>
+    <ul class="cr-lista">${pend.map(u => `<li class="cr-fila">
+      <div class="cr-txt"><span class="cr-t">${escHtml(u.nombre || u.email)}<small class="sol-mail"> ${escHtml(u.email || '')}</small></span><small class="cr-d">${escHtml(_textoSolicitud(u))}</small></div>
+      <div class="sol-acc-btns"><button type="button" class="btn-out" data-act="perfilVer" data-arg="${escHtml(u.id)}">Revisar</button>
+        <button type="button" class="btn-save" data-act="solAprobar" data-arg="${escHtml(u.id)}">Aprobar</button></div></li>`).join('')}</ul></section>`;
+}
+
+/** Número de pendientes junto a «Personas» en el menú de computadora y en la barra del celular (nada si no hay). */
+function _marcarPendientesMenu(n) {
+  document.querySelectorAll('[data-act="tab"][data-arg="usuarios"], [data-act="tabSinBtn"][data-arg="usuarios"]').forEach(it => {
+    let b = it.querySelector('.rail-pend');
+    if (!n) { b?.remove(); return; }
+    if (!b) { b = document.createElement('span'); b.className = 'rail-pend'; it.appendChild(b); }
+    b.textContent = n > 9 ? '9+' : String(n);
+    b.setAttribute('aria-label', n + ' por aprobar');
+  });
+}
+
+async function solAprobar(id) {
+  const r = await API.updateUserAprobado(id, true);
+  if (!r.ok) { showToast('No se pudo aprobar: ' + r.error, 'error'); return; }
+  showToast('Acceso aprobado: ya puede entrar con su distrito y su rol', 'ok');
+  // la base aplicó la solicitud: se vuelve a leer a la persona para ver su distrito y su rol
+  try { const lista = await API.getAllUsers(); if (Array.isArray(lista) && lista.length) _users = lista; else _users = _users.map(u => u.id === id ? { ...u, aprobado: true } : u); }
+  catch (e) { _users = _users.map(u => u.id === id ? { ...u, aprobado: true } : u); }
+  renderUsuarios();
+}

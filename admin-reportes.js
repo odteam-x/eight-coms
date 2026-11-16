@@ -167,7 +167,7 @@ const Reportes = (() => {
     const dist = { sex: 0, sbu: 0, spr: 0, sba: 0 }; fs.forEach(x => dist[nivelK(x.score)]++);
     const tot = fs.length || 1;
     const frase = fs.length
-      ? `${fs.length} persona${fs.length === 1 ? '' : 's'} con resultado. El promedio es ${f1(m)} sobre 100 y el mejor resultado, ${f1(Math.max(...v))}. ${dist.sex + dist.sbu} de ${fs.length} están en nivel Bueno o Excelente${dist.sba ? `; ${dist.sba} necesitan apoyo (nivel Bajo)` : ''}.`
+      ? `${fs.length} persona${fs.length === 1 ? '' : 's'} con resultado. El promedio es ${f1(m)} sobre 100 y el mejor resultado, ${f1(Math.max(...v))}. ${dist.sex + dist.sbu} de ${fs.length} están en nivel Bueno o Excelente${dist.sba ? `; ${dist.sba} ${dist.sba === 1 ? 'necesita' : 'necesitan'} apoyo (nivel Bajo)` : ''}.`
       : 'Todavía no hay resultados publicados con estos filtros.';
     return bloque('Resumen', `
       <div class="rpt-kpis">
@@ -182,8 +182,11 @@ const Reportes = (() => {
   function secRanking(fs) {
     if (!fs.length) return '';
     const v2 = _d.v2;
+    // Los empates comparten puesto (1, 1, 3…): dos personas con el mismo resultado no pueden quedar una por delante de la otra.
+    let pos = 0, ant = null;
+    const puestos = fs.map((x, i) => { if (ant === null || x.score !== ant) { pos = i + 1; ant = x.score; } return pos; });
     return bloque('Ranking', `<div class="rpt-tabla"><table><thead><tr><th>#</th><th>Persona</th><th>Rol</th><th>Distrito</th>${v2 ? '<th>Comunes</th><th>Del rol</th>' : ''}<th>Total</th><th>Nivel</th></tr></thead><tbody>
-      ${fs.map((x, i) => `<tr><td>${i + 1}</td><th scope="row">${escHtml(x.nombre)}</th><td>${escHtml(x.rolNombre)}</td><td>${escHtml(x.distrito)}</td>${v2 ? `<td>${f1(x.nucleo)}</td><td>${f1(x.tecnico)}</td>` : ''}<td><b>${f1(x.score)}</b></td><td>${nivelPill(x.score)}</td></tr>`).join('')}
+      ${fs.map((x, i) => `<tr><td>${puestos[i]}</td><th scope="row">${escHtml(x.nombre)}</th><td>${escHtml(x.rolNombre)}</td><td>${escHtml(x.distrito)}</td>${v2 ? `<td>${f1(x.nucleo)}</td><td>${f1(x.tecnico)}</td>` : ''}<td><b>${f1(x.score)}</b></td><td>${nivelPill(x.score)}</td></tr>`).join('')}
       </tbody></table></div>`, 'De mayor a menor resultado, sobre 100.');
   }
 
@@ -252,7 +255,8 @@ const Reportes = (() => {
     if (E.modo === 'general') { ReporteGeneral.csv(); return; }
     const fs = filtradas(); if (!fs.length) { showToast('No hay resultados que exportar con esos filtros.', 'error'); return; }
     const cab = ['Posición', 'Persona', 'Rol', 'Distrito', ..._d.v2 ? ['Competencias comunes', 'Competencias del rol'] : [], 'Total sobre 100', 'Nivel'];
-    const filas = fs.map((x, i) => [i + 1, x.nombre, x.rolNombre, x.distrito, ..._d.v2 ? [f1(x.nucleo), f1(x.tecnico)] : [], f1(x.score), NIV[nivelK(x.score)]]);
+    let pos = 0, ant = null;
+    const filas = fs.map((x, i) => { if (ant === null || x.score !== ant) { pos = i + 1; ant = x.score; } return [pos, x.nombre, x.rolNombre, x.distrito, ..._d.v2 ? [f1(x.nucleo), f1(x.tecnico)] : [], f1(x.score), NIV[nivelK(x.score)]]; });
     const texto = '﻿' + [cab, ...filas].map(r => r.map(csvEsc).join(';')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([texto], { type: 'text/csv;charset=utf-8' }));

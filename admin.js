@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'tareas',   icono:'list-checks',      etiqueta:'Tareas', fav: true },
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
-        { tab:'banco',    icono:'image',            etiqueta:'Imágenes', titulo:'Banco de imágenes' },
+        { tab:'recursos', icono:'folder-open',      etiqueta:'Recursos' },
         { tab:'apoyo',    icono:'heart',            etiqueta:'Pedir ayuda', titulo:'Pedir ayuda' },
       ]},
       { titulo:'Organización', items: [
@@ -175,7 +175,7 @@ function initSync() {
   v('tareas',     ['tareas', 'equipos', 'periodos', 'personas', 'kpis'], async () => { await _baseAdmin(); abrirTareas(); });
   v('equipos',    ['equipos', 'tareas', 'personas', 'periodos'], async () => { await _baseAdmin(); abrirEquipos(); });
   v('agenda',     ['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { alEntrar: true });
-  v('banco',      ['banco'], () => Banco.cargar());
+  v('recursos',   ['recursos'], () => Recursos.cargar());
   v('apoyo',      ['apoyo'], () => Apoyo.cargar());
   v('usuarios',   ['personas', 'periodos', 'catalogo', 'distritos'], async () => { await _baseAdmin(); renderUsuariosPEBar(); await renderUsuarios(); initPersonas(); });
   v('distritos',  ['distritos', 'estadisticas', 'personas', 'periodos', 'ranking', 'evaluaciones'], async () => { await _baseAdmin(); DistritosAdmin.refrescar(); });
@@ -1099,6 +1099,7 @@ async function selectUsersPE(periodoId, btn) {
 }
 
 async function renderUsuarios() {
+  renderSolicitudes();
   renderPersonasCards();
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
@@ -2714,7 +2715,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'perfiles') renderPerfiles();
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();
-  if (tab === 'banco') Banco.montar({ el: document.getElementById('banco-host'), yo: CU.id, esAdmin: true, roles: _roles || [], personas: _users.map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
+  if (tab === 'recursos') Recursos.montar({ el: document.getElementById('recursos-host'), yo: CU.id, esAdmin: true, roles: _roles || [], personas: _users.map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
   if (tab === 'apoyo') Apoyo.montar({ el: document.getElementById('apoyo-host'), yo: CU.id, esAdmin: true, roles: _roles || [], distrito: CU.distrito });
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();

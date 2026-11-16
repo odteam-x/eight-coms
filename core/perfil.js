@@ -43,6 +43,8 @@ const Perfil = (() => {
   const TAB_DESEMPENO = { k: 'desempeno', etiqueta: 'Desempeño', icono: 'line-chart' };
   /** «Mi rol y mis preferencias» vive en el perfil propio (antes estaba en Mi cuenta): el rol es parte de cómo te evalúan. */
   const TAB_ROL = { k: 'rol', etiqueta: 'Mi rol', icono: 'group-2' };
+  /** «Cómo me evalúan»: la rúbrica completa de mi rol (criterios, pesos y cómo se puntúa), aunque todavía no haya evaluación publicada. */
+  const TAB_RUBRICA = { k: 'rubrica', etiqueta: 'Cómo me evalúan', icono: 'ruler' };
 
   const _fmt = (n, d = 1) => fmtNum(n, d);
   /** 0–6: qué patrón de la marca lleva la cabecera de esta persona. */
@@ -445,6 +447,43 @@ const Perfil = (() => {
     _vacioPeriodo(inst, cuerpo, item);
   }
 
+  /* ── Cómo me evalúan (la rúbrica de mi rol) ────────────────────────── */
+  async function _panelRubrica(inst, cuerpo) {
+    const periodo = inst.periodo, p = inst.persona;
+    if (!esPeriodoV2(periodo)) {
+      cuerpo.innerHTML = '<div class="empty-box"><div class="empty-txt">Este período se evaluó con la rúbrica clásica: 7 criterios de 1 a 4 más un bono de excelencia. Mira «Criterios» para tu detalle.</div></div>';
+      return;
+    }
+    const cat = catalogoV2();
+    if (!cat.length) { cuerpo.innerHTML = '<div class="empty-box"><div class="empty-txt">Cuando la administración publique la rúbrica de este período, aparecerá aquí.</div></div>'; return; }
+    // roles con los que me evalúan: el principal y, si lo hay, el segundo (máximo 2)
+    let catRoles = []; try { const rr = await API.getRoles(false); catRoles = Array.isArray(rr) ? rr : (rr?.roles || []); } catch (e) { /* sin nombres */ }
+    const rolId0 = p.rol_id || (typeof CU !== 'undefined' && CU && CU.id === p.id ? CU.rol_id : null) || (catRoles.find(r => r.nombre === p.rol_nombre) || {}).id || null;
+    let roles = [rolId0].filter(Boolean);
+    try { const r = await API.getPersonaRoles(p.id); if (r.ok) roles = [...new Set([...roles, ...r.rows.filter(x => String(x.persona_id) === String(p.id)).map(x => x.rol_id)])].slice(0, 2); } catch (e) { /* sin segundo rol */ }
+        const nombreRol = id => (catRoles.find(r => String(r.id) === String(id)) || {}).nombre || (String(id) === String(rolId0) ? (p.rol_nombre || 'tu rol') : 'tu segundo rol');
+    const base = roles.length ? criteriosAplicables(perfilVigenteDe(roles[0], periodo.id), cat) : { nucleo: cat.filter(c => c.tipo === 'nucleo' && (c.tipo_campo || 'escala') === 'escala' && c.activo !== false), tecnicos: [] };
+    const crit = c => `<details class="v2-det rub-crit"><summary class="v2-det-sum"><span class="rub-nombre">${escHtml(c.nombre)}</span>${c.peso != null ? `<span class="rub-peso">pesa ${c.peso}</span>` : '<span class="rub-peso">0 a 10</span>'}</summary>${descriptoresHTML(c)}</details>`;
+    const tecnicos = roles.map((rid, i) => {
+      const ap = criteriosAplicables(perfilVigenteDe(rid, periodo.id), cat);
+      return ap.tecnicos.length ? `<h3 class="pf-h">Criterios técnicos · ${escHtml(nombreRol(rid))}${i ? ' <small>segundo rol</small>' : ''}</h3>
+        <p class="pf-nota">Se puntúan de 0 hasta su peso; los pesos de un rol suman 100.</p><div class="rub-lista">${ap.tecnicos.map(crit).join('')}</div>` : '';
+    }).join('');
+    cuerpo.innerHTML = `
+      <div class="rub-intro"><h3 class="pf-h">Cómo se calcula tu resultado</h3>
+        <ul class="rub-pasos">
+          <li><b>Individual</b> = 60 % técnico + 40 % núcleo.</li>
+          <li><b>General</b> = 40 % núcleo + 60 % tu lugar dentro de tu rol (percentil).</li>
+          <li>Las <b>tareas aprobadas</b> también cuentan: la administración fija cuánto pesan en este período (lo ves en «Cómo se compone tu evaluación», dentro de Resumen).</li>
+          <li>Un criterio que no se te puntúa <b>no vale cero</b>: se deja fuera del cálculo.</li>
+          <li>Niveles: <b>Excelente</b> desde 87, <b>Bueno</b> desde 67, <b>En proceso</b> desde 37, <b>Bajo</b> por debajo de 37 (sobre 100).</li>
+        </ul></div>
+      <h3 class="pf-h">Núcleo transversal <small>igual para todos los roles</small></h3>
+      <p class="pf-nota">Cada criterio se puntúa de 0 a 10.</p>
+      <div class="rub-lista">${base.nucleo.map(crit).join('')}</div>
+      ${tecnicos || '<p class="pf-vacio">Todavía no tienes un rol asignado: cuando la administración te lo asigne, aquí verás sus criterios técnicos y sus pesos.</p>'}`;
+  }
+
   /* ── Tareas ────────────────────────────────────────────────────────── */
   async function _panelTareas(inst, cuerpo, seq) {
     const periodo = inst.periodo;
@@ -548,7 +587,8 @@ const Perfil = (() => {
     // Las pestañas de gestión (solo administración) van PRIMERO: la configuración queda a un toque.
     const extra = (_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin);
     const base = inst.modo === 'propio' && typeof Desempeno !== 'undefined' ? TABS.map(t => (t.k === 'evolucion' ? TAB_DESEMPENO : t)) : TABS;
-    const conRol = inst.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst.persona?.es_admin ? [...base, TAB_ROL] : base;
+    const conRubrica = inst.modo === 'propio' && !inst.persona?.es_admin && typeof descriptoresHTML === 'function' ? [...base, TAB_RUBRICA] : base;
+    const conRol = inst.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst.persona?.es_admin ? [...conRubrica, TAB_ROL] : conRubrica;
     return [...extra.filter(t => t.soloAdmin), ...conRol, ...extra.filter(t => !t.soloAdmin)];
   }
 
@@ -565,6 +605,7 @@ const Perfil = (() => {
       else if (inst.tab === 'periodos')  await PerfilPE.pintar(inst, cuerpo, () => seq === inst.seq && inst.tab === 'periodos');
       else if (inst.tab === 'evolucion') _panelEvolucion(inst, cuerpo);
       else if (inst.tab === 'desempeno') await Desempeno.montarPropio(cuerpo, { yo: inst.persona.id });
+      else if (inst.tab === 'rubrica' && inst.modo === 'propio') await _panelRubrica(inst, cuerpo);
       else if (inst.tab === 'rol' && inst.modo === 'propio') { cuerpo.innerHTML = '<section aria-labelledby="cu-t-roles" id="cuenta-roles" class="cuenta-un-col"></section>'; await Preferencias.montar(document.getElementById('cuenta-roles'), (typeof CU !== 'undefined' && CU && CU.id === inst.persona.id) ? CU : inst.persona); }
       else                               await _panelResumen(inst, cuerpo, seq);
     } catch (e) {

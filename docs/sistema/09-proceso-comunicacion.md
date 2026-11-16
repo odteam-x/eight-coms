@@ -117,22 +117,31 @@ Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `nod
 
 **Reglas.** Se ve: lo propio, lo que tomé, lo abierto para mi rol (si es de distrito, solo el mío), lo de mi distrito (secretaría) y todo (administración). Las tablas son de solo lectura desde el navegador: todo cambio pasa por funciones de la base. Historial append-only y registro en la auditoría global (origen «Ayuda»). Máximo 10 solicitudes en curso por persona. Los avisos nunca llevan la descripción ni las notas. Migración 0068.
 
-## Proceso 22 (parte) · Banco de imágenes
+## Proceso 22 (parte) · Recursos (antes «Banco de imágenes»)
 
-**Objetivo.** Un lugar común con los **enlaces** a las fotos y videos de cada evento.
+**Objetivo.** Un lugar común con las fotos, videos, enlaces, documentos, plantillas y la **identidad gráfica** (logos, paleta de colores, tipografías) de cada evento. Pedido del dueño: que el banco «no solo sean imágenes o enlaces» sino también «identidad gráfica de n eventos, imágenes, etc.».
 
-**Pantalla.** **Banco de imágenes** (menú: «Imágenes»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
+**Pantalla.** **Recursos** (menú «Recursos»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
+
+### Qué es un recurso
+
+Una ficha con **título**, **tipo** (imagen o foto, video, enlace, identidad gráfica, documento, plantilla, audio, otro), **evento** (opcional; el mismo texto en varios recursos los agrupa), **categoría** y hasta **8 etiquetas** (opcionales), **descripción** y de 1 a 20 **partes**: enlaces `http(s)` (con nombre opcional: «Logos | https://…»), **colores** (`#RRGGBB`, con nombre opcional) y **tipografías** (nombre, con su uso opcional: «Títulos: Montserrat Bold»). Una identidad gráfica puede tener solo la paleta.
 
 ### Actividades
 
-1. **Ver y buscar**: título, descripción, evento y enlace (Drive, Dropbox…), con búsqueda y filtros (acción bancoFiltrar), agrupado por el rol de quien lo subió.
-2. **Añadir**: título, descripción, evento y **enlace `http(s)`** (inválidos se rechazan: la base lo exige con CHECK y el cliente lo valida).
-3. **Editar o borrar**: quien lo subió o la administración.
-4. Abrir un enlace usa `rel="noopener noreferrer"`.
+1. **Ver y buscar**: tarjetas con icono del tipo, chips (tipo, evento, categoría, rol de quien lo subió), descripción, **muestras de color** (se pulsan para copiar el hex), tipografías, enlaces (Abrir y Copiar) y etiquetas (se pulsan para buscar). Filtros por **tipo**, **evento** y **rol de quien lo subió**; búsqueda por título, evento, etiqueta, color o tipografía (sin importar tildes ni mayúsculas) y **agrupación** por evento (por defecto), por tipo o sin agrupar.
+2. **Añadir**: formulario con título, tipo, evento, categoría, etiquetas, descripción, enlaces (uno por línea), paleta y tipografías; los errores se explican en el propio formulario.
+3. **Editar o borrar**: quien lo subió o la administración. Borrar solo quita la ficha: lo que hay detrás de los enlaces no se toca.
+4. Abrir un enlace usa `rel="noopener noreferrer"` y pestaña nueva.
+5. Estado vacío: «Cuando haya recursos aparecerán aquí». Sin la migración 0071 la pantalla dice cuál falta.
 
-### Reglas (RLS de 0058)
+### Reglas (RLS de 0071, las mismas de 0058)
 
-- **No se guardan archivos**, solo enlaces.
-- **Lee** toda persona con acceso aprobado (decisión **provisional**: el mensaje del dueño llegó cortado; si debe limitarse por rol o distrito, se cambia la política `banco_leer`).
+- **No se guardan archivos**, solo enlaces y texto. Motivo: Storage de pago sin cuotas ni antivirus; un archivo ya descargado no se puede retirar; y un bucket con políticas por carpeta no se puede verificar contra la base viva desde las sesiones de desarrollo. Una identidad gráfica es una colección de enlaces + paleta + tipografías. Si más adelante se quieren subir archivos, el modelo admite una parte nueva `{t:'archivo'}` y un bucket privado con URL firmada (como `capturas-distrito`) sin migrar datos.
+- **Sin vista previa de imágenes remotas**: la CSP (`img-src`) no admite imágenes de otros sitios, y relajarla filtraría la IP de quien mira a cualquier servidor que alguien pegue. Las vistas previas son las **muestras de color** y las tipografías en texto.
+- **Lee** toda persona con acceso aprobado (decisión **provisional**: el mensaje del dueño llegó cortado; si debe limitarse por rol o distrito, se cambia la política `recursos_leer`).
 - **Añade** cualquier persona aprobada en una gestión no archivada.
-- `creado_por`, `gestion_id`, `rol_id` y `distrito` los **fija el servidor** (`banco_fijar`); el rol de quien sube es lo que agrupa «las imágenes de Fotografía».
+- `creado_por`, `gestion_id`, `rol_id`, `distrito` y el origen (`banco_id`) los **fija el servidor** (`recursos_fijar`); el rol de quien sube permite filtrar «los recursos de Fotografía». El servidor también limpia las etiquetas (sin vacías ni repetidas, de 30 caracteres como máximo).
+- **Paridad con el banco**: 0071 copia cada fila de `banco_imagenes` como recurso de tipo imagen, con su enlace como única parte y su autor, rol, distrito y fechas; `banco_imagenes` queda intacta. Volver a ejecutar 0071 copia solo lo que se haya añadido al banco antiguo entre medias.
+- **Tiempo real**: la tabla `recursos` se escucha con `core/sync.js` (tema «recursos») y 0071 la publica.
+- **Sin auditoría** (como el banco): no es información de decisión.

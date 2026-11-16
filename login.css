@@ -315,3 +315,6 @@ body:has(.login-layout) { min-height: 100dvh; display: flex; flex-direction: col
 
 /* Celular: el formulario se centraba en el alto sobrante y dejaba un hueco grande bajo la banda de marca; ahora arranca justo debajo y el sobrante queda antes del pie. */
 @media (max-width: 759px) { .login-layout .login-panel-form { align-self: start; margin-top: var(--sp-5); } }
+
+/* El formulario de registro creció (distrito y roles): en pantallas altas cabe, y si no, el panel del formulario se desplaza por dentro (antes el botón quedaba fuera de la ventana). */
+@media (min-width: 760px) { .login-layout { min-height: 0; } .login-panel-form { min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; } }

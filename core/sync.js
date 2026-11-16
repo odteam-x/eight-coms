@@ -53,7 +53,7 @@ const Sync = (() => {
     equipos:                   { temas: ['equipos', 'tareas', 'reportes'] },
     equipo_miembros:           { temas: ['equipos', 'tareas', 'reportes'] },
     distritos:                 { temas: ['distritos', 'personas'] },
-    banco_imagenes:            { temas: ['banco'] },
+    recursos:                  { temas: ['recursos'] },
     ayuda_pedidos:             { temas: ['apoyo'] },
     trabajos_entregados:       { temas: ['tareas', 'kpis'] },
     notif_senal:               { temas: ['notificaciones'] },

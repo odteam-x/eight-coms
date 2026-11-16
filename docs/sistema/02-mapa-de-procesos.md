@@ -36,7 +36,7 @@ flowchart TD
     P19[19 · Calendario y actividades]
     P20[20 · Avisos y correos]
     P21[21 · Gafete]
-    P22[22 · Banco, auditoría, configuración, tiempo real]
+    P22[22 · Recursos, auditoría, configuración, tiempo real]
     P23[23 · Pedir ayuda a un rol]
   end
 ```
@@ -68,7 +68,7 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 19 | Calendario y actividades | Administración, secretaría (su distrito); todos leen | Calendario · Actividades | 09 |
 | 20 | Avisos (campana) y correos | Automático | Campana · Mi cuenta → Preferencias | 09 |
 | 21 | Gafete con QR, Wallet y verificación pública | Persona, administración | Mi perfil → Mi gafete · `/v/<código>` | 10 |
-| 22 | Servicios transversales: banco de imágenes, auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
+| 22 | Servicios transversales: recursos (antes banco de imágenes), auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
 | 23 | **Pedir ayuda («Solicito tu ayuda»)**: pedir ayuda a un rol, tomarla, resolverla y confirmarla, con avisos | Todas las personas con acceso aprobado | Ver el proceso 23 en el capítulo 09 |
 
 
@@ -93,7 +93,7 @@ En paralelo, todo el tiempo: el **calendario** muestra fechas, actividades y tar
 | Grupo del menú | Entradas | Procesos que cubre |
 |---|---|---|
 | Centro de control | Panel · Desempeño · Seguimiento | 18 |
-| Operaciones | Evaluar · Tareas · Equipos · Calendario · Imágenes (Banco de imágenes) | 15, 11–14, 10, 19, 22 |
+| Operaciones | Evaluar · Tareas · Equipos · Calendario · Recursos | 15, 11–14, 10, 19, 22 |
 | Organización | Personas · Distritos | 7, 9, 17 |
 | (suelto) | Reportes · Auditoría | 18, 22 |
 | Configuración | Un solo ítem que abre el índice: Períodos, Actividades, Rúbrica, Roles y perfiles, Gestiones, tema, selector de entrada | 5, 6, 8, 19 |

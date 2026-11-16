@@ -28,6 +28,34 @@ const Tareas = (() => {
     anulada:   { txt: 'Anulada',    cls: 'devuelta'  },
   };
   const PRIORIDAD = { alta: 'Alta', normal: 'Normal', baja: 'Baja' };
+  /** Nivel de la tarea (0065): en una iniciativa propia define además quién la evalúa. */
+  const NIVELES = { distrital: 'Distrital', regional: 'Regional' };
+  const EVALUA = { distrital: 'la secretaría de su distrito', regional: 'la administración' };
+  /** Tipo de entrega (0065): qué se entrega y cómo se abre. */
+  const TIPOS_ENTREGA = { enlace: 'Enlace', documento: 'Documento', imagen: 'Imagen', video: 'Video', otro: 'Otro' };
+  const OPC_TIPO = [{ v: '', l: 'Sin indicar' }, ...Object.entries(TIPOS_ENTREGA).map(([v, l]) => ({ v, l }))];
+  /** Sugiere el tipo de una entrega según su enlace (se puede cambiar). */
+  const tipoSugerido = url => {
+    const u = String(url || '').toLowerCase();
+    if (!u) return '';
+    if (/\.(png|jpe?g|gif|webp|svg)(\?|#|$)/.test(u)) return 'imagen';
+    if (/\.(mp4|mov|webm|avi)(\?|#|$)|youtu\.?be|vimeo\.com|tiktok\.com/.test(u)) return 'video';
+    if (/\.(pdf|docx?|xlsx?|pptx?|txt)(\?|#|$)|docs\.google\.com|\/document\/|\/spreadsheets\/|\/presentation\//.test(u)) return 'documento';
+    return 'enlace';
+  };
+  /** ¿Puede esta persona aprobar/devolver esta tarea? (la base lo impone; esto solo decide qué botones se ofrecen). */
+  const puedeRevisar = (t, c) => !!c.revisor && (c.esAdmin || (t.asignada_a !== c.yo && !(t.origen === 'propia' && t.nivel === 'regional')));
+  /** La entrega, con su tipo: el enlace se abre según lo que es. */
+  function entregaHTML(t) {
+    if (!(t.entrega_url || t.entrega_nota)) return '';
+    const tipo = t.tipo_entrega && TIPOS_ENTREGA[t.tipo_entrega] ? t.tipo_entrega : null;
+    const txt = { enlace: 'Abrir enlace', documento: 'Abrir documento', imagen: 'Ver imagen', video: 'Ver video', otro: 'Abrir entrega' }[tipo] || 'Ver entrega';
+    return `<div class="tk-entrega">
+        ${tipo ? `<span class="tk-tag tk-tag--tipo" title="Tipo de entrega">${escHtml(TIPOS_ENTREGA[tipo])}</span>` : ''}
+        ${t.entrega_url ? `<a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">${txt}</a>` : ''}
+        ${t.entrega_nota ? `<span>${escHtml(t.entrega_nota)}</span>` : ''}
+      </div>`;
+  }
   const ABIERTAS  = ['asignada', 'en_curso', 'devuelta', 'bloqueada'];
 
   /** Un contexto por contenedor: la página del secretario monta dos listas. */
@@ -79,7 +107,7 @@ const Tareas = (() => {
   function accionesDe(t, c) {
     if (soloLectura()) return [{ a: 'historial', txt: 'Historial', primario: false }];
     const receptor = t.asignada_a === c.yo;
-    const revisor  = c.revisor && (c.esAdmin || !receptor);
+    const revisor  = puedeRevisar(t, c) && (c.esAdmin || !receptor);
     const out = [];
     const b = (a, txt, primario) => out.push({ a, txt, primario: !!primario });
 
@@ -122,6 +150,8 @@ const Tareas = (() => {
           ${t.rol_id != null && rolesNom.has(Number(t.rol_id)) ? `<span class="tk-tag" title="Rol con el que se hace este trabajo">Rol: ${escHtml(rolesNom.get(Number(t.rol_id)))}</span>` : ''}
           ${t.rol_excepcion ? '<span class="tk-tag tk-tag--alta" title="La administración asignó un rol que la persona no tiene habilitado">Excepción de rol</span>' : ''}
           ${t.origen === 'propia' ? '<span class="tk-tag" title="La creó la propia persona. Cuenta como iniciativa cuando otra persona la aprueba.">Iniciativa propia</span>' : ''}
+          ${t.nivel && NIVELES[t.nivel] ? `<span class="tk-tag tk-tag--nivel" title="${t.origen === 'propia' ? 'La evalúa ' + EVALUA[t.nivel] : 'Nivel de la tarea: pesa según las reglas del PE'}">${t.origen === 'propia' ? 'Evalúa: ' + (t.nivel === 'distrital' ? 'distrito' : 'administración') : NIVELES[t.nivel]}</span>` : ''}
+          ${t.tipo_entrega && TIPOS_ENTREGA[t.tipo_entrega] && !(t.entrega_url || t.entrega_nota) ? `<span class="tk-tag tk-tag--tipo" title="Tipo de entrega esperado">Entrega: ${escHtml(TIPOS_ENTREGA[t.tipo_entrega].toLowerCase())}</span>` : ''}
           ${t.prioridad !== 'normal' ? `<span class="tk-tag tk-tag--${t.prioridad}">Prioridad ${PRIORIDAD[t.prioridad].toLowerCase()}</span>` : ''}
           ${plazoHTML(t)}
         </div>
@@ -129,11 +159,7 @@ const Tareas = (() => {
         ${crit.length ? `<p class="tk-crit">Evidencia: ${escHtml(crit.join(' · '))}</p>` : ''}
         ${t.estado === 'devuelta' && t.revision_nota ? `<div class="tk-aviso tk-aviso--devuelta" role="note"><strong>Corregir:</strong> ${escHtml(t.revision_nota)}</div>` : ''}
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<div class="tk-aviso" role="note"><strong>En pausa:</strong> ${escHtml(t.bloqueo_motivo)}</div>` : ''}
-        ${(t.entrega_url || t.entrega_nota) && t.estado !== 'asignada' && t.estado !== 'en_curso' ? `
-          <div class="tk-entrega">
-            ${t.entrega_url ? `<a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">Ver entrega</a>` : ''}
-            ${t.entrega_nota ? `<span>${escHtml(t.entrega_nota)}</span>` : ''}
-          </div>` : ''}
+        ${t.estado !== 'asignada' && t.estado !== 'en_curso' ? entregaHTML(t) : ''}
         <div class="tk-acciones">
           ${acciones.map(x => `<button type="button" class="tk-btn${x.primario ? ' tk-btn--main' : ''}"
             data-act="tkAccion" data-arg="${x.a}" data-arg2="${t.id}">${x.txt}</button>`).join('')}
@@ -146,9 +172,9 @@ const Tareas = (() => {
     ['todas', 'Todas'], ['porRevisar', 'Por revisar'], ['abiertas', 'Abiertas'],
     ['vencidas', 'Vencidas'], ['aprobadas', 'Aprobadas'],
   ];
-  const pasaFiltro = (t, f) => ({
+  const pasaFiltro = (t, f, c) => ({
     todas:      () => true,
-    porRevisar: () => t.estado === 'entregada',
+    porRevisar: () => t.estado === 'entregada' && (!c || puedeRevisar(t, c)),
     abiertas:   () => ABIERTAS.includes(t.estado),
     vencidas:   () => ['asignada', 'en_curso', 'devuelta'].includes(t.estado) && t.fecha_limite && diasHasta(t.fecha_limite) < 0,
     aprobadas:  () => t.estado === 'aprobada',
@@ -164,9 +190,9 @@ const Tareas = (() => {
     const el = c.el;
     // En la lista de revisión no entran las tareas del propio secretario.
     const base = c.revisor && !c.esAdmin ? c.tareas.filter(t => t.asignada_a !== c.yo) : c.tareas;
-    const lista = ordenar(base.filter(t => pasaFiltro(t, c.filtro) && (!c.persona || t.asignada_a === c.persona)));
+    const lista = ordenar(base.filter(t => pasaFiltro(t, c.filtro, c) && (!c.persona || t.asignada_a === c.persona)));
 
-    const porRevisar = base.filter(t => t.estado === 'entregada').length;
+    const porRevisar = base.filter(t => t.estado === 'entregada' && puedeRevisar(t, c)).length;
     const barra = `
       <div class="tk-barra">
         <div class="tk-filtros" role="group" aria-label="Filtrar tareas">
@@ -358,6 +384,13 @@ const Tareas = (() => {
 
   const minimo = (v, n) => (v || '').trim().length >= n;
 
+  /** 0065: ¿la base ya tiene nivel y tipo de entrega? y, para una iniciativa, ¿se puede elegir «Distrital»? (sondeo una sola vez por contexto) */
+  async function prepararNivel(c) {
+    if (c.nivelOk !== undefined) return;
+    c.nivelOk = await API.nivelTareasDisponible();
+    c.distritalOk = c.nivelOk && !c.revisor ? await API.instanciaDistritalDisponible() : false;
+  }
+
   function camposContenido(c, t = {}) {
     const cat = [...c.catalogo.entries()].map(([k, n]) => ({ v: k, l: n }));
     return [
@@ -365,12 +398,15 @@ const Tareas = (() => {
       { id: 'descripcion', tipo: 'area', label: 'Qué se espera', filas: 6, max: 20000, valor: t.descripcion, ph: 'Formato, medidas, dónde se entrega…' },
       { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: t.prioridad || 'normal',
         opciones: [{ v: 'alta', l: 'Alta' }, { v: 'normal', l: 'Normal' }, { v: 'baja', l: 'Baja' }] },
+      ...(c.nivelOk ? [{ id: 'tipo_entrega', tipo: 'select', label: 'Tipo de entrega', valor: t.tipo_entrega || '', opciones: OPC_TIPO,
+        ayuda: 'Qué se espera recibir (enlace, documento, imagen, video u otro). Quien entrega puede ajustarlo al entregar.' }] : []),
       ...(cat.length ? [{ id: 'criterios', tipo: 'checks', label: 'Criterios que evidencia (opcional)', valor: t.criterios || [], opciones: cat,
         ayuda: 'Orienta al evaluador. No puntúa nada por sí solo.' }] : []),
     ];
   }
 
-  function modalNueva(c) {
+  async function modalNueva(c) {
+    await prepararNivel(c);
     // Quien revisa (administración / secretaría) usa el flujo completo: roles por persona, equipos, validaciones.
     if (c.revisor && typeof Asignar !== 'undefined') {
       c.onCreadas = () => cargar(c);
@@ -398,7 +434,11 @@ const Tareas = (() => {
       ...(c.revisor ? [{ id: 'para', tipo: 'checks', label: 'Asignar a', req: true, valor: c.paraId ? [c.paraId] : [],
         opciones: [...c.personas.values()].filter(p => p.id !== c.yo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
           .map(p => ({ v: p.id, l: p.nombre })), ayuda: 'Puedes marcar varias personas: cada una recibe su propia tarea.' }]
-        : [{ id: 'aviso', tipo: 'info', texto: 'Es una tarea por iniciativa propia. Cuenta como evidencia de iniciativa cuando tu secretario o el administrador la aprueban; no la puedes aprobar tú.' }]),
+        : [{ id: 'aviso', tipo: 'info', texto: 'Es una tarea por iniciativa propia. Cuenta como evidencia de iniciativa cuando la aprueba quien la evalúa; no la puedes aprobar tú.' },
+           ...(c.nivelOk ? [{ id: 'nivel', tipo: 'select', label: '¿Quién te evalúa?', valor: c.distritalOk ? 'distrital' : 'regional',
+             opciones: [...(c.distritalOk ? [{ v: 'distrital', l: 'Distrital: la secretaría de mi distrito' }] : []), { v: 'regional', l: 'Regional: la administración' }],
+             ayuda: c.distritalOk ? 'Solo esa instancia podrá aprobarla o devolverla y recibirá el aviso de tu entrega. No se cambia después.'
+                                  : 'Tu distrito no tiene secretaría: la evalúa la administración.' }] : [])]),
       ...camposContenido(c),
       { id: 'fecha', tipo: 'fecha', label: 'Fecha límite', valor: c.fechaIni || '' },
     ];
@@ -411,6 +451,7 @@ const Tareas = (() => {
         const res = await Promise.all(destinos.map(id => API.crearTarea({
           periodo_id: v.periodo || c.periodoId, titulo: v.titulo, descripcion: v.descripcion, asignada_a: id,
           prioridad: v.prioridad, fecha_limite: v.fecha || null, criterios: v.criterios || [],
+          ...(c.nivelOk ? { tipo_entrega: v.tipo_entrega || null, nivel: c.revisor ? null : (v.nivel || 'regional') } : {}),
         })));
         const fallos = res.filter(r => !r.ok);
         await cargar(c);
@@ -428,7 +469,8 @@ const Tareas = (() => {
       titulo: 'Editar tarea', campos: camposContenido(c, t), confirmar: 'Guardar',
       onConfirm: async v => {
         if (!minimo(v.titulo, 1)) return 'Escribe un título.';
-        return aplicar(c, t, { titulo: v.titulo, descripcion: v.descripcion, prioridad: v.prioridad, criterios: v.criterios || t.criterios }, 'Tarea actualizada');
+        return aplicar(c, t, { titulo: v.titulo, descripcion: v.descripcion, prioridad: v.prioridad, criterios: v.criterios || t.criterios,
+          ...(c.nivelOk && !['entregada', 'aprobada'].includes(t.estado) ? { tipo_entrega: v.tipo_entrega || null } : {}) }, 'Tarea actualizada');
       },
     });
   }
@@ -440,12 +482,15 @@ const Tareas = (() => {
       campos: [
         ...(t.estado === 'devuelta' && t.revision_nota ? [{ id: 'obs', tipo: 'info', texto: 'Observación: ' + t.revision_nota }] : []),
         { id: 'url', tipo: 'texto', label: 'Enlace a la entrega', max: 2000, valor: t.entrega_url || '', ph: 'https://…', ayuda: 'Drive, YouTube, carpeta compartida… Debe empezar por https://' },
+        ...(c.nivelOk ? [{ id: 'tipo_entrega', tipo: 'select', label: 'Tipo de entrega', valor: t.tipo_entrega || 'enlace', opciones: OPC_TIPO.filter(o => o.v),
+          ayuda: 'Qué es lo que enlazas: así quien revisa sabe qué va a abrir.' }] : []),
         { id: 'nota', tipo: 'area', label: 'Nota', valor: t.entrega_nota || '', filas: 2, ph: 'Qué entregas, qué cambió…', ayuda: 'Necesitas un enlace, una nota, o ambos.' },
       ],
       onConfirm: async v => {
         if (v.url && !/^https?:\/\/\S+$/i.test(v.url)) return 'El enlace debe empezar por http:// o https://';
         if (!v.url && !minimo(v.nota, 3)) return 'Indica un enlace o escribe una nota de la entrega.';
-        return aplicar(c, t, { estado: 'entregada', entrega_url: v.url || null, entrega_nota: v.nota || null }, 'Entregada: queda por revisar');
+        const tipo = c.nivelOk && v.url ? (v.tipo_entrega || tipoSugerido(v.url) || 'enlace') : null;
+        return aplicar(c, t, { estado: 'entregada', entrega_url: v.url || null, entrega_nota: v.nota || null, ...(tipo ? { tipo_entrega: tipo } : {}) }, 'Entregada: queda por revisar');
       },
     });
   }
@@ -464,16 +509,13 @@ const Tareas = (() => {
     abrirModal({
       titulo: 'Aprobar y puntuar', confirmar: 'Aprobar',
       campos: [
-        { id: 'info', tipo: 'info', texto: `«${t.titulo}». Estos puntos cuentan en la evaluación de la persona según las reglas del PE (nota de tareas): se combinan con las demás tareas calificadas, ponderadas por su peso.` },
+        { id: 'info', tipo: 'info', texto: `«${t.titulo}». Estos puntos cuentan en la evaluación de la persona según las reglas del PE (nota de tareas): se combinan con las demás tareas calificadas, ponderadas según su nivel${t.nivel && NIVELES[t.nivel] ? ' (' + NIVELES[t.nivel].toLowerCase() + ')' : ''}.` },
         { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: 8 },
-        { id: 'peso', tipo: 'select', label: 'Peso de la tarea', valor: String(Number(t.peso ?? 1)), ayuda: 'Cuánto pesa frente a las demás al promediar la nota de tareas (migración 0033).',
-          opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) },
       ],
       onConfirm: async v => {
         const n = Number(v.puntos);
         if (!Number.isInteger(n) || n < 0 || n > 10) return 'Elige unos puntos entre 0 y 10.';
         const patch = { estado: 'aprobada', puntos: n };
-        if (Number(v.peso) !== Number(t.peso ?? 1)) patch.peso = Number(v.peso);
         let err = await aplicar(c, t, patch, `Aprobada con ${n} puntos`);
         // Antes de aplicar 0017 la columna no existe: se aprueba sin puntos y se avisa.
         if (err && /puntos/i.test(err) && /column|schema|PGRST/i.test(err)) {
@@ -539,6 +581,7 @@ const Tareas = (() => {
     const c = ctxs.get(el.closest('[data-tk]')?.dataset.tk);
     if (!c) return;
     if (a === 'nueva') return modalNueva(c);
+    await prepararNivel(c);
     const t = c.tareas.find(x => String(x.id) === String(el.dataset.arg2));
     if (!t) return;
     switch (a) {
@@ -615,7 +658,7 @@ const Tareas = (() => {
       </section>`;
   }
 
-  return { montar, nueva, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML };
+  return { montar, nueva, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML, NIVELES, EVALUA, TIPOS_ENTREGA, OPC_TIPO, tipoSugerido, entregaHTML, puedeRevisar };
 })();
 
 /* Globales de la lista blanca de config.js (data-act="fn" / data-change). */

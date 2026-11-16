@@ -44,8 +44,9 @@ general_eval = 0,4 · núcleo + 0,6 · percentil
 ### Nota de tareas (0–100)
 ```
 nota_tareas = 100 · Σ( peso_efectivo · puntos / 10 ) / Σ( peso_efectivo )
-peso_efectivo = peso de la tarea × multiplicador de su tipo
+peso_efectivo = peso heredado × multiplicador de su NIVEL × multiplicador de su tipo
 ```
+`peso heredado` = 1 en toda tarea nueva (el peso de tarea que elegía quien revisaba se retiró en 0065; las tareas anteriores conservan el suyo, así que sus notas no cambian). El multiplicador de **nivel** (distrital / regional) es una regla del PE, por defecto 1 y 1; una iniciativa propia siempre × 1.
 Detalle de qué tareas cuentan: capítulo 05, proceso 14.
 
 ### Mezcla en el resultado
@@ -92,7 +93,7 @@ Los tres cortes de cada escala viven en un solo archivo (`core/niveles.js`); `sc
 **Ejemplo 1 — evaluación sin tareas.** Núcleo puntuado 8, 7, 9, 6, 8 (de 10): porcentajes 80, 70, 90, 60, 80 → **núcleo = 76**. Perfil Fotografía (pesos 30/25/20/15/10), puntos 24, 17, 14, 9, 6 → **técnico = 70**.
 `individual = 0,6·70 + 0,4·76 = 42 + 30,4 = 72,4` → nivel **Bueno** (≥ 67).
 
-**Ejemplo 2 — con tareas.** Peso de tareas del PE 20 %. Tareas aprobadas: A (8 puntos, peso 2), B (10 puntos, peso 1), C (6 puntos, peso 1):
+**Ejemplo 2 — con tareas.** Peso de tareas del PE 20 %. Tareas aprobadas: A (8 puntos, **regional** con multiplicador ×2 → peso 2), B (10 puntos, distrital → peso 1), C (6 puntos, distrital → peso 1):
 `nota_tareas = 100 · (2·0,8 + 1·1 + 1·0,6) / (2+1+1) = 100 · 3,2 / 4 = 80`.
 `individual = 0,8 · 72,4 + 0,2 · 80 = 57,92 + 16 = 73,9`.
 

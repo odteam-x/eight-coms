@@ -65,8 +65,9 @@ const EvaluacionPerfil = (() => {
     const tipo = r.tipo === 'equipo'
       ? `${TIPO.equipo}${r.equipo_nombre ? ' · ' + escHtml(r.equipo_nombre) : ''}${r.individual_en_grupo ? ' <small>(nota individual; la del grupo fue ' + Number(r.nota_grupo) + ')</small>' : ''}`
       : (r.origen === 'propia' ? 'Individual · iniciativa propia' : TIPO.individual);
+    const nivel = r.nivel === 'distrital' || r.nivel === 'regional' ? ` · ${r.origen === 'propia' ? 'evalúa ' + (r.nivel === 'distrital' ? 'el distrito' : 'la administración') : 'nivel ' + r.nivel}` : '';
     return `<tr class="${r.cuenta ? '' : 'ev-no'}">
-      <td class="v2-nom">${escHtml(r.titulo)}<small class="ev-tipo">${tipo}</small></td>
+      <td class="v2-nom">${escHtml(r.titulo)}<small class="ev-tipo">${tipo}${nivel}</small></td>
       <td>${r.puntos == null ? '—' : Number(r.puntos) + ' <small>/10</small>'}</td>
       <td>${r.cuenta ? f1(r.peso_efectivo) : '—'}</td>
       <td>${r.cuenta ? f1(r.aporte_pct) + ' %' : '—'}</td>
@@ -136,7 +137,7 @@ const EvaluacionPerfil = (() => {
         <tbody>${filas.map(filaHTML).join('')}</tbody>
         ${cuentan.length ? `<tfoot><tr><th scope="row" colspan="4">Nota de tareas</th><td class="v2-tot">${cuentan.length >= minimo ? f1(suma) : '—'}</td><td></td></tr></tfoot>` : ''}
       </table></div>
-      <p class="ev-nota-formula">Nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan. El peso de cada tarea es el que se le dio al asignarla o aprobarla${cfg ? `, multiplicado por ${f1(cfg.mult_individual)} (individuales) o ${f1(cfg.mult_colectiva)} (del equipo)` : ''}.</p>
+      <p class="ev-nota-formula">Nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan. El peso de cada tarea sale de su <b>nivel</b>${cfg && cfg.mult_distrital != null ? ` (distrital × ${f1(cfg.mult_distrital)}, regional × ${f1(cfg.mult_regional)}; una iniciativa propia siempre × 1)` : ' (las tareas anteriores conservan el peso que tenían)'}${cfg ? `, multiplicado por ${f1(cfg.mult_individual)} (individuales) o ${f1(cfg.mult_colectiva)} (del equipo)` : ''}. Ya no se elige un peso al aprobar.</p>
       ${pendientes.length ? `<p class="pf-nota"><b>${pendientes.length}</b> tarea${pendientes.length === 1 ? '' : 's'} pendiente${pendientes.length === 1 ? '' : 's'} de evaluación: se sumarán cuando se aprueben.</p>` : ''}` : '';
 
     const aviso = cfg && !cfg.confirmado && cfg.definida && !propio
@@ -179,6 +180,8 @@ const EvaluacionPerfil = (() => {
         ${c.confirmado ? '' : `<p class="pf-nota ev-aviso" role="status"><b>Valor inicial, sin confirmar.</b> ${c.peso_tareas > 0 ? 'Este PE nació con las tareas pesando ' + f1(c.peso_tareas) + ' %.' : 'En este PE las tareas todavía no pesan en el resultado.'} Revísalo y guárdalo para confirmarlo.</p>`}
         <dl class="ev-dl">
           <div><dt>Peso de las tareas en el resultado</dt><dd><b>${f1(c.peso_tareas)} %</b><small>el resto, ${f1(100 - c.peso_tareas)} %, es la evaluación (núcleo y técnico)</small></dd></div>
+          ${c.mult_distrital != null ? `<div><dt>Tareas de nivel distrital</dt><dd><b>× ${f1(c.mult_distrital)}</b><small>multiplicador por nivel; reemplaza al peso que elegía quien revisaba</small></dd></div>
+          <div><dt>Tareas de nivel regional</dt><dd><b>× ${f1(c.mult_regional)}</b><small>una iniciativa propia siempre pesa × 1: su nivel solo decide quién la evalúa</small></dd></div>` : ''}
           <div><dt>Tareas individuales</dt><dd><b>× ${f1(c.mult_individual)}</b><small>multiplicador de su peso</small></dd></div>
           <div><dt>Tareas del equipo</dt><dd><b>× ${f1(c.mult_colectiva)}</b><small>multiplicador de su peso</small></dd></div>
           <div><dt>Mínimo de tareas calificadas</dt><dd><b>${Number(c.minimo_tareas)}</b><small>con menos, no se calcula nota de tareas (no se rellena con 0)</small></dd></div>
@@ -200,6 +203,8 @@ const EvaluacionPerfil = (() => {
       campos: [
         { tipo: 'info', texto: 'Estas reglas deciden cómo las notas de las tareas entran en la evaluación de cada persona. Cambiarlas recalcula los resultados al instante; si ya hay evaluaciones publicadas, hay que explicar el motivo.' },
         num('peso', 'Peso de las tareas en el resultado (0 a 100 %)', c.peso_tareas, '0 = las tareas no cuentan; 100 = el resultado es solo la nota de tareas.'),
+        ...(c.mult_distrital != null ? [num('md', 'Multiplicador de las tareas de nivel distrital', c.mult_distrital, 'Mayor que 0. Con 1 y 1 el nivel no cambia la nota; súbelo para que ese nivel pese más.'),
+          num('mr', 'Multiplicador de las tareas de nivel regional', c.mult_regional, 'Mayor que 0. No aplica a las iniciativas propias (siempre × 1).')] : []),
         num('mi', 'Multiplicador de las tareas individuales', c.mult_individual, 'Mayor que 0. Multiplica el peso que tiene cada tarea.'),
         num('mc', 'Multiplicador de las tareas del equipo', c.mult_colectiva, 'Mayor que 0. Úsalo si una tarea del equipo debe pesar más o menos que una individual.'),
         num('min', 'Mínimo de tareas calificadas', c.minimo_tareas, 'Con menos tareas calificadas que esto, la persona no tiene nota de tareas.'),
@@ -211,8 +216,9 @@ const EvaluacionPerfil = (() => {
       onConfirm: async v => {
         const nueva = { peso_tareas: Number(String(v.peso).replace(',', '.')), mult_individual: Number(String(v.mi).replace(',', '.')), mult_colectiva: Number(String(v.mc).replace(',', '.')),
           minimo_tareas: Number(v.min), contar_propias: v.propias === 'si', vencidas_como_cero: v.venc === 'si',
+          ...(c.mult_distrital != null ? { mult_distrital: Number(String(v.md).replace(',', '.')), mult_regional: Number(String(v.mr).replace(',', '.')) } : {}),
           ...(typeof c.sin_tareas_pierde_puntos === 'boolean' ? { sin_tareas_pierde_puntos: v.pierde === 'si' } : {}) };
-        if (![nueva.peso_tareas, nueva.mult_individual, nueva.mult_colectiva, nueva.minimo_tareas].every(Number.isFinite)) return 'Revisa los números.';
+        if (![nueva.peso_tareas, nueva.mult_individual, nueva.mult_colectiva, nueva.minimo_tareas, ...(c.mult_distrital != null ? [nueva.mult_distrital, nueva.mult_regional] : [])].every(Number.isFinite)) return 'Revisa los números.';
         const r = await API.guardarCalifConfig(periodo.id, nueva, v.motivo || null);
         if (!r.ok) return r.error;
         showToast('Reglas guardadas', 'ok');

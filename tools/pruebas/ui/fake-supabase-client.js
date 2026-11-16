@@ -8,6 +8,20 @@
   const P = { pe1: 'aaaaaaaa-0000-0000-0000-000000000001', pe2: 'aaaaaaaa-0000-0000-0000-000000000002', pe3: 'aaaaaaaa-0000-0000-0000-000000000003' };
   const hoy = new Date();
   const dia = n => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  // Réplica de los CHECK de la migración 0071 (tipo, título, partes, etiquetas): el simulador rechaza lo mismo que la base.
+  const TIPOS_RECURSO = ['imagen', 'video', 'enlace', 'identidad', 'documento', 'plantilla', 'audio', 'otro'];
+  function validarRecurso(p, pre) {
+    const mal = c => { throw new Error(pre + ' "recursos_' + c + '_check"'); };
+    if (String(p.titulo || '').trim().length < 3) mal('titulo');
+    if (p.tipo != null && !TIPOS_RECURSO.includes(p.tipo)) mal('tipo');
+    const ps = p.partes;
+    if (!Array.isArray(ps) || ps.length < 1 || ps.length > 20) mal('partes');
+    for (const x of ps) {
+      if (!x || typeof x !== 'object' || typeof x.v !== 'string' || String(x.e || '').length > 60) mal('partes');
+      if (x.t === 'enlace' ? !(x.v.length <= 1000 && /^https?:\/\/[^\s]+$/i.test(x.v)) : x.t === 'color' ? !/^#[0-9a-f]{6}$/i.test(x.v) : x.t === 'fuente' ? !(x.v.trim().length >= 1 && x.v.trim().length <= 80) : true) mal('partes');
+    }
+    if ((p.etiquetas || []).length > 8) mal('etiquetas');
+  }
   const ahora = () => new Date().toISOString();
 
   const NUCLEO = [['plazos', 'Cumplimiento de plazos de entrega'], ['respuesta', 'Respuesta y disponibilidad ante requerimientos'],
@@ -50,6 +64,8 @@
     bienvenida_estado: [],
     distritos: ['01','02','03','04','05','06','07','08','09','10'].map(n => ({ id: '08-' + n, nombre: 'Distrito 08-' + n, activo: true })).concat([{ id: 'EXT', nombre: 'Invitado Externo', activo: true }]),
     profiles: [
+      { id: uuid(95), nombre: 'Lucía Nueva', email: 'lucia@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: false, solicitud_distrito: '08-01', solicitud_rol_id: 1, solicitud_rol2_id: 2 },
+      { id: uuid(96), nombre: 'Mario Invitado', email: 'mario@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: false, solicitud_distrito: 'EXT', solicitud_rol_id: 3, solicitud_rol2_id: null },
       { id: U.admin, nombre: 'Admin General', email: 'admin@x.cl', es_admin: true, tipo_miembro: 'miembro', distrito: null, rol_id: null, aprobado: true },
       { id: U.sec, nombre: 'Sofía Secretaria', email: 'sofia@x.cl', es_admin: false, tipo_miembro: 'secretario', distrito: '08-01', rol_id: 3, aprobado: true },
       { id: U.m1, nombre: 'Ana Fotógrafa', email: 'ana@x.cl', es_admin: false, tipo_miembro: 'miembro', distrito: '08-01', rol_id: 1, aprobado: true },
@@ -69,9 +85,17 @@
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
     calendario: [], config: [], periodo_participantes: [{ periodo_id: P.pe3, user_id: U.m5, activo: false }], trabajos_entregados: [],
-    banco_imagenes: new URLSearchParams(location.search).get('banco') === '0' ? undefined : [
-      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre · escenario', descripcion: 'Fotos del escenario y el público, 24 de octubre.', enlace: 'https://drive.google.com/drive/folders/ejemplo-1', evento: 'Jornada de cierre', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', created_at: '2026-11-05T15:00:00Z', updated_at: '2026-11-05T15:00:00Z' },
-      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: '', enlace: 'https://www.dropbox.com/sh/ejemplo-2', evento: 'Taller de fotografía', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000002', created_at: '2026-11-07T15:00:00Z', updated_at: '2026-11-07T15:00:00Z' },
+    // Recursos (0071). ?recursos=0 (o el antiguo ?banco=0) simula una base SIN la migración 0071: la tabla no existe. ?recursos=vacio: sin recursos.
+    recursos: (() => { const q = new URLSearchParams(location.search); return q.get('recursos') === '0' || q.get('banco') === '0'; })() ? undefined : new URLSearchParams(location.search).get('recursos') === 'vacio' ? [] : [
+      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre · escenario', tipo: 'imagen', descripcion: 'Fotos del escenario y el público, 24 de octubre.', evento: 'Jornada de cierre', categoria: '', etiquetas: [], partes: [{ t: 'enlace', e: '', v: 'https://drive.google.com/drive/folders/ejemplo-1' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', banco_id: 1, created_at: '2026-11-05T15:00:00Z', updated_at: '2026-11-05T15:00:00Z' },
+      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', tipo: 'imagen', descripcion: '', evento: 'Taller de fotografía', categoria: '', etiquetas: [], partes: [{ t: 'enlace', e: '', v: 'https://www.dropbox.com/sh/ejemplo-2' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000002', banco_id: 2, created_at: '2026-11-07T15:00:00Z', updated_at: '2026-11-07T15:00:00Z' },
+      { id: 3, gestion_id: 1, titulo: 'Identidad gráfica · Jornada de cierre', tipo: 'identidad', descripcion: 'Logos, paleta y tipografías oficiales del evento.', evento: 'Jornada de cierre', categoria: 'Marca', etiquetas: ['logo', 'paleta', '2026'],
+        partes: [{ t: 'enlace', e: 'Logos (SVG y PNG)', v: 'https://drive.google.com/drive/folders/ejemplo-logos' }, { t: 'enlace', e: 'Plantillas en Canva', v: 'https://www.canva.com/design/ejemplo' },
+          { t: 'color', e: 'Azul institucional', v: '#1A4FA0' }, { t: 'color', e: 'Ámbar', v: '#FFC247' }, { t: 'color', e: 'Verde menta', v: '#4ADE9B' }, { t: 'color', e: '', v: '#0B1F3A' },
+          { t: 'fuente', e: 'Títulos', v: 'Montserrat Bold' }, { t: 'fuente', e: 'Texto', v: 'Open Sans' }],
+        rol_id: 2, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000090', banco_id: null, created_at: '2026-11-08T15:00:00Z', updated_at: '2026-11-08T15:00:00Z' },
+      { id: 4, gestion_id: 1, titulo: 'Reel del taller', tipo: 'video', descripcion: 'Resumen de 60 segundos para redes.', evento: 'Taller de fotografía', categoria: 'Redes sociales', etiquetas: ['reel'], partes: [{ t: 'enlace', e: 'Ver en YouTube', v: 'https://www.youtube.com/watch?v=ejemplo' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', banco_id: null, created_at: '2026-11-09T15:00:00Z', updated_at: '2026-11-09T15:00:00Z' },
+      { id: 5, gestion_id: 1, titulo: 'Plantilla de historias', tipo: 'plantilla', descripcion: '', evento: '', categoria: 'Redes sociales', etiquetas: ['canva'], partes: [{ t: 'enlace', e: '', v: 'https://www.canva.com/design/plantilla-historias' }], rol_id: null, distrito: null, creado_por: '00000000-0000-0000-0000-000000000090', banco_id: null, created_at: '2026-11-10T15:00:00Z', updated_at: '2026-11-10T15:00:00Z' },
     ],
     etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
@@ -209,8 +233,13 @@
   }
   const criterioUsado = key => DB.perfil_criterios.some(x => x.criterio_key === key) || DB.evaluaciones.some(e => key in (e.puntajes || {}) || key in (e.respuestas || {}));
 
+  const distritoTieneSec = d => !!d && DB.profiles.some(x => x.tipo_miembro === 'secretario' && !x.es_admin && x.distrito === d && x.aprobado !== false);
   function validarTarea(old, nuevo) {
-    const receptor = old.asignada_a === meId, rev = esAdmin() || (esSec() && !receptor && distritoIds().includes(old.asignada_a));
+    const receptor = old.asignada_a === meId, rev = esAdmin() || (esSec() && !receptor && distritoIds().includes(old.asignada_a) && !(old.origen === 'propia' && old.nivel === 'regional'));
+    if (!esAdmin() && !receptor && !rev) throw new Error('No tienes acceso a esta tarea.');          // 0065: puede_revisar_tarea_fila
+    nuevo.peso = old.peso;                                                                              // 0065: el peso ya no se elige
+    if (nuevo.nivel !== undefined && nuevo.nivel !== old.nivel && !esAdmin()) throw new Error('Solo la administración cambia el nivel de una tarea (en una iniciativa define quién la evalúa).');
+    if (nuevo.tipo_entrega !== undefined && nuevo.tipo_entrega !== old.tipo_entrega && ['entregada', 'aprobada'].includes(old.estado) && !esAdmin()) throw new Error('El tipo de entrega no se cambia una vez entregada la tarea.');
     if (nuevo.estado !== old.estado) {
       const ok = rev ? (old.estado === 'entregada' && ['aprobada', 'devuelta'].includes(nuevo.estado)) || (esAdmin() && nuevo.estado === 'entregada') || nuevo.estado === 'en_curso' || nuevo.estado === 'bloqueada'
                      : ['en_curso', 'entregada', 'bloqueada'].includes(nuevo.estado);
@@ -261,7 +290,7 @@
             const ok = del.filter(c => { if (criterioUsado(c.key)) throw new Error('El criterio ' + c.key + ' esta en uso: solo se puede desactivar.'); return true; });
             ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok;
           }
-          else if (this.t === 'banco_imagenes') { const ok = del.filter(r => esAdmin() || r.creado_por === meId); ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok; }
+          else if (this.t === 'recursos') { const ok = del.filter(r => esAdmin() || r.creado_por === meId); ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok; }
           else { del.forEach(r => rows.splice(rows.indexOf(r), 1)); out = del; }
         } else {
           out = visibles(this.t, rows).filter(r => this.fs.every(f => f(r)));
@@ -290,6 +319,10 @@
           const perm = permitidos(p.asignada_a);
           if (!perm.includes(Number(p.rol_id))) { if (esAdmin()) p.rol_excepcion = true; else throw new Error('Esa persona no tiene permitido ese rol: pide a la administracion que se lo habilite o elige otro.'); }
         }
+        // 0065: peso fijo, nivel y quién evalúa
+        p.peso = 1; p.tipo_entrega = p.tipo_entrega || null;
+        if (p.origen === 'propia') { p.nivel = (esAdmin() || esSec()) ? 'regional' : (p.nivel === 'distrital' && distritoTieneSec(prof.distrito)) ? 'distrital' : 'regional'; }
+        else p.nivel = esAdmin() ? (p.nivel === 'distrital' ? 'distrital' : 'regional') : 'distrital';
         rows.push(p); DB.tarea_eventos.push({ id: seq.ev++, tarea_id: p.id, actor_id: meId, tipo: 'creada', a: 'asignada', motivo: p.origen, created_at: ahora() });
         return p;
       }
@@ -301,12 +334,11 @@
         Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, r.id), 0) + 1, orden: p.orden || rows.reduce((m, r) => Math.max(m, r.orden), 0) + 1, created_by: meId, created_at: ahora() });
         rows.push(p); return p;
       }
-      if (this.t === 'banco_imagenes') {
-        if (!/^https?:\/\/[^\s]+$/i.test(String(p.enlace || ''))) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_enlace_check"');
-        if (String(p.titulo || '').trim().length < 3) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_titulo_check"');
+      if (this.t === 'recursos') {
+        validarRecurso(p, 'new row for relation "recursos" violates check constraint');
         const yo = me();
-        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, gestion_id: p.gestion_id ?? 1, creado_por: meId, rol_id: yo?.rol_id ?? null, distrito: yo?.distrito ?? null,
-          descripcion: p.descripcion || '', evento: p.evento || '', created_at: ahora(), updated_at: ahora() });
+        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, gestion_id: p.gestion_id ?? 1, creado_por: meId, rol_id: yo?.rol_id ?? null, distrito: yo?.distrito ?? null, banco_id: null,
+          tipo: p.tipo || 'imagen', descripcion: p.descripcion || '', evento: p.evento || '', categoria: p.categoria || '', etiquetas: p.etiquetas || [], created_at: ahora(), updated_at: ahora() });
         rows.push(p); return p;
       }
       if (this.t === 'actividades' || this.t === 'etiquetas') {
@@ -382,10 +414,10 @@
         Object.assign(r, this.pl); return r;
       }
       if (this.t === 'tareas') { const n = validarTarea(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
-      if (this.t === 'banco_imagenes') {
+      if (this.t === 'recursos') {
         if (!esAdmin() && r.creado_por !== meId) return r;   // RLS: 0 filas afectadas, sin error
-        const n = { ...this.pl }; delete n.creado_por; delete n.rol_id; delete n.distrito; delete n.gestion_id;
-        if (n.enlace != null && !/^https?:\/\/[^\s]+$/i.test(String(n.enlace))) throw new Error('violates check constraint "banco_imagenes_enlace_check"');
+        const n = { ...this.pl }; delete n.creado_por; delete n.rol_id; delete n.distrito; delete n.gestion_id; delete n.banco_id;
+        validarRecurso({ ...r, ...n }, 'violates check constraint');
         Object.assign(r, n, { updated_at: ahora() }); return r;
       }
       if (this.t === 'actividades' && !esAdmin() && !(esSec() && r.distrito === me().distrito)) throw new Error('row-level security');
@@ -490,6 +522,7 @@
   const nombreRol = id => DB.roles.find(r => r.id === id)?.nombre ?? null;
   const RPC = {
     hay_gestion_abierta: () => true,
+    registro_opciones: () => ({ distritos: [{ id: '08-01', nombre: 'Distrito 08-01' }, { id: '08-02', nombre: 'Distrito 08-02' }, { id: 'EXT', nombre: 'EXT' }], roles: [{ id: 1, nombre: 'Fotografía' }, { id: 2, nombre: 'Redacción' }, { id: 3, nombre: 'Dirección' }] }),
     // ── 0021 ──
     personas_asignables: ({ p_periodo, p_rol }) => {
       if (!meId) throw new Error('Se requiere sesion.');
@@ -670,16 +703,21 @@
   DB.tarea_equipo_eventos = [];
   DB.calificaciones_historial = [];
   DB.periodo_calif_config = [
-    { periodo_id: P.pe2, peso_tareas: 20, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, confirmado: false },
-    { periodo_id: P.pe3, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, confirmado: true },
+    { periodo_id: P.pe2, peso_tareas: 20, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, mult_distrital: 1, mult_regional: 1, confirmado: false },
+    { periodo_id: P.pe3, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, sin_tareas_pierde_puntos: false, mult_distrital: 1, mult_regional: 1, confirmado: true },
   ];
   DB.periodo_calif_config_hist = [];
   seq.teq = 1; seq.ap = 1; seq.hn = 1; seq.eqi = 100;
-  DB.tareas.forEach(t => { t.peso = 1; t.puntos = t.puntos ?? null; t.puntos_original = t.puntos ?? null; t.nota_anulada_en = null; });
+  DB.tareas.forEach(t => { t.peso = 1; t.puntos = t.puntos ?? null; t.puntos_original = t.puntos ?? null; t.nota_anulada_en = null;
+    // 0065: nivel y tipo de entrega de lo que ya existía (mismo criterio que la migración)
+    const quien = DB.profiles.find(p => p.id === t.asignada_a);
+    t.nivel = t.origen === 'propia' ? (quien && !quien.es_admin && quien.tipo_miembro !== 'secretario' && distritoTieneSec(quien.distrito) ? 'distrital' : 'regional')
+      : (!t.asignada_por || DB.profiles.find(p => p.id === t.asignada_por)?.es_admin ? 'regional' : 'distrital');
+    t.tipo_entrega = t.entrega_url ? (/youtu|vimeo/.test(t.entrega_url) ? 'video' : /\.(png|jpe?g|gif)/.test(t.entrega_url) ? 'imagen' : /docs\.|\.pdf|\/d\//.test(t.entrega_url) ? 'documento' : 'enlace') : null; });
   { const g = DB.tareas.find(t => t.titulo === 'Guía de encuadres'); if (g) { g.puntos = 9; g.puntos_original = 9; } }
   const nuevaTE = o => { const t = { id: seq.teq++, equipo_id: 1, periodo_id: P.pe2, titulo: 'Tarea de equipo', descripcion: '', instrucciones: '', criterios_evaluacion: '', criterios: [], prioridad: 'normal',
     responsable_id: null, asignada_por: U.admin, asignada_en: ahora(), fecha_limite: dia(6), fecha_limite_original: undefined, estado: 'asignada', entrega_url: null, entrega_nota: null, entregada_por: null, entregada_en: null,
-    revision_nota: null, bloqueo_motivo: null, rondas_revision: 0, aprobada_en: null, aprobada_por: null, puntos: null, puntos_original: null, peso: 1, nota_anulada_en: null, nota_anulada_motivo: null,
+    revision_nota: null, bloqueo_motivo: null, rondas_revision: 0, aprobada_en: null, aprobada_por: null, puntos: null, puntos_original: null, peso: 1, nivel: 'distrital', tipo_entrega: null, nota_anulada_en: null, nota_anulada_motivo: null,
     anulada_en: null, anulacion_motivo: null, created_at: ahora(), updated_at: ahora(), ...o };
     if (t.fecha_limite_original === undefined) t.fecha_limite_original = t.fecha_limite;
     DB.tareas_equipo.push(t);
@@ -702,7 +740,8 @@
   const veTE = t => esAdmin() || DB.tarea_equipo_participantes.some(p => p.tarea_id === t.id && p.persona_id === meId) || t.responsable_id === meId || eqVisible(DB.equipos.find(x => x.id === t.equipo_id));
   const avanceTE = t => t.estado === 'anulada' ? null : ['aprobada', 'entregada'].includes(t.estado) ? 100 : (DB.tarea_equipo_aportes.filter(a => a.tarea_id === t.id && a.tipo === 'avance').sort((a, b) => b.id - a.id)[0]?.avance ?? 0);
   const venceTE = t => ['asignada', 'en_curso'].includes(t.estado) && !t.entregada_en && t.fecha_limite && t.fecha_limite < hoyISO;
-  const cfgP = pid => DB.periodo_calif_config.find(c => c.periodo_id === pid) || { periodo_id: pid, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, confirmado: false };
+  const cfgP = pid => DB.periodo_calif_config.find(c => c.periodo_id === pid) || { periodo_id: pid, peso_tareas: 0, mult_individual: 1, mult_colectiva: 1, minimo_tareas: 1, contar_propias: true, vencidas_como_cero: false, mult_distrital: 1, mult_regional: 1, confirmado: false };
+  const multNivel = (nivel, origen, c) => origen === 'propia' ? 1 : nivel === 'distrital' ? (c.mult_distrital ?? 1) : (c.mult_regional ?? 1);
 
   /** Piezas candidatas de la nota de tareas (calif_items): las mismas reglas que 0034. */
   function califItems(pid) {
@@ -715,7 +754,7 @@
       else if (venc) { razon = c.vencidas_como_cero ? 'vencida_como_cero' : 'vencida'; cuenta = c.vencidas_como_cero; }
       else razon = { entregada: 'pendiente_de_evaluacion', bloqueada: 'bloqueada', devuelta: 'devuelta' }[t.estado] || 'en_curso';
       items.push({ persona_id: t.asignada_a, tipo: 'individual', tarea_id: t.id, titulo: t.titulo, equipo_id: null, equipo_nombre: null, estado: t.estado, origen: t.origen, puntos: t.puntos, nota_grupo: null,
-        individual_en_grupo: false, peso_tarea: t.peso, peso_efectivo: t.peso * c.mult_individual, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: !!venc });
+        individual_en_grupo: false, peso_tarea: t.peso * multNivel(t.nivel, t.origen, c), peso_efectivo: t.peso * multNivel(t.nivel, t.origen, c) * c.mult_individual, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: !!venc, nivel: t.nivel });
     });
     DB.tareas_equipo.filter(t => t.periodo_id === pid).forEach(t => {
       DB.tarea_equipo_participantes.filter(p => p.tarea_id === t.id).forEach(p => {
@@ -728,7 +767,7 @@
         else if (venc) { razon = c.vencidas_como_cero ? 'vencida_como_cero' : 'vencida'; cuenta = c.vencidas_como_cero; }
         else razon = { entregada: 'pendiente_de_evaluacion', bloqueada: 'bloqueada', devuelta: 'devuelta' }[t.estado] || 'en_curso';
         items.push({ persona_id: p.persona_id, tipo: 'equipo', tarea_id: t.id, titulo: t.titulo, equipo_id: t.equipo_id, equipo_nombre: DB.equipos.find(e => e.id === t.equipo_id)?.nombre, estado: t.estado, origen: 'grupal',
-          puntos: pts, nota_grupo: t.puntos, individual_en_grupo: p.puntos_individual != null, peso_tarea: t.peso, peso_efectivo: t.peso * c.mult_colectiva, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: venc });
+          puntos: pts, nota_grupo: t.puntos, individual_en_grupo: p.puntos_individual != null, peso_tarea: t.peso * multNivel(t.nivel, 'grupal', c), peso_efectivo: t.peso * multNivel(t.nivel, 'grupal', c) * c.mult_colectiva, cuenta, razon, fecha_limite: t.fecha_limite, aprobada_en: t.aprobada_en, vencida: venc, nivel: t.nivel });
       });
     });
     return items;
@@ -814,7 +853,7 @@
         criterios_evaluacion: t.criterios_evaluacion, criterios: t.criterios, prioridad: t.prioridad, estado: t.estado, fecha_limite: t.fecha_limite, fecha_limite_original: t.fecha_limite_original, asignada_en: t.asignada_en,
         responsable_id: t.responsable_id, responsable_nombre: nomP(t.responsable_id), avance: avanceTE(t), participantes: DB.tarea_equipo_participantes.filter(p => p.tarea_id === t.id && !p.hasta).length,
         aportes: DB.tarea_equipo_aportes.filter(a => a.tarea_id === t.id).length, entrega_url: t.entrega_url, entrega_nota: t.entrega_nota, entregada_por: t.entregada_por, entregada_por_nombre: nomP(t.entregada_por),
-        entregada_en: t.entregada_en, revision_nota: t.revision_nota, bloqueo_motivo: t.bloqueo_motivo, rondas_revision: t.rondas_revision, puntos: t.puntos, puntos_original: t.puntos_original, peso: t.peso,
+        entregada_en: t.entregada_en, revision_nota: t.revision_nota, bloqueo_motivo: t.bloqueo_motivo, rondas_revision: t.rondas_revision, puntos: t.puntos, puntos_original: t.puntos_original, peso: t.peso, nivel: t.nivel, tipo_entrega: t.tipo_entrega,
         nota_anulada: !!t.nota_anulada_en, aprobada_en: t.aprobada_en, vencida: venceTE(t), soy_participante: partVig(t.id), puedo_revisar: revisaTE(t) })).sort((a, b) => (a.fecha_limite || '9') < (b.fecha_limite || '9') ? -1 : 1); },
     tarea_equipo_aportar: a => { const t = DB.tareas_equipo.find(x => x.id === a.p_tarea); if (!t || !veTE(t)) throw new Error('No tienes acceso a esta tarea.');
       if (!partVig(t.id) && !(revisaTE(t) && a.p_tipo === 'comentario')) throw new Error(a.p_tipo === 'comentario' ? 'No tienes acceso a esta tarea.' : 'Quien revisa deja comentarios; los avances y evidencias los aportan los integrantes.');
@@ -828,8 +867,8 @@
         aportes: DB.tarea_equipo_aportes.filter(a => a.tarea_id === p_tarea && a.persona_id === p.persona_id).length, ultimo_aporte: DB.tarea_equipo_aportes.filter(a => a.tarea_id === p_tarea && a.persona_id === p.persona_id).map(a => a.created_at).sort().pop() ?? null,
         entrego: t.entregada_por === p.persona_id, es_responsable: t.responsable_id === p.persona_id, puntos_individual: revisaTE(t) || p.persona_id === meId ? p.puntos_individual : null, individual_motivo: null })); },
     equipo_resultados: ({ p_equipo }) => { const e = DB.equipos.find(x => x.id === p_equipo); if (!e || !eqVisible(e)) return [];
-      const ap = DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado === 'aprobada' && t.puntos != null && !t.nota_anulada_en), sp = ap.reduce((a, t) => a + t.peso, 0);
-      const filas = [{ persona_id: null, nombre: 'Equipo', tareas_cuentan: ap.length, tareas_total: DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado !== 'anulada').length, nota: sp ? num(100 * ap.reduce((a, t) => a + t.peso * t.puntos / 10, 0) / sp) : null, con_nota_individual: 0 }];
+      const ap = DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado === 'aprobada' && t.puntos != null && !t.nota_anulada_en), cE = cfgP(e.periodo_id), pe = t => t.peso * multNivel(t.nivel, 'grupal', cE), sp = ap.reduce((a, t) => a + pe(t), 0);
+      const filas = [{ persona_id: null, nombre: 'Equipo', tareas_cuentan: ap.length, tareas_total: DB.tareas_equipo.filter(t => t.equipo_id === p_equipo && t.estado !== 'anulada').length, nota: sp ? num(100 * ap.reduce((a, t) => a + pe(t) * t.puntos / 10, 0) / sp) : null, con_nota_individual: 0 }];
       eqVig(p_equipo).forEach(m => { if (!puedeVer(m.persona_id)) return; const it = califItems(e.periodo_id).filter(i => i.persona_id === m.persona_id && i.equipo_id === p_equipo), cu = it.filter(i => i.cuenta), s = cu.reduce((a, i) => a + i.peso_tarea, 0);
         filas.push({ persona_id: m.persona_id, nombre: nomP(m.persona_id), tareas_cuentan: cu.length, tareas_total: it.filter(i => i.razon !== 'tarea_anulada').length, nota: s ? num(100 * cu.reduce((a, i) => a + i.peso_tarea * i.puntos / 10, 0) / s) : null, con_nota_individual: cu.filter(i => i.individual_en_grupo).length }); });
       return filas; },
@@ -863,7 +902,10 @@
       if (a.p_peso_tareas < 0 || a.p_peso_tareas > 100) throw new Error('El peso de las tareas va de 0 a 100 %.');
       const pub = DB.evaluaciones.some(e => e.periodo_id === a.p_periodo && e.estado === 'publicado'); if (pub && (a.p_motivo || '').trim().length < 5) throw new Error('Ya hay evaluaciones publicadas: cambiar las reglas cambia sus resultados; explica el motivo (minimo 5 caracteres).');
       let c = DB.periodo_calif_config.find(x => x.periodo_id === a.p_periodo); if (!c) DB.periodo_calif_config.push(c = { periodo_id: a.p_periodo });
-      Object.assign(c, { peso_tareas: a.p_peso_tareas, mult_individual: a.p_mult_individual, mult_colectiva: a.p_mult_colectiva, minimo_tareas: a.p_minimo_tareas, contar_propias: a.p_contar_propias, vencidas_como_cero: a.p_vencidas_como_cero, sin_tareas_pierde_puntos: !!a.p_sin_tareas_pierde_puntos, confirmado: true }); return null; },
+      Object.assign(c, { peso_tareas: a.p_peso_tareas, mult_individual: a.p_mult_individual, mult_colectiva: a.p_mult_colectiva, minimo_tareas: a.p_minimo_tareas, contar_propias: a.p_contar_propias, vencidas_como_cero: a.p_vencidas_como_cero, sin_tareas_pierde_puntos: !!a.p_sin_tareas_pierde_puntos, confirmado: true,
+        mult_distrital: a.p_mult_distrital ?? c.mult_distrital ?? 1, mult_regional: a.p_mult_regional ?? c.mult_regional ?? 1 });
+      if ((a.p_mult_distrital != null && a.p_mult_distrital <= 0) || (a.p_mult_regional != null && a.p_mult_regional <= 0)) throw new Error('Las ponderaciones por nivel deben ser mayores que 0.'); return null; },
+    mi_instancia_distrital_disponible: () => !esAdmin() && !esSec() && distritoTieneSec(me().distrito),
     tareas_calificacion_detalle: ({ p_periodo, p_persona }) => { const p = p_persona || meId; if (!puedeVer(p)) return [];
       const c = cfgP(p_periodo), it = califItems(p_periodo).filter(i => i.persona_id === p), s = it.filter(i => i.cuenta).reduce((a, i) => a + i.peso_efectivo, 0);
       return it.map(i => ({ ...i, aporte_pct: i.cuenta ? num(100 * i.peso_efectivo / s) : null, aporte_puntos: i.cuenta ? num(100 * i.peso_efectivo * (i.puntos ?? 0) / 10 / s) : null })).sort((a, b) => Number(b.cuenta) - Number(a.cuenta)); },
@@ -906,6 +948,8 @@
   /** Transiciones de tareas colectivas (resumen de 0032). */
   function validarTE(old, nuevo) {
     const part = partVig(old.id), rev = revisaTE(old);
+    nuevo.peso = old.peso;                                                                           // 0065
+    if (nuevo.nivel !== undefined && nuevo.nivel !== old.nivel && !esAdmin()) throw new Error('Solo la administración cambia el nivel de una tarea.');
     if (['aprobada', 'anulada'].includes(old.estado) && !esAdmin()) throw new Error(`Una tarea ${old.estado} no se modifica.`);
     if (nuevo.estado !== old.estado) {
       const okP = (old.estado === 'asignada' && ['en_curso', 'entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'en_curso' && ['entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'devuelta' && ['en_curso', 'entregada', 'bloqueada'].includes(nuevo.estado)) || (old.estado === 'bloqueada' && nuevo.estado === 'en_curso');
@@ -929,7 +973,8 @@
       if (!e || !(esAdmin() || (esSec() && e.distrito && e.distrito === me().distrito))) throw new Error('new row violates row-level security policy for table "tareas_equipo"');
       if (e.estado !== 'activo') throw new Error('Solo se asignan tareas a un equipo activo.');
       if (!eqVig(e.id).length) throw new Error('El equipo no tiene integrantes vigentes.');
-      return nuevaTE({ ...p, periodo_id: e.periodo_id, asignada_por: meId, fecha_limite_original: p.fecha_limite || null });
+      return nuevaTE({ ...p, periodo_id: e.periodo_id, asignada_por: meId, fecha_limite_original: p.fecha_limite || null,
+        peso: 1, nivel: esAdmin() ? (p.nivel === 'distrital' ? 'distrital' : 'regional') : 'distrital', tipo_entrega: p.tipo_entrega || null });
     }
     return this._insertBase(p);
   };

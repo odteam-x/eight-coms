@@ -480,13 +480,13 @@ console.log('\n[acceso: llamadas a Auth y Panel]');
   ok(/r\.min === 1 && r\.max === 5 \? estrellasHTML\(v, 5\)/.test(fs.readFileSync(ROOT + 'core/perfil.js', 'utf8')), 'estrellas: solo en criterios de escala 1–5, con la nota real');
   ok(/medallaSVG\(n\)/.test(rj2) && /Puesto \$\{n\}/.test(rec), 'medallas: oro/plata/bronce con etiqueta accesible de puesto');
   ok(!/https?:\/\//.test(rec.replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')), 'reconocimientos: SVG propios, sin recursos remotos');
-  // Banco de imágenes (0058): enlaces, nunca archivos; http(s) obligatorio; pestaña nueva sin referrer; acciones por la lista blanca.
-  const bj = fs.readFileSync(ROOT + 'core/banco.js', 'utf8'), cj = fs.readFileSync(ROOT + 'config.js', 'utf8');
-  for (const f of ['user.html', 'secretario.html', 'admin.html']) { const h = fs.readFileSync(ROOT + f, 'utf8'); ok(/core\/banco\.js/.test(h) && /id="tab-banco"/.test(h) && /id="banco-host"/.test(h), f + ': tiene la pestaña y carga core/banco.js'); }
-  ok(/banco:\s+\(a, el\) => Banco\.accion/.test(cj) && /'bancoFiltrar'/.test(cj), 'banco: acción y filtro registrados en config.js (lista blanca)');
-  ok(/rel="noopener noreferrer"/.test(bj) && /target="_blank"/.test(bj) && /\^https\?:\\\/\\\//.test(bj), 'banco: el enlace se abre en pestaña nueva con noopener noreferrer y solo si es http(s)');
-  ok(!/onclick=/.test(bj) && !/\$\{r\.(titulo|descripcion|evento|enlace)\}/.test(bj), 'banco: sin onclick y sin interpolar texto humano sin escHtml');
-  ok(/'tab-banco'|tab === 'banco'/.test(fs.readFileSync(ROOT + 'admin.js', 'utf8')), 'banco: el admin lo monta al abrir la pestaña');
+  // Recursos (0071, antes Banco de imágenes 0058): enlaces, colores y tipografías, nunca archivos; http(s) obligatorio; pestaña nueva sin referrer; acciones por la lista blanca.
+  const bj = fs.readFileSync(ROOT + 'core/recursos.js', 'utf8'), cj = fs.readFileSync(ROOT + 'config.js', 'utf8');
+  for (const f of ['user.html', 'secretario.html', 'admin.html']) { const h = fs.readFileSync(ROOT + f, 'utf8'); ok(/core\/recursos\.js/.test(h) && /id="tab-recursos"/.test(h) && /id="recursos-host"/.test(h) && !/core\/banco\.js/.test(h), f + ': tiene la pestaña Recursos y carga core/recursos.js'); }
+  ok(/recursos:\s+\(a, el\) => Recursos\.accion/.test(cj) && /'recursosFiltrar'/.test(cj) && !/Banco\./.test(cj), 'recursos: acción y filtro registrados en config.js (lista blanca)');
+  ok(/rel="noopener noreferrer"/.test(bj) && /target="_blank"/.test(bj) && /\^https\?:\\\/\\\//.test(bj), 'recursos: el enlace se abre en pestaña nueva con noopener noreferrer y solo si es http(s)');
+  ok(!/onclick=/.test(bj) && !/\$\{r\.(titulo|descripcion|evento|categoria)\}/.test(bj) && !/<img/.test(bj), 'recursos: sin onclick, sin <img> remoto y sin interpolar texto humano sin escHtml');
+  ok(/tab === 'recursos'/.test(fs.readFileSync(ROOT + 'admin.js', 'utf8')), 'recursos: el admin lo monta al abrir la pestaña');
   ok(!/medal-2-fill/.test(rj2), 'medallas: el puesto es un número en un disco, sin icono-medalla');
   ok(/es-info/.test(lj) &&/\.login-err\.es-info/.test(vc), 'acceso: «cuenta pendiente» se presenta como información, no como error');
 }
