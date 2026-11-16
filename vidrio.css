@@ -1063,7 +1063,7 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .tk-card .tk-acciones .tk-btn--main { background: var(--v-fill2); border-color: transparent; }
 .tk-card .tk-acciones .tk-btn:hover { background: var(--v-fill2); border-color: var(--v-line); }
 .tk-card .tk-acciones .tk-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
-@media (max-width: 640px) { .tk-lista { grid-auto-rows: auto; } }
+@media (max-width: 640px) { .tk-lista { grid-auto-rows: auto; } .tk-card { min-height: 0; } }
 
 /* §49 Cabecera de pantalla: el rótulo de arriba («MI ESPACIO») se separa del icono y del título grande, y el texto de introducción respira. */
 .pantalla-cab > h1[data-grupo]::before { margin-bottom: 16px; }
@@ -1075,3 +1075,7 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .tk-card .tk-mas-todo { display: block; -webkit-line-clamp: unset; overflow: auto; max-height: 40vh; }
 .tk-card .tk-entrega { align-items: flex-start; }
 .tk-card .tk-entrega .tk-mas { flex: 1 1 100%; }
+
+/* §52 Icono del ítem activo del menú: sobre la píldora blanca va del mismo color oscuro que el texto (antes celeste, ilegible en oscuro y rosa); en claro, el del texto activo. */
+.rail .rail-item.active .rail-ico, .rail .rail-item.active svg { color: var(--v-navy); stroke: currentColor; opacity: 1; }
+[data-theme="light"] .rail .rail-item.active .rail-ico, [data-theme="light"] .rail .rail-item.active svg { color: var(--v-activo-txt); }

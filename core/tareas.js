@@ -45,6 +45,8 @@ const Tareas = (() => {
   };
   /** ¿Puede esta persona aprobar/devolver esta tarea? (la base lo impone; esto solo decide qué botones se ofrecen). */
   const puedeRevisar = (t, c) => !!c.revisor && (c.esAdmin || (t.asignada_a !== c.yo && !(t.origen === 'propia' && t.nivel === 'regional')));
+  /** Texto del botón que abre el enlace de la entrega, según su tipo. */
+  const enlaceTxt = t => ({ enlace: 'Abrir enlace', documento: 'Abrir documento', imagen: 'Ver imagen', video: 'Ver video', otro: 'Abrir entrega' }[t.tipo_entrega] || 'Abrir enlace');
   /** La entrega, con su tipo: el enlace se abre según lo que es. */
   function entregaHTML(t) {
     if (!(t.entrega_url || t.entrega_nota)) return '';
@@ -52,8 +54,7 @@ const Tareas = (() => {
     const txt = { enlace: 'Abrir enlace', documento: 'Abrir documento', imagen: 'Ver imagen', video: 'Ver video', otro: 'Abrir entrega' }[tipo] || 'Ver entrega';
     return `<div class="tk-entrega">
         ${tipo ? `<span class="tk-tag tk-tag--tipo" title="Tipo de entrega">${escHtml(TIPOS_ENTREGA[tipo])}</span>` : ''}
-        ${t.entrega_url ? `<a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">${txt}</a>` : ''}
-        ${t.entrega_nota ? textoLargoHTML(t.entrega_nota, { max: 110, clase: 'tk-desc tk-entrega-nota' }) : ''}
+        ${t.entrega_nota ? textoLargoHTML(t.entrega_nota, { max: 80, clase: 'tk-desc tk-entrega-nota' }) : ''}
       </div>`;
   }
   const ABIERTAS  = ['asignada', 'en_curso', 'devuelta', 'bloqueada'];
@@ -155,12 +156,13 @@ const Tareas = (() => {
           ${t.prioridad !== 'normal' ? `<span class="tk-tag tk-tag--${t.prioridad}">Prioridad ${PRIORIDAD[t.prioridad].toLowerCase()}</span>` : ''}
           ${plazoHTML(t)}
         </div>
-        ${textoLargoHTML(t.descripcion, { max: 140 })}
+        ${textoLargoHTML(t.descripcion, { max: 90 })}
         ${crit.length ? `<p class="tk-crit">Evidencia: ${escHtml(crit.join(' · '))}</p>` : ''}
         ${t.estado === 'devuelta' && t.revision_nota ? `<div class="tk-aviso tk-aviso--devuelta" role="note"><strong>Corregir:</strong> ${escHtml(t.revision_nota)}</div>` : ''}
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<div class="tk-aviso" role="note"><strong>En pausa:</strong> ${escHtml(t.bloqueo_motivo)}</div>` : ''}
         ${t.estado !== 'asignada' && t.estado !== 'en_curso' ? entregaHTML(t) : ''}
         <div class="tk-acciones">
+          ${t.entrega_url && /^https?:[/][/]/i.test(t.entrega_url) ? `<a class="tk-btn tk-btn--main tk-btn--abrir" href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer" title="${escHtml(t.entrega_url)}">${enlaceTxt(t)}</a>` : ''}
           ${acciones.map(x => `<button type="button" class="tk-btn${x.primario ? ' tk-btn--main' : ''}"
             data-act="tkAccion" data-arg="${x.a}" data-arg2="${t.id}">${x.txt}</button>`).join('')}
         </div>
