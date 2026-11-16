@@ -660,7 +660,7 @@ const Tareas = (() => {
       </section>`;
   }
 
-  return { montar, nueva, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML, NIVELES, EVALUA, TIPOS_ENTREGA, OPC_TIPO, tipoSugerido, entregaHTML, puedeRevisar };
+  return { montar, nueva, recargar, accion, confirmar, filtro, filtroPersona, evidenciaHTML, abrirModal, ESTADOS, plazoHTML, NIVELES, EVALUA, TIPOS_ENTREGA, OPC_TIPO, tipoSugerido, entregaHTML, enlaceTxt, puedeRevisar };
 })();
 
 /* Globales de la lista blanca de config.js (data-act="fn" / data-change). */

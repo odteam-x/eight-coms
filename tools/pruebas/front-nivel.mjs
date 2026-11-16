@@ -54,16 +54,16 @@ const g2 = llamadas.find(l => l[0] === 'calif_config_guardar')[1];
 ok(!('p_mult_distrital' in g2) && !('p_mult_regional' in g2), 'sin 0065 (config sin mult_distrital) no manda parámetros que la función no conoce');
 
 // ── core/tareas.js: ayudantes ──
-const ctxT = vm.createContext({ escHtml: esc, console, document: { body: { classList: { contains: () => false } } }, Store: { get: () => [] }, API: {} });
+const ctxT = vm.createContext({ escHtml: esc, textoLargoHTML: (t, o = {}) => `<p class="${o.clase || "tk-desc"}">${esc(String(t || ""))}</p>`, console, document: { body: { classList: { contains: () => false } } }, Store: { get: () => [] }, API: {} });
 vm.runInContext(rd('core/tareas.js').replace(/^'use strict';/m, '') + '\nglobalThis.__T = Tareas;', ctxT);
 const T = ctxT.__T;
 
 console.log('\n[tipo de entrega]');
 ok(T.tipoSugerido('https://www.youtube.com/watch?v=1') === 'video' && T.tipoSugerido('https://x.com/a.png') === 'imagen' && T.tipoSugerido('https://docs.google.com/document/d/1') === 'documento' && T.tipoSugerido('https://drive.example/carpeta') === 'enlace' && T.tipoSugerido('') === '', 'el tipo se sugiere según el enlace (video, imagen, documento, enlace)');
 const h1 = T.entregaHTML({ entrega_url: 'https://y.be/1', tipo_entrega: 'video', entrega_nota: 'Corte final' });
-ok(/tk-tag--tipo[^>]*>Video</.test(h1) && />Ver video</.test(h1) && /href="https:\/\/y\.be\/1"/.test(h1) && /rel="noopener noreferrer"/.test(h1), 'la entrega muestra su tipo como etiqueta y el enlace dice «Ver video»');
-ok(/>Abrir documento</.test(T.entregaHTML({ entrega_url: 'https://d/1', tipo_entrega: 'documento' })) && />Ver imagen</.test(T.entregaHTML({ entrega_url: 'https://d/2', tipo_entrega: 'imagen' })), 'documento → «Abrir documento»; imagen → «Ver imagen»');
-ok(/>Ver entrega</.test(T.entregaHTML({ entrega_url: 'https://d/3' })) && !/tk-tag--tipo/.test(T.entregaHTML({ entrega_url: 'https://d/3' })), 'una entrega anterior sin tipo sigue diciendo «Ver entrega» y no inventa etiqueta');
+ok(/tk-tag--tipo[^>]*>Video</.test(h1) && /Corte final/.test(h1) && !/href=/.test(h1) && T.enlaceTxt({ tipo_entrega: 'video' }) === 'Ver video', 'la entrega muestra su tipo y su nota; el enlace es el botón de acción «Ver video» de la tarjeta');
+ok(T.enlaceTxt({ tipo_entrega: 'documento' }) === 'Abrir documento' && T.enlaceTxt({ tipo_entrega: 'imagen' }) === 'Ver imagen', 'documento → «Abrir documento»; imagen → «Ver imagen»');
+ok(T.enlaceTxt({}) === 'Abrir enlace' && !/tk-tag--tipo/.test(T.entregaHTML({ entrega_url: 'https://d/3' })), 'una entrega anterior sin tipo no inventa etiqueta');
 ok(!/<img|<script/.test(T.entregaHTML({ entrega_url: 'https://d/"><script>', tipo_entrega: 'otro', entrega_nota: '<img src=x>' })), 'el enlace y la nota se escapan (nada humano llega sin escapar)');
 ok(T.entregaHTML({}) === '', 'sin entrega no se pinta nada');
 
