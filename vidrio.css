@@ -1053,3 +1053,14 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .pf-card .empty-box, .pf-card .pf-vacio { background: none; padding-inline: 0; }
 .pf-card + .pf-card, .pf-card + .acordeon, .acordeon + .pf-card, .des-grupo-t + .pf-card { margin-top: var(--sp-4); }
 .des-grupo-t { margin-top: var(--sp-6); }
+
+/* §48 Tarjetas de tareas: mismo alto en cada lista, descripción corta y botones ordenados en cuadrícula de 2 columnas (el hover solo cambia el fondo). */
+.tk-lista { grid-auto-rows: 1fr; }
+.tk-card { gap: var(--sp-3); }
+.tk-card .tk-desc, .tk-card .tk-mas-vista { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.tk-card .tk-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.tk-card .tk-acciones .tk-btn { width: 100%; min-height: 40px; justify-content: center; text-align: center; border: 1px solid var(--v-line); background: transparent; }
+.tk-card .tk-acciones .tk-btn--main { background: var(--v-fill2); border-color: transparent; }
+.tk-card .tk-acciones .tk-btn:hover { background: var(--v-fill2); border-color: var(--v-line); }
+.tk-card .tk-acciones .tk-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (max-width: 640px) { .tk-lista { grid-auto-rows: auto; } }
