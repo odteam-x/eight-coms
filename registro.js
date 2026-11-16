@@ -110,9 +110,20 @@ async function doRegister() {
   if (pass.length < 8)  { err.textContent='La contraseña debe tener al menos 8 caracteres.'; err.classList.add('visible'); return; }
   if (pass !== pass2)   { err.textContent='Las contraseñas no coinciden.'; err.classList.add('visible'); return; }
 
+  // Solicitud (0070): distrito, tipo de acceso y hasta 2 roles. Solo si el formulario los muestra (la base los ofrece).
+  const sol = document.getElementById('r-solicitud');
+  let extra = {};
+  if (sol && !sol.hidden) {
+    const distrito = document.getElementById('r-distrito').value, rol = document.getElementById('r-rol').value, rol2 = document.getElementById('r-rol2').value;
+    if (!distrito) { err.textContent='Elige tu distrito.'; err.classList.add('visible'); return; }
+    if (!rol)      { err.textContent='Elige el rol con el que quieres que te evalúen.'; err.classList.add('visible'); return; }
+    if (rol2 && rol2 === rol) { err.textContent='El segundo rol debe ser distinto del primero.'; err.classList.add('visible'); return; }
+    extra = { distrito, rol_id: rol, rol2_id: rol2 || null };   // solo miembro: secretaría y administración las asigna la administración
+  }
+
   cargando(btn, true, 'Creando cuenta…');
 
-  const res = await API.register({ email, password: pass, nombre });
+  const res = await API.register({ email, password: pass, nombre, ...extra });
 
   cargando(btn, false);
 
@@ -122,6 +133,21 @@ async function doRegister() {
 }
 
 if(typeof lucide!=='undefined') lucide.createIcons();
+
+/* ── Solicitud de acceso: distrito, tipo y roles ──────────────────────
+ * Las opciones salen de registro_opciones() (migración 0070, pública y de solo lectura). Si la función no existe todavía, el
+ * bloque queda oculto y el registro funciona como siempre (la administración asigna todo al aprobar). */
+(async function cargarOpcionesRegistro() {
+  const sol = document.getElementById('r-solicitud');
+  if (!sol || typeof API === 'undefined' || !API.getOpcionesRegistro) return;
+  const o = await API.getOpcionesRegistro();
+  if (!o.ok || !o.distritos.length || !o.roles.length) return;
+  const llenar = (id, filas, vacio) => { const s = document.getElementById(id); s.replaceChildren(new Option(vacio, '')); filas.forEach(f => s.appendChild(new Option(f.nombre, f.id))); };
+  llenar('r-distrito', o.distritos.map(d => ({ ...d, nombre: /^ext/i.test(d.id) && !/invitad/i.test(d.nombre || '') ? 'Invitado externo' : d.nombre })), 'Elige tu distrito');
+  llenar('r-rol', o.roles, 'Elige un rol');
+  llenar('r-rol2', o.roles, 'Ninguno');
+  sol.hidden = false;
+})();
 
 /* ── ¿Hay gestión abierta? ─────────────────────────────────────────────
  * Hasta ahora el registro funcionaba aunque no hubiera ninguna gestión

@@ -246,12 +246,12 @@ El capítulo 13 discute si esta distribución sirve a los procesos o si hay cosa
 ### Actividades paso a paso
 
 1. **La persona abre el portal** (`eight-coms.vercel.app`) y elige **Crear cuenta**. Si no hay ninguna gestión abierta, el registro está cerrado (la página lo comprueba con la función pública `hay_gestion_abierta()`, que devuelve un único verdadero/falso).
-2. **Escribe nombre, correo y contraseña.** Una barra de seguridad indica si la contraseña es débil o fuerte (usa los mismos niveles de color y siempre escribe el nivel en texto).
-3. **Se crea la cuenta en Auth.** Un disparador de la base (`on_auth_user_created`) crea la fila de `profiles` con valores **fijos**: `tipo_miembro = 'miembro'`, `es_admin = false`, `distrito`, `rol_id` vacíos y `aprobado = false`. **Lo que el navegador mande no influye.** El nombre es lo único que se toma de los datos de la cuenta; el resto se ignora.
+2. **Escribe nombre y correo, elige su distrito (o «Invitado externo») y el rol con el que quiere que la evalúen (opcionalmente un segundo rol; máximo 2), y pone una contraseña.** Una barra de seguridad indica si la contraseña es débil o fuerte (usa los mismos niveles de color y siempre escribe el nivel en texto).
+3. **Se crea la cuenta en Auth.** Un disparador de la base (`on_auth_user_created`) crea la fila de `profiles` con valores **fijos**: `tipo_miembro = 'miembro'`, `es_admin = false`, `distrito`, `rol_id` vacíos y `aprobado = false`. Lo que la persona eligió se guarda **validado** como **solicitud** (`solicitud_distrito`, `solicitud_rol_id`, `solicitud_rol2_id`; migración 0070). **Nada de eso da permisos.** El nombre es lo único que se toma de los datos de la cuenta; el resto se ignora.
 4. **Llega un correo de confirmación** («Confirmar mi correo»). Lo arma y envía la función `auth-correo` (responde 200 de inmediato y envía en segundo plano, con 3 intentos). Si no llega, la persona debe mirar Spam.
 5. **La persona confirma el correo.** Hasta aquí tiene cuenta pero **no puede entrar**: al intentarlo, el portal cierra la sesión y la devuelve a `index.html?pendiente=1` con el aviso «Tu cuenta está pendiente de aprobación por el administrador».
 6. **La administración se entera**: se genera un aviso `solicitud_acceso` (esencial, campana y correo) y el Panel muestra «Accesos pendientes» en **Requiere atención**.
-7. **La administración abre Personas**, filtra por **Acceso pendiente**, abre a la persona (pestaña **Gestión**) y **aprueba**. En ese mismo lugar fija su **tipo de acceso** (miembro o secretaría), su **distrito**, su **rol** (y roles permitidos) y si **participa** en el período. Cada cambio de privilegios queda en la **auditoría**.
+7. **La administración abre Personas y accesos.** Arriba está la tarjeta **Solicitudes de acceso** (y en el menú, un número junto a «Personas»), con lo que cada persona pidió. **Aprobar** aplica la solicitud (distrito, rol principal y segundo rol) a lo que esté vacío, y la persona entra **ya configurada**. Si quiere cambiar algo, abre la persona (pestaña **Gestión**) antes de aprobar: lo que fije no se pisa. **Secretaría de distrito y administración nunca se piden al registrarse**: las asigna siempre la administración. Cada cambio de privilegios queda en la **auditoría**.
 8. **La persona recibe el aviso** `acceso_aprobado` (esencial) y ya puede entrar.
 
 ### Reglas y bordes
@@ -1020,7 +1020,7 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 
 **Cabecera**: foto, nombre, rol (y segundo rol), **versión del perfil de evaluación**, distrito y el **anillo con la nota** y su cambio frente al período anterior. **Mi gafete** aparece en el perfil propio; la administración ve «Gafete» en cualquier perfil.
 
-**Cinco pestañas internas**:
+**Pestañas internas** (las dos últimas solo en el perfil propio de miembros y secretarías):
 
 | Pestaña | Qué muestra |
 |---|---|
@@ -1029,6 +1029,8 @@ Fuente común: `seguimiento_global()` y `resultados_periodo()`.
 | **Tareas** | Tareas del período (para quien supervisa: lista completa de revisión) |
 | **Períodos** | **Una tarjeta por PE**: tu participación, el estado de tu evaluación y los hechos de tus tareas, y tu equipo si lo hay |
 | **Desempeño** | Evolución, tabla por período y comparar dos períodos propios (reemplaza a *Evolución* en el perfil propio; los perfiles de otras personas conservan *Evolución*) |
+| **Cómo me evalúan** | La rúbrica de tu rol (y de tu segundo rol): cómo se calcula tu resultado, los 5 criterios del núcleo y los técnicos con su peso, cada uno con sus anclas 1-3-5. Se ve aunque aún no haya evaluación publicada |
+| **Mi rol** | Qué se espera de tu rol y tus preferencias de rol (antes estaban en Mi cuenta) |
 
 **Reglas de lectura**: un período **clásico** se muestra en su escala (22/30, nivel por 26/20/11, bono, 7 criterios de 1–4) y **nunca se mezcla** con por roles en un gráfico ni en «cambio frente al período anterior»; su pestaña Tareas dice que el período no usa tareas. Un PE en el que no participaste no aparece.
 
@@ -1654,6 +1656,7 @@ Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviem
 | 0062 | **Dos roles por persona** |
 | 0063 | Tareas propias **En curso** |
 | 0064 | **Sincronización en tiempo real** |
+| 0070 | **Registro con solicitud** (distrito o invitado externo y hasta 2 roles; se aplica al aprobar) |
 | 0071 | **Recursos** (antes banco de imágenes): tipos, evento, etiquetas, partes (enlaces, colores, tipografías); copia el banco sin pérdida |
 
 Huecos de numeración (0027–0029, 0037–0039, 0045–0049): no hay archivos; **no son migraciones perdidas**. `0006_gestion_miembros.PENDIENTE.sql` y `0015_seed_perfiles.PENDIENTE.sql` quedan pendientes a propósito. `supabase-schema.sql` es una **foto histórica**, no la fuente de verdad.

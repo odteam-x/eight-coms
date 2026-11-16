@@ -1097,6 +1097,7 @@ async function selectUsersPE(periodoId, btn) {
 }
 
 async function renderUsuarios() {
+  renderSolicitudes();
   renderPersonasCards();
   const el = document.getElementById('usuarios-list'); if (!el) return;
   const q = (document.getElementById('search-usuarios')?.value || '').toLowerCase().trim();
