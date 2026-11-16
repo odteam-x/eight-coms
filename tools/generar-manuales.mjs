@@ -231,6 +231,21 @@ ${captura('m-calendario', 'Calendario del mes con puntos de colores por tipo y e
 ${pasos(`Abre ${b('Calendario')}. Los puntos de colores marcan lo que hay cada día; el día de hoy está en coral.`, `Toca un día: abajo aparece lo que hay ese día.`, `Toca ${b('+ Mi iniciativa')} para crear una tarea propia con esa fecha.`)}`,
     },
     {
+      id: 'apoyo', titulo: 'Pedir ayuda a un rol',
+      html: `
+<p>¿Necesitas fotos, un texto, un diseño o una mano con algo? Pídelo <b>a un rol</b> y alguien que lo tenga lo toma. No tienes que buscar a quién escribirle.</p>
+${captura('m-apoyo', 'Pantalla Pedir ayuda con el formulario y las pestañas.')}
+${pasos(`Abre ${b('Pedir ayuda')} (en el celular está en ${b('Más')}).`, `Escribe qué necesitas, elige el ${b('rol')} al que se lo pides y, si quieres, la prioridad, la fecha límite y un enlace con más contexto.`, `Elige si se lo pides a ${b('todo el equipo')} o solo a ${b('tu distrito')}, y toca ${b('Pedir ayuda')}. Les avisamos a quienes tienen ese rol.`, `En ${b('Mis pedidos')} ves cómo avanza: abierta, tomada o resuelta. Cuando te avisen que la resolvieron, toca ${b('Confirmar')} si quedó bien o ${b('Reabrir')} contando qué falta.`)}
+<h3>Si alguien te pide ayuda a ti</h3>
+<p>Si tienes ese rol (el principal o el segundo), en ${b('Abiertas para mi rol')} ves los pedidos que puedes tomar y te llega un aviso en la campana (y por correo si lo tienes activado).</p>
+${tabla(['Acción', 'Qué hace'], [
+  [b('Tomar'), 'Te quedas con el pedido. Solo una persona puede tomarlo: si otra se adelantó, te lo dice y la lista se actualiza.'],
+  [b('Marcar resuelta'), 'Avisas a quien pidió. Puedes dejar una nota. Esa persona confirma o lo reabre.'],
+  [b('Soltar'), 'Si no puedes seguir, el pedido vuelve a quedar abierto para otra persona del rol.'],
+  [b('Mis pedidos'), 'Ahí puedes cancelar un pedido tuyo mientras no esté resuelto.']])}
+${nota('consejo', 'Un pedido con título claro y una fecha límite se toma más rápido. El aviso lleva el título, el rol y la fecha, pero no tus detalles: esos se leen dentro del portal.')}`,
+    },
+    {
       id: 'roles', titulo: 'Mi rol y mis preferencias de rol',
       html: `
 <p>En ${b('Mi cuenta')} → ${b('Mi rol y mis preferencias')} hay dos cosas distintas que conviene no confundir:</p>
@@ -368,6 +383,23 @@ ${tabla(['Botón', 'Para qué'], [
         ['Filtro por persona', 'Ver solo las tareas de una persona.']])}
 ${nota('consejo', 'Una tarea con fecha límite «a tiempo» se mide en la <b>primera</b> entrega: corregir una observación no la hace tarde. Así evitas castigar a quien corrige bien.')}
 ${nota('ojo', 'Las tareas solo existen en los períodos de la rúbrica por roles. En los períodos clásicos, esta pestaña lo explica y no deja crear tareas.')}`,
+    },
+    {
+      id: 'apoyo', titulo: 'Pedir ayuda a un rol',
+      html: `
+<p>¿Necesitas fotos, un texto, un diseño o una mano con algo? Pídelo <b>a un rol</b> y alguien que lo tenga lo toma. No tienes que buscar a quién escribirle.</p>
+${captura('s-apoyo', 'Pantalla Pedir ayuda con el formulario y las pestañas.')}
+${pasos(`Abre ${b('Pedir ayuda')} (en el celular está en ${b('Más')}).`, `Escribe qué necesitas, elige el ${b('rol')} al que se lo pides y, si quieres, la prioridad, la fecha límite y un enlace con más contexto.`, `Elige si se lo pides a ${b('todo el equipo')} o solo a ${b('tu distrito')}, y toca ${b('Pedir ayuda')}. Les avisamos a quienes tienen ese rol.`, `En ${b('Mis pedidos')} ves cómo avanza: abierta, tomada o resuelta. Cuando te avisen que la resolvieron, toca ${b('Confirmar')} si quedó bien o ${b('Reabrir')} contando qué falta.`)}
+<h3>Lo que ves como secretaría</h3>
+<p>Además de las pestañas de siempre, ${b('De mi distrito')} muestra <b>todos</b> los pedidos de tu distrito, estén en el estado que estén. Es solo para mirar: el pedido lo siguen quienes lo pidieron y lo tomaron.</p>
+<h3>Si alguien te pide ayuda a ti</h3>
+<p>Si tienes ese rol (el principal o el segundo), en ${b('Abiertas para mi rol')} ves los pedidos que puedes tomar y te llega un aviso en la campana (y por correo si lo tienes activado).</p>
+${tabla(['Acción', 'Qué hace'], [
+  [b('Tomar'), 'Te quedas con el pedido. Solo una persona puede tomarlo: si otra se adelantó, te lo dice y la lista se actualiza.'],
+  [b('Marcar resuelta'), 'Avisas a quien pidió. Puedes dejar una nota. Esa persona confirma o lo reabre.'],
+  [b('Soltar'), 'Si no puedes seguir, el pedido vuelve a quedar abierto para otra persona del rol.'],
+  [b('Mis pedidos'), 'Ahí puedes cancelar un pedido tuyo mientras no esté resuelto.']])}
+${nota('consejo', 'Un pedido con título claro y una fecha límite se toma más rápido. El aviso lleva el título, el rol y la fecha, pero no tus detalles: esos se leen dentro del portal.')}`,
     },
     {
       id: 'actividades', titulo: 'Crear actividades para tu distrito',

@@ -24,6 +24,7 @@ const CAPTURAS = [
   ['m-primeros-pasos', 'm1', TAB('inicio'), { q: 'bv=2' }],
   ['m-perfil', 'm1', TAB('perfil')],
   ['m-calendario', 'm1', TAB('calendario')],
+  ['m-apoyo', 'm1', TAB('apoyo')],
   ['m-entregas', 'm1', TAB('trabajos')],
   ['m-cuenta', 'm1', TAB('cuenta')],
   ['m-preferencias', 'm1', TAB('cuenta') + 'await new Promise(r => setTimeout(r, 400));' + CLICK_TXT('button, [role="tab"]', '/^Mi rol$/')],
@@ -35,6 +36,7 @@ const CAPTURAS = [
   ['s-tareas', 'sec', TAB('tareas')],
   ['s-seguimiento', 'sec', TAB('seguimiento')],
   ['s-reportes', 'sec', TAB('reportes')],
+  ['s-apoyo', 'sec', TAB('apoyo')],
   ['s-novedades', 'sec', TAB('inicio') + 'await new Promise(r => setTimeout(r, 400)); window.Bienvenida && Bienvenida.abrir();', { q: 'bv=3' }],
   ['s-nueva-tarea', 'sec', TAB('tareas') + 'await new Promise(r => setTimeout(r, 500));' + `document.querySelector('[data-act="tkAccion"][data-arg="nueva"]')?.click();`],
   ['s-selector', 'sec', TAB('tareas') + 'await new Promise(r => setTimeout(r, 500));' + `document.querySelector('[data-act="tkAccion"][data-arg="nueva"]')?.click(); await new Promise(r => setTimeout(r, 500));` +

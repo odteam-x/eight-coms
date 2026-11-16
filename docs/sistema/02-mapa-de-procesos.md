@@ -37,6 +37,7 @@ flowchart TD
     P20[20 · Avisos y correos]
     P21[21 · Gafete]
     P22[22 · Recursos, auditoría, configuración, tiempo real]
+    P23[23 · Pedir ayuda a un rol]
   end
 ```
 
@@ -68,6 +69,7 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 20 | Avisos (campana) y correos | Automático | Campana · Mi cuenta → Preferencias | 09 |
 | 21 | Gafete con QR, Wallet y verificación pública | Persona, administración | Mi perfil → Mi gafete · `/v/<código>` | 10 |
 | 22 | Servicios transversales: recursos (antes banco de imágenes), auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
+| 23 | **Pedir ayuda («Solicito tu ayuda»)**: pedir ayuda a un rol, tomarla, resolverla y confirmarla, con avisos | Todas las personas con acceso aprobado | Ver el proceso 23 en el capítulo 09 |
 
 
 ## 2.3 Qué pasa en un período típico (guion)

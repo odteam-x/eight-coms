@@ -48,6 +48,11 @@ const Notif = (() => {
     acceso_aprobado:       { icono: 'check',        t: () => 'Tu acceso fue aprobado',                d: () => 'Ya puedes usar el portal' },
     actividad_nueva:       { icono: 'calendar-plus', t: x => 'Nueva actividad: ' + _t(x.actividad),  d: x => _t(x.fecha) },
     actividad_recordatorio: { icono: 'calendar',    t: x => 'Mañana: ' + _t(x.actividad),            d: x => _t(x.fecha) },
+    ayuda_solicitada:      { icono: 'heart',        t: x => 'Te piden ayuda: ' + _t(x.titulo),       d: x => _dos(x.solicitante && 'de ' + x.solicitante, x.rol, x.prioridad && x.prioridad !== 'normal' && 'prioridad ' + x.prioridad, x.fecha_limite && 'para el ' + x.fecha_limite) },
+    ayuda_tomada:          { icono: 'check',        t: x => `${_t(x.persona, 'Alguien')} tomó tu pedido: ` + _t(x.titulo), d: x => _t(x.rol) },
+    ayuda_resuelta:        { icono: 'circle-check', t: x => 'Resolvieron tu pedido: ' + _t(x.titulo),   d: () => 'Confírmalo o reábrelo si falta algo' },
+    ayuda_cancelada:       { icono: 'x',            t: x => 'Se canceló un pedido de ayuda: ' + _t(x.titulo), d: x => x.persona ? 'Lo canceló ' + x.persona : '' },
+    ayuda_reabierta:       { icono: 'refresh',      t: x => 'Reabrieron un pedido: ' + _t(x.titulo),    d: x => x.persona ? 'Lo pidió ' + x.persona + ': falta algo por retomar' : '' },
     evaluaciones_sin_publicar: { icono: 'clipboard-list', t: () => 'Faltan evaluaciones por publicar', d: x => x.pendientes ? `${x.pendientes} pendientes en ${_t(x.periodo)}` : _t(x.periodo) },
   };
   /* Nombres anteriores a 0040: la campana sigue entendiendo una base que aún no los renombró. */
@@ -65,7 +70,7 @@ const Notif = (() => {
   const _cat = (a) => {
     if (a.categoria && CATEGORIAS[a.categoria]) return a.categoria;
     const t = ALIAS[a.tipo] || a.tipo || '';
-    return /^(tarea_|entrega_|correccion_)/.test(t) ? 'tareas' : /^equipo_/.test(t) ? 'equipos'
+    return /^(tarea_|entrega_|correccion_|ayuda_)/.test(t) ? 'tareas' : /^equipo_/.test(t) ? 'equipos'
       : /^(calificacion_|observacion_|nota_|evaluaciones_)/.test(t) ? 'calificaciones' : /^(actividad_|estado_)/.test(t) ? 'actividades' : 'cuenta';
   };
 
@@ -75,11 +80,14 @@ const Notif = (() => {
     miembro:    { calificacion_nueva: 'perfil', calificacion_cambiada: 'perfil', observacion_nueva: 'perfil', acceso_aprobado: 'inicio',
                   tarea_asignada: 'trabajos', tarea_colectiva_asignada: 'trabajos', tarea_cambio: 'trabajos', tarea_por_vencer: 'trabajos', tarea_vencida: 'trabajos',
                   correccion_solicitada: 'trabajos', tarea_aprobada: 'trabajos', estado_cambiado: 'trabajos',
-                  actividad_nueva: 'calendario', actividad_recordatorio: 'calendario' },
-    secretario: { entrega_registrada: 'tareas', tarea_bloqueada: 'tareas' },
+                  actividad_nueva: 'calendario', actividad_recordatorio: 'calendario',
+                  ayuda_solicitada: 'apoyo', ayuda_tomada: 'apoyo', ayuda_resuelta: 'apoyo', ayuda_cancelada: 'apoyo', ayuda_reabierta: 'apoyo' },
+    secretario: { entrega_registrada: 'tareas', tarea_bloqueada: 'tareas',
+                  ayuda_solicitada: 'apoyo', ayuda_tomada: 'apoyo', ayuda_resuelta: 'apoyo', ayuda_cancelada: 'apoyo', ayuda_reabierta: 'apoyo' },
     admin:      { solicitud_acceso: 'usuarios', entrega_registrada: 'tareas', tarea_bloqueada: 'tareas', evaluaciones_sin_publicar: 'evaluar',
                   calificacion_nueva: 'evaluar', calificacion_cambiada: 'evaluar', observacion_nueva: 'evaluar',
-                  actividad_nueva: 'agenda', actividad_recordatorio: 'agenda', acceso_aprobado: 'overview' },
+                  actividad_nueva: 'agenda', actividad_recordatorio: 'agenda', acceso_aprobado: 'overview',
+                  ayuda_solicitada: 'apoyo', ayuda_tomada: 'apoyo', ayuda_resuelta: 'apoyo', ayuda_cancelada: 'apoyo', ayuda_reabierta: 'apoyo' },
   };
   const _destino = (a) => {
     const t = ALIAS[a.tipo] || a.tipo;

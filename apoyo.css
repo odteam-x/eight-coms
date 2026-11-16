@@ -1,0 +1,57 @@
+/* «Pedir ayuda» (core/apoyo.js · migración 0068). Vidrio, tres temas por tokens --v-*. Títulos en la escala de vidrio.css §36 (--h3 sección, --h4 apartado):
+   no llevan tamaño propio. Sin barras de acento, sin halos al pasar el ratón (el hover cambia el fondo), sin cajas dentro de cajas: las filas de la
+   lista se separan con filetes y todo lo táctil mide 44 px. */
+.apy-tabs { display: flex; flex-wrap: wrap; max-width: 100%; margin: 0 0 var(--sp-5, 20px); overflow: visible; }
+.apy-tab { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.apy-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--v-fill2); border: 1px solid var(--v-line); font: 600 var(--fs-xs)/1 var(--font-ui); color: inherit; }
+.apy-tab.active .apy-n, .apy-tab[aria-selected="true"] .apy-n { background: transparent; border-color: currentColor; }
+
+/* Formulario: una sola superficie de vidrio; los campos son filas, no tarjetas dentro de la tarjeta. */
+.apy-form { display: grid; gap: var(--sp-4, 16px); max-width: 760px; padding: var(--sp-5, 20px); border-radius: var(--r-cont, 24px); background: var(--v-fill); border: 1px solid var(--v-line); }
+.apy-h { margin: 0; font: 600 var(--h3)/1.15 var(--font-display, var(--font-ui)); letter-spacing: -.01em; color: var(--v-t); }
+.apy-sub { margin: -6px 0 0; font-size: var(--fs-sm); color: var(--v-t2); }
+.apy-campo { display: grid; gap: 6px; min-width: 0; }
+.apy-campo label, .apy-alcance legend { font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--v-t); padding: 0; }
+.apy-campo .cfg-inp { width: 100%; min-height: 44px; }
+.apy-campo textarea.cfg-inp { min-height: 96px; resize: vertical; }
+.apy-fila { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4, 16px); }
+.apy-alcance { margin: 0; padding: 0; border: 0; display: grid; gap: 4px; min-width: 0; }
+.apy-op { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 10px 0; border-top: 1px solid var(--v-line); cursor: pointer; }
+.apy-alcance legend + .apy-op { border-top: 0; }
+.apy-op input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--v-activo); }
+.apy-op span { display: grid; gap: 2px; font-size: var(--fs-md); color: var(--v-t); }
+.apy-op small { font-size: var(--fs-xs); color: var(--v-t2); }
+.apy-op--off { cursor: not-allowed; opacity: .6; }
+.apy-err { min-height: 1.2em; margin: 0; font-size: var(--fs-sm); color: var(--v-coral); }
+.apy-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* Lista: una superficie; cada pedido es una fila separada por un filete. */
+.apy-lista { padding: 4px 0; }
+.apy-fila-p { display: grid; gap: 8px; padding: 16px 18px; border-top: 1px solid var(--v-line); }
+.apy-lista > .apy-fila-p:first-child { border-top: 0; }
+.apy-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.apy-t { margin: 0; font: 600 var(--h4)/1.25 var(--font-ui); color: var(--v-t); overflow-wrap: anywhere; min-width: 0; }
+.apy-d { margin: 0; font-size: var(--fs-sm); color: var(--v-t2); white-space: pre-line; overflow-wrap: anywhere; }
+.apy-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.apy-peq { font-size: var(--fs-xs); color: var(--v-t2); }
+.apy-venc { color: var(--v-coral); font-weight: 600; }
+.apy-quien { margin: 0; font-size: var(--fs-xs); color: var(--v-t2); }
+.apy-enlace { margin: 0; font-size: var(--fs-sm); }
+.apy-enlace a { color: var(--v-t); text-decoration: underline; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+.apy-fila-p .apy-acc button { min-height: 44px; }
+.apy-acc .btn-ghost:hover, .apy-acc .btn--secundario:hover { background: var(--v-fill2); }
+.apy-hist { padding-top: 8px; border-top: 1px solid var(--v-line); }
+.apy-linea { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: var(--fs-sm); color: var(--v-t); }
+.apy-nota { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--v-t2); overflow-wrap: anywhere; }
+.apy-vacio { display: grid; justify-items: start; gap: 12px; text-align: left; }
+
+@media (max-width: 767px) {
+  .apy-form { padding: 16px 14px; }
+  .apy-fila { grid-template-columns: minmax(0, 1fr); }
+  .apy-fila-p { padding: 14px 14px; }
+  .apy-cab { flex-direction: column-reverse; gap: 6px; }
+  .apy-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 24px; }
+  .apy-tab { justify-content: center; text-align: center; }
+  .apy-acc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .apy-acc > button { width: 100%; justify-content: center; }
+}

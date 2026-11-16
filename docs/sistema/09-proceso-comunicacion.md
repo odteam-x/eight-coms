@@ -101,6 +101,22 @@ Mi cuenta → Preferencias (o desde el panel de avisos): una lista de los tipos 
 
 Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `node tools/generar-correos.mjs`) y una en `Notif.TIPOS`. `tools/pruebas/correo.mjs` falla si alguno de los tres no coincide.
 
+## Proceso 23 · Pedir ayuda («Solicito tu ayuda»)
+
+**Para qué sirve.** Que cualquier persona del equipo pueda pedir ayuda **a un rol** («necesito a alguien de Fotografía») y que alguien con ese rol la tome, con aviso en cada paso.
+
+**Pantalla.** **Pedir ayuda** (menú: administración, Operaciones; secretaría y miembro, junto a Entregas; en celular, en «Más»). Pestañas: *Pedir ayuda* (formulario) · *Abiertas para mi rol* (lo que puedo tomar) · *Mis pedidos* · *Las que tomé* · y, para administración y secretaría, *Todas* / *De mi distrito*.
+
+**Pasos.**
+1. **Pedir**: título, detalles, rol al que se pide, prioridad, fecha límite y enlace (opcionales) y alcance (todo el equipo o solo mi distrito). Se avisa a quienes tienen ese rol (el principal o el segundo, hasta dos por persona).
+2. **Tomar**: una sola persona; la toma es atómica en la base. Si otra se adelantó: «Ya la tomó alguien más». Se avisa a quien pidió.
+3. **Resolver**: quien tomó la marca resuelta (con nota opcional) y se avisa a quien pidió. Quien tomó también puede **soltarla** y vuelve a quedar abierta.
+4. **Confirmar o reabrir**: quien pidió confirma, o la reabre diciendo qué falta (vuelve a «tomada» con la misma persona, que recibe un aviso).
+5. **Cancelar**: quien pidió (o la administración) mientras no esté resuelta; se avisa a quien la tenía.
+6. **Administración**: ve todo, puede reasignar (solo a quien tiene el rol), resolver, confirmar y cancelar.
+
+**Reglas.** Se ve: lo propio, lo que tomé, lo abierto para mi rol (si es de distrito, solo el mío), lo de mi distrito (secretaría) y todo (administración). Las tablas son de solo lectura desde el navegador: todo cambio pasa por funciones de la base. Historial append-only y registro en la auditoría global (origen «Ayuda»). Máximo 10 solicitudes en curso por persona. Los avisos nunca llevan la descripción ni las notas. Migración 0068.
+
 ## Proceso 22 (parte) · Recursos (antes «Banco de imágenes»)
 
 **Objetivo.** Un lugar común con las fotos, videos, enlaces, documentos, plantillas y la **identidad gráfica** (logos, paleta de colores, tipografías) de cada evento. Pedido del dueño: que el banco «no solo sean imágenes o enlaces» sino también «identidad gráfica de n eventos, imágenes, etc.».

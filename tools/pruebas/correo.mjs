@@ -85,6 +85,9 @@ await db.exec(`
 await db.exec(m19.match(/CREATE TABLE IF NOT EXISTS public\.notificaciones \([\s\S]*?\n\);/)[0] + `ALTER TABLE public.notificaciones ENABLE ROW LEVEL SECURITY; REVOKE ALL ON public.notificaciones FROM anon, authenticated;`);
 for (const f of ['notif_fecha', 'notif_zona', 'notif_encolar', 'notif_reclamar', 'notif_marcar']) await db.exec(fn19(f));
 await db.exec(m40);
+// 0068 añade 5 tipos («Pedir ayuda»): se ejecuta SOLO su bloque de catálogo (entre marcas), igual que en producción.
+const m68 = fs.readFileSync(R + '0068_solicito_ayuda.sql', 'utf8');
+await db.exec(m68.match(/\[CATALOGO-AVISOS-INICIO\][^\n]*\n([\s\S]*?)-- \[CATALOGO-AVISOS-FIN\]/)[1]);
 const cat = await q(`SELECT tipo, claves, requeridas FROM notif_tipos ORDER BY tipo`);
 
 console.log('\n[el catálogo (SQL) y las plantillas (JS) no se pueden desincronizar]');
@@ -101,7 +104,7 @@ for (const t of cat) {
   const out = N.armar(t.tipo, 'Ana Pérez', dat, url);
   if (/\{\{|undefined|\[object/.test(out.html + out.asunto)) ok(false, `${t.tipo}: queda un marcador sin resolver`);
 }
-ok(cat.length === 20, 'el catálogo y las plantillas siguen siendo 20');
+ok(cat.length === 25, 'el catálogo y las plantillas son 25 (los 20 de 0040 + los 5 de «Pedir ayuda», 0068)');
 
 // ───────────────────────── doble de proveedor ─────────────────────────
 const nuevoProveedor = ({ fallaCon = {}, dormir = 0 } = {}) => {

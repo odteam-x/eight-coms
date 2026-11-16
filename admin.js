@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { tab:'equipos',  icono:'users-round',      etiqueta:'Equipos' },
         { tab:'agenda',   icono:'calendar',         etiqueta:'Calendario' },
         { tab:'recursos', icono:'folder-open',      etiqueta:'Recursos' },
+        { tab:'apoyo',    icono:'heart',            etiqueta:'Pedir ayuda', titulo:'Pedir ayuda' },
       ]},
       { titulo:'Organización', items: [
         { tab:'usuarios', icono:'users',            etiqueta:'Personas', titulo:'Personas y accesos' },
@@ -175,6 +176,7 @@ function initSync() {
   v('equipos',    ['equipos', 'tareas', 'personas', 'periodos'], async () => { await _baseAdmin(); abrirEquipos(); });
   v('agenda',     ['calendario', 'tareas', 'periodos'], () => Calendario.recargar(), { alEntrar: true });
   v('recursos',   ['recursos'], () => Recursos.cargar());
+  v('apoyo',      ['apoyo'], () => Apoyo.cargar());
   v('usuarios',   ['personas', 'periodos', 'catalogo', 'distritos'], async () => { await _baseAdmin(); renderUsuariosPEBar(); await renderUsuarios(); initPersonas(); });
   v('distritos',  ['distritos', 'estadisticas', 'personas', 'periodos', 'ranking', 'evaluaciones'], async () => { await _baseAdmin(); DistritosAdmin.refrescar(); });
   v('reportes',   ['reportes', 'ranking', 'evaluaciones', 'tareas', 'equipos', 'estadisticas', 'distritos', 'periodos', 'personas'], () => Reportes.abrir());
@@ -2611,7 +2613,7 @@ function montarTareas() {
    botón padre es `periodos`. */
 const _tabParentMap = {
   cuenta:'cuenta',
-  agenda: 'agenda',
+  agenda: 'agenda', apoyo: 'apoyo',
   overview:'overview', evaluar:'evaluar', tareas:'tareas', usuarios:'usuarios', equipos:'equipos', reportes:'reportes', seguimiento:'seguimiento', desempeno:'desempeno', auditoria:'auditoria',
   configuracion:'configuracion', periodos:'configuracion', calendario:'agenda', rubrica:'configuracion', perfiles:'configuracion',
   roles:'configuracion', distritos:'distritos', gestiones:'configuracion',
@@ -2714,6 +2716,7 @@ function switchTabAdminHooks(tab) {
   if (tab === 'tareas') abrirTareas();
   if (tab === 'equipos') abrirEquipos();
   if (tab === 'recursos') Recursos.montar({ el: document.getElementById('recursos-host'), yo: CU.id, esAdmin: true, roles: _roles || [], personas: _users.map(u => ({ id: u.id, nombre: u.nombre || u.email })) });
+  if (tab === 'apoyo') Apoyo.montar({ el: document.getElementById('apoyo-host'), yo: CU.id, esAdmin: true, roles: _roles || [], distrito: CU.distrito });
   if (tab === 'overview' && Store.necesitaCarga('overview')) {
     Store.marcarCargado('overview'); loadOverview();
   }

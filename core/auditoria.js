@@ -16,7 +16,7 @@
 const Auditoria = (() => {
   const POR_PAGINA = 50;
   const ORIGENES = ['Personas', 'Períodos', 'Gestiones', 'Distritos', 'Evaluaciones', 'Notas de tareas', 'Reglas del PE',
-    'Tareas', 'Tareas de equipo', 'Equipos', 'Estadísticas de Instagram'];
+    'Tareas', 'Tareas de equipo', 'Equipos', 'Estadísticas de Instagram', 'Ayuda'];
   /** Las acciones de la base, en palabras. Lo que no esté aquí se muestra tal cual (nunca se oculta). */
   const ACCIONES_TXT = {
     persona_cambio: 'Cambió una persona', persona_borrada: 'Se eliminó una persona',
@@ -28,6 +28,8 @@ const Auditoria = (() => {
     reglas_cambiadas: 'Reglas cambiadas', estadisticas_corregida: 'Cifras corregidas', estadisticas_borrada: 'Entrega eliminada',
     creada: 'Creada', estado: 'Cambió de estado', prorroga: 'Prórroga', calificada: 'Calificada', corregida: 'Nota corregida', anulada: 'Anulada',
     restaurada: 'Restaurada', reabierta: 'Reabierta',
+    ayuda_creada: 'Pidió ayuda', ayuda_tomada: 'Tomó un pedido de ayuda', ayuda_soltada: 'Soltó un pedido de ayuda', ayuda_resuelta: 'Resolvió un pedido de ayuda',
+    ayuda_confirmada: 'Confirmó la ayuda recibida', ayuda_reabierta: 'Reabrió un pedido de ayuda', ayuda_cancelada: 'Canceló un pedido de ayuda', ayuda_reasignada: 'Asignó un pedido de ayuda',
   };
   const accionTxt = a => ACCIONES_TXT[a] || String(a || '').replace(/_/g, ' ');
   let S = null;

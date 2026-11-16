@@ -39,7 +39,8 @@ CSP **en modo enforcing**: `default-src 'self'`; `script-src 'self' https://cdn.
 | **Distritos** | `estadisticas_distrito`, `estadisticas_distrito_hist` |
 | **Calendario** | `calendario` (fechas por período), `actividades`, `actividad_destinatarios`, `etiquetas` |
 | **Avisos** | `notificaciones`, `notificaciones_eventos`, `notif_tipos`, `notif_preferencias`, `notif_senal` |
-| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `manuales_privados` |
+| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `ayuda_pedidos`, `ayuda_eventos`, `manuales_privados` |
+
 
 Reglas de datos que cruzan todo:
 
@@ -131,6 +132,7 @@ Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de
 | 0055 | **Auditoría global** |
 | 0056 | Cobertura de evaluación |
 | 0058 | Banco de imágenes (sustituido por Recursos en 0071) |
+| 0068 | Pedir ayuda a un rol («Solicito tu ayuda»): `ayuda_pedidos`, `ayuda_eventos`, funciones de escritura, avisos y auditoría |
 | 0060 | Texto largo en tareas |
 | 0061 | «Sin tareas, se pierden los puntos» |
 | 0062 | **Dos roles por persona** |

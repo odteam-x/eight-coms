@@ -170,6 +170,7 @@ flowchart TD
     P20[20 · Avisos y correos]
     P21[21 · Gafete]
     P22[22 · Recursos, auditoría, configuración, tiempo real]
+    P23[23 · Pedir ayuda a un rol]
   end
 ```
 
@@ -201,6 +202,7 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 20 | Avisos (campana) y correos | Automático | Campana · Mi cuenta → Preferencias | 09 |
 | 21 | Gafete con QR, Wallet y verificación pública | Persona, administración | Mi perfil → Mi gafete · `/v/<código>` | 10 |
 | 22 | Servicios transversales: recursos (antes banco de imágenes), auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
+| 23 | **Pedir ayuda («Solicito tu ayuda»)**: pedir ayuda a un rol, tomarla, resolverla y confirmarla, con avisos | Todas las personas con acceso aprobado | Ver el proceso 23 en el capítulo 09 |
 
 
 ## 2.3 Qué pasa en un período típico (guion)
@@ -1236,6 +1238,22 @@ Mi cuenta → Preferencias (o desde el panel de avisos): una lista de los tipos 
 
 Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `node tools/generar-correos.mjs`) y una en `Notif.TIPOS`. `tools/pruebas/correo.mjs` falla si alguno de los tres no coincide.
 
+## Proceso 23 · Pedir ayuda («Solicito tu ayuda»)
+
+**Para qué sirve.** Que cualquier persona del equipo pueda pedir ayuda **a un rol** («necesito a alguien de Fotografía») y que alguien con ese rol la tome, con aviso en cada paso.
+
+**Pantalla.** **Pedir ayuda** (menú: administración, Operaciones; secretaría y miembro, junto a Entregas; en celular, en «Más»). Pestañas: *Pedir ayuda* (formulario) · *Abiertas para mi rol* (lo que puedo tomar) · *Mis pedidos* · *Las que tomé* · y, para administración y secretaría, *Todas* / *De mi distrito*.
+
+**Pasos.**
+1. **Pedir**: título, detalles, rol al que se pide, prioridad, fecha límite y enlace (opcionales) y alcance (todo el equipo o solo mi distrito). Se avisa a quienes tienen ese rol (el principal o el segundo, hasta dos por persona).
+2. **Tomar**: una sola persona; la toma es atómica en la base. Si otra se adelantó: «Ya la tomó alguien más». Se avisa a quien pidió.
+3. **Resolver**: quien tomó la marca resuelta (con nota opcional) y se avisa a quien pidió. Quien tomó también puede **soltarla** y vuelve a quedar abierta.
+4. **Confirmar o reabrir**: quien pidió confirma, o la reabre diciendo qué falta (vuelve a «tomada» con la misma persona, que recibe un aviso).
+5. **Cancelar**: quien pidió (o la administración) mientras no esté resuelta; se avisa a quien la tenía.
+6. **Administración**: ve todo, puede reasignar (solo a quien tiene el rol), resolver, confirmar y cancelar.
+
+**Reglas.** Se ve: lo propio, lo que tomé, lo abierto para mi rol (si es de distrito, solo el mío), lo de mi distrito (secretaría) y todo (administración). Las tablas son de solo lectura desde el navegador: todo cambio pasa por funciones de la base. Historial append-only y registro en la auditoría global (origen «Ayuda»). Máximo 10 solicitudes en curso por persona. Los avisos nunca llevan la descripción ni las notas. Migración 0068.
+
 ## Proceso 22 (parte) · Recursos (antes «Banco de imágenes»)
 
 **Objetivo.** Un lugar común con las fotos, videos, enlaces, documentos, plantillas y la **identidad gráfica** (logos, paleta de colores, tipografías) de cada evento. Pedido del dueño: que el banco «no solo sean imágenes o enlaces» sino también «identidad gráfica de n eventos, imágenes, etc.».
@@ -1442,6 +1460,7 @@ Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas �
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
 | **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar** (con su tipo de entrega), **Bloquear**, **+ Mi iniciativa** (con «¿Quién te evalúa?»: distrital o regional); ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
 | **Recursos** | Fotos, videos, enlaces e identidad gráfica de cada evento | Ver, filtrar por tipo/evento/rol, buscar, agrupar, añadir, editar lo mío, copiar enlaces y colores | 22 |
+| **Pedir ayuda** | Pedir ayuda a un rol; tomar, resolver y confirmar | Pedir, tomar lo de mi rol, resolver lo que tomé, confirmar o reabrir lo que pedí, cancelar lo mío | 23 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
 En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
@@ -1491,6 +1510,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
 | **Recursos** | Fotos, videos, enlaces e identidad gráfica | Ver, añadir, editar y borrar cualquier recurso | 22 |
+| **Pedir ayuda** | Todos los pedidos de ayuda del equipo | Ver todo; reasignar, resolver, confirmar y cancelar; también pedir y tomar si tiene el rol | 23 |
 
 ### Organización
 
@@ -1575,7 +1595,8 @@ CSP **en modo enforcing**: `default-src 'self'`; `script-src 'self' https://cdn.
 | **Distritos** | `estadisticas_distrito`, `estadisticas_distrito_hist` |
 | **Calendario** | `calendario` (fechas por período), `actividades`, `actividad_destinatarios`, `etiquetas` |
 | **Avisos** | `notificaciones`, `notificaciones_eventos`, `notif_tipos`, `notif_preferencias`, `notif_senal` |
-| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `manuales_privados` |
+| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `ayuda_pedidos`, `ayuda_eventos`, `manuales_privados` |
+
 
 Reglas de datos que cruzan todo:
 
@@ -1667,6 +1688,7 @@ Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de
 | 0055 | **Auditoría global** |
 | 0056 | Cobertura de evaluación |
 | 0058 | Banco de imágenes (sustituido por Recursos en 0071) |
+| 0068 | Pedir ayuda a un rol («Solicito tu ayuda»): `ayuda_pedidos`, `ayuda_eventos`, funciones de escritura, avisos y auditoría |
 | 0060 | Texto largo en tareas |
 | 0061 | «Sin tareas, se pierden los puntos» |
 | 0062 | **Dos roles por persona** |
