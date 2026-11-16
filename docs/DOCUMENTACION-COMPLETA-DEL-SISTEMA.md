@@ -1093,6 +1093,10 @@ Filtros: **rúbrica, métrica, rol, distrito, períodos incluidos y búsqueda**.
 
 **Diferencia con Seguimiento**: Seguimiento es **operativo** (estado y cumplimiento, presente); Desempeño es **analítico** (resultados y su evolución). La tabla «Todas las personas × períodos» **vive solo en Seguimiento**; Desempeño apunta a ella.
 
+### Ranking (dentro de Desempeño, administración y secretaría)
+
+Una tabla con las personas ordenadas de mayor a menor resultado en **un período** (el último con datos, o el que se elija). Filtros propios: **período**, **cuántas mostrar** (5, 10, 20 o todas), **roles que cuentan** (se desmarcan los que no se quieren incluir) y **«Un ranking por rol»** (una tabla por rol). Solo cuenta lo publicado; los empates comparten puesto (1, 1, 3…). No calcula nada: ordena los mismos valores del resto de la pantalla y respeta la regla de no mezclar rúbricas. Código: `seccionRanking` en `core/desempeno.js`; prueba: `front-desempeno.mjs`.
+
 ## 8.6 Reportes
 
 **Pantalla.** `Reportes` (`admin-reportes.js`; secretaría: su pestaña Reportes). Dos modos en administración:

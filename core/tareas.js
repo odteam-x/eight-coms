@@ -155,7 +155,7 @@ const Tareas = (() => {
           ${t.prioridad !== 'normal' ? `<span class="tk-tag tk-tag--${t.prioridad}">Prioridad ${PRIORIDAD[t.prioridad].toLowerCase()}</span>` : ''}
           ${plazoHTML(t)}
         </div>
-        ${textoLargoHTML(t.descripcion)}
+        ${textoLargoHTML(t.descripcion, { max: 140 })}
         ${crit.length ? `<p class="tk-crit">Evidencia: ${escHtml(crit.join(' · '))}</p>` : ''}
         ${t.estado === 'devuelta' && t.revision_nota ? `<div class="tk-aviso tk-aviso--devuelta" role="note"><strong>Corregir:</strong> ${escHtml(t.revision_nota)}</div>` : ''}
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<div class="tk-aviso" role="note"><strong>En pausa:</strong> ${escHtml(t.bloqueo_motivo)}</div>` : ''}
