@@ -1070,3 +1070,8 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .pantalla-cab > h1[data-grupo] { gap: 0 14px; }
 .pantalla-cab { row-gap: var(--sp-3); }
 .pantalla-cab > p { margin-top: var(--sp-1); }
+
+/* §50 Texto desplegado de una tarjeta: al abrir «Ver todo» se lee completo (sin el recorte de 3 líneas), y la nota de entrega también se acorta. */
+.tk-card .tk-mas-todo { display: block; -webkit-line-clamp: unset; overflow: auto; max-height: 40vh; }
+.tk-card .tk-entrega { align-items: flex-start; }
+.tk-card .tk-entrega .tk-mas { flex: 1 1 100%; }
