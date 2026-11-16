@@ -588,7 +588,9 @@ const Perfil = (() => {
     const extra = (_cfg.tabsExtra || []).filter(t => inst.modo === 'admin' || !t.soloAdmin);
     const base = inst.modo === 'propio' && typeof Desempeno !== 'undefined' ? TABS.map(t => (t.k === 'evolucion' ? TAB_DESEMPENO : t)) : TABS;
     const conRubrica = inst.modo === 'propio' && !inst.persona?.es_admin && typeof descriptoresHTML === 'function' ? [...base, TAB_RUBRICA] : base;
-    const conRol = inst.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst.persona?.es_admin ? [...conRubrica, TAB_ROL] : conRubrica;
+    // «Mi rol» va justo después de «Resumen».
+    const conRol = inst.modo === 'propio' && typeof Preferencias !== 'undefined' && !inst.persona?.es_admin
+      ? (() => { const l = [...conRubrica]; l.splice(Math.max(0, l.findIndex(t => t.k === 'resumen')) + 1, 0, TAB_ROL); return l; })() : conRubrica;
     return [...extra.filter(t => t.soloAdmin), ...conRol, ...extra.filter(t => !t.soloAdmin)];
   }
 
