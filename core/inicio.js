@@ -3,8 +3,8 @@
  * EIGHT CREATORS LABs — Inicio: «¿qué me toca ahora?»
  * ─────────────────────────────────────────────────────
  * La primera pantalla de miembro y secretario. No repite el perfil: señala lo
- * que pide atención (tareas devueltas o por vencer), cuándo es lo siguiente
- * (próximas fechas) y en qué estado está mi evaluación del período en curso.
+ * que pide atención (tareas devueltas o por vencer) y cuándo es lo siguiente
+ * (próximas fechas). La evaluación NO se repite aquí: está en Mi perfil → Resumen.
  *
  * PRESENTACIÓN. Ningún cálculo: la evaluación sale de resultados_periodo()
  * (rúbrica por roles) o de calcScore() (rúbrica clásica), las tareas de
@@ -137,10 +137,10 @@ const Inicio = (() => {
     const proximos = proximosHitos(Store.periodos(), 4);
     if (!(typeof Sync !== 'undefined' && Sync.silencioso() && el.firstElementChild)) el.innerHTML = esqueletoHTML('perfil');   // refresco en vivo: sin parpadeo
 
-    let ev = null, datos = null, falla = null;
+    // «Tu evaluación» ya no se repite aquí: vive en Mi perfil (Resumen). El Inicio solo dice qué atender y qué fecha viene.
+    let datos = null, falla = null;
     try {
-      [ev, datos] = await Promise.all([
-        _evaluacion(persona, periodo),
+      [datos] = await Promise.all([
         periodo && esPeriodoV2(periodo)
           ? API.getTareas({ periodoId: periodo.id, userId: persona.id })
               .then(r => ({ noDisponible: !!r.noDisponible, error: (!r.ok && !r.noDisponible) ? r.error : null, tareas: r.ok ? r.tareas : [] }))
@@ -154,7 +154,6 @@ const Inicio = (() => {
       <div class="inicio-cuerpo m-content">
         <div id="bv-slot"></div>
         <div class="inicio-grid">
-          <section class="pf-card pf-card--cian" aria-label="Tu evaluación">${_evaluacionHTML(persona, periodo, ev)}</section>
           <section class="pf-card" aria-label="Para atender">${_atenderHTML(periodo, datos)}</section>
           <section class="pf-card pf-card--ancha pf-card--azul" aria-label="Próximas fechas">${_fechasHTML(proximos)}</section>
           ${extra ? '<div class="inicio-extra" id="inicio-extra"></div>' : ''}
