@@ -350,7 +350,7 @@ async function pintarPulsoDistrito(el) {
       <div class="pf-tks">
         ${tile(miembros.length, 'Personas')}
         ${tile(`${evaluados}/${miembros.length}`, 'Evaluadas este período')}
-        ${porRevisar == null ? '' : tile(porRevisar, 'Entregas por revisar', porRevisar > 0)}
+        ${porRevisar == null ? '' : porRevisar > 0 ? `<button type="button" class="pf-tk pf-tk--aviso" data-act="tab" data-arg="tareas" aria-label="Ir a Tareas: ${porRevisar} entregas por revisar"><span class="pf-tk-val">${porRevisar}</span><span class="pf-tk-lbl">Entregas por revisar</span></button>` : tile(porRevisar, 'Entregas por revisar', false)}
         ${vencidas == null ? '' : tile(vencidas, 'Tareas vencidas', vencidas > 0)}
       </div>
       ${t ? `<h3 class="pf-sub" id="bandeja-h">Bandeja de trabajo</h3>${bandejaHTML(bandejaDistrito(t.tareas, miembros, { hoy: new Date().toLocaleDateString('sv'), yo: CU.id }))}` : ''}

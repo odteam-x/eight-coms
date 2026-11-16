@@ -1047,3 +1047,9 @@ h1.pantalla-t, .pantalla-cab .pantalla-t, .inicio-titulo, .perfil-nombre { font-
 .rub-pasos { margin: var(--sp-2) 0 var(--sp-4); padding-left: 1.2em; color: var(--v-t2); }
 .rub-pasos li { margin: 4px 0; max-width: 70ch; }
 .rub-crit > summary { text-align: left; } .rub-nombre { flex: 1 1 auto; text-align: left; }
+
+/* §47 Estados vacíos y espaciado: un solo tamaño y ritmo. Dentro de una tarjeta no llevan fondo propio (nunca una caja dentro de otra). */
+.empty-box, .pf-vacio { padding: var(--sp-5) var(--sp-4); gap: var(--sp-2); line-height: 1.55; color: var(--v-t2); }
+.pf-card .empty-box, .pf-card .pf-vacio { background: none; padding-inline: 0; }
+.pf-card + .pf-card, .pf-card + .acordeon, .acordeon + .pf-card, .des-grupo-t + .pf-card { margin-top: var(--sp-4); }
+.des-grupo-t { margin-top: var(--sp-6); }
