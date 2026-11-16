@@ -64,7 +64,7 @@ Al crear, la persona recibe un aviso en la campana y un correo (**«tarea asigna
 
 ### 11.3 Ejecutar (la persona asignada)
 
-- **Empezar** (pasa a En curso). **Entregar**: se necesita un **enlace https** y/o una **nota** (uno de los dos es obligatorio); la entrega **solo se escribe en el momento de entregar**.
+- **Empezar** (pasa a En curso). **Entregar**: se necesita un **enlace https** y/o una **nota** (uno de los dos es obligatorio) y, con el enlace, su **tipo de entrega** (enlace, documento, imagen, video u otro; 0065, se sugiere según el enlace); la entrega **solo se escribe en el momento de entregar**.
 - **Bloquear** con el motivo («¿de qué o de quién depende?»): una tarea bloqueada **no cuenta como atrasada** mientras siga así; quien asignó recibe el aviso. **Reanudar** la devuelve a En curso.
 - La persona **no puede** cambiar la fecha, aprobar ni anular.
 - La descripción larga se ve recortada con **«Ver todo (N caracteres)»** que despliega el texto entero.
@@ -72,8 +72,8 @@ Al crear, la persona recibe un aviso en la campana y un correo (**«tarea asigna
 ### 11.4 Revisar (quien revisa)
 
 1. En **Tareas** se usa el filtro **Por revisar** (muestra el número) o se busca por persona.
-2. **Ver entrega**: se lee el enlace o la nota.
-3. **Aprobar y puntuar**: se ponen los **Puntos (0 a 10), obligatorios**, y si corresponde el **Peso de la tarea** (cuánto cuenta frente a las demás; por defecto 1). Una tarea **propia siempre pesa 1**.
+2. **Abrir la entrega**: la tarea muestra una etiqueta con su **tipo** (Documento, Video…) y el enlace dice «Abrir documento», «Ver video», «Ver imagen»…; las entregas anteriores a 0065 siguen diciendo «Ver entrega». Se lee el enlace o la nota.
+3. **Aprobar y puntuar**: se ponen los **Puntos (0 a 10), obligatorios**. **Desde 0065 ya no se elige un peso**: cuánto cuenta la tarea lo da su **nivel** (distrital o regional) y los multiplicadores del período (proceso 14). Quien revisa una **iniciativa regional** es la administración; la secretaría no la ve en «Por revisar».
 4. **Devolver para corregir**: se escribe **«Qué hay que corregir»** (obligatorio y concreto). La persona recibe aviso con la observación (correo incluido).
 5. **Lo de «a tiempo» se mide en la primera entrega**: devolver y corregir no la vuelve tarde.
 
@@ -100,7 +100,8 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 ### Actividades
 
 1. Tocar **+ Mi iniciativa**.
-2. Escribir **título**, **qué hiciste o harás** y, si quiere, una **fecha**.
+2. Escribir **título**, **qué hiciste o harás** y, si quiere, una **fecha** y el **tipo de entrega** esperado.
+2b. **Elegir quién la evalúa** (0065): **Distrital** (la secretaría de su distrito) o **Regional** (la administración). Solo esa instancia podrá aprobarla o devolverla y recibe el aviso de la entrega; no se cambia después (solo la administración puede). Sin secretaría en su distrito la única opción es Regional.
 3. **Guardar.** Desde la migración **0063**, la tarea **nace «En curso»** (no hace falta «Empezar»). Las asignadas por otra persona siguen naciendo «Asignada».
 4. La persona **entrega** (enlace y/o nota) y **otra persona** la revisa.
 
@@ -108,7 +109,9 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 - Una tarea para uno mismo es **siempre** de origen «propia», la haya marcado como la haya marcado (lo decide el servidor).
 - **Nadie aprueba su propia tarea.** Por eso la iniciativa **solo cuenta como iniciativa cuando alguien más la aprueba**: es lo que impide inflarla.
-- Una propia pesa **1** y cuenta para la nota de tareas **solo si la regla del PE «¿Cuentan las iniciativas propias?» está en Sí** (valor por defecto: Sí).
+- Una propia pesa **siempre × 1** por nivel (el nivel solo decide **quién la evalúa**, no se infla el propio promedio) y cuenta para la nota de tareas **solo si la regla del PE «¿Cuentan las iniciativas propias?» está en Sí** (valor por defecto: Sí).
+- **Quién evalúa, impuesto en la base (0065).** `puede_revisar_tarea_fila()` (parcheada en `tareas_validar_update()` y `prorrogar_tarea()`): la administración siempre; la secretaría del distrito de la persona **solo si la iniciativa no es regional**. Una secretaría que intenta aprobar/devolver una regional recibe «No tienes acceso a esta tarea». El aviso «entrega por revisar» (`notif_trg_tarea()` parcheada) llega **solo** a la instancia elegida (distrital sin secretaría → administración).
+- **Casos límite.** Persona **sin secretaría de distrito** → cae a Regional (la base normaliza). **Una secretaría** (o la administración) que crea su iniciativa → siempre Regional: la evalúa la administración, y nadie aprueba la suya.
 - Las propias **ya existentes** que seguían «Asignada» siguen así hasta que su dueña toque «Empezar»; la migración trae un UPDATE opcional comentado para pasarlas a «En curso».
 
 ## Proceso 13 · Tarea de equipo
@@ -125,7 +128,7 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 2. Los integrantes **de ese momento** reciben el aviso «Tarea para tu equipo». **Quien se suma después** entra a las tareas todavía abiertas (asignada/en curso/bloqueada/devuelta); **quien se va** sale de las abiertas y entregadas. Las **aprobadas y anuladas no cambian**.
 3. **Avanzar**: cualquier integrante registra un aporte (**qué se avanzó** y **avance del equipo 0–100 %**); queda con su autoría fijada por el servidor.
 4. **Entregar**: cualquier integrante pone el **enlace** (https) y/o una **nota**. Es **una** entrega para todo el equipo; la primera mide el plazo.
-5. **Aprobar**: la administración (o la secretaría que no participa) pone **Puntos (0–10)** y **Peso**. La nota es **del grupo**: cada persona cuenta **una vez**.
+5. **Aprobar**: la administración (o la secretaría que no participa) pone **Puntos (0–10)** (sin peso desde 0065: lo da el nivel). La nota es **del grupo**: cada persona cuenta **una vez**.
 6. **Devolver**: con **observación para el equipo** (obligatoria).
 7. **Nota individual**: si una persona rindió distinto, quien revisa le pone una **nota individual** con evidencia (mínimo 10 caracteres). **Reemplaza la del grupo solo para ella** y se muestra aparte.
 8. **Mover plazo / Anular**: solo la administración; anular pide motivo y **solo la administración la reabre** (estado extra «anulada»).
@@ -148,8 +151,20 @@ Una vez aprobada, los puntos **no se editan a mano**. Solo la administración, d
 
 ```
 nota_tareas = 100 · Σ( peso_efectivo · puntos / 10 ) / Σ( peso_efectivo )     sobre las tareas que CUENTAN
-peso_efectivo = peso de la tarea × multiplicador de su tipo (individual | colectiva)
+peso_efectivo = peso heredado × multiplicador de su NIVEL × multiplicador de su tipo (individual | colectiva)     [0065]
 ```
+
+**Desde la migración 0065 el peso de tarea se retiró.** `peso heredado` es `tareas.peso` / `tareas_equipo.peso`: **1 en toda tarea nueva** (los triggers lo fijan; nadie lo cambia) y, en las tareas anteriores, el valor que ya tenían (así sus resultados **no cambian**: paridad probada en `sql-0065.mjs`). El peso nuevo lo da el **nivel** de la tarea:
+
+| Nivel | Qué es | Multiplicador (por PE) |
+|---|---|---|
+| **Distrital** | La asigna una secretaría (siempre es distrital) o la administración para un distrito; tarea de equipo de un equipo con distrito | `mult_distrital` (por defecto **1**) |
+| **Regional** | La asigna la administración como tarea regional | `mult_regional` (por defecto **1**) |
+
+- Con **1 y 1** el nivel no cambia ninguna nota; la administración los sube o baja en **Tareas → Reglas de calificación**. Cambiarlos con evaluaciones publicadas exige motivo y queda en `periodo_calif_config_hist`.
+- Las **iniciativas propias siempre × 1** (su nivel solo decide quién las evalúa).
+- Lo ya creado se reclasificó sin tocar notas: asignadas por la administración → regional; por una secretaría → distrital; iniciativas → distrital si la persona tiene distrito con secretaría, si no regional; tareas de equipo → distrital si el equipo es de un distrito.
+- `resultados_periodo()` no cambia: lee `calif_items()`, que ya trae el `peso_efectivo` por nivel.
 
 **Cuentan**: tareas **aprobadas**, con puntos y no anuladas (y las de iniciativa propia solo si la regla lo permite). **No cuentan —y nunca se rellenan con 0—**: entregadas esperando revisión, en curso, devueltas, bloqueadas, anuladas, con la nota anulada, aprobadas antes de que existieran los puntos. Una **vencida sin entregar cuenta como 0 solo si** la regla «vencidas como cero» está activa (apagada por defecto).
 

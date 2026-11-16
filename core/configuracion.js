@@ -28,7 +28,7 @@ const Configuracion = (() => {
     { id: 'evaluacion', icono: 'clipboard-check', titulo: 'Evaluación', texto: 'Qué se mide, con qué peso y cómo cuentan las tareas.', filas: [
       { t: 'Roles y perfiles', d: 'Los roles del equipo (descripción, responsabilidades, requisitos) y el perfil de evaluación de cada uno, con sus criterios y pesos.', valor: d => d.roles != null ? `${d.roles} roles` : '', acc: ir('roles') },
       { t: 'Rúbrica y criterios', d: 'Competencias comunes (núcleo), campos de registro y criterios de los períodos clásicos.', acc: ir('rubrica') },
-      { t: 'Reglas de calificación de tareas', d: 'Por período: peso de las tareas en el resultado, multiplicadores, mínimo de tareas, iniciativas propias, vencidas y si se pierden los puntos sin tareas.', acc: ir('tareas', 'Abrir en Tareas') },
+      { t: 'Reglas de calificación de tareas', d: 'Por período: peso de las tareas en el resultado, multiplicadores por nivel (distrital y regional) y por tipo, mínimo de tareas, iniciativas propias, vencidas y si se pierden los puntos sin tareas.', acc: ir('tareas', 'Abrir en Tareas') },
       { t: 'Niveles de desempeño', d: 'Solo lectura. Rúbrica por roles: Excelente desde 87, Bueno desde 67, En desarrollo desde 37 (sobre 100). Clásica: 26, 20 y 11 de 30. Distritos: 87, 67 y 37 % de 28.', tipo: 'info' },
     ] },
     { id: 'calendario', icono: 'calendar-days', titulo: 'Calendario y actividades', texto: 'Lo que se programa para el equipo y los distritos.', filas: [

@@ -797,8 +797,29 @@ const API = {
     return { ok: true, tareas: data ?? [] };
   },
 
-  async crearTarea({ periodo_id, titulo, descripcion = '', asignada_a, prioridad = 'normal', fecha_limite = null, criterios = [], rol_id = null, actividad_id = null }) {
+  /**
+   * ¿Existen el nivel y el tipo de entrega de las tareas (0065)? Solo «la columna no existe» es definitivo: con cualquier otro
+   * error se sigue sin ofrecerlos (nunca se manda una columna que la base no conoce).
+   */
+  _nivelTareasDisp: null,
+  async nivelTareasDisponible() {
+    if (this._nivelTareasDisp !== null) return this._nivelTareasDisp;
+    const { error } = await SB.from('tareas').select('nivel').limit(1);
+    if (!error) return (this._nivelTareasDisp = true);
+    if (/does not exist|42703|schema cache/i.test((error.message || '') + (error.code || ''))) return (this._nivelTareasDisp = false);
+    return false;
+  },
+  /** ¿Puedo elegir «Distrital» como instancia que evalúa mi iniciativa? (tengo distrito con secretaría; 0065) */
+  async instanciaDistritalDisponible() {
+    const r = await this._rpc('mi_instancia_distrital_disponible', {});
+    return r.ok ? r.data === true : false;
+  },
+
+  async crearTarea({ periodo_id, titulo, descripcion = '', asignada_a, prioridad = 'normal', fecha_limite = null, criterios = [], rol_id = null, actividad_id = null, nivel = null, tipo_entrega = null }) {
     const fila = { periodo_id, titulo, descripcion, asignada_a, prioridad, fecha_limite: fecha_limite || null, criterios };
+    // 0065: nivel y tipo de entrega solo se mandan si hay valor (la pantalla los ofrece únicamente con la migración aplicada).
+    if (nivel) fila.nivel = nivel;
+    if (tipo_entrega) fila.tipo_entrega = tipo_entrega;
     // rol_id y actividad_id existen desde 0021: solo se mandan si hay valor, para no romper antes de aplicarla.
     if (rol_id != null) fila.rol_id = rol_id;
     if (actividad_id != null) fila.actividad_id = actividad_id;
@@ -890,8 +911,11 @@ const API = {
     const r = await this._rpc('tareas_equipo_estado', { p_equipo: equipoId, p_periodo: periodoId });
     return r.ok ? { ok: true, tareas: r.data ?? [] } : r;
   },
-  async crearTareaEquipo({ equipo_id, titulo, descripcion = '', instrucciones = '', criterios_evaluacion = '', criterios = [], prioridad = 'normal', fecha_limite = null, responsable_id = null, peso = 1 }) {
-    const fila = { equipo_id, periodo_id: null, titulo, descripcion, instrucciones, criterios_evaluacion, criterios, prioridad, fecha_limite: fecha_limite || null, responsable_id: responsable_id || null, peso };
+  async crearTareaEquipo({ equipo_id, titulo, descripcion = '', instrucciones = '', criterios_evaluacion = '', criterios = [], prioridad = 'normal', fecha_limite = null, responsable_id = null, nivel = null, tipo_entrega = null }) {
+    const fila = { equipo_id, periodo_id: null, titulo, descripcion, instrucciones, criterios_evaluacion, criterios, prioridad, fecha_limite: fecha_limite || null, responsable_id: responsable_id || null };
+    // 0065: el peso de tarea se retiró (la base lo deja en 1); nivel y tipo de entrega solo si la pantalla los ofreció.
+    if (nivel) fila.nivel = nivel;
+    if (tipo_entrega) fila.tipo_entrega = tipo_entrega;
     delete fila.periodo_id;                    // el servidor toma el PE del equipo
     const { data, error } = await SB.from('tareas_equipo').insert(fila).select().single();
     return error ? { ok: false, error: error.message } : { ok: true, tarea: data };
@@ -951,7 +975,9 @@ const API = {
     const r = await this._rpc('calif_config', { p_periodo: periodoId });
     const c = r.ok ? (r.data ?? [])[0] : null;
     if (!r.ok) return r;
-    return { ok: true, config: c ? { ...c, peso_tareas: Number(c.peso_tareas), mult_individual: Number(c.mult_individual), mult_colectiva: Number(c.mult_colectiva) } : null };
+    return { ok: true, config: c ? { ...c, peso_tareas: Number(c.peso_tareas), mult_individual: Number(c.mult_individual), mult_colectiva: Number(c.mult_colectiva),
+      // 0065: multiplicadores por nivel (undefined si la base aún no la tiene)
+      ...(c.mult_distrital != null ? { mult_distrital: Number(c.mult_distrital), mult_regional: Number(c.mult_regional) } : {}) } : null };
   },
   async guardarCalifConfig(periodoId, c, motivo = null) {
     return this._rpc('calif_config_guardar', {
@@ -959,6 +985,8 @@ const API = {
       p_minimo_tareas: c.minimo_tareas, p_contar_propias: c.contar_propias, p_vencidas_como_cero: c.vencidas_como_cero, p_motivo: motivo,
       // 0061: solo se envía si la base ya la tiene (config.sin_tareas_pierde_puntos definido); antes de aplicarla, la función no conoce el parámetro.
       ...(typeof c.sin_tareas_pierde_puntos === 'boolean' ? { p_sin_tareas_pierde_puntos: c.sin_tareas_pierde_puntos } : {}),
+      // 0065: multiplicadores por nivel; solo si la base ya los devolvió (mult_distrital definido)
+      ...(typeof c.mult_distrital === 'number' ? { p_sin_tareas_pierde_puntos: !!c.sin_tareas_pierde_puntos, p_mult_distrital: c.mult_distrital, p_mult_regional: c.mult_regional } : {}),
     });
   },
   async getCalifConfigHist(periodoId) {

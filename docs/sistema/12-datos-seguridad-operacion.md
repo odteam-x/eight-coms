@@ -109,9 +109,9 @@ Reglas de datos que cruzan todo:
 
 Secretos de funciones (no van al repositorio ni a un chat): los de correo/Apps Script, `CORREO_MODO`, `CORREO_PRUEBA_DESTINO`, `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SA_JSON`.
 
-## 12.7 Migraciones (0001 a 0064)
+## 12.7 Migraciones (0001 a 0065)
 
-Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de 2026). Se aplican a mano, en orden. Cada una es **idempotente**, lleva su cabecera (qué hace / qué no cambia) y su **reversa comentada**.
+Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de 2026). Se aplican a mano, en orden. Cada una es **idempotente**, lleva su cabecera (qué hace / qué no cambia) y su **reversa comentada**.
 
 | Rango | Contenido |
 |---|---|
@@ -136,6 +136,7 @@ Estado: **todas aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviem
 | 0062 | **Dos roles por persona** |
 | 0063 | Tareas propias **En curso** |
 | 0064 | **Sincronización en tiempo real** |
+| 0065 | **Nivel de tarea (distrital/regional), tipo de entrega, peso retirado y quién evalúa la iniciativa** (entregada; **pendiente de aplicar** por el dueño) |
 | 0070 | **Registro con solicitud** (distrito o invitado externo y hasta 2 roles; se aplica al aprobar) |
 | 0071 | **Recursos** (antes banco de imágenes): tipos, evento, etiquetas, partes (enlaces, colores, tipografías); copia el banco sin pérdida |
 
@@ -147,7 +148,7 @@ Cómo cambiar la base desde ahora: ver `docs/auditoria/06-registro-migraciones.m
 
 `tools/pruebas/` (se instalan con `npm install` allí). **72 archivos**, más de **2 400 aserciones** a la última auditoría.
 
-- **SQL con PGlite** (Postgres real) como `authenticated` y `anon`, de modo que **la RLS cuenta**: `sql-0015…0064.mjs`. `base-eq.mjs` imita los permisos por defecto de Supabase para que un `REVOKE` olvidado falle. Cada migración tiene **prueba de paridad**: aplicarla no cambia resultados existentes.
+- **SQL con PGlite** (Postgres real) como `authenticated` y `anon`, de modo que **la RLS cuenta**: `sql-0015…0065.mjs`. `base-eq.mjs` imita los permisos por defecto de Supabase para que un `REVOKE` olvidado falle. Cada migración tiene **prueba de paridad**: aplicarla no cambia resultados existentes.
 - **Cadena completa**: `cadena.mjs` aplica todas las migraciones en orden y comprueba lo que anon puede ejecutar.
 - **Frontend**: `front.mjs`, `front-rediseno.mjs` (marcado, acciones, «sin manejadores en línea», reglas visuales prohibidas), `front-equipos`, `front-desempeno`, `front-estadisticas`, `front-distritos`, `front-manual`, `front-tema`, `front-gafete`, `front-sync`, `front-dos-roles`, `front-reglas-tareas`, `front-texto-largo`, etc.
 - **Sincronización**: `sync-multisesion.mjs` simula varias sesiones simultáneas.

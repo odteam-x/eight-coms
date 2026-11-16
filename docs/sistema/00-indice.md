@@ -1,7 +1,7 @@
 # Documentación completa del sistema · EIGHT CREATORS LABs
 
 Portal de evaluación del desempeño del equipo de **CELIDER 08 Santiago** (eight-coms.vercel.app).
-Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase.
+Estado descrito: **15 de noviembre de 2026**, con las migraciones **0001 a 0064** aplicadas por el dueño del proyecto en su base de Supabase. La **0065** (nivel de tarea, tipo de entrega y quién evalúa la iniciativa) está entregada y **pendiente de aplicar**: los capítulos 05, 07, 11 y 12 la describen.
 
 Este es el documento completo del sistema. No es un resumen: describe **qué es cada cosa, quién la hace, en qué pantalla, con qué reglas, qué avisa, qué guarda y qué puede salir mal**, proceso por proceso, y termina con un análisis de qué está donde no debe y qué funciones importantes quedaron escondidas.
 

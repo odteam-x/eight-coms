@@ -81,7 +81,7 @@ const Equipos = (() => {
     const est = EST_TAREA[t.estado] || EST_TAREA.asignada;
     const lect = soloLectura();
     const nota = t.estado === 'aprobada' && t.puntos != null
-      ? `<span class="eq-nota${t.nota_anulada ? ' eq-nota--anulada' : ''}" title="Nota del grupo">${t.nota_anulada ? 'Nota anulada · ' : 'Nota del grupo '}<b>${Number(t.puntos)}/10</b>${t.puntos_original != null && t.puntos_original !== t.puntos ? ` <small>(original ${Number(t.puntos_original)})</small>` : ''}<small> · peso ${Number(t.peso)}</small></span>` : '';
+      ? `<span class="eq-nota${t.nota_anulada ? ' eq-nota--anulada' : ''}" title="Nota del grupo">${t.nota_anulada ? 'Nota anulada · ' : 'Nota del grupo '}<b>${Number(t.puntos)}/10</b>${t.puntos_original != null && t.puntos_original !== t.puntos ? ` <small>(original ${Number(t.puntos_original)})</small>` : ''}${t.nivel && Tareas.NIVELES[t.nivel] ? `<small> · nivel ${escHtml(Tareas.NIVELES[t.nivel].toLowerCase())}</small>` : ''}</span>` : '';
     const b = (a, txt, primario) => `<button type="button" class="${primario ? 'btn-save' : 'tk-btn'}" data-act="eq" data-arg="${a}" data-arg2="${t.tarea_id}">${escHtml(txt)}</button>`;
     const out = [];
     if (!lect) {
@@ -111,6 +111,8 @@ const Equipos = (() => {
           <span class="tk-pill tk-pill--${est.cls}">${escHtml(t.estado === 'entregada' && t.puedo_revisar ? 'Por revisar' : est.txt)}</span>
         </div>
         <p class="eq-tarea-meta"><span class="etiqueta etq-azul">Tarea de equipo</span>
+          ${t.nivel && Tareas.NIVELES[t.nivel] ? `<span class="etiqueta" title="Nivel de la tarea: pesa según las reglas del PE">${escHtml(Tareas.NIVELES[t.nivel])}</span>` : ''}
+          ${t.tipo_entrega && Tareas.TIPOS_ENTREGA[t.tipo_entrega] && !t.entregada_en ? `<span class="etiqueta" title="Tipo de entrega esperado">Entrega: ${escHtml(Tareas.TIPOS_ENTREGA[t.tipo_entrega].toLowerCase())}</span>` : ''}
           <span>${escHtml(t.equipo_nombre)}</span> · ${Tareas.plazoHTML(t)}
           ${t.prioridad !== 'normal' ? ` · Prioridad ${escHtml(PRIORIDAD[t.prioridad] || t.prioridad)}` : ''}</p>
         ${textoLargoHTML(t.descripcion)}
@@ -118,7 +120,7 @@ const Equipos = (() => {
         <p class="eq-tarea-meta">${Number(t.participantes)} integrante${t.participantes === 1 ? '' : 's'} · ${Number(t.aportes)} aporte${t.aportes === 1 ? '' : 's'}${t.responsable_nombre ? ` · Seguimiento: ${escHtml(t.responsable_nombre)}` : ''}</p>
         ${t.estado === 'bloqueada' && t.bloqueo_motivo ? `<p class="tk-nota tk-nota--bloq"><strong>Bloqueada:</strong> ${escHtml(t.bloqueo_motivo)}</p>` : ''}
         ${t.revision_nota && ['devuelta', 'entregada', 'aprobada'].includes(t.estado) ? `<p class="tk-nota"><strong>Observación de quien revisa:</strong> ${escHtml(t.revision_nota)}</p>` : ''}
-        ${t.entregada_en ? `<p class="eq-tarea-meta">Entregada por <b>${escHtml(t.entregada_por_nombre || '—')}</b> · ${escHtml(hora(t.entregada_en))}${t.entrega_url ? ` · <a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">enlace de la entrega</a>` : ''}</p>` : ''}
+        ${t.entregada_en ? `<p class="eq-tarea-meta">Entregada por <b>${escHtml(t.entregada_por_nombre || '—')}</b> · ${escHtml(hora(t.entregada_en))}${t.tipo_entrega && Tareas.TIPOS_ENTREGA[t.tipo_entrega] ? ` · <span class="etiqueta">${escHtml(Tareas.TIPOS_ENTREGA[t.tipo_entrega])}</span>` : ''}${t.entrega_url ? ` · <a href="${escHtml(t.entrega_url)}" target="_blank" rel="noopener noreferrer">${escHtml({ enlace: 'abrir enlace', documento: 'abrir documento', imagen: 'ver imagen', video: 'ver video', otro: 'abrir entrega' }[t.tipo_entrega] || 'enlace de la entrega')}</a>` : ''}</p>` : ''}
         ${nota}
         <div class="tk-acciones">${out.join('')}</div>
       </article>`;
@@ -427,8 +429,9 @@ const Equipos = (() => {
   }
 
   /* ══ Tareas colectivas: nueva y acciones ═════════════════════════════ */
-  function modalNuevaTarea() {
+  async function modalNuevaTarea() {
     const e = S.equipos.find(x => x.equipo_id === S.eqId); if (!e) return;
+    const conNivel = await API.nivelTareasDisponible();
     const crit = (Store.get('criteriosV2') || []);
     const part = S.integrantes.filter(i => !i.hasta);
     Tareas.abrirModal({
@@ -441,7 +444,9 @@ const Equipos = (() => {
         { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 3, max: 5000, ph: 'Qué se va a mirar al calificar' },
         { id: 'fecha_limite', tipo: 'fecha', label: 'Fecha límite' },
         { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: 'normal', opciones: [{ v: 'baja', l: 'Baja' }, { v: 'normal', l: 'Normal' }, { v: 'alta', l: 'Alta' }] },
-        { id: 'peso', tipo: 'select', label: 'Peso de esta tarea en la nota', valor: '1', ayuda: 'Cuánto pesa frente a otras tareas al promediar. Las reglas del PE lo combinan con el tipo de tarea.', opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) },
+        ...(conNivel && S.esAdmin ? [{ id: 'nivel', tipo: 'select', label: 'Nivel de la tarea', valor: e.distrito ? 'distrital' : 'regional', opciones: [{ v: 'distrital', l: 'Distrital' }, { v: 'regional', l: 'Regional' }],
+          ayuda: 'Pesa en la nota según las reglas del PE (Tareas → reglas de calificación). La secretaría asigna siempre tareas distritales.' }] : []),
+        ...(conNivel ? [{ id: 'tipo_entrega', tipo: 'select', label: 'Tipo de entrega', valor: '', opciones: Tareas.OPC_TIPO, ayuda: 'Qué se espera recibir. Quien entrega puede ajustarlo.' }] : []),
         { id: 'responsable', tipo: 'select', label: 'Responsable de seguimiento (opcional)', valor: '', opciones: [{ v: '', l: 'Sin responsable' }, ...part.map(i => ({ v: i.persona_id, l: i.nombre }))] },
         ...(crit.length ? [{ id: 'criterios', tipo: 'checks', label: 'Criterios que evidencia (orientativo)', opciones: crit.filter(c => c.activo !== false).map(c => ({ v: c.key, l: c.nombre })) }] : []),
       ],
@@ -449,7 +454,8 @@ const Equipos = (() => {
       onConfirm: async v => {
         if (!v.titulo) return 'Escribe un título.';
         const r = await API.crearTareaEquipo({ equipo_id: S.eqId, titulo: v.titulo, descripcion: v.descripcion, instrucciones: v.instrucciones, criterios_evaluacion: v.criterios_evaluacion,
-          criterios: v.criterios || [], prioridad: v.prioridad, fecha_limite: v.fecha_limite, responsable_id: v.responsable, peso: Number(v.peso) });
+          criterios: v.criterios || [], prioridad: v.prioridad, fecha_limite: v.fecha_limite, responsable_id: v.responsable,
+          ...(conNivel ? { nivel: S.esAdmin ? (v.nivel || null) : null, tipo_entrega: v.tipo_entrega || null } : {}) });
         if (!r.ok) return r.error;
         showToast('Tarea asignada al equipo', 'ok');
         await abrir(S.eqId);
@@ -507,15 +513,15 @@ const Equipos = (() => {
         return m(t.estado === 'devuelta' ? 'Entregar corregida' : 'Entregar la tarea del equipo', [
           { tipo: 'info', texto: 'Queda registrado que entregas tú, cuándo y con qué evidencia. Esta entrega vale para todo el equipo.' },
           { id: 'url', tipo: 'texto', label: 'Enlace de la entrega (https://…)', max: 2000 },
+          ...(t.nivel !== undefined ? [{ id: 'tipo_entrega', tipo: 'select', label: 'Tipo de entrega', valor: t.tipo_entrega || 'enlace', opciones: Tareas.OPC_TIPO.filter(o => o.v), ayuda: 'Qué es lo que enlazas.' }] : []),
           { id: 'nota', tipo: 'area', label: 'Nota de la entrega', filas: 3, max: 2000 }], 'Entregar',
-          v => (v.url || (v.nota || '').length >= 3) ? cambiar(id, { estado: 'entregada', entrega_url: v.url || null, entrega_nota: v.nota || null }, 'Tarea entregada') : 'Indica un enlace o escribe una nota de la entrega.');
+          v => (v.url || (v.nota || '').length >= 3) ? cambiar(id, { estado: 'entregada', entrega_url: v.url || null, entrega_nota: v.nota || null, ...(t.nivel !== undefined && v.url ? { tipo_entrega: v.tipo_entrega || Tareas.tipoSugerido(v.url) || 'enlace' } : {}) }, 'Tarea entregada') : 'Indica un enlace o escribe una nota de la entrega.');
       case 't-aprobar':
         return m('Aprobar la tarea del equipo', [
           { tipo: 'info', texto: `«${t.titulo}». Esta nota es del GRUPO: cada integrante la recibe una vez. Cuenta en la evaluación de cada persona según las reglas del PE.` },
-          { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: 8 },
-          { id: 'peso', tipo: 'select', label: 'Peso de la tarea', valor: String(t.peso), opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) }], 'Aprobar',
+          { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: 8 }], 'Aprobar',
           v => { const n = Number(v.puntos); if (v.puntos === '' || !Number.isInteger(n) || n < 0 || n > 10) return 'Elige unos puntos entre 0 y 10.';
-            return cambiar(id, { estado: 'aprobada', puntos: n, peso: Number(v.peso) }, `Aprobada con ${n} puntos`); });
+            return cambiar(id, { estado: 'aprobada', puntos: n }, `Aprobada con ${n} puntos`); });
       case 't-devolver':
         return m('Devolver con correcciones', [{ id: 'motivo', tipo: 'area', label: 'Qué hay que corregir', req: true, filas: 3, max: 2000 }], 'Devolver',
           v => largo(v, 3) || cambiar(id, { estado: 'devuelta', revision_nota: v.motivo }, 'Tarea devuelta'));
@@ -537,8 +543,9 @@ const Equipos = (() => {
           { id: 'instrucciones', tipo: 'area', label: 'Instrucciones', filas: 6, max: 20000, valor: t.instrucciones },
           { id: 'criterios_evaluacion', tipo: 'area', label: 'Criterios de evaluación', filas: 3, max: 5000, valor: t.criterios_evaluacion },
           { id: 'prioridad', tipo: 'select', label: 'Prioridad', valor: t.prioridad, opciones: [{ v: 'baja', l: 'Baja' }, { v: 'normal', l: 'Normal' }, { v: 'alta', l: 'Alta' }] },
-          { id: 'peso', tipo: 'select', label: 'Peso', valor: String(Number(t.peso)), opciones: ['1', '2', '3', '5'].map(x => ({ v: x, l: x })) }], 'Guardar',
-          v => v.titulo ? cambiar(id, { titulo: v.titulo, descripcion: v.descripcion, instrucciones: v.instrucciones, criterios_evaluacion: v.criterios_evaluacion, prioridad: v.prioridad, peso: Number(v.peso) }, 'Tarea actualizada') : 'Escribe un título.');
+          ...(t.nivel !== undefined && !['entregada', 'aprobada'].includes(t.estado) ? [{ id: 'tipo_entrega', tipo: 'select', label: 'Tipo de entrega', valor: t.tipo_entrega || '', opciones: Tareas.OPC_TIPO }] : [])], 'Guardar',
+          v => v.titulo ? cambiar(id, { titulo: v.titulo, descripcion: v.descripcion, instrucciones: v.instrucciones, criterios_evaluacion: v.criterios_evaluacion, prioridad: v.prioridad,
+            ...(v.tipo_entrega !== undefined ? { tipo_entrega: v.tipo_entrega || null } : {}) }, 'Tarea actualizada') : 'Escribe un título.');
       case 't-corregir':
         return m('Corregir la nota', [{ tipo: 'info', texto: `Nota actual ${t.puntos}/10${t.puntos_original != null ? ` (original ${t.puntos_original})` : ''}. Toda corrección queda en el historial con su justificación; las notas de las personas se recalculan.` },
           { id: 'puntos', tipo: 'puntos', label: 'Puntos (0–10)', req: true, valor: t.puntos }, motivo('Justificación')], 'Corregir',

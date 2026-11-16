@@ -158,7 +158,13 @@ const Asignar = (() => {
       <div class="asig-fila2">
         ${campo('prioridad', 'Prioridad', `<select class="cfg-inp cfg-select" id="asig-prioridad">${[['alta', 'Alta'], ['normal', 'Normal'], ['baja', 'Baja']].map(([v, l]) => `<option value="${v}"${v === d.prioridad ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}
         ${campo('fecha', 'Fecha límite', `<input class="cfg-inp" id="asig-fecha" type="date" value="${escHtml(d.fecha)}">`)}
-      </div>`;
+      </div>
+      ${E.c.nivelOk ? `<div class="asig-fila2">
+        ${E.c.esAdmin ? campo('nivel', 'Nivel de la tarea', `<select class="cfg-inp cfg-select" id="asig-nivel">${[['distrital', 'Distrital'], ['regional', 'Regional']].map(([v, l]) => `<option value="${v}"${v === d.nivel ? ' selected' : ''}>${l}</option>`).join('')}</select>`,
+          'Pesa en la nota según las reglas del PE (Tareas → reglas de calificación).') : ''}
+        ${campo('tipoentrega', 'Tipo de entrega', `<select class="cfg-inp cfg-select" id="asig-tipoentrega">${Tareas.OPC_TIPO.map(o => `<option value="${escHtml(o.v)}"${o.v === d.tipoEntrega ? ' selected' : ''}>${escHtml(o.l)}</option>`).join('')}</select>`,
+          'Qué se espera recibir. Quien entrega puede ajustarlo.')}
+      </div>` : ''}`;
     document.getElementById('asig-titulo')?.focus();
   }
 
@@ -167,6 +173,8 @@ const Asignar = (() => {
     const d = E.datos;
     d.titulo = v('titulo').value.trim(); d.descripcion = v('desc').value.trim();
     d.prioridad = v('prioridad').value; d.fecha = v('fecha').value;
+    if (v('nivel')) d.nivel = v('nivel').value;
+    if (v('tipoentrega')) d.tipoEntrega = v('tipoentrega').value;
     if (v('periodo')) d.periodo = v('periodo').value;
     if (v('actividad')) d.actividad = v('actividad').value;
     if (v('rolctx')) d.rolCtx = v('rolctx').value;
@@ -246,7 +254,7 @@ const Asignar = (() => {
     const hayAvisos = v.avisos > 0;
     const resumen = `<section class="asig-resumen" aria-labelledby="asig-res-h">
         <h4 class="asig-h" id="asig-res-h">Resumen</h4>
-        <p><b>«${escHtml(E.datos.titulo)}»</b> · prioridad ${escHtml(E.datos.prioridad)} · vence ${escHtml(fechaTxt)}${E.datos.criterios.size ? ` · evidencia ${escHtml(E.datos.criterios.size)} competencia${E.datos.criterios.size === 1 ? '' : 's'}` : ''}</p>
+        <p><b>«${escHtml(E.datos.titulo)}»</b> · prioridad ${escHtml(E.datos.prioridad)} · vence ${escHtml(fechaTxt)}${E.c.nivelOk ? ` · nivel ${escHtml(Tareas.NIVELES[E.c.esAdmin ? E.datos.nivel : 'distrital'].toLowerCase())}` : ''}${E.c.nivelOk && E.datos.tipoEntrega ? ` · entrega: ${escHtml(Tareas.TIPOS_ENTREGA[E.datos.tipoEntrega].toLowerCase())}` : ''}${E.datos.criterios.size ? ` · evidencia ${escHtml(E.datos.criterios.size)} competencia${E.datos.criterios.size === 1 ? '' : 's'}` : ''}</p>
         <p>Se crearán <b>${sel.length}</b> tarea${sel.length === 1 ? '' : 's'} (una por persona) y cada una recibirá su aviso.</p>
         <ul class="asig-res-lista">${lineas}</ul>
         ${v.globales.map(x => `<p class="asig-aviso asig-aviso--${x.nivel}"><i data-lucide="alert-triangle" aria-hidden="true"></i><span>${escHtml(x.txt)}</span></p>`).join('')}
@@ -309,6 +317,7 @@ const Asignar = (() => {
         periodo_id: E.datos.periodo, titulo: E.datos.titulo, descripcion: E.datos.descripcion, asignada_a: id,
         prioridad: E.datos.prioridad, fecha_limite: E.datos.fecha || null, criterios: crit,
         rol_id: rolId === '' || rolId == null ? null : Number(rolId), actividad_id: E.datos.actividad ? Number(E.datos.actividad) : null,
+        ...(E.c.nivelOk ? { nivel: E.c.esAdmin ? E.datos.nivel : 'distrital', tipo_entrega: E.datos.tipoEntrega || null } : {}),
       });
       res.push({ id, r });
     }
@@ -354,7 +363,7 @@ const Asignar = (() => {
     E = {
       c, paso: 0, creando: false, ack: false, rolCargado: undefined, rolPor: new Map(),
       conRoles: d.conRoles, roles: d.roles, extras: d.extras, tareas: d.tareas, actividades: d.actividades.filter(a => (a.fecha_fin || a.fecha_inicio) >= hoyISO().slice(0, 7) + '-01'),
-      datos: { titulo: '', descripcion: '', periodo: periodoId, prioridad: 'normal', fecha: c.fechaIni || '', actividad: '', rolCtx: '', criterios: new Set() },
+      datos: { titulo: '', descripcion: '', periodo: periodoId, prioridad: 'normal', fecha: c.fechaIni || '', nivel: c.esAdmin ? 'regional' : 'distrital', tipoEntrega: '', actividad: '', rolCtx: '', criterios: new Set() },
     };
     const personas = d.filas.map(r => ({ ...r }));
     Selector.soltar('asig');

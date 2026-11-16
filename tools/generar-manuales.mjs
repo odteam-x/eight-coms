@@ -209,11 +209,11 @@ ${tabla(['Estado', 'Qué significa', 'Qué puedes hacer'], [
 <h3>Entregar una tarea</h3>
 ${pasos(
         `Abre ${b('Mis tareas')} y busca la tarea (usa ${b('Todas')}, ${b('Abiertas')}, ${b('Vencidas')} o ${b('Aprobadas')}).`,
-        `Pulsa ${b('Entregar')}. Escribe un enlace a tu trabajo, una nota, o ambos (debe haber al menos uno).`,
+        `Pulsa ${b('Entregar')}. Escribe un enlace a tu trabajo, una nota, o ambos (debe haber al menos uno). Si pones un enlace, elige su <b>Tipo de entrega</b>: enlace, documento, imagen, video u otro. Quien revisa lo ve como etiqueta junto al botón para abrirlo («Abrir documento», «Ver video»…).`,
         `Confirma. Desde ese momento queda <i>Entregada</i> y a quien revisa le llega un aviso.`)}
 ${nota('ojo', 'El «a tiempo» se mide en tu <b>primera</b> entrega. Si te devuelven la tarea y la corriges, esa corrección no la vuelve «tarde».')}
 <h3>Crear tu propia tarea («Mi iniciativa»)</h3>
-${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha.`, `Guarda. La tarea queda <b>En curso</b> desde ese momento: no tienes que tocar «Empezar». Cuando la termines, entrégala; cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
+${pasos(`Toca ${b('+ Mi iniciativa')}.`, `Escribe un título, qué hiciste o harás y, si quieres, una fecha y el tipo de entrega que esperas.`, `Elige <b>¿Quién te evalúa?</b>: <b>Distrital</b> (la secretaría de tu distrito) o <b>Regional</b> (la administración). Solo esa instancia podrá aprobarla o devolverla y recibirá el aviso de tu entrega; no se cambia después. Si tu distrito no tiene secretaría, o eres secretaría, la evalúa la administración. Una iniciativa siempre pesa lo mismo: el nivel solo decide quién la evalúa.`, `Guarda. La tarea queda <b>En curso</b> desde ese momento: no tienes que tocar «Empezar». Cuando la termines, entrégala; cuando alguien más la apruebe, cuenta como iniciativa tuya.`)}
 ${nota('consejo', 'Nadie aprueba su propia tarea. Eso es lo que evita inflar la «iniciativa»: solo cuenta lo que otra persona revisó.')}
 <h3>Bloquear, mover plazos, historial</h3>
 ${lista(
@@ -358,7 +358,7 @@ ${nota('consejo', 'La <b>preferencia</b> de una persona es solo información: pu
 <h3>Revisar una entrega</h3>
 ${pasos(
         `Entra a ${b('Tareas')} y usa el filtro ${b('Por revisar')} (muestra el número).`,
-        `Pulsa ${b('Ver entrega')} para leer el enlace o la nota.`,
+        `Pulsa el enlace de la entrega (dice «Abrir documento», «Ver video»… según su <b>tipo de entrega</b>) para leer el enlace o la nota. Las iniciativas que la persona dejó para la administración (<b>Regional</b>) no aparecen en tu lista de «Por revisar»: no son tuyas.`,
         `Si está bien, ${b('Aprobar')}: <b>es obligatorio ponerle puntos de 0 a 10</b>. Los puntos <b>sí cuentan</b>: entran a la nota de tareas de la persona, según las reglas del período (la administración las define). Si quieres que una tarea pese más, ajusta el <b>Peso de la tarea</b> al aprobar.`,
         `Si hay que corregir, ${b('Devolver')} y escribe la observación (obligatoria). La persona recibe un aviso con tu observación.`)}
 ${tabla(['Botón', 'Para qué'], [
@@ -599,9 +599,9 @@ ${tabla(['Quién', 'Qué hace con una tarea'], [
 ${pasos(
         `En ${b('Tareas')} usa el filtro ${b('Por revisar')} (muestra el número) o busca por persona.`,
         `Pulsa ${b('Ver entrega')} y lee el enlace o la nota.`,
-        `Si está bien: ${b('Aprobar y puntuar')}. Pon los <b>Puntos (0–10)</b> —obligatorios— y, si corresponde, el <b>Peso de la tarea</b> (cuánto cuenta frente a las demás; por defecto 1). Una tarea «propia» (iniciativa de la persona) siempre pesa 1.`,
+        `Si está bien: ${b('Aprobar y puntuar')}. Pon los <b>Puntos (0–10)</b> —obligatorios— <b>ya no se elige un peso</b>: cuánto cuenta la tarea depende de su <b>nivel</b> (distrital o regional), que se fija al asignarla, y de los multiplicadores del período (ver «Cómo cuentan las tareas»). Una tarea «propia» (iniciativa de la persona) siempre pesa lo mismo.`,
         `Si hay que corregir: ${b('Devolver para corregir')} y escribe <b>Qué hay que corregir</b> (obligatorio y concreto). La persona recibe un aviso con tu observación (correo incluido).`)}
-${nota('ejemplo', 'Entregó el reel del sábado: lo apruebas con 8 puntos y peso 2. Entra a su <b>nota de tareas</b> con el doble de peso que una tarea de peso 1 (ver «Cómo cuentan las tareas»).')}
+${nota('ejemplo', 'Entregó el reel del sábado: lo apruebas con 8 puntos. Si el período pondera las tareas regionales ×2 y esta es regional, entra a su <b>nota de tareas</b> con el doble de peso que una distrital (ver «Cómo cuentan las tareas»).')}
 ${nota('consejo', 'Lo de «a tiempo» se mide en la <b>primera</b> entrega: devolver y corregir no la vuelve tarde. Así no se castiga a quien corrige bien.')}
 <h3>Mover el plazo, bloquear y anular</h3>
 ${lista(
@@ -637,7 +637,7 @@ ${pasos(
 ${tabla(['Paso', 'Quién', 'Qué ocurre'], [
         ['Avanzar', 'Cualquier integrante', 'Registra un aporte: <b>Qué se avanzó</b> y el <b>Avance del equipo (0 a 100 %)</b>. Queda con su autoría.'],
         ['Entregar', 'Cualquier integrante', '<b>Enlace de la entrega</b> (https) y/o <b>Nota de la entrega</b>. Es <b>una</b> entrega para todo el equipo; la primera mide el plazo.'],
-        ['Aprobar', 'Administración (o la secretaría del distrito del equipo, si no participa)', '<b>Puntos (0–10)</b> y <b>Peso de la tarea</b>. La nota es <b>del grupo</b>: cada persona cuenta <b>una vez</b>.'],
+        ['Aprobar', 'Administración (o la secretaría del distrito del equipo, si no participa)', '<b>Puntos (0–10)</b> (sin peso: lo da el nivel). La nota es <b>del grupo</b>: cada persona cuenta <b>una vez</b>.'],
         ['Devolver', 'Quien revisa', '<b>Observación para el equipo</b> (obligatoria).'],
         ['Mover plazo · Anular', 'Administración', '<b>Nueva fecha</b> y <b>Motivo</b>; anular pide motivo y solo tú la reabres.'],
         ['Nota individual', 'Quien revisa', 'Si una persona rindió distinto, le pones una <b>Nota individual</b> con evidencia (mínimo 10 caracteres). Reemplaza la del grupo solo para ella y se muestra aparte.']])}
@@ -649,7 +649,9 @@ ${tabla(['Paso', 'Quién', 'Qué ocurre'], [
 <p>Las notas de las tareas <b>entran en el resultado</b> de cada persona. Tú decides cuánto pesan, <b>período por período</b>.</p>
 <pre class="formula">individual = (1 − w) × (0,6 × técnico + 0,4 × núcleo) + w × nota de tareas
 general    = (1 − w) × (0,4 × núcleo + 0,6 × percentil) + w × nota de tareas
-nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan</pre>
+nota de tareas = 100 × Σ(peso × nota ÷ 10) ÷ Σ(pesos) de las tareas que cuentan
+peso de una tarea = su peso heredado × multiplicador de su NIVEL × multiplicador de su tipo (individual | del equipo)</pre>
+<p><b>Nivel y peso (desde la migración 0065).</b> Ya no se elige un «peso de la tarea» al aprobar. Cada tarea tiene un <b>nivel</b>: <b>distrital</b> (la asigna una secretaría o la administración para un distrito) o <b>regional</b> (de la administración). En <b>Reglas de calificación</b> defines, por período, un multiplicador para cada nivel (por defecto 1 y 1: el nivel no cambia la nota hasta que tú lo subas o bajes). Una <b>iniciativa propia</b> siempre pesa × 1: su nivel solo decide quién la evalúa. Las tareas que ya estaban calificadas conservan el peso que tuvieron: sus resultados no cambian.</p>
 <p>donde <b>w</b> es el peso de las tareas (por ejemplo 20 % → 0,2). Si la persona no tiene nota de tareas, por defecto se queda con su evaluación pura: <b>nadie baja por no tener tareas calificadas</b>. Esa es una regla que tú puedes cambiar (ver «¿Se pierden los puntos de tareas?» más abajo).</p>
 ${tabla(['Cuenta', 'No cuenta (y nunca se rellena con 0)'], [
         ['Tareas <b>aprobadas</b> con puntos y no anuladas', 'Entregadas esperando revisión · en curso · devueltas · bloqueadas'],
@@ -658,7 +660,7 @@ ${tabla(['Cuenta', 'No cuenta (y nunca se rellena con 0)'], [
 <h3>Cambiar las reglas de un período</h3>
 ${pasos(
         `Abre ${b('Tareas')} y elige el período arriba: el bloque de reglas del PE (resumen «Tareas: N % del resultado») está justo debajo del selector. Toca ${b('Editar reglas')}. En períodos clásicos no aparece, porque no tienen tareas.`,
-        `Ajusta: <b>Peso de las tareas en el resultado</b> (0 a 100 %), <b>Multiplicador de las tareas individuales</b>, <b>Multiplicador de las tareas del equipo</b>, <b>Mínimo de tareas calificadas</b> (con menos, no hay nota de tareas), <b>¿Cuentan las iniciativas propias?</b> y <b>¿Las vencidas sin entregar cuentan como 0?</b> (No es lo recomendado) y <b>Sin tareas calificadas, ¿se pierden los puntos de tareas?</b>.`,
+        `Ajusta: <b>Peso de las tareas en el resultado</b> (0 a 100 %), <b>Multiplicador de las tareas de nivel distrital</b>, <b>Multiplicador de las tareas de nivel regional</b>, <b>Multiplicador de las tareas individuales</b>, <b>Multiplicador de las tareas del equipo</b>, <b>Mínimo de tareas calificadas</b> (con menos, no hay nota de tareas), <b>¿Cuentan las iniciativas propias?</b> y <b>¿Las vencidas sin entregar cuentan como 0?</b> (No es lo recomendado) y <b>Sin tareas calificadas, ¿se pierden los puntos de tareas?</b>.`,
         `Escribe el <b>Motivo del cambio</b> (obligatorio si el PE ya tiene evaluaciones publicadas) y guarda. Los resultados se <b>recalculan al instante</b> y el cambio queda en el historial.`)}
 <h3>¿Se pierden los puntos de tareas?</h3>
 <p>Con ${b('No')} (lo predeterminado), quien no tiene tareas calificadas —o no llega al mínimo— conserva su evaluación completa. Con ${b('Sí')}, esa persona queda con <b>0 en tareas</b> y pierde el peso entero: con 20 %, su resultado es 0,8 × su evaluación. Es la misma regla para todos: quien no tiene tareas asignadas también pierde esos puntos, así que <b>asigna tareas a todas las personas antes de activarla</b> y deja ${b('¿Cuentan las iniciativas propias?')} en ${b('Sí')} para que lo que alguien proponga y se le apruebe cuente.</p>
@@ -830,7 +832,8 @@ ${tabla(['Función', 'Migración', 'Si no está aplicada'], [
         ['Avisos con catálogo, preferencias, estado de los correos y modo de prueba', '0040 y 0041', 'Los avisos siguen con el esquema anterior; no hay preferencias ni «Estado de los correos».'],
         ['Solo lo esencial va por correo por defecto', '0042', 'Todos los avisos opcionales también salen por correo.'],
         ['Estadísticas de Instagram del distrito (con captura de prueba)', '0043', '«Estadísticas» avisa que no está activada; el admin escribe las cifras a mano.'],
-        ['Reporte general de todos los PE (con equipos y tareas del equipo)', '0050 y 0051', 'Reportes no ofrece «Todos los PE».']])}
+        ['Reporte general de todos los PE (con equipos y tareas del equipo)', '0050 y 0051', 'Reportes no ofrece «Todos los PE».'],
+        ['Nivel de la tarea (distrital o regional), tipo de entrega y «¿Quién te evalúa?» en las iniciativas', '0065 (después de 0061)', 'Las tareas no muestran nivel ni tipo de entrega, la iniciativa la puede evaluar quien siempre la evaluó y, al aprobar, ya no se pide peso (todas cuentan igual).']])}
 <p>Orden recomendado: <b>0021 → 0024 → 0025 → 0026 → 0030 → 0031 → 0032 → 0033 → 0034 → 0035 → 0036 → 0040 → 0041 → 0042 → 0043 → 0050 → 0051</b>. Cada archivo está en <code>supabase/migrations</code> y se aplica completo, una sola vez, en el SQL Editor (o con la conexión de Supabase).</p>`,
     },
   ],
@@ -842,6 +845,7 @@ ${tabla(['Función', 'Migración', 'Si no está aplicada'], [
     [`Asigné un rol que la persona no tiene y la tarea dice «Excepción de rol»`, `Es lo esperado: como administración puedes salirte de lo habilitado, pero queda marcado a la vista. Si no era tu intención, edítala y cambia el rol, o habilita ese rol en ${b('Personas')} → ${b('Gestión')}.`],
     [`Creé una actividad para personas y alguien dice que no la ve`, `Solo la ven las personas elegidas, quien la creó, la administración y la secretaría de su distrito. Elegir un equipo agrega a sus miembros de ese momento; si la persona entró después, edita la actividad y agrégala.`],
     [`No puedo eliminar una actividad`, `Tiene tareas vinculadas. Desvincula esas tareas (editándolas) y luego elimínala.`],
+    [`Una iniciativa quedó «por revisar» y la secretaría no la ve en su lista`, `La persona la dejó con nivel <b>Regional</b>: la evalúa la administración, y la base impide que la secretaría la apruebe, la devuelva o la prorrogue. Aparece en tu filtro «Por revisar». Si debía evaluarla la secretaría, cambia el nivel en la tarea (solo la administración lo cambia).`],
     [`No puedo eliminar un criterio`, `Si alguna evaluación o perfil lo usó, solo puede desactivarse: así no se pierde la historia.`],
     [`Los pesos no suman 100 y no me deja guardar el perfil`, `Es una regla de la base de datos: los pesos técnicos de una versión suman exactamente 100. El diálogo muestra la suma en vivo.`],
     [`No me deja guardar en una gestión`, `Está archivada: es de solo lectura. Abre la gestión activa.`],

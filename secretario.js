@@ -370,7 +370,8 @@ async function datosTareasDistrito() {
   const porRevisar = new Map();
   for (const t of lista.tareas) {
     // Una persona no revisa lo suyo: no cuenta como «por revisar» para el secretario.
-    if (t.estado === 'entregada' && t.asignada_a !== CU.id) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
+    // Tampoco las iniciativas REGIONALES: las evalúa la administración (0065).
+    if (t.estado === 'entregada' && t.asignada_a !== CU.id && !(t.origen === 'propia' && t.nivel === 'regional')) porRevisar.set(t.asignada_a, (porRevisar.get(t.asignada_a) || 0) + 1);
   }
   _tareasDistrito = { periodoId: per.id, resumen: new Map(Object.entries(res.porUsuario)), porRevisar, tareas: lista.tareas };
   return _tareasDistrito;
