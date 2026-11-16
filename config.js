@@ -92,7 +92,7 @@ const _ACCIONES_SIMPLES = new Set([
   // seguimiento global
   'segBuscar', 'segFiltro',
   // equipos (core/equipos.js)
-  'eqFiltrar', 'eqFiltrarTareas', 'bancoFiltrar',
+  'eqFiltrar', 'eqFiltrarTareas', 'recursosFiltrar',
   // Desempeño (core/desempeno.js)
   'desFiltro',
   // Auditoría (core/auditoria.js)
@@ -140,7 +140,7 @@ const ACCIONES = {
   selTodas:      (a)     => Selector.de(a)?.todasLasVisibles(),
   selNinguna:    (a)     => Selector.de(a)?.ninguna(),
   eq:            (a, el) => Equipos.accion(a, el.dataset.arg2, el),
-  banco:         (a, el) => Banco.accion(a, el.dataset.arg2, el),
+  recursos:      (a, el) => Recursos.accion(a, el.dataset.arg2, el),
   des:           (a, el) => Desempeno.accion(a, el.dataset.arg2),
   aud:           (a)     => Auditoria.accion(a),
   partPE:        (a, el) => participacionPE(a, el.dataset.arg2, el.dataset.arg3 === 'true'),

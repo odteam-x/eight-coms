@@ -37,7 +37,7 @@ const Configuracion = (() => {
     ] },
     { id: 'comunicacion', icono: 'bell', titulo: 'Comunicación', texto: 'Avisos, correos y recursos compartidos.', filas: [
       { t: 'Avisos y correos', d: 'Qué sale por la campana y por correo lo define la plataforma; cada persona elige sus avisos opcionales en Mi cuenta. Los esenciales (tarea asignada, acceso, cambios de plazo) siempre se envían.', tipo: 'info' },
-      { t: 'Banco de imágenes', d: 'Imágenes de apoyo y recursos para el equipo.', acc: ir('banco', 'Abrir') },
+      { t: 'Recursos', d: 'Fotos, videos, enlaces y la identidad gráfica de cada evento, para todo el equipo.', acc: ir('recursos', 'Abrir') },
     ] },
     { id: 'apariencia', icono: 'image', titulo: 'Apariencia y entrada', texto: 'Cómo se ve el portal para ti y cómo empiezas cada sesión.', filas: [
       { t: 'Tema', d: 'Oscuro, claro o rosa. Se recuerda en este dispositivo.', acc: { tipo: 'tema' } },

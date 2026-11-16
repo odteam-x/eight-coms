@@ -23,7 +23,7 @@ Este es el documento completo del sistema. No es un resumen: describe **qué es 
 | [06 · Evaluación](sistema/06-proceso-evaluacion.md) | Evaluar por rol, borrador, publicar, rectificar, versiones, cobertura, rúbrica clásica, evaluación de distrito |
 | [07 · Cálculo de resultados](sistema/07-calculos-y-resultados.md) | Fórmulas exactas, niveles, percentil, nota de tareas, dos roles, ejemplos numéricos y cada regla de borde |
 | [08 · Seguimiento, desempeño, reportes y distritos](sistema/08-seguimiento-desempeno-reportes.md) | Cómo se lee lo que ya está calculado: quién está al día, cómo les va, reportes, ranking de distritos, Instagram |
-| [09 · Comunicación](sistema/09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, banco de imágenes |
+| [09 · Comunicación](sistema/09-proceso-comunicacion.md) | Calendario, actividades, avisos de la campana, correos, recursos (antes banco de imágenes) |
 | [10 · Gafetes, auditoría, configuración y tiempo real](sistema/10-gafetes-auditoria-config-sync.md) | Gafete con QR y Wallet, centro de auditoría, Configuración general, sincronización sin recargar |
 | [11 · Pantallas por portal](sistema/11-pantallas-por-portal.md) | Cada pantalla de los tres portales: para qué sirve, quién la ve, qué se hace en ella |
 | [12 · Datos, seguridad y operación](sistema/12-datos-seguridad-operacion.md) | Tablas, funciones, permisos, migraciones, trabajos programados, correo, despliegue, pruebas |
@@ -72,7 +72,7 @@ El **rol funcional** decide **qué puede hacer una persona en el sistema**. Lo a
 
 | Tipo de acceso | Cómo se identifica | Portal | Qué puede, en una frase |
 |---|---|---|---|
-| **Miembro** | `tipo_miembro = 'miembro'`, `es_admin = false` | `user.html` | Ve y trabaja lo suyo: sus tareas, su evaluación, su perfil, su desempeño, su gafete, el calendario, el banco de imágenes |
+| **Miembro** | `tipo_miembro = 'miembro'`, `es_admin = false` | `user.html` | Ve y trabaja lo suyo: sus tareas, su evaluación, su perfil, su desempeño, su gafete, el calendario, los recursos |
 | **Secretaría de distrito** | `tipo_miembro = 'secretario'` con un distrito | `secretario.html` | Todo lo de un miembro **más** supervisar y trabajar con su distrito: ver a su gente, asignar y revisar tareas, crear actividades de su distrito, seguimiento, desempeño y reportes de su distrito, y subir las estadísticas de Instagram de su distrito |
 | **Administración** | `es_admin = true` | `admin.html` | Todo el sistema: personas, accesos, períodos, rúbrica, evaluar, tareas, equipos, distritos, reportes, auditoría, configuración. **No se evalúa a sí misma** |
 
@@ -123,7 +123,7 @@ Las cuatro cosas **nunca se mezclan**: tipo de acceso · rol principal · rol se
 
 | Quién | Ve |
 |---|---|
-| Miembro | Solo lo suyo: su perfil, evaluaciones **publicadas** suyas, sus tareas, sus equipos, calendario, banco de imágenes, avisos |
+| Miembro | Solo lo suyo: su perfil, evaluaciones **publicadas** suyas, sus tareas, sus equipos, calendario, recursos, avisos |
 | Secretaría | Lo suyo **más** las personas de su distrito (perfiles, tareas, seguimiento, desempeño, reportes) y los equipos con personas de su distrito; evaluaciones **publicadas** de su distrito; el ranking de distritos (los demás distritos se muestran sin detalle) |
 | Administración | Todo, incluidos los **borradores** de evaluación |
 
@@ -169,7 +169,7 @@ flowchart TD
     P19[19 · Calendario y actividades]
     P20[20 · Avisos y correos]
     P21[21 · Gafete]
-    P22[22 · Banco, auditoría, configuración, tiempo real]
+    P22[22 · Recursos, auditoría, configuración, tiempo real]
   end
 ```
 
@@ -200,7 +200,7 @@ Lectura: la administración **prepara** el año (gestión, períodos, rúbrica, 
 | 19 | Calendario y actividades | Administración, secretaría (su distrito); todos leen | Calendario · Actividades | 09 |
 | 20 | Avisos (campana) y correos | Automático | Campana · Mi cuenta → Preferencias | 09 |
 | 21 | Gafete con QR, Wallet y verificación pública | Persona, administración | Mi perfil → Mi gafete · `/v/<código>` | 10 |
-| 22 | Servicios transversales: banco de imágenes, auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
+| 22 | Servicios transversales: recursos (antes banco de imágenes), auditoría, configuración general, sincronización en vivo | Varios | Banco · Auditoría · Configuración | 09, 10 |
 
 
 ## 2.3 Qué pasa en un período típico (guion)
@@ -224,7 +224,7 @@ En paralelo, todo el tiempo: el **calendario** muestra fechas, actividades y tar
 | Grupo del menú | Entradas | Procesos que cubre |
 |---|---|---|
 | Centro de control | Panel · Desempeño · Seguimiento | 18 |
-| Operaciones | Evaluar · Tareas · Equipos · Calendario · Imágenes (Banco de imágenes) | 15, 11–14, 10, 19, 22 |
+| Operaciones | Evaluar · Tareas · Equipos · Calendario · Recursos | 15, 11–14, 10, 19, 22 |
 | Organización | Personas · Distritos | 7, 9, 17 |
 | (suelto) | Reportes · Auditoría | 18, 22 |
 | Configuración | Un solo ítem que abre el índice: Períodos, Actividades, Rúbrica, Roles y perfiles, Gestiones, tema, selector de entrada | 5, 6, 8, 19 |
@@ -1236,25 +1236,34 @@ Mi cuenta → Preferencias (o desde el panel de avisos): una lista de los tipos 
 
 Una fila en `notif_tipos`, una entrada en `AVISOS` (`plantillas.mjs`, luego `node tools/generar-correos.mjs`) y una en `Notif.TIPOS`. `tools/pruebas/correo.mjs` falla si alguno de los tres no coincide.
 
-## Proceso 22 (parte) · Banco de imágenes
+## Proceso 22 (parte) · Recursos (antes «Banco de imágenes»)
 
-**Objetivo.** Un lugar común con los **enlaces** a las fotos y videos de cada evento.
+**Objetivo.** Un lugar común con las fotos, videos, enlaces, documentos, plantillas y la **identidad gráfica** (logos, paleta de colores, tipografías) de cada evento. Pedido del dueño: que el banco «no solo sean imágenes o enlaces» sino también «identidad gráfica de n eventos, imágenes, etc.».
 
-**Pantalla.** **Banco de imágenes** (menú: «Imágenes»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
+**Pantalla.** **Recursos** (menú «Recursos»; administración: Operaciones; miembro y secretaría: junto a Mis tareas).
+
+### Qué es un recurso
+
+Una ficha con **título**, **tipo** (imagen o foto, video, enlace, identidad gráfica, documento, plantilla, audio, otro), **evento** (opcional; el mismo texto en varios recursos los agrupa), **categoría** y hasta **8 etiquetas** (opcionales), **descripción** y de 1 a 20 **partes**: enlaces `http(s)` (con nombre opcional: «Logos | https://…»), **colores** (`#RRGGBB`, con nombre opcional) y **tipografías** (nombre, con su uso opcional: «Títulos: Montserrat Bold»). Una identidad gráfica puede tener solo la paleta.
 
 ### Actividades
 
-1. **Ver y buscar**: título, descripción, evento y enlace (Drive, Dropbox…), con búsqueda y filtros (acción bancoFiltrar), agrupado por el rol de quien lo subió.
-2. **Añadir**: título, descripción, evento y **enlace `http(s)`** (inválidos se rechazan: la base lo exige con CHECK y el cliente lo valida).
-3. **Editar o borrar**: quien lo subió o la administración.
-4. Abrir un enlace usa `rel="noopener noreferrer"`.
+1. **Ver y buscar**: tarjetas con icono del tipo, chips (tipo, evento, categoría, rol de quien lo subió), descripción, **muestras de color** (se pulsan para copiar el hex), tipografías, enlaces (Abrir y Copiar) y etiquetas (se pulsan para buscar). Filtros por **tipo**, **evento** y **rol de quien lo subió**; búsqueda por título, evento, etiqueta, color o tipografía (sin importar tildes ni mayúsculas) y **agrupación** por evento (por defecto), por tipo o sin agrupar.
+2. **Añadir**: formulario con título, tipo, evento, categoría, etiquetas, descripción, enlaces (uno por línea), paleta y tipografías; los errores se explican en el propio formulario.
+3. **Editar o borrar**: quien lo subió o la administración. Borrar solo quita la ficha: lo que hay detrás de los enlaces no se toca.
+4. Abrir un enlace usa `rel="noopener noreferrer"` y pestaña nueva.
+5. Estado vacío: «Cuando haya recursos aparecerán aquí». Sin la migración 0071 la pantalla dice cuál falta.
 
-### Reglas (RLS de 0058)
+### Reglas (RLS de 0071, las mismas de 0058)
 
-- **No se guardan archivos**, solo enlaces.
-- **Lee** toda persona con acceso aprobado (decisión **provisional**: el mensaje del dueño llegó cortado; si debe limitarse por rol o distrito, se cambia la política `banco_leer`).
+- **No se guardan archivos**, solo enlaces y texto. Motivo: Storage de pago sin cuotas ni antivirus; un archivo ya descargado no se puede retirar; y un bucket con políticas por carpeta no se puede verificar contra la base viva desde las sesiones de desarrollo. Una identidad gráfica es una colección de enlaces + paleta + tipografías. Si más adelante se quieren subir archivos, el modelo admite una parte nueva `{t:'archivo'}` y un bucket privado con URL firmada (como `capturas-distrito`) sin migrar datos.
+- **Sin vista previa de imágenes remotas**: la CSP (`img-src`) no admite imágenes de otros sitios, y relajarla filtraría la IP de quien mira a cualquier servidor que alguien pegue. Las vistas previas son las **muestras de color** y las tipografías en texto.
+- **Lee** toda persona con acceso aprobado (decisión **provisional**: el mensaje del dueño llegó cortado; si debe limitarse por rol o distrito, se cambia la política `recursos_leer`).
 - **Añade** cualquier persona aprobada en una gestión no archivada.
-- `creado_por`, `gestion_id`, `rol_id` y `distrito` los **fija el servidor** (`banco_fijar`); el rol de quien sube es lo que agrupa «las imágenes de Fotografía».
+- `creado_por`, `gestion_id`, `rol_id`, `distrito` y el origen (`banco_id`) los **fija el servidor** (`recursos_fijar`); el rol de quien sube permite filtrar «los recursos de Fotografía». El servidor también limpia las etiquetas (sin vacías ni repetidas, de 30 caracteres como máximo).
+- **Paridad con el banco**: 0071 copia cada fila de `banco_imagenes` como recurso de tipo imagen, con su enlace como única parte y su autor, rol, distrito y fechas; `banco_imagenes` queda intacta. Volver a ejecutar 0071 copia solo lo que se haya añadido al banco antiguo entre medias.
+- **Tiempo real**: la tabla `recursos` se escucha con `core/sync.js` (tema «recursos») y 0071 la publica.
+- **Sin auditoría** (como el banco): no es información de decisión.
 
 ---
 
@@ -1348,7 +1357,7 @@ Cada **fila** dice qué se configura, muestra el **valor actual** (cuando ya est
 | **Organización** | Gestión · Períodos de evaluación · Distritos · Personas y accesos · Equipos |
 | **Evaluación** | Roles y perfiles · Rúbrica y criterios · Reglas de calificación de tareas (se abren en Tareas) · Niveles de desempeño (solo lectura) |
 | **Calendario y actividades** | Tipos de actividad (las actividades se crean y listan desde el Calendario) · Calendario |
-| **Comunicación** | Avisos y correos (informativo) · Banco de imágenes |
+| **Comunicación** | Avisos y correos (informativo) · Recursos |
 | **Apariencia y entrada** | **Tema** (oscuro/claro/rosa, aquí mismo) · Selector de entrada («Volver a mostrar») · Mi cuenta |
 | **Seguridad y registro** | Auditoría · Gafetes (informativo: se gestionan desde el perfil) · Reportes |
 
@@ -1424,7 +1433,7 @@ Reglas visuales transversales: título de pantalla con 4 niveles de jerarquía; 
 
 ## 11.1 Portal del miembro (`user.html`)
 
-Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Imágenes). Se entra con `Auth.requireRole('miembro')`.
+Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas · Recursos). Se entra con `Auth.requireRole('miembro')`.
 
 | Pantalla | Para qué sirve | Qué se hace | Proceso |
 |---|---|---|---|
@@ -1432,7 +1441,7 @@ Cinco destinos más Mi cuenta (Inicio · Mi perfil · Calendario · Mis tareas �
 | **Mi perfil** | ¿Cómo me va? | Resumen · Criterios · Tareas · Períodos · Desempeño; **Mi gafete** | 18, 21 |
 | **Calendario** | Todas las fechas en un lugar | Ver mes, agenda del día, filtrar por etiqueta | 19 |
 | **Mis tareas** | Mi trabajo | Ver mis tareas, **Empezar**, **Entregar** (con su tipo de entrega), **Bloquear**, **+ Mi iniciativa** (con «¿Quién te evalúa?»: distrital o regional); ver «Mis equipos»; línea de tiempo del período | 11, 12, 13 |
-| **Banco de imágenes** | Enlaces a fotos y videos | Ver, buscar, añadir, editar lo mío | 22 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica de cada evento | Ver, filtrar por tipo/evento/rol, buscar, agrupar, añadir, editar lo mío, copiar enlaces y colores | 22 |
 | **Mi cuenta** | Lo mío | Perfil (foto, nombre, fondo), Mi rol y preferencias, Seguridad, App (tema, instalar, ayuda, cerrar sesión) | 4 |
 
 En un período **clásico**, Mis tareas muestra el antiguo formulario «registrar trabajo».
@@ -1444,7 +1453,7 @@ En un período **clásico**, Mis tareas muestra el antiguo formulario «registra
 Dos grupos: **Mi espacio** (igual que el miembro) y **Mi distrito**. Se entra con `Auth.requireAnyRole(['secretario','miembro'])`.
 
 ### Mi espacio
-**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Imágenes** (Banco de imágenes) y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
+**Inicio** (añade el bloque «Tu distrito» y la **bandeja de trabajo**), **Mi perfil**, **Calendario**, **Mis tareas**, **Recursos** y **Mi cuenta**: como en el miembro. **Sus propias tareas están en Entregas**: no las aprueba ella.
 
 ### Mi distrito
 
@@ -1481,7 +1490,7 @@ Se entra con `Auth.requireAuth(true)` (solo `es_admin`). Al abrir, el **selector
 | **Tareas** | Asignar, revisar y calificar | **Reglas de calificación del PE** (arriba), **+ Nueva tarea**, filtros por estado y persona, **Ver entrega** (con etiqueta de tipo y nivel), **Aprobar y puntuar** (sin peso), **Devolver**, **Mover plazo**, **Anular**, **Corregir/Anular/Restaurar nota**, **Historial** | 11, 14 |
 | **Equipos** | Equipos del período | Crear, añadir/retirar integrantes, cambiar estado, **tarea de equipo**, aportes, calificación grupal, notas individuales, historial | 10, 13 |
 | **Calendario** | Fechas y tareas del mes | Ver, **Nueva actividad**, **Lista de actividades**, crear actividad o asignar tarea desde un día | 19 |
-| **Banco de imágenes** | Enlaces de eventos | Ver, añadir, editar y borrar cualquier ítem | 22 |
+| **Recursos** | Fotos, videos, enlaces e identidad gráfica | Ver, añadir, editar y borrar cualquier recurso | 22 |
 
 ### Organización
 
@@ -1566,7 +1575,7 @@ CSP **en modo enforcing**: `default-src 'self'`; `script-src 'self' https://cdn.
 | **Distritos** | `estadisticas_distrito`, `estadisticas_distrito_hist` |
 | **Calendario** | `calendario` (fechas por período), `actividades`, `actividad_destinatarios`, `etiquetas` |
 | **Avisos** | `notificaciones`, `notificaciones_eventos`, `notif_tipos`, `notif_preferencias`, `notif_senal` |
-| **Soporte** | `auditoria_global`, `banco_imagenes`, `manuales_privados` |
+| **Soporte** | `auditoria_global`, `recursos` (y `banco_imagenes`, que queda como respaldo), `manuales_privados` |
 
 Reglas de datos que cruzan todo:
 
@@ -1657,7 +1666,7 @@ Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de
 | 0053, 0059 | **Rectificación** de evaluaciones y corrección de `UUID` |
 | 0055 | **Auditoría global** |
 | 0056 | Cobertura de evaluación |
-| 0058 | Banco de imágenes |
+| 0058 | Banco de imágenes (sustituido por Recursos en 0071) |
 | 0060 | Texto largo en tareas |
 | 0061 | «Sin tareas, se pierden los puntos» |
 | 0062 | **Dos roles por persona** |
@@ -1665,6 +1674,7 @@ Estado: **aplicadas por el dueño** (incluidas 0059 a 0064 el 15 de noviembre de
 | 0064 | **Sincronización en tiempo real** |
 | 0065 | **Nivel de tarea (distrital/regional), tipo de entrega, peso retirado y quién evalúa la iniciativa** (entregada; **pendiente de aplicar** por el dueño) |
 | 0070 | **Registro con solicitud** (distrito o invitado externo y hasta 2 roles; se aplica al aprobar) |
+| 0071 | **Recursos** (antes banco de imágenes): tipos, evento, etiquetas, partes (enlaces, colores, tipografías); copia el banco sin pérdida |
 
 Huecos de numeración (0027–0029, 0037–0039, 0045–0049): no hay archivos; **no son migraciones perdidas**. `0006_gestion_miembros.PENDIENTE.sql` y `0015_seed_perfiles.PENDIENTE.sql` quedan pendientes a propósito. `supabase-schema.sql` es una **foto histórica**, no la fuente de verdad.
 
@@ -1694,6 +1704,10 @@ Cómo cambiar la base desde ahora: ver `docs/auditoria/06-registro-migraciones.m
 - **Nunca** una segunda fórmula en JavaScript.
 - Cada cambio visual: `contraste.js`, el simulador a 320/390/768/1024/1440/1920 y las pruebas de front.
 - Manuales: se edita el **generador**, no el HTML; se vuelven a capturar las imágenes cuando cambia una pantalla.
+
+## 12.x Recursos (0071): lo que NO se pudo verificar contra la base viva
+
+La migración 0071 se probó con Postgres real (PGlite, RLS real, paridad con datos de 0058, idempotencia, sin 0058) y la pantalla con el simulador, pero **no se aplicó en producción** (las sesiones de desarrollo tienen el conector de Supabase en solo lectura). **No se pudo verificar**: (1) que `ALTER PUBLICATION supabase_realtime ADD TABLE` surta efecto en el proyecto real (en PGlite solo se comprueba que no falle); (2) los datos reales de `banco_imagenes` (se probó con filas de ejemplo; 0071 conserva autor, rol, distrito y fechas); (3) la pantalla contra el servidor real. Después de aplicarla, compara `SELECT count(*) FROM banco_imagenes` con `SELECT count(*) FROM recursos WHERE banco_id IS NOT NULL` y, tras el despliegue, vuelve a ejecutar 0071 por si alguien añadió un enlace al banco antiguo entre medias. Detalle y decisiones (sin archivos, sin vista previa de imágenes remotas): capítulo 09.
 
 ---
 
@@ -1814,7 +1828,7 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 |---|---|---|
 | **1** | **A1 + B5: lista de cierre y lista «Preparar la evaluación»** | Son los dos momentos donde un olvido cuesta más (publicar con reglas sin confirmar, o con personas sin rol); reutilizan datos que ya existen y no mueven pantallas |
 | **2** | **B1: una sola puerta para asignar tareas** | Es la mayor confusión funcional: individuales y de equipo en dos pantallas |
-| **3** | **C1–C4: renombrar** («Mis tareas», «Banco de imágenes», «Personas y accesos», «App y ayuda») | Cuesta casi nada y reduce el «dónde está» |
+| **3** | **C1–C4: renombrar** («Mis tareas», «Recursos» [antes «Banco de imágenes»], «Personas y accesos», «App y ayuda») | Cuesta casi nada y reduce el «dónde está» |
 | **4** | **A2, A3: enlaces** a Mi desempeño y Mi gafete desde Inicio / Mi cuenta | Rescatan funciones que hoy se pierden |
 | **5** | **B2: Actividades dentro del Calendario** | Operación diaria en la pantalla de las fechas |
 | **6** | **B3, B4, A5: enlaces y resúmenes** | Reducen redundancia sin quitar nada |
@@ -1835,7 +1849,7 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 | **B5** | **Preparar la evaluación**: lista de verificación al inicio de Configuración (cada persona con rol y distrito · cada rol en uso con perfil vigente · fechas · reglas confirmadas) | ✅ Aplicado |
 | **B1** | **Una sola puerta para asignar**: **+ Nueva tarea** pregunta «¿para personas o para un equipo?»; se quitó el segundo botón «Nueva tarea de equipo» de la lista | ✅ Aplicado |
 | **C1** | «Entregas» → **«Mis tareas»** (menú, título, ayudas, manuales) | ✅ Aplicado |
-| **C2** | El menú dice **«Imágenes»** (cabe en el menú) y la pantalla **«Banco de imágenes»** | ✅ Aplicado (con matiz: el rótulo del menú es corto para que no se trunque) |
+| **C2** | «Banco» no explica qué es | ✅ Aplicado y superado: el menú y la pantalla se llaman **«Recursos»** (0071, a pedido del dueño) |
 | **C3** | La pantalla se titula **«Personas y accesos»** (el menú conserva «Personas» por el mismo motivo) | ✅ Aplicado (con matiz) |
 | **C4 / A4** | Pestaña **«App y ayuda»** en Mi cuenta | ✅ Aplicado |
 | **A2** | **«Ver mi desempeño»** en la tarjeta «Tu evaluación» de Inicio | ✅ Aplicado |
@@ -1899,7 +1913,7 @@ Cada fila es un **momento** del ciclo, con **quién**, **dónde** y **qué deber
 | 5 | **Entrega tardía**: ¿penalización, etiqueta, o nada? | Solo se mide y se muestra |
 | 6 | **Percentil por técnico o por resultado con tareas** (D-5) | Por técnico |
 | 7 | **Estados «validada/cerrada»** de las estadísticas de Instagram y quién las cierra | Sin definir |
-| 8 | **Banco de imágenes**: ¿lo lee todo el mundo o por rol/distrito? | Lee toda persona aprobada (provisional) |
+| 8 | **Recursos** (antes banco de imágenes): ¿lo lee todo el mundo o por rol/distrito? | Lee toda persona aprobada (provisional) |
 | 9 | **Umbrales de puntuaciones atípicas** (alertas) | Sin definir |
 | 10 | **Reorganización propuesta** (capítulo 13) | A decidir por el dueño |
 

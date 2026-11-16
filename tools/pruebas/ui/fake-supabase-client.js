@@ -8,6 +8,20 @@
   const P = { pe1: 'aaaaaaaa-0000-0000-0000-000000000001', pe2: 'aaaaaaaa-0000-0000-0000-000000000002', pe3: 'aaaaaaaa-0000-0000-0000-000000000003' };
   const hoy = new Date();
   const dia = n => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  // Réplica de los CHECK de la migración 0071 (tipo, título, partes, etiquetas): el simulador rechaza lo mismo que la base.
+  const TIPOS_RECURSO = ['imagen', 'video', 'enlace', 'identidad', 'documento', 'plantilla', 'audio', 'otro'];
+  function validarRecurso(p, pre) {
+    const mal = c => { throw new Error(pre + ' "recursos_' + c + '_check"'); };
+    if (String(p.titulo || '').trim().length < 3) mal('titulo');
+    if (p.tipo != null && !TIPOS_RECURSO.includes(p.tipo)) mal('tipo');
+    const ps = p.partes;
+    if (!Array.isArray(ps) || ps.length < 1 || ps.length > 20) mal('partes');
+    for (const x of ps) {
+      if (!x || typeof x !== 'object' || typeof x.v !== 'string' || String(x.e || '').length > 60) mal('partes');
+      if (x.t === 'enlace' ? !(x.v.length <= 1000 && /^https?:\/\/[^\s]+$/i.test(x.v)) : x.t === 'color' ? !/^#[0-9a-f]{6}$/i.test(x.v) : x.t === 'fuente' ? !(x.v.trim().length >= 1 && x.v.trim().length <= 80) : true) mal('partes');
+    }
+    if ((p.etiquetas || []).length > 8) mal('etiquetas');
+  }
   const ahora = () => new Date().toISOString();
 
   const NUCLEO = [['plazos', 'Cumplimiento de plazos de entrega'], ['respuesta', 'Respuesta y disponibilidad ante requerimientos'],
@@ -71,9 +85,17 @@
     criterios: ['pla', 'rev', 'edi', 'dis', 'flu', 'nar', 'eje'].map((k, i) => ({ id: i + 1, gestion_id: 1, key: k, label: k.toUpperCase() + ' criterio', abbr: k.toUpperCase(), color: '#888888', orden: i, activo: true, max: 4 })),
     rubrica: [{ id: 1, gestion_id: 1, criterio_id: 1, criterio: 'PLA criterio', nivel4: 'Excelente', nivel3: 'Bueno', nivel2: 'En proceso', nivel1: 'Bajo', orden: 1 }],
     calendario: [], config: [], periodo_participantes: [{ periodo_id: P.pe3, user_id: U.m5, activo: false }], trabajos_entregados: [],
-    banco_imagenes: new URLSearchParams(location.search).get('banco') === '0' ? undefined : [
-      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre · escenario', descripcion: 'Fotos del escenario y el público, 24 de octubre.', enlace: 'https://drive.google.com/drive/folders/ejemplo-1', evento: 'Jornada de cierre', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', created_at: '2026-11-05T15:00:00Z', updated_at: '2026-11-05T15:00:00Z' },
-      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', descripcion: '', enlace: 'https://www.dropbox.com/sh/ejemplo-2', evento: 'Taller de fotografía', rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000002', created_at: '2026-11-07T15:00:00Z', updated_at: '2026-11-07T15:00:00Z' },
+    // Recursos (0071). ?recursos=0 (o el antiguo ?banco=0) simula una base SIN la migración 0071: la tabla no existe. ?recursos=vacio: sin recursos.
+    recursos: (() => { const q = new URLSearchParams(location.search); return q.get('recursos') === '0' || q.get('banco') === '0'; })() ? undefined : new URLSearchParams(location.search).get('recursos') === 'vacio' ? [] : [
+      { id: 1, gestion_id: 1, titulo: 'Jornada de cierre · escenario', tipo: 'imagen', descripcion: 'Fotos del escenario y el público, 24 de octubre.', evento: 'Jornada de cierre', categoria: '', etiquetas: [], partes: [{ t: 'enlace', e: '', v: 'https://drive.google.com/drive/folders/ejemplo-1' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', banco_id: 1, created_at: '2026-11-05T15:00:00Z', updated_at: '2026-11-05T15:00:00Z' },
+      { id: 2, gestion_id: 1, titulo: 'Taller de fotografía', tipo: 'imagen', descripcion: '', evento: 'Taller de fotografía', categoria: '', etiquetas: [], partes: [{ t: 'enlace', e: '', v: 'https://www.dropbox.com/sh/ejemplo-2' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000002', banco_id: 2, created_at: '2026-11-07T15:00:00Z', updated_at: '2026-11-07T15:00:00Z' },
+      { id: 3, gestion_id: 1, titulo: 'Identidad gráfica · Jornada de cierre', tipo: 'identidad', descripcion: 'Logos, paleta y tipografías oficiales del evento.', evento: 'Jornada de cierre', categoria: 'Marca', etiquetas: ['logo', 'paleta', '2026'],
+        partes: [{ t: 'enlace', e: 'Logos (SVG y PNG)', v: 'https://drive.google.com/drive/folders/ejemplo-logos' }, { t: 'enlace', e: 'Plantillas en Canva', v: 'https://www.canva.com/design/ejemplo' },
+          { t: 'color', e: 'Azul institucional', v: '#1A4FA0' }, { t: 'color', e: 'Ámbar', v: '#FFC247' }, { t: 'color', e: 'Verde menta', v: '#4ADE9B' }, { t: 'color', e: '', v: '#0B1F3A' },
+          { t: 'fuente', e: 'Títulos', v: 'Montserrat Bold' }, { t: 'fuente', e: 'Texto', v: 'Open Sans' }],
+        rol_id: 2, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000090', banco_id: null, created_at: '2026-11-08T15:00:00Z', updated_at: '2026-11-08T15:00:00Z' },
+      { id: 4, gestion_id: 1, titulo: 'Reel del taller', tipo: 'video', descripcion: 'Resumen de 60 segundos para redes.', evento: 'Taller de fotografía', categoria: 'Redes sociales', etiquetas: ['reel'], partes: [{ t: 'enlace', e: 'Ver en YouTube', v: 'https://www.youtube.com/watch?v=ejemplo' }], rol_id: 1, distrito: '08-01', creado_por: '00000000-0000-0000-0000-000000000001', banco_id: null, created_at: '2026-11-09T15:00:00Z', updated_at: '2026-11-09T15:00:00Z' },
+      { id: 5, gestion_id: 1, titulo: 'Plantilla de historias', tipo: 'plantilla', descripcion: '', evento: '', categoria: 'Redes sociales', etiquetas: ['canva'], partes: [{ t: 'enlace', e: '', v: 'https://www.canva.com/design/plantilla-historias' }], rol_id: null, distrito: null, creado_por: '00000000-0000-0000-0000-000000000090', banco_id: null, created_at: '2026-11-10T15:00:00Z', updated_at: '2026-11-10T15:00:00Z' },
     ],
     etiquetas: [['Entrega', 'coral'], ['Jornada', 'violeta'], ['Capacitación', 'verde'], ['Reunión', 'ambar'], ['Evento', 'cian']].map(([nombre, tono], i) => ({ id: i + 1, gestion_id: 1, nombre, tono, orden: i + 1 })),
     actividades: [
@@ -268,7 +290,7 @@
             const ok = del.filter(c => { if (criterioUsado(c.key)) throw new Error('El criterio ' + c.key + ' esta en uso: solo se puede desactivar.'); return true; });
             ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok;
           }
-          else if (this.t === 'banco_imagenes') { const ok = del.filter(r => esAdmin() || r.creado_por === meId); ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok; }
+          else if (this.t === 'recursos') { const ok = del.filter(r => esAdmin() || r.creado_por === meId); ok.forEach(r => rows.splice(rows.indexOf(r), 1)); out = ok; }
           else { del.forEach(r => rows.splice(rows.indexOf(r), 1)); out = del; }
         } else {
           out = visibles(this.t, rows).filter(r => this.fs.every(f => f(r)));
@@ -312,12 +334,11 @@
         Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, r.id), 0) + 1, orden: p.orden || rows.reduce((m, r) => Math.max(m, r.orden), 0) + 1, created_by: meId, created_at: ahora() });
         rows.push(p); return p;
       }
-      if (this.t === 'banco_imagenes') {
-        if (!/^https?:\/\/[^\s]+$/i.test(String(p.enlace || ''))) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_enlace_check"');
-        if (String(p.titulo || '').trim().length < 3) throw new Error('new row for relation "banco_imagenes" violates check constraint "banco_imagenes_titulo_check"');
+      if (this.t === 'recursos') {
+        validarRecurso(p, 'new row for relation "recursos" violates check constraint');
         const yo = me();
-        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, gestion_id: p.gestion_id ?? 1, creado_por: meId, rol_id: yo?.rol_id ?? null, distrito: yo?.distrito ?? null,
-          descripcion: p.descripcion || '', evento: p.evento || '', created_at: ahora(), updated_at: ahora() });
+        Object.assign(p, { id: rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, gestion_id: p.gestion_id ?? 1, creado_por: meId, rol_id: yo?.rol_id ?? null, distrito: yo?.distrito ?? null, banco_id: null,
+          tipo: p.tipo || 'imagen', descripcion: p.descripcion || '', evento: p.evento || '', categoria: p.categoria || '', etiquetas: p.etiquetas || [], created_at: ahora(), updated_at: ahora() });
         rows.push(p); return p;
       }
       if (this.t === 'actividades' || this.t === 'etiquetas') {
@@ -393,10 +414,10 @@
         Object.assign(r, this.pl); return r;
       }
       if (this.t === 'tareas') { const n = validarTarea(r, { ...r, ...this.pl }); Object.assign(r, n); return r; }
-      if (this.t === 'banco_imagenes') {
+      if (this.t === 'recursos') {
         if (!esAdmin() && r.creado_por !== meId) return r;   // RLS: 0 filas afectadas, sin error
-        const n = { ...this.pl }; delete n.creado_por; delete n.rol_id; delete n.distrito; delete n.gestion_id;
-        if (n.enlace != null && !/^https?:\/\/[^\s]+$/i.test(String(n.enlace))) throw new Error('violates check constraint "banco_imagenes_enlace_check"');
+        const n = { ...this.pl }; delete n.creado_por; delete n.rol_id; delete n.distrito; delete n.gestion_id; delete n.banco_id;
+        validarRecurso({ ...r, ...n }, 'violates check constraint');
         Object.assign(r, n, { updated_at: ahora() }); return r;
       }
       if (this.t === 'actividades' && !esAdmin() && !(esSec() && r.distrito === me().distrito)) throw new Error('row-level security');
